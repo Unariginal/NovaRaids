@@ -1,0 +1,49 @@
+{
+  "pokemon_details": {
+    "species": "eevee",
+    "level": 50,
+    "ability": "adaptability",
+    "nature": "jolly",
+    "form": "normal",
+    "gender": "female",
+    "shiny": false,
+    "scale": 1.0,
+    "held_item": "cobblemon:leftovers",
+    "moves": [
+      "bite",
+      "tackle",
+      "endure",
+      "doubleedge"
+    ],
+    "ivs": {
+      "hp": 0,
+      "atk": 0,
+      "def": 0,
+      "sp_atk": 0,
+      "sp_def": 0,
+      "spd": 0
+    },
+    "evs": {
+      "hp": 0,
+      "atk": 0,
+      "def": 0,
+      "sp_atk": 0,
+      "sp_def": 0,
+      "spd": 0
+    }
+  },
+  "boss_details": {
+    "base_health": 1000,
+    "category": "common",
+    "locations": [
+      {
+        "location": "center_location",
+        "weight": 50.0
+      },
+      {
+        "location": "left_location",
+        "weight": 50.0
+      }
+    ]
+  }
+}

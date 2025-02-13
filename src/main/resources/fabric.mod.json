@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "novaraids",
+  "version": "${version}",
+  "name": "NovaRaids",
+  "description": "Raid event handler for Cobblemon",
+  "authors": [],
+  "contact": {},
+  "license": "All-Rights-Reserved",
+  "icon": "assets/novaraids/icon.png",
+  "environment": "server",
+  "entrypoints": {
+    "main": [
+      "me.unariginal.novaraids.NovaRaids"
+    ]
+  },
+  "mixins": [
+    "novaraids.mixins.json",
+    {
+      "config": "novaraids.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric": "*",
+    "minecraft": "${minecraft_version}",
+    "cobblemon": ">=${cobblemon_version}"
+  }
+}

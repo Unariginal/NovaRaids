@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "me.unariginal.novaraids.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "PreventDrops"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

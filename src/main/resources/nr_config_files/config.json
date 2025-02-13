@@ -1,0 +1,40 @@
+{
+  "timezone": "est",
+  "raid_settings": {
+    "raid_radius": 30,
+    "raid_pushback_radius": 5,
+    "bosses_glow": false,
+    "do_health_scaling": true,
+    "health_increase_per_player": 100,
+    "setup_phase_time": 30,
+    "fight_phase_time": 600,
+    "pre_catch_phase_time": 30,
+    "catch_phase_time": 180,
+    "banned_section": {
+      "banned_pokemon": [
+        "weedle",
+        "caterpie"
+      ],
+      "banned_moves": [
+        "tackle",
+        "bite"
+      ],
+      "banned_abilities": [
+        "wonderguard",
+        "healer"
+      ],
+      "banned_held_items": [
+        "cobblemon:leftovers"
+      ],
+      "banned_bag_items": [
+        "cobblemon:revive"
+      ]
+    },
+    "items": {
+      "voucher_item": "minecraft:feather",
+      "pass_item": "minecraft:paper",
+      "use_raid_pokeballs": true,
+      "raid_pokeball": "cobblemon:premier_ball"
+    }
+  }
+}

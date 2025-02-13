@@ -1,0 +1,50 @@
+{
+  "setup_phase": {
+    "phase": "setup",
+    "use_overlay": true,
+    "overlay_text": "<gold>Raid starts in %phase_timer%",
+    "bar_color": "blue",
+    "bar_style": "progress",
+    "bar_text": "<blue>Prepare for battle against %form% %pokemon%!",
+    "bosses": [],
+    "categories": [
+      "common"
+    ]
+  },
+  "fight_phase": {
+    "phase": "fight",
+    "use_overlay": true,
+    "overlay_text": "<red>Raid ends in %phase_timer% <dark_gray>| <red>HP %current_hp%/%max_hp%",
+    "bar_color": "red",
+    "bar_style": "notched_20",
+    "bar_text": "<red>Boss %form% %pokemon%",
+    "bosses": [],
+    "categories": [
+      "common"
+    ]
+  },
+  "pre_catch_phase": {
+    "phase": "pre_catch",
+    "use_overlay": true,
+    "overlay_text": "<red>Catching event starts in %phase_timer%",
+    "bar_color": "red",
+    "bar_style": "progress",
+    "bar_text": "<red>Catching event starts soon, get to a safe place!",
+    "bosses": [],
+    "categories": [
+      "common"
+    ]
+  },
+  "catch_phase": {
+    "phase": "catch",
+    "use_overlay": true,
+    "overlay_text": "<yellow>Catching event ends in %phase_timer%",
+    "bar_color": "yellow",
+    "bar_style": "progress",
+    "bar_text": "<yellow>Time to catch %pokemon%",
+    "bosses": [],
+    "categories": [
+      "common"
+    ]
+  }
+}
