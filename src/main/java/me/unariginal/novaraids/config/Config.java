@@ -17,6 +17,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.mojang.datafixers.util.Pair;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.JsonOps;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.Boss;
 import me.unariginal.novaraids.data.BossbarData;
@@ -24,6 +27,9 @@ import me.unariginal.novaraids.data.Category;
 import me.unariginal.novaraids.data.Location;
 import me.unariginal.novaraids.managers.Messages;
 import net.fabricmc.loader.api.FabricLoader;
+import net.kyori.adventure.text.ComponentBuilder;
+import net.minecraft.component.ComponentChanges;
+import net.minecraft.component.ComponentMap;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
@@ -142,6 +148,7 @@ public class Config {
         boolean bosses_glow = settingsObject.get("bosses_glow").getAsBoolean();
         boolean do_health_scaling = settingsObject.get("do_health_scaling").getAsBoolean();
         int health_increase = settingsObject.get("health_increase_per_player").getAsInt();
+        boolean do_catch_phase = settingsObject.get("do_catch_phase").getAsBoolean();
         int setup_phase_time = settingsObject.get("setup_phase_time").getAsInt();
         int fight_phase_time = settingsObject.get("fight_phase_time").getAsInt();
         int pre_catch_phase_time = settingsObject.get("pre_catch_phase_time").getAsInt();
@@ -200,12 +207,38 @@ public class Config {
         Item pass_item = Registries.ITEM.get(Identifier.of(items.get("pass_item").getAsString()));
 
         boolean use_raid_pokeballs = items.get("use_raid_pokeballs").getAsBoolean();
-        Item raid_pokeball = Items.AIR;
+        Item raid_pokeball = null;
+        JsonElement raid_pokeball_data;
+        ComponentChanges component_changes = null;
         if (use_raid_pokeballs) {
             raid_pokeball = Registries.ITEM.get(Identifier.of(items.get("raid_pokeball").getAsString()));
+            raid_pokeball_data = items.get("raid_pokeball_data");
+            DataResult<Pair<ComponentChanges, JsonElement>> data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, raid_pokeball_data);
+            component_changes = data.getOrThrow().getFirst();
         }
 
-        this.settings = new Settings(raid_radius, raid_pushback_radius, bosses_glow, do_health_scaling, health_increase, setup_phase_time, fight_phase_time, pre_catch_phase_time, catch_phase_time, banned_pokemon_list, banned_move_list, banned_abilities_list, banned_held_item_list, banned_bag_item_list, voucher_item, pass_item, use_raid_pokeballs, raid_pokeball);
+        this.settings = new Settings(
+                raid_radius,
+                raid_pushback_radius,
+                bosses_glow,
+                do_health_scaling,
+                health_increase,
+                do_catch_phase,
+                setup_phase_time,
+                fight_phase_time,
+                pre_catch_phase_time,
+                catch_phase_time,
+                banned_pokemon_list,
+                banned_move_list,
+                banned_abilities_list,
+                banned_held_item_list,
+                banned_bag_item_list,
+                voucher_item,
+                pass_item,
+                use_raid_pokeballs,
+                raid_pokeball,
+                component_changes
+        );
     }
 
     private void loadCategories() {
@@ -268,7 +301,11 @@ public class Config {
                         Gender gender = Gender.valueOf(pokemon_details.get("gender").getAsString().toUpperCase());
                         boolean shiny = pokemon_details.get("shiny").getAsBoolean();
                         float scale = pokemon_details.get("scale").getAsFloat();
-                        Item held_item = Registries.ITEM.get(Identifier.of(pokemon_details.get("held_item").getAsString()));
+                        String held_item_string = pokemon_details.get("held_item").getAsString();
+                        Item held_item = null;
+                        if (held_item_string != null && !held_item_string.isEmpty()) {
+                            held_item = Registries.ITEM.get(Identifier.of(pokemon_details.get("held_item").getAsString()));
+                        }
 
                         MoveSet moves = new MoveSet();
                         JsonArray moves_list = pokemon_details.getAsJsonArray("moves");
@@ -309,6 +346,8 @@ public class Config {
                             double weight = locationObject.get("weight").getAsDouble();
                             spawn_locations.put(location, weight);
                         }
+
+
                         bossesList.add(new Boss(bossFile.getName().replace(".json", ""), species, level, ability, nature, form, gender, shiny, scale, held_item, moves, ivs, evs, base_health, category, spawn_locations));
                     } else {
                         nr.logger().error("[RAIDS] Invalid Ability: {}", pokemon_details.get("ability").getAsString());

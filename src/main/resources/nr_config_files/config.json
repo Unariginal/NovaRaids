@@ -6,6 +6,7 @@
     "bosses_glow": false,
     "do_health_scaling": true,
     "health_increase_per_player": 100,
+    "do_catch_phase": true,
     "setup_phase_time": 30,
     "fight_phase_time": 600,
     "pre_catch_phase_time": 30,
@@ -34,7 +35,8 @@
       "voucher_item": "minecraft:feather",
       "pass_item": "minecraft:paper",
       "use_raid_pokeballs": true,
-      "raid_pokeball": "cobblemon:premier_ball"
+      "raid_pokeball": "cobblemon:premier_ball",
+      "raid_pokeball_data": ""
     }
   }
 }

@@ -1,0 +1,88 @@
+{
+  "rewards": {
+    "item_reward_example": {
+      "type": "item",
+      "item": "minecraft:dirt",
+      "count": 16
+    },
+    "command_reward_example": {
+      "type": "command",
+      "commands": [
+        "say Command 1",
+        "say Command 2"
+      ]
+    },
+    "pokemon_reward_example": {
+      "type": "pokemon",
+      "pokemon": {
+        "species": "eevee",
+        "level": 50,
+        "ability": "adaptability",
+        "nature": "jolly",
+        "form": "normal",
+        "gender": "female",
+        "shiny": false,
+        "scale": 1.0,
+        "held_item": "cobblemon:leftovers",
+        "moves": [
+          "bite",
+          "tackle",
+          "endure",
+          "doubleedge"
+        ],
+        "ivs": {
+          "hp": 0,
+          "atk": 0,
+          "def": 0,
+          "sp_atk": 0,
+          "sp_def": 0,
+          "spd": 0
+        },
+        "evs": {
+          "hp": 0,
+          "atk": 0,
+          "def": 0,
+          "sp_atk": 0,
+          "sp_def": 0,
+          "spd": 0
+        }
+      }
+    }
+  },
+  "reward_pools": {
+    "pool_example_1": {
+      "allow_duplicates": true,
+      "rolls": {
+        "min": 1,
+        "max": 5
+      },
+      "rewards": [
+        {
+          "reward": "item_reward_example",
+          "weight": 25.0
+        },
+        {
+          "reward": "command_reward_example",
+          "weight": 50.0
+        },
+        {
+          "reward": "pokemon_reward_example",
+          "weight": 5.0
+        }
+      ]
+    },
+    "pool_example_2": {
+      "allow_duplicates": false,
+      "rolls": {
+        "min": 1,
+        "max": 1
+      },
+      "rewards": [
+        {
+          "reward": "pokemon_reward_example",
+          "weight": 5.0
+        }
+      ]
+    }
+  }
+}

@@ -34,7 +34,9 @@ public record Boss(String name,
         pokemon.setGender(gender);
         pokemon.setShiny(shiny);
         pokemon.setScaleModifier(scale);
-        pokemon.setHeldItem$common(held_item.getDefaultStack());
+        if (held_item != null) {
+            pokemon.setHeldItem$common(held_item.getDefaultStack());
+        }
         pokemon.getMoveSet().setMove(0, moves.get(0));
         pokemon.getMoveSet().setMove(1, moves.get(1));
         pokemon.getMoveSet().setMove(2, moves.get(2));

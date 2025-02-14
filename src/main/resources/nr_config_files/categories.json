@@ -14,6 +14,33 @@
       "12:00:00",
       "16:00:00",
       "21:15:00"
+    ],
+    "rewards": [
+      {
+        "places": ["1"],
+        "reward_pools": [
+          "pool_example_2"
+        ]
+      },
+      {
+        "places": ["1", "2", "3"],
+        "reward_pools": [
+          "pool_example_1"
+        ]
+      },
+      {
+        "places": ["participating"],
+        "reward_pools": [
+          "pool_example_1",
+          "pool_example_2"
+        ]
+      },
+      {
+        "places": ["25%"],
+        "reward_pools": [
+          "pool_example_2"
+        ]
+      }
     ]
   },
   "uncommon": {

@@ -1,9 +1,11 @@
 package me.unariginal.novaraids.commands;
 
+import com.cobblemon.mod.common.Cobblemon;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.serialization.JsonOps;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.Boss;
@@ -11,7 +13,9 @@ import me.unariginal.novaraids.data.Category;
 import me.unariginal.novaraids.data.Location;
 import me.unariginal.novaraids.managers.Raid;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.kyori.adventure.text.event.DataComponentValue;
 import net.minecraft.command.argument.EntityArgumentType;
+import net.minecraft.component.ComponentChanges;
 import net.minecraft.component.ComponentMap;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.LoreComponent;
@@ -235,10 +239,10 @@ public class RaidCommands {
             Item pass_item = nr.config().getSettings().pass_item();
             Item raid_pokeball = nr.config().getSettings().raid_pokeball();
 
-            ItemStack item_to_give;
+            ItemStack item_to_give = null;
             NbtCompound custom_data = new NbtCompound();
             ComponentMap.Builder component_builder = ComponentMap.builder();
-            Text item_name;
+            Text item_name = null;
             LoreComponent lore = LoreComponent.DEFAULT;
 
             Random rand = new Random();
@@ -313,23 +317,34 @@ public class RaidCommands {
                     lore = lore.with(Text.literal("Use to start a " + boss_name + " raid!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
                 }
             } else {
-                item_to_give = new ItemStack(raid_pokeball, IntegerArgumentType.getInteger(ctx, "amount"));
-                custom_data.putString("raid_item", "raid_ball");
-                custom_data.putUuid("owner_uuid", target_player.getUuid());
-                item_name = Text.literal("Raid Pokeball").styled(style -> style.withItalic(false).withColor(Formatting.RED));
-                lore = lore.with(Text.literal("Use this to try and capture raid bosses!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
+                if (raid_pokeball != null) {
+                    item_to_give = new ItemStack(raid_pokeball, IntegerArgumentType.getInteger(ctx, "amount"));
+                    custom_data.putString("raid_item", "raid_ball");
+                    custom_data.putUuid("owner_uuid", target_player.getUuid());
+                    item_name = Text.literal("Raid Pokeball").styled(style -> style.withItalic(false).withColor(Formatting.RED));
+                    lore = lore.with(Text.literal("Use this to try and capture raid bosses!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
+                    if (nr.config().getSettings().component_changes() != null) {
+                        item_to_give.applyChanges(nr.config().getSettings().component_changes());
+                    }
+                } else {
+                    source_player.sendMessage(Text.literal("Raid Pokeball not found!"));
+                }
             }
 
-            item_to_give.applyComponentsFrom(component_builder
-                    .add(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(custom_data))
-                    .add(DataComponentTypes.ITEM_NAME, item_name)
-                    .add(DataComponentTypes.LORE, lore)
-                    .build());
-            if (!target_player.giveItemStack(item_to_give)) {
-                source_player.sendMessage(Text.of("Failed to give the item!"));
+            if (item_to_give != null && item_name != null) {
+                item_to_give.applyComponentsFrom(component_builder
+                        .add(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(custom_data))
+                        .add(DataComponentTypes.ITEM_NAME, item_name)
+                        .add(DataComponentTypes.LORE, lore)
+                        .build());
+                if (!target_player.giveItemStack(item_to_give)) {
+                    source_player.sendMessage(Text.of("Failed to give the item!"));
+                } else {
+                    target_player.sendMessage(Text.of("You received a raid " + item_type + "!"));
+                    source_player.sendMessage(Text.of("Successfully gave the item!"));
+                }
             } else {
-                target_player.sendMessage(Text.of("You received a raid " + item_type + "!"));
-                source_player.sendMessage(Text.of("Successfully gave the item!"));
+                source_player.sendMessage(Text.literal("Failed to give item"));
             }
         } catch (CommandSyntaxException e) {
             source_player.sendMessage(Text.of("Error: " + e.getMessage()));
