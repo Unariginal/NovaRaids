@@ -1,4 +1,4 @@
-//package me.unariginal.compoundraids.mixin;
+//package me.unariginal.novaraids.mixin;
 //
 //import com.cobblemon.mod.common.entity.pokeball.EmptyPokeBallEntity;
 //import com.cobblemon.mod.common.item.PokeBallItem;

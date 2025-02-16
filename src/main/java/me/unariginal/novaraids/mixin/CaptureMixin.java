@@ -1,11 +1,11 @@
-//package me.unariginal.compoundraids.mixin;
+//package me.unariginal.novaraids.mixin;
 //
 //import com.cobblemon.mod.common.entity.pokeball.EmptyPokeBallEntity;
 //import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 //import com.mojang.serialization.Codec;
-//import me.unariginal.compoundraids.CompoundRaids;
-//import me.unariginal.compoundraids.managers.EventManager;
-//import me.unariginal.compoundraids.managers.Raid;
+//import me.unariginal.novaraids.NovaRaids;
+//import me.unariginal.novaraids.managers.EventManager;
+//import me.unariginal.novaraids.managers.Raid;
 //import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
 //import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
 //import net.minecraft.component.ComponentMap;

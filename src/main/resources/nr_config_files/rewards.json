@@ -3,13 +3,17 @@
     "item_reward_example": {
       "type": "item",
       "item": "minecraft:dirt",
-      "count": 16
+      "data": "",
+      "count": {
+        "min": 1,
+        "max": 16
+      }
     },
     "command_reward_example": {
       "type": "command",
       "commands": [
-        "say Command 1",
-        "say Command 2"
+        "say Command 1: %player% won the reward!",
+        "say Command 2: Idk just for fun"
       ]
     },
     "pokemon_reward_example": {

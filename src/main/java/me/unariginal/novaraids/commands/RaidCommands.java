@@ -1,6 +1,8 @@
 package me.unariginal.novaraids.commands;
 
 import com.cobblemon.mod.common.Cobblemon;
+import com.cobblemon.mod.common.api.storage.party.PlayerPartyStore;
+import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -42,12 +44,12 @@ public class RaidCommands {
             CommandManager.literal("raid")
                     .then(
                             CommandManager.literal("reload")
-                                    .requires(Permissions.require("compoundraids.reload", 4))
+                                    .requires(Permissions.require("novaraids.reload", 4))
                                     .executes(this::reload)
                     )
                     .then(
                             CommandManager.literal("start")
-                                    .requires(Permissions.require("compoundraids.start", 4))
+                                    .requires(Permissions.require("novaraids.start", 4))
                                     .then(
                                             CommandManager.argument("boss", StringArgumentType.string())
                                                     .suggests(new BossSuggestions())
@@ -80,7 +82,7 @@ public class RaidCommands {
                     )
                     .then(
                             CommandManager.literal("stop")
-                                    .requires(Permissions.require("compoundraids.stop", 4))
+                                    .requires(Permissions.require("novaraids.stop", 4))
                                     .then(
                                             CommandManager.argument("id", IntegerArgumentType.integer(1))
                                                     .executes(this::stop)
@@ -88,7 +90,7 @@ public class RaidCommands {
                     )
                     .then(
                             CommandManager.literal("give")
-                                    .requires(Permissions.require("compoundraids.give", 4))
+                                    .requires(Permissions.require("novaraids.give", 4))
                                     .then(
                                             CommandManager.argument("player", EntityArgumentType.player())
                                                     .then(
@@ -155,12 +157,12 @@ public class RaidCommands {
                     )
                     .then(
                             CommandManager.literal("list")
-                                    .requires(Permissions.require("compoundraids.list", 4))
+                                    .requires(Permissions.require("novaraids.list", 4))
                                     .executes(this::list)
                     )
                     .then(
                             CommandManager.literal("join")
-                                    .requires(Permissions.require("compoundraids.join", 4))
+                                    .requires(Permissions.require("novaraids.join", 4))
                                     .then(
                                             CommandManager.argument("id", IntegerArgumentType.integer(1))
                                                     .executes(ctx -> {

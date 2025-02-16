@@ -1,0 +1,148 @@
+package me.unariginal.novaraids.data.rewards;
+
+import com.cobblemon.mod.common.api.Priority;
+import com.cobblemon.mod.common.api.abilities.Abilities;
+import com.cobblemon.mod.common.api.abilities.Ability;
+import com.cobblemon.mod.common.api.abilities.AbilityTemplate;
+import com.cobblemon.mod.common.api.moves.MoveSet;
+import com.cobblemon.mod.common.api.moves.MoveTemplate;
+import com.cobblemon.mod.common.api.moves.Moves;
+import com.cobblemon.mod.common.api.pokemon.Natures;
+import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
+import com.cobblemon.mod.common.api.pokemon.PokemonSpecies;
+import com.cobblemon.mod.common.pokemon.*;
+import com.google.gson.JsonElement;
+import com.mojang.serialization.JsonOps;
+import net.minecraft.component.ComponentChanges;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.util.Identifier;
+
+import java.util.List;
+
+public class PokemonReward extends Reward {
+    private final String species;
+    private final int level;
+    private final String ability;
+    private final String nature;
+    private final String form;
+    private final String gender;
+    private final boolean shiny;
+    private final float scale;
+    private final String held_item;
+    private final JsonElement held_item_data;
+    private final List<String> move_set;
+    private final IVs ivs;
+    private final EVs evs;
+
+    public PokemonReward(String name, String species, int level, String ability, String nature, String form, String gender, boolean shiny, float scale, String held_item, JsonElement held_item_data, List<String> move_set, IVs ivs, EVs evs) {
+        super(name, "pokemon");
+        this.species = species;
+        this.level = level;
+        this.ability = ability;
+        this.nature = nature;
+        this.form = form;
+        this.gender = gender;
+        this.shiny = shiny;
+        this.scale = scale;
+        this.held_item = held_item;
+        this.held_item_data = held_item_data;
+        this.move_set = move_set;
+        this.ivs = ivs;
+        this.evs = evs;
+    }
+
+    public Species species() {
+        return PokemonSpecies.INSTANCE.getByName(species);
+    }
+
+    public int level() {
+        return level;
+    }
+
+    public Ability ability() {
+        AbilityTemplate abilityTemplate = Abilities.INSTANCE.get(ability);
+        assert abilityTemplate != null;
+        return abilityTemplate.create(false, Priority.LOWEST);
+    }
+
+    public Nature nature() {
+        return Natures.INSTANCE.getNature(nature);
+    }
+
+    public PokemonProperties form() {
+        return PokemonProperties.Companion.parse(form);
+    }
+
+    public Gender gender() {
+        return Gender.valueOf(gender.toUpperCase());
+    }
+
+    public boolean shiny() {
+        return shiny;
+    }
+
+    public float scale() {
+        return scale;
+    }
+
+    public Item held_item() {
+        return Registries.ITEM.get(Identifier.of(held_item));
+    }
+
+    public ComponentChanges held_item_data() {
+        return ComponentChanges.CODEC.decode(JsonOps.INSTANCE, held_item_data).getOrThrow().getFirst();
+    }
+
+    public ItemStack held_item_stack() {
+        ItemStack stack = new ItemStack(held_item());
+        stack.applyChanges(held_item_data());
+        return stack;
+    }
+
+    public MoveSet moves() {
+        int index = 0;
+        MoveSet moves = new MoveSet();
+        for (String move : move_set) {
+            MoveTemplate moveTemplate = Moves.INSTANCE.getByName(move);
+            if (moveTemplate != null) {
+                moves.setMove(index, moveTemplate.create());
+                index++;
+            }
+        }
+        return moves;
+    }
+
+    public IVs ivs() {
+        return ivs;
+    }
+
+    public EVs evs() {
+        return evs;
+    }
+
+    public Pokemon getReward() {
+        Pokemon pokemon = new Pokemon();
+        pokemon.setSpecies(species());
+        pokemon.setLevel(level());
+        pokemon.updateAbility(ability());
+        pokemon.setNature(nature());
+        form().apply(pokemon);
+        pokemon.setGender(gender());
+        pokemon.setShiny(shiny());
+        pokemon.setScaleModifier(scale());
+        if (held_item() != null) {
+            pokemon.setHeldItem$common(held_item_stack());
+        }
+        pokemon.getMoveSet().setMove(0, moves().get(0));
+        pokemon.getMoveSet().setMove(1, moves().get(1));
+        pokemon.getMoveSet().setMove(2, moves().get(2));
+        pokemon.getMoveSet().setMove(3, moves().get(3));
+        pokemon.setIvs$common(ivs());
+        pokemon.setEvs$common(evs());
+
+        return pokemon;
+    }
+}

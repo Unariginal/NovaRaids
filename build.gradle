@@ -15,7 +15,7 @@ loom {
     splitEnvironmentSourceSets()
 
     mods {
-        "compoundraids" {
+        "novaraids" {
             sourceSet sourceSets.main
             sourceSet sourceSets.client
         }
