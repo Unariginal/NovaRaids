@@ -19,11 +19,12 @@ public class CommandReward extends Reward {
         return commands;
     }
 
-    public void getReward(ServerPlayerEntity player) {
+    @Override
+    public void apply_reward(ServerPlayerEntity player) {
         CommandManager cmdManager = Objects.requireNonNull(player.getServer()).getCommandManager();
         ServerCommandSource source = player.getServer().getCommandSource();
         for (String command : commands) {
-            cmdManager.executeWithPrefix(source, command);
+            cmdManager.executeWithPrefix(source, command.replaceAll("%player%", player.getNameForScoreboard()));
         }
     }
 }

@@ -6,6 +6,7 @@ import net.minecraft.component.ComponentChanges;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 
 import java.util.Random;
@@ -40,11 +41,12 @@ public class ItemReward extends Reward {
         return maxCount;
     }
 
-    public ItemStack getReward() {
+    @Override
+    public void apply_reward(ServerPlayerEntity player) {
         ItemStack reward = new ItemStack(item());
         Random rand = new Random();
-        reward.setCount(rand.nextInt(minCount, maxCount + 1));
+        reward.setCount(rand.nextInt(minCount(), maxCount() + 1));
         reward.applyChanges(data());
-        return reward;
+        player.giveItemStack(reward);
     }
 }

@@ -53,7 +53,8 @@
       "min": 3600,
       "max": 7200
     },
-    "set_times": []
+    "set_times": [],
+    "rewards": []
   },
   "rare": {
     "require_voucher": true,
@@ -70,7 +71,8 @@
       "12:00:00",
       "16:00:00",
       "21:15:00"
-    ]
+    ],
+    "rewards": []
   },
   "legendary": {
     "require_voucher": true,
@@ -82,6 +84,7 @@
       "min": 3600,
       "max": 7200
     },
-    "set_times": []
+    "set_times": [],
+    "rewards": []
   }
 }

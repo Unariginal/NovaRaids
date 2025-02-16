@@ -1,6 +1,5 @@
 package me.unariginal.novaraids.config;
 
-import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.Priority;
 import com.cobblemon.mod.common.api.abilities.Abilities;
 import com.cobblemon.mod.common.api.abilities.Ability;
@@ -26,13 +25,11 @@ import me.unariginal.novaraids.data.Boss;
 import me.unariginal.novaraids.data.BossbarData;
 import me.unariginal.novaraids.data.Category;
 import me.unariginal.novaraids.data.Location;
+import me.unariginal.novaraids.data.rewards.*;
 import me.unariginal.novaraids.managers.Messages;
 import net.fabricmc.loader.api.FabricLoader;
-import net.kyori.adventure.text.ComponentBuilder;
 import net.minecraft.component.ComponentChanges;
-import net.minecraft.component.ComponentMap;
 import net.minecraft.item.Item;
-import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
@@ -50,6 +47,8 @@ public class Config {
     private List<Boss> bosses;
     private List<Location> locations;
     private List<BossbarData> bossbars;
+    private List<Reward> rewards;
+    private List<RewardPool> reward_pools;
 
     public Config() {
         try {
@@ -64,6 +63,8 @@ public class Config {
         loadLocations();
         loadBossBars();
         loadMessages();
+        loadRewards();
+        loadRewardPools();
     }
 
     private void checkFiles() throws IOException {
@@ -87,7 +88,8 @@ public class Config {
                 "messages",
                 "bossbars",
                 "categories",
-                "rewards"
+                "rewards",
+                "reward_pools"
         };
 
         for (String fileName : fileNames) {
@@ -271,7 +273,16 @@ public class Config {
                 set_times_list.add(LocalTime.parse(time));
             }
 
-            categoriesList.add(new Category(category, require_voucher, min_players, max_players, min_wait_time, max_wait_time, set_times_list));
+            JsonArray rewards = categoryObject.getAsJsonArray("rewards");
+            Map<List<String>, List<String>> rewards_map = new HashMap<>();
+            for (JsonElement element : rewards) {
+                JsonObject reward = element.getAsJsonObject();
+                List<String> places = reward.getAsJsonArray("places").asList().stream().map(JsonElement::getAsString).toList();
+                List<String> reward_pools = reward.getAsJsonArray("reward_pools").asList().stream().map(JsonElement::getAsString).toList();
+                rewards_map.put(places, reward_pools);
+            }
+
+            categoriesList.add(new Category(category, require_voucher, min_players, max_players, min_wait_time, max_wait_time, set_times_list, rewards_map));
         }
         this.categories = categoriesList;
     }
@@ -429,6 +440,89 @@ public class Config {
         this.messages = new Messages(prefix, messages_map);
     }
 
+    private void loadRewards() {
+        File rewardsFile = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/rewards.json").toFile();
+        JsonElement root = getRoot(rewardsFile);
+        assert root != null;
+        JsonObject rewardsObject = root.getAsJsonObject();
+        List<Reward> rewardsList = new ArrayList<>();
+        for (String key : rewardsObject.keySet()) {
+            JsonObject rewardObject = rewardsObject.getAsJsonObject(key);
+            String type = rewardObject.get("type").getAsString();
+            Reward reward = null;
+            if (type.equalsIgnoreCase("item")) {
+                String item = rewardObject.get("item").getAsString();
+                JsonElement data = rewardObject.get("data");
+                JsonObject count = rewardObject.getAsJsonObject("count");
+                int min_count = count.get("min").getAsInt();
+                int max_count = count.get("max").getAsInt();
+                reward = new ItemReward(key, item, data, min_count, max_count);
+            } else if (type.equalsIgnoreCase("command")) {
+                List<String> commands = rewardObject.getAsJsonArray("commands").asList().stream().map(JsonElement::getAsString).toList();
+                reward = new CommandReward(key, commands);
+            } else if (type.equalsIgnoreCase("pokemon")) {
+                String species = rewardObject.get("species").getAsString();
+                int level = rewardObject.get("level").getAsInt();
+                String ability = rewardObject.get("ability").getAsString();
+                String nature = rewardObject.get("nature").getAsString();
+                String form = rewardObject.get("form").getAsString();
+                String gender = rewardObject.get("gender").getAsString();
+                boolean shiny = rewardObject.get("shiny").getAsBoolean();
+                float scale = rewardObject.get("scale").getAsFloat();
+                String held_item = rewardObject.get("held_item").getAsString();
+                JsonElement held_item_data = rewardObject.get("held_item_data");
+                List<String> move_set = rewardsObject.getAsJsonArray("moves").asList().stream().map(JsonElement::getAsString).toList();
+                JsonObject ivObject = rewardObject.getAsJsonObject("ivs");
+                IVs ivs = new IVs();
+                ivs.set(Stats.HP, ivObject.get("hp").getAsInt());
+                ivs.set(Stats.ATTACK, ivObject.get("atk").getAsInt());
+                ivs.set(Stats.DEFENCE, ivObject.get("def").getAsInt());
+                ivs.set(Stats.SPECIAL_ATTACK, ivObject.get("sp_atk").getAsInt());
+                ivs.set(Stats.SPECIAL_DEFENCE, ivObject.get("sp_def").getAsInt());
+                ivs.set(Stats.SPEED, ivObject.get("speed").getAsInt());
+                JsonObject evObject = rewardObject.getAsJsonObject("evs");
+                EVs evs = new EVs();
+                evs.set(Stats.HP, evObject.get("hp").getAsInt());
+                evs.set(Stats.ATTACK, evObject.get("atk").getAsInt());
+                evs.set(Stats.DEFENCE, evObject.get("def").getAsInt());
+                evs.set(Stats.SPECIAL_ATTACK, evObject.get("sp_atk").getAsInt());
+                evs.set(Stats.SPECIAL_DEFENCE, evObject.get("sp_def").getAsInt());
+                evs.set(Stats.SPEED, evObject.get("speed").getAsInt());
+
+                reward = new PokemonReward(key, species, level, ability, nature, form, gender, shiny, scale, held_item, held_item_data, move_set, ivs, evs);
+            } else {
+                nr.logger().error("Unknown reward type: {}", type);
+            }
+            rewardsList.add(reward);
+        }
+        rewards = rewardsList;
+    }
+
+    private void loadRewardPools() {
+        File rewardPoolsFile = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/reward_pools.json").toFile();
+        JsonElement root = getRoot(rewardPoolsFile);
+        assert root != null;
+        JsonObject rewardPoolsObject = root.getAsJsonObject();
+        List<RewardPool> rewardPools = new ArrayList<>();
+        for (String key : rewardPoolsObject.keySet()) {
+            JsonObject rewardPoolObject = rewardPoolsObject.getAsJsonObject(key);
+            boolean allow_duplicates = rewardPoolObject.get("allow_duplicates").getAsBoolean();
+            JsonObject rolls = rewardPoolObject.getAsJsonObject("rolls");
+            int min_rolls = rolls.get("min").getAsInt();
+            int max_rolls = rolls.get("max").getAsInt();
+            JsonArray rewards = rewardPoolObject.getAsJsonArray("rewards");
+            Map<String, Double> rewards_map = new HashMap<>();
+            for (JsonElement reward : rewards) {
+                JsonObject rewardObject = reward.getAsJsonObject();
+                String reward_name = rewardObject.get("reward").getAsString();
+                double weight = rewardObject.get("weight").getAsDouble();
+                rewards_map.put(reward_name, weight);
+            }
+            rewardPools.add(new RewardPool(key, allow_duplicates, min_rolls, max_rolls, rewards_map));
+        }
+        reward_pools = rewardPools;
+    }
+
     public Settings getSettings() {
         return settings;
     }
@@ -458,6 +552,32 @@ public class Config {
         for (Boss boss : bosses) {
             if (boss.name().equalsIgnoreCase(name)) {
                 return boss;
+            }
+        }
+        return null;
+    }
+
+    public List<Reward> getRewards() {
+        return rewards;
+    }
+
+    public Reward getReward(String name) {
+        for (Reward reward : rewards) {
+            if (reward.name().equalsIgnoreCase(name)) {
+                return reward;
+            }
+        }
+        return null;
+    }
+
+    public List<RewardPool> getRewardPools() {
+        return reward_pools;
+    }
+
+    public RewardPool getRewardPool(String name) {
+        for (RewardPool rewardPool : reward_pools) {
+            if (rewardPool.name().equalsIgnoreCase(name)) {
+                return rewardPool;
             }
         }
         return null;

@@ -1,5 +1,6 @@
 package me.unariginal.novaraids.data.rewards;
 
+import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.Priority;
 import com.cobblemon.mod.common.api.abilities.Abilities;
 import com.cobblemon.mod.common.api.abilities.Ability;
@@ -10,6 +11,8 @@ import com.cobblemon.mod.common.api.moves.Moves;
 import com.cobblemon.mod.common.api.pokemon.Natures;
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
 import com.cobblemon.mod.common.api.pokemon.PokemonSpecies;
+import com.cobblemon.mod.common.api.storage.party.PlayerPartyStore;
+import com.cobblemon.mod.common.api.storage.pc.PCStore;
 import com.cobblemon.mod.common.pokemon.*;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
@@ -17,7 +20,7 @@ import net.minecraft.component.ComponentChanges;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKey;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 
 import java.util.List;
@@ -123,7 +126,8 @@ public class PokemonReward extends Reward {
         return evs;
     }
 
-    public Pokemon getReward() {
+    @Override
+    public void apply_reward(ServerPlayerEntity player) {
         Pokemon pokemon = new Pokemon();
         pokemon.setSpecies(species());
         pokemon.setLevel(level());
@@ -143,6 +147,10 @@ public class PokemonReward extends Reward {
         pokemon.setIvs$common(ivs());
         pokemon.setEvs$common(evs());
 
-        return pokemon;
+        PlayerPartyStore party = Cobblemon.INSTANCE.getStorage().getParty(player);
+        party.add(pokemon);
+        party.sendTo(player);
+        PCStore pc = Cobblemon.INSTANCE.getStorage().getPC(player);
+        pc.sendTo(player);
     }
 }

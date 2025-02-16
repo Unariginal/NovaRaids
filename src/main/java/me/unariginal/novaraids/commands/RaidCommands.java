@@ -197,7 +197,7 @@ public class RaidCommands {
             total_weight += spawn_locations.get(location);
         }
 
-        double random_weight = rand.nextDouble(total_weight);
+        double random_weight = rand.nextDouble(total_weight + 1);
         total_weight = 0.0;
         Location spawn_location = null;
         for (String location : spawn_locations.keySet()) {

@@ -1,6 +1,8 @@
 package me.unariginal.novaraids.data.rewards;
 
-public class Reward {
+import net.minecraft.server.network.ServerPlayerEntity;
+
+public abstract class Reward {
     protected String name;
     protected String type;
 
@@ -15,4 +17,6 @@ public class Reward {
     public String name() {
         return name;
     }
+
+    public void apply_reward(ServerPlayerEntity player) {}
 }
