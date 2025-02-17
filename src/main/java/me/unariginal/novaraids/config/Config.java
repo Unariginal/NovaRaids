@@ -258,7 +258,7 @@ public class Config {
         for (String category : categories.keySet()) {
             JsonObject categoryObject = categories.get(category).getAsJsonObject();
 
-            boolean require_voucher = categoryObject.get("require_voucher").getAsBoolean();
+            boolean require_pass = categoryObject.get("require_pass").getAsBoolean();
 
             JsonObject player_count = categoryObject.getAsJsonObject("player_count");
             int min_players = player_count.get("min").getAsInt();
@@ -284,7 +284,7 @@ public class Config {
                 rewards_map.put(places, reward_pools);
             }
 
-            categoriesList.add(new Category(category, require_voucher, min_players, max_players, min_wait_time, max_wait_time, set_times_list, rewards_map));
+            categoriesList.add(new Category(category, require_pass, min_players, max_players, min_wait_time, max_wait_time, set_times_list, rewards_map));
         }
         this.categories = categoriesList;
     }

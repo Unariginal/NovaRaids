@@ -6,7 +6,7 @@ import java.util.Map;
 
 public record Category(
         String name,
-        boolean require_voucher,
+        boolean require_pass,
         int min_players,
         int max_players,
         int min_wait_time,

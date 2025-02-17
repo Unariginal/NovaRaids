@@ -1,6 +1,6 @@
 {
   "common": {
-    "require_voucher": false,
+    "require_pass": false,
     "player_count": {
       "min": 1,
       "max": -1
@@ -44,7 +44,7 @@
     ]
   },
   "uncommon": {
-    "require_voucher": true,
+    "require_pass": true,
     "player_count": {
       "min": 3,
       "max": 20
@@ -57,7 +57,7 @@
     "rewards": []
   },
   "rare": {
-    "require_voucher": true,
+    "require_pass": true,
     "player_count": {
       "min": 5,
       "max": -1
@@ -75,7 +75,7 @@
     "rewards": []
   },
   "legendary": {
-    "require_voucher": true,
+    "require_pass": true,
     "player_count": {
       "min": 10,
       "max": 25
