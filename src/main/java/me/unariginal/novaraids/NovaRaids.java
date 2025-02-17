@@ -24,6 +24,7 @@ public class NovaRaids implements ModInitializer {
     private final MiniMessage mm = MiniMessage.miniMessage();
     private Config config;
     private MinecraftServer server;
+    private RaidCommands raidCommands;
 
     private final Map<Integer, Raid> active_raids = new HashMap<>();
 
@@ -32,7 +33,7 @@ public class NovaRaids implements ModInitializer {
         LOGGER.info("[RAIDS] Loading..");
         INSTANCE = this;
 
-        new RaidCommands();
+        raidCommands = new RaidCommands();
 
         // Set up event handlers and configuration at server load
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
@@ -83,6 +84,10 @@ public class NovaRaids implements ModInitializer {
 
     public Map<Integer, Raid> active_raids() {
         return active_raids;
+    }
+
+    public RaidCommands raidCommands() {
+        return raidCommands;
     }
 
     public int get_raid_id(Raid raid) {

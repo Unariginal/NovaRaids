@@ -33,7 +33,9 @@
     },
     "items": {
       "voucher_item": "minecraft:feather",
+      "voucher_item_data": {},
       "pass_item": "minecraft:paper",
+      "pass_item_data": {},
       "use_raid_pokeballs": true,
       "raid_pokeball": "cobblemon:premier_ball",
       "raid_pokeball_data": {}

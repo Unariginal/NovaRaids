@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version '1.9-SNAPSHOT'
+    id 'fabric-loom' version '1.10-SNAPSHOT'
     id 'maven-publish'
     id("org.jetbrains.kotlin.jvm") version "2.0.0"
 }
@@ -27,6 +27,9 @@ repositories {
     maven {
         url = "https://maven.impactdev.net/repository/development/"
     }
+    maven {
+        url = "https://maven.nucleoid.xyz"
+    }
 }
 
 dependencies {
@@ -34,13 +37,14 @@ dependencies {
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-    implementation "net.fabricmc.fabric-api:fabric-data-attachment-api-v1:1.4.6+9aea556b04"
+    modImplementation include("net.fabricmc.fabric-api:fabric-data-attachment-api-v1:1.4.1+9aea556b2d")
 
     include(modImplementation('me.lucko:fabric-permissions-api:0.3.1'))
 
     modImplementation include("net.kyori:adventure-text-minimessage:4.17.0")
     modImplementation include("net.kyori:adventure-platform-fabric:5.14.1")
 
+    modImplementation include("eu.pb4:sgui:1.6.1+1.21.1")
 
     modImplementation "com.cobblemon:fabric:${project.cobblemon_version}"
 }

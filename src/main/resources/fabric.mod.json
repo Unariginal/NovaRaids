@@ -7,7 +7,6 @@
   "authors": [],
   "contact": {},
   "license": "All-Rights-Reserved",
-  "icon": "assets/novaraids/icon.png",
   "environment": "server",
   "entrypoints": {
     "main": [
@@ -15,16 +14,12 @@
     ]
   },
   "mixins": [
-    "novaraids.mixins.json",
-    {
-      "config": "novaraids.client.mixins.json",
-      "environment": "client"
-    }
+    "novaraids.mixins.json"
   ],
   "depends": {
+    "minecraft": "${minecraft_version}",
     "fabricloader": ">=${loader_version}",
     "fabric": "*",
-    "minecraft": "${minecraft_version}",
     "cobblemon": ">=${cobblemon_version}"
   }
 }

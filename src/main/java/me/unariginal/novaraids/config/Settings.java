@@ -24,8 +24,10 @@ public record Settings(int raid_radius,
                        List<Item> banned_held_items,
                        List<Item> banned_bag_items,
                        Item voucher_item,
+                       ComponentChanges voucher_item_data,
                        Item pass_item,
+                       ComponentChanges pass_item_data,
                        boolean use_raid_pokeballs,
                        Item raid_pokeball,
-                       ComponentChanges component_changes
+                       ComponentChanges raid_pokeball_data
 ) {}

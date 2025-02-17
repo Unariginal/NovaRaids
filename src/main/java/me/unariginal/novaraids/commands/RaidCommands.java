@@ -1,13 +1,9 @@
 package me.unariginal.novaraids.commands;
 
-import com.cobblemon.mod.common.Cobblemon;
-import com.cobblemon.mod.common.api.storage.party.PlayerPartyStore;
-import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.serialization.JsonOps;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.Boss;
@@ -15,9 +11,7 @@ import me.unariginal.novaraids.data.Category;
 import me.unariginal.novaraids.data.Location;
 import me.unariginal.novaraids.managers.Raid;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.kyori.adventure.text.event.DataComponentValue;
 import net.minecraft.command.argument.EntityArgumentType;
-import net.minecraft.component.ComponentChanges;
 import net.minecraft.component.ComponentMap;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.LoreComponent;
@@ -188,7 +182,7 @@ public class RaidCommands {
         return 1;
     }
 
-    private int start(Boss boss_info) {
+    public int start(Boss boss_info) {
         Map<String, Double> spawn_locations = boss_info.spawn_locations();
 
         Random rand = new Random();
@@ -251,6 +245,9 @@ public class RaidCommands {
 
             if (item_type.equalsIgnoreCase("pass")) {
                 item_to_give = new ItemStack(pass_item, 1);
+                if (nr.config().getSettings().pass_item_data() != null) {
+                    item_to_give.applyChanges(nr.config().getSettings().pass_item_data());
+                }
                 custom_data.putString("raid_item", "raid_pass");
                 item_name = Text.literal("Raid Pass").styled(style -> style.withColor(Formatting.LIGHT_PURPLE).withItalic(false));
                 if (boss_name.equalsIgnoreCase("*")) {
@@ -292,6 +289,9 @@ public class RaidCommands {
                 }
             } else if (item_type.equalsIgnoreCase("voucher")) {
                 item_to_give = new ItemStack(voucher_item, 1);
+                if (nr.config().getSettings().voucher_item_data() != null) {
+                    item_to_give.applyChanges(nr.config().getSettings().voucher_item_data());
+                }
                 custom_data.putString("raid_item", "raid_voucher");
                 item_name = Text.literal("Raid Voucher").styled(style -> style.withItalic(false).withColor(Formatting.AQUA));
                 if (boss_name.equalsIgnoreCase("*")) {
@@ -325,8 +325,8 @@ public class RaidCommands {
                     custom_data.putUuid("owner_uuid", target_player.getUuid());
                     item_name = Text.literal("Raid Pokeball").styled(style -> style.withItalic(false).withColor(Formatting.RED));
                     lore = lore.with(Text.literal("Use this to try and capture raid bosses!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
-                    if (nr.config().getSettings().component_changes() != null) {
-                        item_to_give.applyChanges(nr.config().getSettings().component_changes());
+                    if (nr.config().getSettings().raid_pokeball_data() != null) {
+                        item_to_give.applyChanges(nr.config().getSettings().raid_pokeball_data());
                     }
                 } else {
                     source_player.sendMessage(Text.literal("Raid Pokeball not found!"));

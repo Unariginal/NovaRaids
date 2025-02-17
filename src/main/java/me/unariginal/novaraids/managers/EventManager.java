@@ -7,9 +7,14 @@ import com.cobblemon.mod.common.api.events.CobblemonEvents;
 import com.cobblemon.mod.common.battles.actor.PlayerBattleActor;
 import com.cobblemon.mod.common.battles.actor.PokemonBattleActor;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
+import com.cobblemon.mod.common.item.PokemonItem;
 import com.cobblemon.mod.common.pokemon.Pokemon;
+import eu.pb4.sgui.api.elements.GuiElement;
+import eu.pb4.sgui.api.elements.GuiElementBuilder;
+import eu.pb4.sgui.api.gui.SimpleGui;
 import kotlin.Unit;
 import me.unariginal.novaraids.NovaRaids;
+import me.unariginal.novaraids.data.Boss;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
@@ -17,10 +22,14 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.TypedActionResult;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 
 public class EventManager {
@@ -264,48 +273,161 @@ public class EventManager {
     }
 
     public static void right_click_events() {
-        UseItemCallback.EVENT.register((player, world, hand) -> {
-            ServerPlayerEntity playerEntity = nr.server().getPlayerManager().getPlayer(player.getUuid());
-            ItemStack held_item = player.getMainHandStack();
-            NbtComponent custom_data = held_item.getComponents().get(DataComponentTypes.CUSTOM_DATA);
+        UseItemCallback.EVENT.register((playerEntity, world, hand) -> {
+            ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(playerEntity.getUuid());
+            if (player != null) {
+                ItemStack held_item = player.getMainHandStack();
+                NbtComponent custom_data = held_item.getComponents().get(DataComponentTypes.CUSTOM_DATA);
 
-            NbtCompound passNBT = new NbtCompound();
-            passNBT.putString("raid_item", "raid_pass");
-            NbtCompound voucherNBT = new NbtCompound();
-            voucherNBT.putString("raid_item", "raid_voucher");
+                NbtCompound passNBT = new NbtCompound();
+                passNBT.putString("raid_item", "raid_pass");
+                NbtCompound voucherNBT = new NbtCompound();
+                voucherNBT.putString("raid_item", "raid_voucher");
 
-            if (playerEntity != null && custom_data != null) {
-                if (hand.name().contains("MAIN_HAND") && custom_data.contains("raid_item")) {
-                    if (custom_data.copyNbt().getString("raid_item").equals("raid_pass")) {
-                        String boss_name = custom_data.copyNbt().getString("raid_boss");
-                        String category = custom_data.copyNbt().getString("raid_category");
-                        if (boss_name.equalsIgnoreCase("*")) {
-                            // gui to pick raid
-                        }
-                        for (Raid raid : nr.active_raids().values()) {
-                            if (raid.boss_info().name().equalsIgnoreCase(boss_name)) {
-                                if (raid.addPlayer(playerEntity)) {
-                                    nr.logger().info("[RAIDS] {} has joined the {} raid!", playerEntity.getName(), raid.boss_info().name());
-                                    playerEntity.sendMessage(Text.of("You have joined the " + raid.boss_info().name() + " raid!"));
-
-                                    int newCount = held_item.getCount() - 1;
-                                    if (newCount == 0) {
-                                        player.setStackInHand(hand, ItemStack.EMPTY);
-                                    } else {
-                                        held_item.setCount(newCount);
-                                        player.setStackInHand(hand, held_item);
-                                    }
+                if (custom_data != null) {
+                    if (hand.name().contains("MAIN_HAND") && custom_data.contains("raid_item")) {
+                        if (custom_data.copyNbt().getString("raid_item").equals("raid_pass")) {
+                            String boss_name = custom_data.copyNbt().getString("raid_boss");
+                            String category = custom_data.copyNbt().getString("raid_category");
+                            if (boss_name.equalsIgnoreCase("*")) {
+                                List<Raid> joinable_raids = new ArrayList<>();
+                                if (category.equalsIgnoreCase("*")) {
+                                    joinable_raids.addAll(nr.active_raids().values());
                                 } else {
-                                    nr.logger().info("[RAIDS] {} is already in this raid!", playerEntity.getName());
-                                    playerEntity.sendMessage(Text.of("You are already in this raid!"));
+                                    for (Raid raid : nr.active_raids().values()) {
+                                        if (raid.boss_info().category().equalsIgnoreCase(category)) {
+                                            joinable_raids.add(raid);
+                                        }
+                                    }
+                                }
+
+                                SimpleGui gui = new SimpleGui(ScreenHandlerType.GENERIC_9X6, player, false);
+                                gui.setTitle(Text.literal("Pick A Raid!"));
+                                for (int i = 0; i < joinable_raids.size(); i++) {
+                                    int index = i;
+                                    GuiElement element = new GuiElementBuilder(PokemonItem.from(joinable_raids.get(i).raidBoss_pokemon())).setCallback((slot, clickType, slotActionType) -> {
+                                        if (joinable_raids.get(index).addPlayer(player)) {
+                                            nr.logger().info("[RAIDS] {} has joined the {} raid!", player.getName(), joinable_raids.get(index).boss_info().name());
+                                            player.sendMessage(Text.of("You have joined the " + joinable_raids.get(index).boss_info().name() + " raid!"));
+
+                                            int newCount = held_item.getCount() - 1;
+                                            if (newCount == 0) {
+                                                player.setStackInHand(hand, ItemStack.EMPTY);
+                                            } else {
+                                                held_item.setCount(newCount);
+                                                player.setStackInHand(hand, held_item);
+                                            }
+
+                                            gui.close();
+                                        }
+                                    }).build();
+                                    gui.setSlot(i, element);
+                                }
+                                gui.open();
+                            } else {
+                                for (Raid raid : nr.active_raids().values()) {
+                                    if (raid.boss_info().name().equalsIgnoreCase(boss_name)) {
+                                        if (raid.addPlayer(player)) {
+                                            nr.logger().info("[RAIDS] {} has joined the {} raid!", player.getName(), raid.boss_info().name());
+                                            player.sendMessage(Text.of("You have joined the " + raid.boss_info().name() + " raid!"));
+
+                                            int newCount = held_item.getCount() - 1;
+                                            if (newCount == 0) {
+                                                player.setStackInHand(hand, ItemStack.EMPTY);
+                                            } else {
+                                                held_item.setCount(newCount);
+                                                player.setStackInHand(hand, held_item);
+                                            }
+                                        } else {
+                                            nr.logger().info("[RAIDS] {} is already in this raid!", player.getName());
+                                            player.sendMessage(Text.of("You are already in this raid!"));
+                                        }
+                                    }
+                                }
+                            }
+                        } else if (custom_data.copyNbt().getString("raid_item").equals("raid_voucher")) {
+                            String boss_name = custom_data.copyNbt().getString("raid_boss");
+                            String category = custom_data.copyNbt().getString("raid_category");
+                            if (boss_name.equalsIgnoreCase("*")) {
+                                List<Boss> available_raids = new ArrayList<>();
+                                if (category.equalsIgnoreCase("*")) {
+                                    available_raids.addAll(nr.config().getBosses());
+                                } else {
+                                    for (Boss boss : nr.config().getBosses()) {
+                                        if (boss.category().equalsIgnoreCase(category)) {
+                                            available_raids.add(boss);
+                                        }
+                                    }
+                                }
+
+                                SimpleGui gui = new SimpleGui(ScreenHandlerType.GENERIC_9X6, player, false);
+                                gui.setTitle(Text.literal("Pick A Raid!"));
+                                for (int i = 0; i < available_raids.size(); i++) {
+                                    int index = i;
+                                    GuiElement element = new GuiElementBuilder(PokemonItem.from(available_raids.get(i).species())).setCallback((slot, clickType, slotActionType) -> {
+                                        nr.raidCommands().start(available_raids.get(index));
+
+                                        int newCount = held_item.getCount() - 1;
+                                        if (newCount == 0) {
+                                            player.setStackInHand(hand, ItemStack.EMPTY);
+                                        } else {
+                                            held_item.setCount(newCount);
+                                            player.setStackInHand(hand, held_item);
+                                        }
+
+                                        gui.close();
+                                    }).build();
+                                    gui.setSlot(i, element);
+                                }
+                                gui.open();
+                            } else if (boss_name.equalsIgnoreCase("random")) {
+                                Random rand = new Random();
+                                Boss boss_info;
+                                if (category.equalsIgnoreCase("null")) {
+                                    boss_info = nr.config().getBosses().get(rand.nextInt(nr.config().getBosses().size()));
+                                } else {
+                                    List<Boss> available_raids = new ArrayList<>();
+                                    for (Boss boss : nr.config().getBosses()) {
+                                        if (boss.category().equalsIgnoreCase(category)) {
+                                            available_raids.add(boss);
+                                        }
+                                    }
+                                    boss_info = available_raids.get(rand.nextInt(available_raids.size()));
+                                }
+
+                                int newCount = held_item.getCount() - 1;
+                                if (newCount == 0) {
+                                    player.setStackInHand(hand, ItemStack.EMPTY);
+                                } else {
+                                    held_item.setCount(newCount);
+                                    player.setStackInHand(hand, held_item);
+                                }
+
+                                nr.raidCommands().start(boss_info);
+                            } else {
+                                for (Boss boss : nr.config().getBosses()) {
+                                    if (boss.name().equalsIgnoreCase(boss_name)) {
+                                        nr.raidCommands().start(boss);
+
+                                        int newCount = held_item.getCount() - 1;
+                                        if (newCount == 0) {
+                                            player.setStackInHand(hand, ItemStack.EMPTY);
+                                        } else {
+                                            held_item.setCount(newCount);
+                                            player.setStackInHand(hand, held_item);
+                                        }
+
+                                        break;
+                                    }
                                 }
                             }
                         }
                     }
                 }
-            }
 
-            return TypedActionResult.pass(held_item);
+                return TypedActionResult.pass(held_item);
+            }
+            return null;
         });
     }
 }

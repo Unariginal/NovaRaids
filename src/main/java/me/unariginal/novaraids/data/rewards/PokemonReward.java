@@ -154,10 +154,5 @@ public class PokemonReward extends Reward {
 
         PlayerPartyStore party = Cobblemon.INSTANCE.getStorage().getParty(player);
         party.add(pokemon);
-        party.removeDuplicates();
-        party.sendTo(player);
-        PCStore pc = Cobblemon.INSTANCE.getStorage().getPC(player);
-        pc.removeDuplicates();
-        pc.sendTo(player);
     }
 }

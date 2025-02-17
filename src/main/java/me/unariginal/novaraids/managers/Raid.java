@@ -201,23 +201,29 @@ public class Raid {
                 }
             } else {
                 if (places.contains("1")) {
-                    for (String reward_name : raidBoss_category.rewards().get(places)) {
-                        ServerPlayerEntity player = get_damage_leaderboard().getFirst().getKey();
-                        nr.config().getRewardPool(reward_name).distributeRewards(player);
+                    if (!get_damage_leaderboard().isEmpty()) {
+                        for (String reward_name : raidBoss_category.rewards().get(places)) {
+                            ServerPlayerEntity player = get_damage_leaderboard().getFirst().getKey();
+                            nr.config().getRewardPool(reward_name).distributeRewards(player);
+                        }
                     }
                 }
 
                 if (places.contains("2")) {
-                    for (String reward_name : raidBoss_category.rewards().get(places)) {
-                        ServerPlayerEntity player = get_damage_leaderboard().get(1).getKey();
-                        nr.config().getRewardPool(reward_name).distributeRewards(player);
+                    if (get_damage_leaderboard().size() > 1) {
+                        for (String reward_name : raidBoss_category.rewards().get(places)) {
+                            ServerPlayerEntity player = get_damage_leaderboard().get(1).getKey();
+                            nr.config().getRewardPool(reward_name).distributeRewards(player);
+                        }
                     }
                 }
 
                 if (places.contains("3")) {
-                    for (String reward_name : raidBoss_category.rewards().get(places)) {
-                        ServerPlayerEntity player = get_damage_leaderboard().get(2).getKey();
-                        nr.config().getRewardPool(reward_name).distributeRewards(player);
+                    if (get_damage_leaderboard().size() > 2) {
+                        for (String reward_name : raidBoss_category.rewards().get(places)) {
+                            ServerPlayerEntity player = get_damage_leaderboard().get(2).getKey();
+                            nr.config().getRewardPool(reward_name).distributeRewards(player);
+                        }
                     }
                 }
             }
@@ -370,7 +376,12 @@ public class Raid {
     }
 
     public List<Map.Entry<ServerPlayerEntity, Integer>> get_damage_leaderboard() {
-        return damage_by_player.entrySet().stream().sorted(Map.Entry.comparingByValue()).toList().reversed();
+        List<Map.Entry<ServerPlayerEntity, Integer>> leaderboard_backwards = damage_by_player.entrySet().stream().sorted(Map.Entry.comparingByValue()).toList();
+        List<Map.Entry<ServerPlayerEntity, Integer>> leaderboard = new ArrayList<>();
+        for (int i = leaderboard_backwards.size() - 1; i >= 0; i--) {
+            leaderboard.add(leaderboard_backwards.get(i));
+        }
+        return leaderboard;
     }
 
     public Map<ServerPlayerEntity, BossBar> bossbars() {

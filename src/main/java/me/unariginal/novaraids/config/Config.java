@@ -207,18 +207,26 @@ public class Config {
 
         JsonObject items = settingsObject.getAsJsonObject("items");
         Item voucher_item = Registries.ITEM.get(Identifier.of(items.get("voucher_item").getAsString()));
+        ComponentChanges voucher_item_data = null;
+        if (items.get("voucher_item_data") != null) {
+            DataResult<Pair<ComponentChanges, JsonElement>> data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, items.get("voucher_item_data"));
+            voucher_item_data = data.getOrThrow().getFirst();
+        }
         Item pass_item = Registries.ITEM.get(Identifier.of(items.get("pass_item").getAsString()));
+        ComponentChanges pass_item_data = null;
+        if (items.get("pass_item_data") != null) {
+            DataResult<Pair<ComponentChanges, JsonElement>> data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, items.get("pass_item_data"));
+            pass_item_data = data.getOrThrow().getFirst();
+        }
 
         boolean use_raid_pokeballs = items.get("use_raid_pokeballs").getAsBoolean();
         Item raid_pokeball = null;
-        JsonElement raid_pokeball_data;
-        ComponentChanges component_changes = null;
+        ComponentChanges raid_pokeball_data = null;
         if (use_raid_pokeballs) {
             raid_pokeball = Registries.ITEM.get(Identifier.of(items.get("raid_pokeball").getAsString()));
             if (items.get("raid_pokeball_data") != null) {
-                raid_pokeball_data = items.get("raid_pokeball_data");
-                DataResult<Pair<ComponentChanges, JsonElement>> data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, raid_pokeball_data);
-                component_changes = data.getOrThrow().getFirst();
+                DataResult<Pair<ComponentChanges, JsonElement>> data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, items.get("raid_pokeball_data"));
+                raid_pokeball_data = data.getOrThrow().getFirst();
             }
         }
 
@@ -239,10 +247,12 @@ public class Config {
                 banned_held_item_list,
                 banned_bag_item_list,
                 voucher_item,
+                voucher_item_data,
                 pass_item,
+                pass_item_data,
                 use_raid_pokeballs,
                 raid_pokeball,
-                component_changes
+                raid_pokeball_data
         );
     }
 
