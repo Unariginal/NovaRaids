@@ -7,6 +7,7 @@ public abstract class Reward {
     protected String type;
 
     public Reward(String name, String type) {
+        this.name = name;
         this.type = type;
     }
 

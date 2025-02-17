@@ -51,18 +51,18 @@ public class RewardPool {
         int rolls = rand.nextInt(min_rolls(), max_rolls() + 1);
         for (int i = 0; i < rolls; i++) {
             double total_weight = 0.0;
-            for (String reward_name : rewards.keySet()) {
+            for (String reward_name : rewards().keySet()) {
                 if (allow_duplicates() || !applied_rewards.contains(reward_name)) {
-                    total_weight += rewards.get(reward_name);
+                    total_weight += rewards().get(reward_name);
                 }
             }
 
             double random_weight = rand.nextDouble(total_weight + 1);
             total_weight = 0.0;
             Reward reward = null;
-            for (String reward_name : rewards.keySet()) {
+            for (String reward_name : rewards().keySet()) {
                 if (allow_duplicates() || !applied_rewards.contains(reward_name)) {
-                    total_weight += rewards.get(reward_name);
+                    total_weight += rewards().get(reward_name);
                     if (random_weight < total_weight) {
                         reward = nr.config().getReward(reward_name);
                         break;

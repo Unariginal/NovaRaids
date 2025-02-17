@@ -15,6 +15,7 @@ import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.Text;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.*;
@@ -36,6 +37,7 @@ public class Raid {
     private final int min_players;
     private final int max_players;
     private final List<ServerPlayerEntity> participating_players = new ArrayList<>();
+    private final Map<ServerPlayerEntity, Integer> damage_by_player = new HashMap<>();
 
     private final Map<Long, List<Task>> tasks = new HashMap<>();
     private final Map<ServerPlayerEntity, BossBar> player_bossbars = new HashMap<>();
@@ -162,6 +164,64 @@ public class Raid {
     private void raid_won() {
         stage = -1;
         tasks.clear();
+
+        int place_index = 0;
+        for (Map.Entry<ServerPlayerEntity, Integer> entry : get_damage_leaderboard()) {
+            place_index++;
+            for (ServerPlayerEntity player : participating_players) {
+                player.sendMessage(Text.literal(place_index + ". " + entry.getKey().getNameForScoreboard() + " : " + entry.getValue() + " damage"));
+            }
+            if (place_index == 10) {
+                break;
+            }
+        }
+
+
+        for (List<String> places : raidBoss_category.rewards().keySet()) {
+            for (String place : places) {
+                if (place.contains("%")) {
+                    String percent_string = place.replace("%", "");
+                    int percent = Integer.parseInt(percent_string);
+                    int positions = get_damage_leaderboard().size() * (percent / 100);
+                    for (String reward_name : raidBoss_category.rewards().get(places)) {
+                        for (int i = 0; i < positions; i++) {
+                            ServerPlayerEntity player = get_damage_leaderboard().get(i).getKey();
+                            nr.config().getRewardPool(reward_name).distributeRewards(player);
+                        }
+                    }
+                    break;
+                }
+            }
+
+            if (places.contains("participating")) {
+                for (String reward_name : raidBoss_category.rewards().get(places)) {
+                    for (ServerPlayerEntity player : participating_players) {
+                        nr.config().getRewardPool(reward_name).distributeRewards(player);
+                    }
+                }
+            } else {
+                if (places.contains("1")) {
+                    for (String reward_name : raidBoss_category.rewards().get(places)) {
+                        ServerPlayerEntity player = get_damage_leaderboard().getFirst().getKey();
+                        nr.config().getRewardPool(reward_name).distributeRewards(player);
+                    }
+                }
+
+                if (places.contains("2")) {
+                    for (String reward_name : raidBoss_category.rewards().get(places)) {
+                        ServerPlayerEntity player = get_damage_leaderboard().get(1).getKey();
+                        nr.config().getRewardPool(reward_name).distributeRewards(player);
+                    }
+                }
+
+                if (places.contains("3")) {
+                    for (String reward_name : raidBoss_category.rewards().get(places)) {
+                        ServerPlayerEntity player = get_damage_leaderboard().get(2).getKey();
+                        nr.config().getRewardPool(reward_name).distributeRewards(player);
+                    }
+                }
+            }
+        }
     }
 
     private void addTask(ServerWorld world, Long delay, Runnable action) {
@@ -302,6 +362,17 @@ public class Raid {
         return index == -1;
     }
 
+    public void update_player_damage(ServerPlayerEntity player, int damage) {
+        if (damage_by_player.containsKey(player)) {
+            damage += damage_by_player.get(player);
+        }
+        damage_by_player.put(player, damage);
+    }
+
+    public List<Map.Entry<ServerPlayerEntity, Integer>> get_damage_leaderboard() {
+        return damage_by_player.entrySet().stream().sorted(Map.Entry.comparingByValue()).toList().reversed();
+    }
+
     public Map<ServerPlayerEntity, BossBar> bossbars() {
         return player_bossbars;
     }
@@ -311,15 +382,19 @@ public class Raid {
         if (bossbar != null) {
             for (ServerPlayerEntity player : participating_players) {
                 BossBar bar = bossbar.createBossBar(this);
-                player.showBossBar(bar);
-                player_bossbars.put(player, bar);
+                if (player != null) {
+                    player.showBossBar(bar);
+                    player_bossbars.put(player, bar);
+                }
             }
         }
     }
 
     private void hide_bossbar() {
         for (ServerPlayerEntity player : player_bossbars.keySet()) {
-            player.hideBossBar(player_bossbars.get(player));
+            if (player != null) {
+                player.hideBossBar(player_bossbars.get(player));
+            }
         }
         player_bossbars.clear();
     }
@@ -327,7 +402,9 @@ public class Raid {
     public void show_overlay(BossbarData bossbar) {
         if (bossbar.use_overlay()) {
             for (ServerPlayerEntity player : participating_players) {
-                player.sendActionBar(nr.mm().deserialize(TextUtil.parse(bossbar.overlay_text(), this)));
+                if (player != null) {
+                    player.sendActionBar(nr.mm().deserialize(TextUtil.parse(bossbar.overlay_text(), this)));
+                }
             }
         }
     }

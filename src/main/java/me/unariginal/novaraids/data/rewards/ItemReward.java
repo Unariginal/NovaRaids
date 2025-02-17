@@ -30,7 +30,10 @@ public class ItemReward extends Reward {
     }
 
     public ComponentChanges data() {
-        return ComponentChanges.CODEC.decode(JsonOps.INSTANCE, data).getOrThrow().getFirst();
+        if (data != null) {
+            return ComponentChanges.CODEC.decode(JsonOps.INSTANCE, data).getOrThrow().getFirst();
+        }
+        return null;
     }
 
     public int minCount() {
@@ -46,7 +49,9 @@ public class ItemReward extends Reward {
         ItemStack reward = new ItemStack(item());
         Random rand = new Random();
         reward.setCount(rand.nextInt(minCount(), maxCount() + 1));
-        reward.applyChanges(data());
+        if (data() != null) {
+            reward.applyChanges(data());
+        }
         player.giveItemStack(reward);
     }
 }

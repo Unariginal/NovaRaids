@@ -2,7 +2,7 @@
   "item_reward_example": {
     "type": "item",
     "item": "minecraft:dirt",
-    "data": "",
+    "data": {},
     "count": {
       "min": 1,
       "max": 16
@@ -27,7 +27,7 @@
       "shiny": false,
       "scale": 1.0,
       "held_item": "cobblemon:leftovers",
-      "held_item_data": "",
+      "held_item_data": {},
       "moves": [
         "bite",
         "tackle",

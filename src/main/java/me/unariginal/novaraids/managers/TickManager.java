@@ -97,13 +97,17 @@ public class TickManager {
                     progress = 0;
                 }
                 for (ServerPlayerEntity player : raid.bossbars().keySet()) {
-                    raid.bossbars().get(player).progress(progress);
+                    if (player != null) {
+                        raid.bossbars().get(player).progress(progress);
+                    }
                 }
             } else {
                 for (ServerPlayerEntity player : raid.bossbars().keySet()) {
                     float remaining_ticks = (float) (raid.phase_end_time() - nr.server().getOverworld().getTime());
                     float progress = 1.0F / (raid.phase_length() * 20L);
-                    raid.bossbars().get(player).progress(progress * remaining_ticks);
+                    if (player != null) {
+                        raid.bossbars().get(player).progress(progress * remaining_ticks);
+                    }
                 }
             }
 

@@ -215,9 +215,11 @@ public class Config {
         ComponentChanges component_changes = null;
         if (use_raid_pokeballs) {
             raid_pokeball = Registries.ITEM.get(Identifier.of(items.get("raid_pokeball").getAsString()));
-            raid_pokeball_data = items.get("raid_pokeball_data");
-            DataResult<Pair<ComponentChanges, JsonElement>> data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, raid_pokeball_data);
-            component_changes = data.getOrThrow().getFirst();
+            if (items.get("raid_pokeball_data") != null) {
+                raid_pokeball_data = items.get("raid_pokeball_data");
+                DataResult<Pair<ComponentChanges, JsonElement>> data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, raid_pokeball_data);
+                component_changes = data.getOrThrow().getFirst();
+            }
         }
 
         this.settings = new Settings(
@@ -452,7 +454,10 @@ public class Config {
             Reward reward = null;
             if (type.equalsIgnoreCase("item")) {
                 String item = rewardObject.get("item").getAsString();
-                JsonElement data = rewardObject.get("data");
+                JsonElement data = null;
+                if (rewardObject.get("data") != null) {
+                    data = rewardObject.get("data");
+                }
                 JsonObject count = rewardObject.getAsJsonObject("count");
                 int min_count = count.get("min").getAsInt();
                 int max_count = count.get("max").getAsInt();
@@ -461,33 +466,37 @@ public class Config {
                 List<String> commands = rewardObject.getAsJsonArray("commands").asList().stream().map(JsonElement::getAsString).toList();
                 reward = new CommandReward(key, commands);
             } else if (type.equalsIgnoreCase("pokemon")) {
-                String species = rewardObject.get("species").getAsString();
-                int level = rewardObject.get("level").getAsInt();
-                String ability = rewardObject.get("ability").getAsString();
-                String nature = rewardObject.get("nature").getAsString();
-                String form = rewardObject.get("form").getAsString();
-                String gender = rewardObject.get("gender").getAsString();
-                boolean shiny = rewardObject.get("shiny").getAsBoolean();
-                float scale = rewardObject.get("scale").getAsFloat();
-                String held_item = rewardObject.get("held_item").getAsString();
-                JsonElement held_item_data = rewardObject.get("held_item_data");
-                List<String> move_set = rewardsObject.getAsJsonArray("moves").asList().stream().map(JsonElement::getAsString).toList();
-                JsonObject ivObject = rewardObject.getAsJsonObject("ivs");
+                JsonObject pokemon_info = rewardObject.getAsJsonObject("pokemon");
+                String species = pokemon_info.get("species").getAsString();
+                int level = pokemon_info.get("level").getAsInt();
+                String ability = pokemon_info.get("ability").getAsString();
+                String nature = pokemon_info.get("nature").getAsString();
+                String form = pokemon_info.get("form").getAsString();
+                String gender = pokemon_info.get("gender").getAsString();
+                boolean shiny = pokemon_info.get("shiny").getAsBoolean();
+                float scale = pokemon_info.get("scale").getAsFloat();
+                String held_item = pokemon_info.get("held_item").getAsString();
+                JsonElement held_item_data = null;
+                if (pokemon_info.get("held_item_data") != null) {
+                    held_item_data = pokemon_info.get("held_item_data");
+                }
+                List<String> move_set = pokemon_info.getAsJsonArray("moves").asList().stream().map(JsonElement::getAsString).toList();
+                JsonObject ivObject = pokemon_info.getAsJsonObject("ivs");
                 IVs ivs = new IVs();
                 ivs.set(Stats.HP, ivObject.get("hp").getAsInt());
                 ivs.set(Stats.ATTACK, ivObject.get("atk").getAsInt());
                 ivs.set(Stats.DEFENCE, ivObject.get("def").getAsInt());
                 ivs.set(Stats.SPECIAL_ATTACK, ivObject.get("sp_atk").getAsInt());
                 ivs.set(Stats.SPECIAL_DEFENCE, ivObject.get("sp_def").getAsInt());
-                ivs.set(Stats.SPEED, ivObject.get("speed").getAsInt());
-                JsonObject evObject = rewardObject.getAsJsonObject("evs");
+                ivs.set(Stats.SPEED, ivObject.get("spd").getAsInt());
+                JsonObject evObject = pokemon_info.getAsJsonObject("evs");
                 EVs evs = new EVs();
                 evs.set(Stats.HP, evObject.get("hp").getAsInt());
                 evs.set(Stats.ATTACK, evObject.get("atk").getAsInt());
                 evs.set(Stats.DEFENCE, evObject.get("def").getAsInt());
                 evs.set(Stats.SPECIAL_ATTACK, evObject.get("sp_atk").getAsInt());
                 evs.set(Stats.SPECIAL_DEFENCE, evObject.get("sp_def").getAsInt());
-                evs.set(Stats.SPEED, evObject.get("speed").getAsInt());
+                evs.set(Stats.SPEED, evObject.get("spd").getAsInt());
 
                 reward = new PokemonReward(key, species, level, ability, nature, form, gender, shiny, scale, held_item, held_item_data, move_set, ivs, evs);
             } else {

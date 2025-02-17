@@ -96,12 +96,17 @@ public class PokemonReward extends Reward {
     }
 
     public ComponentChanges held_item_data() {
-        return ComponentChanges.CODEC.decode(JsonOps.INSTANCE, held_item_data).getOrThrow().getFirst();
+        if (held_item_data != null) {
+            return ComponentChanges.CODEC.decode(JsonOps.INSTANCE, held_item_data).getOrThrow().getFirst();
+        }
+        return null;
     }
 
     public ItemStack held_item_stack() {
         ItemStack stack = new ItemStack(held_item());
-        stack.applyChanges(held_item_data());
+        if (held_item_data() != null) {
+            stack.applyChanges(held_item_data());
+        }
         return stack;
     }
 
@@ -149,8 +154,10 @@ public class PokemonReward extends Reward {
 
         PlayerPartyStore party = Cobblemon.INSTANCE.getStorage().getParty(player);
         party.add(pokemon);
+        party.removeDuplicates();
         party.sendTo(player);
         PCStore pc = Cobblemon.INSTANCE.getStorage().getPC(player);
+        pc.removeDuplicates();
         pc.sendTo(player);
     }
 }

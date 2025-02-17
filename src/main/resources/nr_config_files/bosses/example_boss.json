@@ -45,6 +45,7 @@
         "weight": 50.0
       }
     ],
+    "__comment": "Not Functional Currently",
     "rewards_override": [
       {
         "places": ["1"],

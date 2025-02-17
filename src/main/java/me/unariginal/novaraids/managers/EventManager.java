@@ -189,6 +189,7 @@ public class EventManager {
                 for (Raid raid : nr.active_raids().values()) {
                     if (raid.participating_players().contains(player)) {
                         raid.apply_damage(damage);
+                        raid.update_player_damage(player, damage);
                         break;
                     }
                 }

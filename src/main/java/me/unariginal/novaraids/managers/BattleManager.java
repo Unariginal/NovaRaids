@@ -65,6 +65,7 @@ public class BattleManager {
         data.putBoolean("boss_clone", true);
         pokemon.setPersistentData$common(data);
         pokemon.setShiny(false);
+        pokemon.setScaleModifier(0.1f);
 
         PokemonEntity boss_clone = pokemon.sendOut(raid.raidBoss_location().world(), raid.raidBoss_location().pos(), null, entity -> {
             entity.addStatusEffect(new StatusEffectInstance(StatusEffects.INVISIBILITY, -1, 9999, false, false));
