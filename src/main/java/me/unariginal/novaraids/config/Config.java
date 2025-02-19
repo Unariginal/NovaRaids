@@ -21,10 +21,7 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import me.unariginal.novaraids.NovaRaids;
-import me.unariginal.novaraids.data.Boss;
-import me.unariginal.novaraids.data.BossbarData;
-import me.unariginal.novaraids.data.Category;
-import me.unariginal.novaraids.data.Location;
+import me.unariginal.novaraids.data.*;
 import me.unariginal.novaraids.data.rewards.*;
 import me.unariginal.novaraids.managers.Messages;
 import net.fabricmc.loader.api.FabricLoader;
@@ -38,6 +35,7 @@ import net.minecraft.util.math.Vec3d;
 import java.io.*;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Config {
     private final NovaRaids nr = NovaRaids.INSTANCE;
@@ -317,65 +315,133 @@ public class Config {
                 Species species = PokemonSpecies.INSTANCE.getByName(pokemon_details.get("species").getAsString());
                 if (species != null) {
                     int level = pokemon_details.get("level").getAsInt();
-                    AbilityTemplate abilityTemplate = Abilities.INSTANCE.get(pokemon_details.get("ability").getAsString());
-                    if (abilityTemplate != null) {
-                        Ability ability = abilityTemplate.create(false, Priority.LOWEST);
-                        Nature nature = Natures.INSTANCE.getNature(pokemon_details.get("nature").getAsString());
-                        PokemonProperties form = PokemonProperties.Companion.parse(pokemon_details.get("form").getAsString());
-                        Gender gender = Gender.valueOf(pokemon_details.get("gender").getAsString().toUpperCase());
-                        boolean shiny = pokemon_details.get("shiny").getAsBoolean();
-                        float scale = pokemon_details.get("scale").getAsFloat();
-                        String held_item_string = pokemon_details.get("held_item").getAsString();
-                        Item held_item = null;
-                        if (held_item_string != null && !held_item_string.isEmpty()) {
-                            held_item = Registries.ITEM.get(Identifier.of(pokemon_details.get("held_item").getAsString()));
+
+                    Map<Ability, Double> possible_abilities = new HashMap<>();
+                    JsonArray abilities = pokemon_details.getAsJsonArray("ability");
+                    for (JsonElement element : abilities) {
+                        JsonObject abilityObj = element.getAsJsonObject();
+                        String ability = abilityObj.get("ability").getAsString();
+                        AbilityTemplate abilityTemplate = Abilities.INSTANCE.get(ability);
+                        if (abilityTemplate != null) {
+                            possible_abilities.put(abilityTemplate.create(false, Priority.LOWEST), abilityObj.get("weight").getAsDouble());
                         }
-
-                        MoveSet moves = new MoveSet();
-                        JsonArray moves_list = pokemon_details.getAsJsonArray("moves");
-                        for (int i = 0; (i < moves_list.size() && i < 4); i++) {
-                            MoveTemplate moveTemplate = Moves.INSTANCE.getByName(moves_list.get(i).getAsString());
-                            if (moveTemplate != null) {
-                                moves.setMove(i, moveTemplate.create());
-                            }
-                        }
-
-                        JsonObject ivObject = pokemon_details.getAsJsonObject("ivs");
-                        IVs ivs = new IVs();
-                        ivs.set(Stats.HP, ivObject.get("hp").getAsInt());
-                        ivs.set(Stats.ATTACK, ivObject.get("atk").getAsInt());
-                        ivs.set(Stats.DEFENCE, ivObject.get("def").getAsInt());
-                        ivs.set(Stats.SPECIAL_ATTACK, ivObject.get("sp_atk").getAsInt());
-                        ivs.set(Stats.SPECIAL_DEFENCE, ivObject.get("sp_def").getAsInt());
-                        ivs.set(Stats.SPEED, ivObject.get("spd").getAsInt());
-
-                        JsonObject evObject = pokemon_details.getAsJsonObject("evs");
-                        EVs evs = new EVs();
-                        evs.set(Stats.HP, evObject.get("hp").getAsInt());
-                        evs.set(Stats.ATTACK, evObject.get("atk").getAsInt());
-                        evs.set(Stats.DEFENCE, evObject.get("def").getAsInt());
-                        evs.set(Stats.SPECIAL_ATTACK, evObject.get("sp_atk").getAsInt());
-                        evs.set(Stats.SPECIAL_DEFENCE, evObject.get("sp_def").getAsInt());
-                        evs.set(Stats.SPEED, evObject.get("spd").getAsInt());
-
-                        JsonObject boss_details = bossObject.getAsJsonObject("boss_details");
-                        int base_health = boss_details.get("base_health").getAsInt();
-                        String category = boss_details.get("category").getAsString();
-
-                        Map<String, Double> spawn_locations = new HashMap<>();
-                        JsonArray locations = boss_details.getAsJsonArray("locations");
-                        for (JsonElement element : locations) {
-                            JsonObject locationObject = element.getAsJsonObject();
-                            String location = locationObject.get("location").getAsString();
-                            double weight = locationObject.get("weight").getAsDouble();
-                            spawn_locations.put(location, weight);
-                        }
-
-
-                        bossesList.add(new Boss(bossFile.getName().replace(".json", ""), species, level, ability, nature, form, gender, shiny, scale, held_item, moves, ivs, evs, base_health, category, spawn_locations));
-                    } else {
-                        nr.logger().error("[RAIDS] Invalid Ability: {}", pokemon_details.get("ability").getAsString());
                     }
+
+                    Map<Nature, Double> possible_natures = new HashMap<>();
+                    JsonArray natures = pokemon_details.getAsJsonArray("nature");
+                    for (JsonElement element : natures) {
+                        JsonObject natureObj = element.getAsJsonObject();
+                        String nature_str = natureObj.get("nature").getAsString();
+                        Nature nature = Natures.INSTANCE.getNature(nature_str);
+                        if (nature != null) {
+                            possible_natures.put(nature, natureObj.get("weight").getAsDouble());
+                        }
+                    }
+
+                    String form_str = pokemon_details.get("form").getAsString();
+                    FormData form = species.getFormByName(form_str);
+
+                    Map<Gender, Double> possible_genders = new HashMap<>();
+                    JsonArray genders = pokemon_details.getAsJsonArray("gender");
+                    for (JsonElement element : genders) {
+                        JsonObject genderObj = element.getAsJsonObject();
+                        String gender_str = genderObj.get("gender").getAsString();
+                        Gender gender = Gender.valueOf(gender_str.toUpperCase());
+                        possible_genders.put(gender, genderObj.get("weight").getAsDouble());
+                    }
+
+                    boolean shiny = pokemon_details.get("shiny").getAsBoolean();
+                    float scale = pokemon_details.get("scale").getAsFloat();
+
+                    String held_item_string = pokemon_details.get("held_item").getAsString();
+                    Item held_item = null;
+                    if (held_item_string != null && !held_item_string.isEmpty()) {
+                        held_item = Registries.ITEM.get(Identifier.of(pokemon_details.get("held_item").getAsString()));
+                    }
+
+                    MoveSet moves = new MoveSet();
+                    JsonArray moves_list = pokemon_details.getAsJsonArray("moves");
+                    for (int i = 0; (i < moves_list.size() && i < 4); i++) {
+                        MoveTemplate moveTemplate = Moves.INSTANCE.getByName(moves_list.get(i).getAsString());
+                        if (moveTemplate != null) {
+                            moves.setMove(i, moveTemplate.create());
+                        }
+                    }
+
+                    JsonObject ivObject = pokemon_details.getAsJsonObject("ivs");
+                    IVs ivs = new IVs();
+                    ivs.set(Stats.HP, ivObject.get("hp").getAsInt());
+                    ivs.set(Stats.ATTACK, ivObject.get("atk").getAsInt());
+                    ivs.set(Stats.DEFENCE, ivObject.get("def").getAsInt());
+                    ivs.set(Stats.SPECIAL_ATTACK, ivObject.get("sp_atk").getAsInt());
+                    ivs.set(Stats.SPECIAL_DEFENCE, ivObject.get("sp_def").getAsInt());
+                    ivs.set(Stats.SPEED, ivObject.get("spd").getAsInt());
+
+                    JsonObject evObject = pokemon_details.getAsJsonObject("evs");
+                    EVs evs = new EVs();
+                    evs.set(Stats.HP, evObject.get("hp").getAsInt());
+                    evs.set(Stats.ATTACK, evObject.get("atk").getAsInt());
+                    evs.set(Stats.DEFENCE, evObject.get("def").getAsInt());
+                    evs.set(Stats.SPECIAL_ATTACK, evObject.get("sp_atk").getAsInt());
+                    evs.set(Stats.SPECIAL_DEFENCE, evObject.get("sp_def").getAsInt());
+                    evs.set(Stats.SPEED, evObject.get("spd").getAsInt());
+
+                    JsonObject boss_details = bossObject.getAsJsonObject("boss_details");
+                    int base_health = boss_details.get("base_health").getAsInt();
+                    String category = boss_details.get("category").getAsString();
+
+                    Map<String, Double> spawn_locations = new HashMap<>();
+                    JsonArray locations = boss_details.getAsJsonArray("locations");
+                    for (JsonElement element : locations) {
+                        JsonObject locationObject = element.getAsJsonObject();
+                        String location = locationObject.get("location").getAsString();
+                        double weight = locationObject.get("weight").getAsDouble();
+                        spawn_locations.put(location, weight);
+                    }
+
+                    JsonArray rewards_override = boss_details.getAsJsonArray("rewards_override");
+                    Map<List<String>, List<String>> rewards = new HashMap<>();
+                    for (JsonElement element : rewards_override) {
+                        JsonObject rewardObject = element.getAsJsonObject();
+                        List<String> places = rewardObject.getAsJsonArray("places").asList().stream().map(JsonElement::getAsString).toList();
+                        List<String> reward_pools = rewardObject.getAsJsonArray("reward_pools").asList().stream().map(JsonElement::getAsString).toList();
+                        rewards.put(places, reward_pools);
+                    }
+
+                    JsonObject catch_settings = bossObject.getAsJsonObject("catch_settings");
+                    boolean keep_form = catch_settings.get("keep_form").getAsBoolean();
+                    boolean keep_scale = catch_settings.get("keep_scale").getAsBoolean();
+                    boolean keep_held_item = catch_settings.get("keep_held_item").getAsBoolean();
+                    boolean randomize_ivs = catch_settings.get("randomize_ivs").getAsBoolean();
+                    boolean keep_evs = catch_settings.get("keep_evs").getAsBoolean();
+                    boolean randomize_gender = catch_settings.get("randomize_gender").getAsBoolean();
+                    boolean randomize_nature = catch_settings.get("randomize_nature").getAsBoolean();
+                    boolean randomize_ability = catch_settings.get("randomize_ability").getAsBoolean();
+                    int level_override = catch_settings.get("level_override").getAsInt();
+                    int shiny_chance = catch_settings.get("shiny_chance").getAsInt();
+
+                    CatchSettings catchSettings = new CatchSettings(keep_form, keep_scale, keep_held_item, randomize_ivs, keep_evs, randomize_gender, randomize_nature, randomize_ability, level_override, shiny_chance);
+
+                    bossesList.add(new Boss(
+                            bossFile.getName().replace(".json", ""),
+                            species,
+                            level,
+                            form,
+                            possible_abilities,
+                            possible_natures,
+                            possible_genders,
+                            shiny,
+                            scale,
+                            held_item,
+                            moves,
+                            ivs,
+                            evs,
+                            base_health,
+                            category,
+                            spawn_locations,
+                            rewards,
+                            catchSettings)
+                    );
                 } else {
                     nr.logger().error("[RAIDS] Invalid Boss Species: {}", pokemon_details.get("species").getAsString());
                 }

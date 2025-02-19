@@ -2,10 +2,45 @@
   "pokemon_details": {
     "species": "eevee",
     "level": 50,
-    "ability": "adaptability",
-    "nature": "jolly",
     "form": "normal",
-    "gender": "female",
+    "ability": [
+      {
+        "ability": "adaptability",
+        "weight": 1.0
+      },
+      {
+        "ability": "runaway",
+        "weight": 1.0
+      },
+      {
+        "ability": "anticipation",
+        "weight": 1.0
+      }
+    ],
+    "nature": [
+      {
+        "nature": "jolly",
+        "weight": 1.0
+      },
+      {
+        "nature": "calm",
+        "weight": 1.0
+      },
+      {
+        "nature": "brave",
+        "weight": 1.0
+      }
+    ],
+    "gender": [
+      {
+        "gender": "female",
+        "weight": 12.5
+      },
+      {
+        "gender": "male",
+        "weight": 87.5
+      }
+    ],
     "shiny": false,
     "scale": 1.0,
     "held_item": "cobblemon:leftovers",
@@ -45,7 +80,6 @@
         "weight": 50.0
       }
     ],
-    "__comment": "Not Functional Currently",
     "rewards_override": [
       {
         "places": ["1"],
@@ -60,5 +94,17 @@
         ]
       }
     ]
+  },
+  "catch_settings": {
+    "keep_form": false,
+    "keep_scale": false,
+    "keep_held_item": false,
+    "randomize_ivs": true,
+    "keep_evs": false,
+    "randomize_gender": true,
+    "randomize_nature": true,
+    "randomize_ability": true,
+    "level_override": 1,
+    "shiny_chance": 8192
   }
 }
