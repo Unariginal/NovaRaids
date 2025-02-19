@@ -176,14 +176,23 @@ public class Raid {
             }
         }
 
+        Set<List<String>> places_set;
+        Map<List<String>, List<String>> rewards_map;
+        if (boss_info.rewards().isEmpty()) {
+            places_set = raidBoss_category.rewards().keySet();
+            rewards_map = raidBoss_category.rewards();
+        } else {
+            places_set = boss_info.rewards().keySet();
+            rewards_map = boss_info.rewards();
+        }
 
-        for (List<String> places : raidBoss_category.rewards().keySet()) {
+        for (List<String> places : places_set) {
             for (String place : places) {
                 if (place.contains("%")) {
                     String percent_string = place.replace("%", "");
                     int percent = Integer.parseInt(percent_string);
                     int positions = get_damage_leaderboard().size() * (percent / 100);
-                    for (String reward_name : raidBoss_category.rewards().get(places)) {
+                    for (String reward_name : rewards_map.get(places)) {
                         for (int i = 0; i < positions; i++) {
                             ServerPlayerEntity player = get_damage_leaderboard().get(i).getKey();
                             nr.config().getRewardPool(reward_name).distributeRewards(player);
@@ -194,7 +203,7 @@ public class Raid {
             }
 
             if (places.contains("participating")) {
-                for (String reward_name : raidBoss_category.rewards().get(places)) {
+                for (String reward_name : rewards_map.get(places)) {
                     for (ServerPlayerEntity player : participating_players) {
                         nr.config().getRewardPool(reward_name).distributeRewards(player);
                     }
@@ -202,7 +211,7 @@ public class Raid {
             } else {
                 if (places.contains("1")) {
                     if (!get_damage_leaderboard().isEmpty()) {
-                        for (String reward_name : raidBoss_category.rewards().get(places)) {
+                        for (String reward_name : rewards_map.get(places)) {
                             ServerPlayerEntity player = get_damage_leaderboard().getFirst().getKey();
                             nr.config().getRewardPool(reward_name).distributeRewards(player);
                         }
@@ -211,7 +220,7 @@ public class Raid {
 
                 if (places.contains("2")) {
                     if (get_damage_leaderboard().size() > 1) {
-                        for (String reward_name : raidBoss_category.rewards().get(places)) {
+                        for (String reward_name : rewards_map.get(places)) {
                             ServerPlayerEntity player = get_damage_leaderboard().get(1).getKey();
                             nr.config().getRewardPool(reward_name).distributeRewards(player);
                         }
@@ -220,7 +229,7 @@ public class Raid {
 
                 if (places.contains("3")) {
                     if (get_damage_leaderboard().size() > 2) {
-                        for (String reward_name : raidBoss_category.rewards().get(places)) {
+                        for (String reward_name : rewards_map.get(places)) {
                             ServerPlayerEntity player = get_damage_leaderboard().get(2).getKey();
                             nr.config().getRewardPool(reward_name).distributeRewards(player);
                         }
