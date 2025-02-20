@@ -1,15 +1,20 @@
 package me.unariginal.novaraids.commands;
 
+import com.cobblemon.mod.common.item.PokemonItem;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import eu.pb4.sgui.api.elements.GuiElement;
+import eu.pb4.sgui.api.elements.GuiElementBuilder;
+import eu.pb4.sgui.api.gui.SimpleGui;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.Boss;
 import me.unariginal.novaraids.data.Category;
 import me.unariginal.novaraids.data.Location;
 import me.unariginal.novaraids.managers.Raid;
+import me.unariginal.novaraids.utils.TextUtil;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.component.ComponentMap;
@@ -19,6 +24,7 @@ import net.minecraft.component.type.NbtComponent;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -355,6 +361,30 @@ public class RaidCommands {
     }
 
     private int list(CommandContext<ServerCommandSource> ctx) {
+        ServerPlayerEntity player = ctx.getSource().getPlayer();
+
+        SimpleGui gui = new SimpleGui(ScreenHandlerType.GENERIC_9X6, player, false);
+        gui.setTitle(Text.literal("Active Raids"));
+        int slot = 0;
+        for (Map.Entry<Integer, Raid> entry : nr.active_raids().entrySet()) {
+            Raid raid = entry.getValue();
+            GuiElement element = new GuiElementBuilder(PokemonItem.from(entry.getValue().raidBoss_pokemon()))
+                    .setName(Text.literal("[ID: " + entry.getKey() + "] " + raid.boss_info().form().getName() + " " + raid.boss_info().species().getName()).styled(style -> style.withColor(Formatting.LIGHT_PURPLE).withItalic(false)))
+                    .setLore(
+                            List.of(Text.literal("HP: " + raid.current_health() + "/" + raid.max_health()).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)),
+                                    Text.literal("Category: " + raid.raidBoss_category().name()).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)),
+                                    Text.literal("Phase: " + raid.get_phase()).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)),
+                                    Text.literal("Players: " + raid.participating_players().size() + "/" + raid.max_players()).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)),
+                                    Text.literal("Raid Timer: " + TextUtil.hms(raid.raid_timer() / 20)).styled(style -> style.withColor(Formatting.GRAY).withItalic(false))
+                                    )
+            ).build();
+            gui.setSlot(slot, element);
+            slot++;
+            if (slot > 53) {
+                break;
+            }
+        }
+        gui.open();
         return 1;
     }
 }

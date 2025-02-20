@@ -18,8 +18,8 @@ public class TextUtil {
         output = output.replaceAll("%phase_length%", hms(raid.phase_length()));
 
         String form = "Normal";
-        if (boss.form().getForm() != null) {
-            form = boss.form().getForm();
+        if (!boss.form().getName().isEmpty()) {
+            form = boss.form().getName();
         }
         output = output.replaceAll("%form%", form);
 

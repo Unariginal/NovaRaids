@@ -42,6 +42,8 @@ public class Raid {
     private final Map<Long, List<Task>> tasks = new HashMap<>();
     private final Map<ServerPlayerEntity, BossBar> player_bossbars = new HashMap<>();
 
+    private long raid_start_time;
+    private long raid_end_time;
     private long phase_length;
     private long phase_start_time;
     private BossbarData bossbar_data;
@@ -66,6 +68,7 @@ public class Raid {
         max_players = raidBoss_category.max_players();
 
         stage = 0;
+        raid_start_time = nr.server().getOverworld().getTime();
         setup_phase();
     }
 
@@ -98,6 +101,8 @@ public class Raid {
         for (ServerPlayerEntity player : player_bossbars.keySet()) {
             player.hideBossBar(player_bossbars.get(player));
         }
+
+        raid_end_time = nr.server().getOverworld().getTime();
     }
 
     private void setup_phase() {
@@ -127,6 +132,7 @@ public class Raid {
     private void raid_lost() {
         stage = -1;
         tasks.clear();
+        raid_end_time = nr.server().getOverworld().getTime();
     }
 
     public void pre_catch_phase() {
@@ -237,6 +243,7 @@ public class Raid {
                 }
             }
         }
+        raid_end_time = nr.server().getOverworld().getTime();
     }
 
     private void addTask(ServerWorld world, Long delay, Runnable action) {
@@ -299,6 +306,38 @@ public class Raid {
         return stage;
     }
 
+    public String get_phase() {
+        return switch (stage) {
+            case -1 -> "Stopping";
+            case 0 -> "Constructor";
+            case 1 -> "Setup";
+            case 2 -> "Fight";
+            case 3 -> "Pre-Catch";
+            case 4 -> "Catch";
+            default -> "Error";
+        };
+    }
+
+    public int max_players() {
+        return max_players;
+    }
+
+    public int min_players() {
+        return min_players;
+    }
+
+    public long raid_start_time() {
+        return raid_start_time;
+    }
+
+    public long raid_end_time() {
+        return raid_end_time;
+    }
+
+    public long raid_timer() {
+        return nr.server().getOverworld().getTime() - raid_start_time;
+    }
+
     public BossbarData bossbar_data() {
         return bossbar_data;
     }
@@ -329,6 +368,10 @@ public class Raid {
 
     public PokemonEntity raidBoss_entity() {
         return raidBoss_entity;
+    }
+
+    public Category raidBoss_category() {
+        return raidBoss_category;
     }
 
     public Location raidBoss_location() {
