@@ -13,6 +13,7 @@ import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.Boss;
 import me.unariginal.novaraids.data.Category;
 import me.unariginal.novaraids.data.Location;
+import me.unariginal.novaraids.managers.Messages;
 import me.unariginal.novaraids.managers.Raid;
 import me.unariginal.novaraids.utils.TextUtil;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -53,14 +54,11 @@ public class RaidCommands {
                                     .then(
                                             CommandManager.argument("boss", StringArgumentType.string())
                                                     .suggests(new BossSuggestions())
-                                                    .executes(ctx -> start(nr.config().getBoss(StringArgumentType.getString(ctx, "boss"))))
+                                                    .executes(ctx -> start(nr.config().getBoss(StringArgumentType.getString(ctx, "boss")), ctx.getSource().getPlayer(), null))
                                     )
                                     .then(
                                             CommandManager.literal("random")
-                                                    .executes(ctx -> {
-                                                        Random rand = new Random();
-                                                        return start(nr.config().getBosses().get(rand.nextInt(nr.config().getBosses().size())));
-                                                    })
+                                                    .executes(ctx -> start(nr.config().getBosses().get(new Random().nextInt(nr.config().getBosses().size())), ctx.getSource().getPlayer(), null))
                                                     .then(
                                                             CommandManager.argument("category", StringArgumentType.string())
                                                                     .suggests(new CategorySuggestions())
@@ -75,7 +73,7 @@ public class RaidCommands {
                                                                                 possible_bosses.add(boss);
                                                                             }
                                                                         }
-                                                                        return start(possible_bosses.get(rand.nextInt(possible_bosses.size())));
+                                                                        return start(possible_bosses.get(rand.nextInt(possible_bosses.size())), ctx.getSource().getPlayer(), null);
                                                                     })
                                                     )
                                     )
@@ -98,24 +96,24 @@ public class RaidCommands {
                                                                     .then(
                                                                             CommandManager.argument("boss", StringArgumentType.string())
                                                                                     .suggests(new BossSuggestions())
-                                                                                    .executes(ctx -> give(ctx, "pass", StringArgumentType.getString(ctx, "boss"), null))
+                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "pass", StringArgumentType.getString(ctx, "boss"), null, 0))
                                                                     )
                                                                     .then(
                                                                             CommandManager.literal("*")
-                                                                                    .executes(ctx -> give(ctx, "pass", "*", null))
+                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "pass", "*", null, 0))
                                                                                     .then(
                                                                                             CommandManager.argument("category", StringArgumentType.string())
                                                                                                     .suggests(new CategorySuggestions())
-                                                                                                    .executes(ctx -> give(ctx, "pass", "*", StringArgumentType.getString(ctx, "category")))
+                                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "pass", "*", StringArgumentType.getString(ctx, "category"), 0))
                                                                                     )
                                                                     )
                                                                     .then(
                                                                             CommandManager.literal("random")
-                                                                                    .executes(ctx -> give(ctx, "pass", "random", null))
+                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "pass", "random", null, 0))
                                                                                     .then(
                                                                                             CommandManager.argument("category", StringArgumentType.string())
                                                                                                     .suggests(new CategorySuggestions())
-                                                                                                    .executes(ctx -> give(ctx, "pass", "random", StringArgumentType.getString(ctx, "category")))
+                                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "pass", "random", StringArgumentType.getString(ctx, "category"), 0))
                                                                                     )
                                                                     )
                                                     )
@@ -124,24 +122,24 @@ public class RaidCommands {
                                                                     .then(
                                                                             CommandManager.argument("boss", StringArgumentType.string())
                                                                                     .suggests(new BossSuggestions())
-                                                                                    .executes(ctx -> give(ctx, "voucher", StringArgumentType.getString(ctx, "boss"), null))
+                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "voucher", StringArgumentType.getString(ctx, "boss"), null, 0))
                                                                     )
                                                                     .then(
                                                                             CommandManager.literal("*")
-                                                                                    .executes(ctx -> give(ctx, "voucher", "*", null))
+                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "voucher", "*", null, 0))
                                                                                     .then(
                                                                                             CommandManager.argument("category", StringArgumentType.string())
                                                                                                     .suggests(new CategorySuggestions())
-                                                                                                    .executes(ctx -> give(ctx, "voucher", "*", StringArgumentType.getString(ctx, "category")))
+                                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "voucher", "*", StringArgumentType.getString(ctx, "category"), 0))
                                                                                     )
                                                                     )
                                                                     .then(
                                                                             CommandManager.literal("random")
-                                                                                    .executes(ctx -> give(ctx, "voucher", "random", null))
+                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "voucher", "random", null, 0))
                                                                                     .then(
                                                                                             CommandManager.argument("category", StringArgumentType.string())
                                                                                                     .suggests(new CategorySuggestions())
-                                                                                                    .executes(ctx -> give(ctx, "voucher", "random", StringArgumentType.getString(ctx, "category")))
+                                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "voucher", "random", StringArgumentType.getString(ctx, "category"), 0))
                                                                                     )
                                                                     )
                                                     )
@@ -149,7 +147,7 @@ public class RaidCommands {
                                                             CommandManager.literal("pokeball")
                                                                     .then(
                                                                             CommandManager.argument("amount", IntegerArgumentType.integer(1))
-                                                                                    .executes(ctx -> give(ctx, "pokeball", null, null))
+                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "pokeball", null, null, IntegerArgumentType.getInteger(ctx, "amount")))
                                                                     )
 
                                                     )
@@ -167,11 +165,33 @@ public class RaidCommands {
                                             CommandManager.argument("id", IntegerArgumentType.integer(1))
                                                     .executes(ctx -> {
                                                         if (ctx.getSource().isExecutedByPlayer()) {
-                                                            nr.active_raids().get(IntegerArgumentType.getInteger(ctx, "id")).addPlayer(ctx.getSource().getPlayer());
+                                                            for (Raid raid : nr.active_raids().values()) {
+                                                                if (raid.participating_players().contains(ctx.getSource().getPlayer())) {
+                                                                    return 0;
+                                                                }
+                                                            }
+
+                                                            if (nr.active_raids().containsKey(IntegerArgumentType.getInteger(ctx, "id"))) {
+                                                                nr.active_raids().get(IntegerArgumentType.getInteger(ctx, "id")).addPlayer(ctx.getSource().getPlayer());
+                                                            }
                                                         }
                                                         return 1;
                                                     })
                                     )
+                    )
+                    .then(
+                            CommandManager.literal("leave")
+                                    .requires(Permissions.require("novaraids.leave", 4))
+                                    .executes(ctx -> {
+                                        if (ctx.getSource().isExecutedByPlayer()) {
+                                            for (Raid raid : nr.active_raids().values()) {
+                                                if (raid.participating_players().contains(ctx.getSource().getPlayer())) {
+                                                    raid.removePlayer(ctx.getSource().getPlayer());
+                                                }
+                                            }
+                                        }
+                                        return 1;
+                                    })
                     )
         ));
     }
@@ -188,7 +208,7 @@ public class RaidCommands {
         return 1;
     }
 
-    public int start(Boss boss_info) {
+    public int start(Boss boss_info, ServerPlayerEntity player, ItemStack starting_item) {
         Map<String, Double> spawn_locations = boss_info.spawn_locations();
 
         Random rand = new Random();
@@ -213,13 +233,16 @@ public class RaidCommands {
             return 0;
         }
 
-        nr.add_raid(new Raid(boss_info, spawn_location));
+        nr.add_raid(new Raid(boss_info, spawn_location, player, starting_item));
         return 1;
     }
 
     private int stop(CommandContext<ServerCommandSource> ctx) {
         int id = IntegerArgumentType.getInteger(ctx, "id");
         if (nr.active_raids().containsKey(id)) {
+            if (ctx.getSource().isExecutedByPlayer()) {
+                ctx.getSource().getPlayer().sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("raid_stopped"), nr.active_raids().get(id))));
+            }
             nr.active_raids().get(id).stop();
             nr.remove_raid(nr.active_raids().get(id));
             return 1;
@@ -227,155 +250,156 @@ public class RaidCommands {
         return 0;
     }
 
-    private int give(CommandContext<ServerCommandSource> ctx, String item_type, String boss_name, String category) {
-        if (!ctx.getSource().isExecutedByPlayer()) {
-            ctx.getSource().sendMessage(Text.of("Not yet"));
-            return 0;
-        }
+    public int give(ServerPlayerEntity source_player, ServerPlayerEntity target_player, String item_type, String boss_name, String category, int amount) {
+        Item voucher_item = nr.config().getSettings().voucher_item();
+        Item pass_item = nr.config().getSettings().pass_item();
+        Item raid_pokeball = nr.config().getSettings().raid_pokeball();
 
-        ServerPlayerEntity source_player = ctx.getSource().getPlayer();
-        assert source_player != null;
-        try {
-            ServerPlayerEntity target_player = EntityArgumentType.getPlayer(ctx, "player");
-            Item voucher_item = nr.config().getSettings().voucher_item();
-            Item pass_item = nr.config().getSettings().pass_item();
-            Item raid_pokeball = nr.config().getSettings().raid_pokeball();
+        ItemStack item_to_give = null;
+        NbtCompound custom_data = new NbtCompound();
+        ComponentMap.Builder component_builder = ComponentMap.builder();
+        Text item_name = null;
+        LoreComponent lore = LoreComponent.DEFAULT;
 
-            ItemStack item_to_give = null;
-            NbtCompound custom_data = new NbtCompound();
-            ComponentMap.Builder component_builder = ComponentMap.builder();
-            Text item_name = null;
-            LoreComponent lore = LoreComponent.DEFAULT;
+        Random rand = new Random();
 
-            Random rand = new Random();
+        if (item_type.equalsIgnoreCase("pass")) {
+            item_to_give = new ItemStack(pass_item, 1);
+            if (nr.config().getSettings().pass_item_data() != null) {
+                item_to_give.applyChanges(nr.config().getSettings().pass_item_data());
+            }
+            custom_data.putString("raid_item", "raid_pass");
+            item_name = Text.literal("Raid Pass").styled(style -> style.withColor(Formatting.LIGHT_PURPLE).withItalic(false));
+            if (boss_name.equalsIgnoreCase("*")) {
+                custom_data.putString("raid_boss", "*");
+                if (category == null) {
+                    custom_data.putString("raid_category", "*");
 
-            if (item_type.equalsIgnoreCase("pass")) {
-                item_to_give = new ItemStack(pass_item, 1);
-                if (nr.config().getSettings().pass_item_data() != null) {
-                    item_to_give.applyChanges(nr.config().getSettings().pass_item_data());
+                    lore = lore.with(Text.literal("Raid pass for any raid!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
+                } else {
+                    custom_data.putString("raid_category", category);
+
+                    lore = lore.with(Text.literal("Raid pass for any " + category + " raid!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
                 }
-                custom_data.putString("raid_item", "raid_pass");
-                item_name = Text.literal("Raid Pass").styled(style -> style.withColor(Formatting.LIGHT_PURPLE).withItalic(false));
-                if (boss_name.equalsIgnoreCase("*")) {
-                    custom_data.putString("raid_boss", "*");
-                    if (category == null) {
-                        custom_data.putString("raid_category", "*");
+            } else if (boss_name.equalsIgnoreCase("random")) {
+                if (category == null) {
+                    String random_boss = nr.config().getBosses().get(rand.nextInt(nr.config().getBosses().size())).name();
+                    custom_data.putString("raid_boss", random_boss);
+                    custom_data.putString("raid_category", "null");
 
-                        lore = lore.with(Text.literal("Raid pass for any raid!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
-                    } else {
-                        custom_data.putString("raid_category", category);
-
-                        lore = lore.with(Text.literal("Raid pass for any " + category + " raid!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
-                    }
-                } else if (boss_name.equalsIgnoreCase("random")) {
-                    if (category == null) {
-                        String random_boss = nr.config().getBosses().get(rand.nextInt(nr.config().getBosses().size())).name();
-                        custom_data.putString("raid_boss", random_boss);
-                        custom_data.putString("raid_category", "null");
-
-                        lore = lore.with(Text.literal("Raid pass for " + random_boss + "!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
-                    } else {
-                        List<Boss> possible_bosses = new ArrayList<>();
-                        for (Boss boss : nr.config().getBosses()) {
-                            if (boss.category().equalsIgnoreCase(category)) {
-                                possible_bosses.add(boss);
-                            }
+                    lore = lore.with(Text.literal("Raid pass for " + random_boss + "!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
+                } else {
+                    List<Boss> possible_bosses = new ArrayList<>();
+                    for (Boss boss : nr.config().getBosses()) {
+                        if (boss.category().equalsIgnoreCase(category)) {
+                            possible_bosses.add(boss);
                         }
-                        String random_boss = possible_bosses.get(rand.nextInt(possible_bosses.size())).name();
-                        custom_data.putString("raid_boss", random_boss);
-                        custom_data.putString("raid_category", "null");
-
-                        lore = lore.with(Text.literal("Raid pass for " + random_boss + "!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
                     }
-                } else {
-                    custom_data.putString("raid_boss", boss_name);
+                    String random_boss = possible_bosses.get(rand.nextInt(possible_bosses.size())).name();
+                    custom_data.putString("raid_boss", random_boss);
                     custom_data.putString("raid_category", "null");
 
-                    lore = lore.with(Text.literal("Raid pass for " + boss_name + "!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
-                }
-            } else if (item_type.equalsIgnoreCase("voucher")) {
-                item_to_give = new ItemStack(voucher_item, 1);
-                if (nr.config().getSettings().voucher_item_data() != null) {
-                    item_to_give.applyChanges(nr.config().getSettings().voucher_item_data());
-                }
-                custom_data.putString("raid_item", "raid_voucher");
-                item_name = Text.literal("Raid Voucher").styled(style -> style.withItalic(false).withColor(Formatting.AQUA));
-                if (boss_name.equalsIgnoreCase("*")) {
-                    custom_data.putString("raid_boss", "*");
-                    if (category == null) {
-                        custom_data.putString("raid_category", "*");
-                        lore = lore.with(Text.literal("Use to start any raid!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
-                    } else {
-                        custom_data.putString("raid_category", category);
-                        lore = lore.with(Text.literal("Use to start any " + category + " raid!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
-                    }
-                } else if (boss_name.equalsIgnoreCase("random")) {
-                    custom_data.putString("raid_boss", "random");
-                    if (category == null) {
-                        custom_data.putString("raid_category", "null");
-                        lore = lore.with(Text.literal("Use to start a random raid!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
-                    } else {
-                        custom_data.putString("raid_category", category);
-                        lore = lore.with(Text.literal("Use to start a random " + category + " raid!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
-                    }
-                } else {
-                    custom_data.putString("raid_boss", boss_name);
-                    custom_data.putString("raid_category", "null");
-
-                    lore = lore.with(Text.literal("Use to start a " + boss_name + " raid!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
+                    lore = lore.with(Text.literal("Raid pass for " + random_boss + "!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
                 }
             } else {
-                if (raid_pokeball != null) {
-                    item_to_give = new ItemStack(raid_pokeball, IntegerArgumentType.getInteger(ctx, "amount"));
-                    custom_data.putString("raid_item", "raid_ball");
-                    custom_data.putUuid("owner_uuid", target_player.getUuid());
-                    item_name = Text.literal("Raid Pokeball").styled(style -> style.withItalic(false).withColor(Formatting.RED));
-                    lore = lore.with(Text.literal("Use this to try and capture raid bosses!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
-                    if (nr.config().getSettings().raid_pokeball_data() != null) {
-                        item_to_give.applyChanges(nr.config().getSettings().raid_pokeball_data());
-                    }
+                custom_data.putString("raid_boss", boss_name);
+                custom_data.putString("raid_category", "null");
+
+                lore = lore.with(Text.literal("Raid pass for " + boss_name + "!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
+            }
+        } else if (item_type.equalsIgnoreCase("voucher")) {
+            item_to_give = new ItemStack(voucher_item, 1);
+            if (nr.config().getSettings().voucher_item_data() != null) {
+                item_to_give.applyChanges(nr.config().getSettings().voucher_item_data());
+            }
+            custom_data.putString("raid_item", "raid_voucher");
+            item_name = Text.literal("Raid Voucher").styled(style -> style.withItalic(false).withColor(Formatting.AQUA));
+            if (boss_name.equalsIgnoreCase("*")) {
+                custom_data.putString("raid_boss", "*");
+                if (category == null) {
+                    custom_data.putString("raid_category", "*");
+                    lore = lore.with(Text.literal("Use to start any raid!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
                 } else {
+                    custom_data.putString("raid_category", category);
+                    lore = lore.with(Text.literal("Use to start any " + category + " raid!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
+                }
+            } else if (boss_name.equalsIgnoreCase("random")) {
+                custom_data.putString("raid_boss", "random");
+                if (category == null) {
+                    custom_data.putString("raid_category", "null");
+                    lore = lore.with(Text.literal("Use to start a random raid!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
+                } else {
+                    custom_data.putString("raid_category", category);
+                    lore = lore.with(Text.literal("Use to start a random " + category + " raid!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
+                }
+            } else {
+                custom_data.putString("raid_boss", boss_name);
+                custom_data.putString("raid_category", "null");
+
+                lore = lore.with(Text.literal("Use to start a " + boss_name + " raid!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
+            }
+        } else {
+            if (raid_pokeball != null) {
+                item_to_give = new ItemStack(raid_pokeball, amount);
+                custom_data.putString("raid_item", "raid_ball");
+                custom_data.putUuid("owner_uuid", target_player.getUuid());
+                item_name = Text.literal("Raid Pokeball").styled(style -> style.withItalic(false).withColor(Formatting.RED));
+                lore = lore.with(Text.literal("Use this to try and capture raid bosses!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
+                if (nr.config().getSettings().raid_pokeball_data() != null) {
+                    item_to_give.applyChanges(nr.config().getSettings().raid_pokeball_data());
+                }
+            } else {
+                if (source_player != null) {
                     source_player.sendMessage(Text.literal("Raid Pokeball not found!"));
                 }
             }
+        }
 
-            if (item_to_give != null && item_name != null) {
-                item_to_give.applyComponentsFrom(component_builder
-                        .add(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(custom_data))
-                        .add(DataComponentTypes.ITEM_NAME, item_name)
-                        .add(DataComponentTypes.LORE, lore)
-                        .build());
-                if (!target_player.giveItemStack(item_to_give)) {
+        if (item_to_give != null && item_name != null) {
+            item_to_give.applyComponentsFrom(component_builder
+                    .add(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(custom_data))
+                    .add(DataComponentTypes.ITEM_NAME, item_name)
+                    .add(DataComponentTypes.LORE, lore)
+                    .build());
+            if (!target_player.giveItemStack(item_to_give)) {
+                if (source_player != null) {
                     source_player.sendMessage(Text.of("Failed to give the item!"));
-                } else {
-                    target_player.sendMessage(Text.of("You received a raid " + item_type + "!"));
-                    source_player.sendMessage(Text.of("Successfully gave the item!"));
                 }
             } else {
+                target_player.sendMessage(Text.of("You received a raid " + item_type + "!"));
+                if (source_player != null) {
+                    source_player.sendMessage(Text.of("Successfully gave the item!"));
+                }
+            }
+        } else {
+            if (source_player != null) {
                 source_player.sendMessage(Text.literal("Failed to give item"));
             }
-        } catch (CommandSyntaxException e) {
-            source_player.sendMessage(Text.of("Error: " + e.getMessage()));
         }
         return 1;
     }
 
     private int list(CommandContext<ServerCommandSource> ctx) {
         ServerPlayerEntity player = ctx.getSource().getPlayer();
+        Messages messages = nr.config().getMessages();
+        if (nr.active_raids().isEmpty()) {
+            player.sendMessage(TextUtil.format(messages.parse(messages.message("no_active_raids"))));
+            return 0;
+        }
 
         SimpleGui gui = new SimpleGui(ScreenHandlerType.GENERIC_9X6, player, false);
-        gui.setTitle(Text.literal("Active Raids"));
+        gui.setTitle(Text.literal(messages.parse(messages.message("raid_list_gui_title"))));
         int slot = 0;
         for (Map.Entry<Integer, Raid> entry : nr.active_raids().entrySet()) {
             Raid raid = entry.getValue();
             GuiElement element = new GuiElementBuilder(PokemonItem.from(entry.getValue().raidBoss_pokemon()))
-                    .setName(Text.literal("[ID: " + entry.getKey() + "] " + raid.boss_info().form().getName() + " " + raid.boss_info().species().getName()).styled(style -> style.withColor(Formatting.LIGHT_PURPLE).withItalic(false)))
+                    .setName(Text.literal(messages.parse("[ID: %raid.id%] %boss.form% %boss.species%", raid)).styled(style -> style.withColor(Formatting.LIGHT_PURPLE).withItalic(false)))
                     .setLore(
-                            List.of(Text.literal("HP: " + raid.current_health() + "/" + raid.max_health()).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)),
-                                    Text.literal("Category: " + raid.raidBoss_category().name()).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)),
-                                    Text.literal("Phase: " + raid.get_phase()).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)),
-                                    Text.literal("Players: " + raid.participating_players().size() + "/" + raid.max_players()).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)),
-                                    Text.literal("Raid Timer: " + TextUtil.hms(raid.raid_timer() / 20)).styled(style -> style.withColor(Formatting.GRAY).withItalic(false))
+                            List.of(Text.literal(messages.parse("HP: %boss.currenthp%/%boss.maxhp%", raid)).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)),
+                                    Text.literal(messages.parse("Category: %raid.category%", raid)).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)),
+                                    Text.literal(messages.parse("Phase: %raid.phase%", raid)).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)),
+                                    Text.literal(messages.parse("Players: %raid.player_count%/%raid.max_players%", raid)).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)),
+                                    Text.literal(messages.parse("Raid Timer: %raid.timer%", raid)).styled(style -> style.withColor(Formatting.GRAY).withItalic(false))
                                     )
             ).build();
             gui.setSlot(slot, element);

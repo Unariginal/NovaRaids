@@ -5,6 +5,9 @@ import me.unariginal.novaraids.data.Task;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class TickManager {
     private static final NovaRaids nr = NovaRaids.INSTANCE;
 
@@ -57,10 +60,11 @@ public class TickManager {
     }
 
     public static void handle_defeated_bosses() {
+        List<Raid> to_remove = new ArrayList<>();
         for (Raid raid : nr.active_raids().values()) {
             if (raid.stage() == -1) {
                 raid.stop();
-                nr.remove_raid(raid);
+                to_remove.add(raid);
                 continue;
             }
 
@@ -69,6 +73,10 @@ public class TickManager {
                     raid.pre_catch_phase();
                 }
             }
+        }
+
+        for (Raid raid : to_remove) {
+            nr.remove_raid(raid);
         }
     }
 

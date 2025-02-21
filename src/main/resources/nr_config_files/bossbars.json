@@ -2,10 +2,10 @@
   "setup_phase": {
     "phase": "setup",
     "use_overlay": true,
-    "overlay_text": "<gold>Raid starts in %phase_timer%",
+    "overlay_text": "<gold>Raid starts in %raid.phase_timer%",
     "bar_color": "blue",
     "bar_style": "progress",
-    "bar_text": "<blue>Prepare for battle against %form% %pokemon%!",
+    "bar_text": "<blue>Prepare for battle against %boss.form% %boss.species%!",
     "bosses": [],
     "categories": [
       "common"
@@ -14,10 +14,10 @@
   "fight_phase": {
     "phase": "fight",
     "use_overlay": true,
-    "overlay_text": "<red>Raid ends in %phase_timer% <dark_gray>| <red>HP %current_hp%/%max_hp%",
+    "overlay_text": "<red>Raid ends in %raid.phase_timer% <dark_gray>| <red>HP %boss.currenthp%/%boss.maxhp%",
     "bar_color": "red",
     "bar_style": "notched_20",
-    "bar_text": "<red>Boss %form% %pokemon%",
+    "bar_text": "<red>Boss %boss.form% %boss.species%",
     "bosses": [],
     "categories": [
       "common"
@@ -26,7 +26,7 @@
   "pre_catch_phase": {
     "phase": "pre_catch",
     "use_overlay": true,
-    "overlay_text": "<red>Catching event starts in %phase_timer%",
+    "overlay_text": "<red>Catching event starts in %raid.phase_timer%",
     "bar_color": "red",
     "bar_style": "progress",
     "bar_text": "<red>Catching event starts soon, get to a safe place!",
@@ -38,10 +38,10 @@
   "catch_phase": {
     "phase": "catch",
     "use_overlay": true,
-    "overlay_text": "<yellow>Catching event ends in %phase_timer%",
+    "overlay_text": "<yellow>Catching event ends in %raid.phase_timer%",
     "bar_color": "yellow",
     "bar_style": "progress",
-    "bar_text": "<yellow>Time to catch %pokemon%",
+    "bar_text": "<yellow>Time to catch %boss.form% %boss.species%",
     "bosses": [],
     "categories": [
       "common"

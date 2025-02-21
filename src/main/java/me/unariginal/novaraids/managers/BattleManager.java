@@ -39,6 +39,7 @@ public class BattleManager {
         Pokemon pokemon = raid.raidBoss_pokemon().clone(true, null);
         NbtCompound data = new NbtCompound();
         data.putBoolean("boss_clone", true);
+        data.putBoolean("catch_encounter", true);
         pokemon.setPersistentData$common(data);
 
         CatchSettings settings = raid.boss_info().catch_settings();
@@ -114,6 +115,7 @@ public class BattleManager {
         Pokemon pokemon = raid.raidBoss_pokemon_uncatchable().clone(true, null);
         NbtCompound data = new NbtCompound();
         data.putBoolean("boss_clone", true);
+        data.putBoolean("catch_encounter", false);
         pokemon.setPersistentData$common(data);
         pokemon.setShiny(false);
         pokemon.setScaleModifier(0.1f);

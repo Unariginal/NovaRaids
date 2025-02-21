@@ -15,6 +15,7 @@ import eu.pb4.sgui.api.gui.SimpleGui;
 import kotlin.Unit;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.Boss;
+import me.unariginal.novaraids.utils.TextUtil;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
@@ -184,9 +185,11 @@ public class EventManager {
             for (BattleActor actor : battle.getActors()) {
                 if (actor instanceof PokemonBattleActor pokemonBattleActor) {
                     Pokemon pokemon = pokemonBattleActor.getPokemon().getOriginalPokemon();
-                    if (pokemon.getPersistentData().contains("boss_clone")) {
-                        if (pokemon.getPersistentData().getBoolean("boss_clone")) {
+                    if (pokemon.getPersistentData().contains("boss_clone") && pokemon.getPersistentData().contains("catch_encounter")) {
+                        if (pokemon.getPersistentData().getBoolean("boss_clone") && !pokemon.getPersistentData().getBoolean("catch_encounter")) {
                             damage = Math.abs(pokemon.getCurrentHealth() - pokemon.getMaxHealth());
+                        } else {
+                            return Unit.INSTANCE;
                         }
                     }
                 } else if (actor instanceof PlayerBattleActor playerBattleActor) {
@@ -199,6 +202,7 @@ public class EventManager {
                     if (raid.participating_players().contains(player)) {
                         raid.apply_damage(damage);
                         raid.update_player_damage(player, damage);
+                        raid.participating_broadcast(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("player_damage_report"), raid, player, damage)));
                         break;
                     }
                 }
@@ -228,7 +232,6 @@ public class EventManager {
             }
             return Unit.INSTANCE;
         });
-
 //        CobblemonEvents.THROWN_POKEBALL_HIT.subscribe(Priority.HIGHEST, event -> {
 //            EmptyPokeBallEntity pokeball = event.getPokeBall();
 //            PokemonEntity pokemon_entity = event.getPokemon();
@@ -276,7 +279,7 @@ public class EventManager {
         UseItemCallback.EVENT.register((playerEntity, world, hand) -> {
             ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(playerEntity.getUuid());
             if (player != null) {
-                ItemStack held_item = player.getMainHandStack();
+                ItemStack held_item = player.getStackInHand(hand);
                 NbtComponent custom_data = held_item.getComponents().get(DataComponentTypes.CUSTOM_DATA);
 
                 NbtCompound passNBT = new NbtCompound();
@@ -306,19 +309,22 @@ public class EventManager {
                                 for (int i = 0; i < joinable_raids.size(); i++) {
                                     int index = i;
                                     GuiElement element = new GuiElementBuilder(PokemonItem.from(joinable_raids.get(i).raidBoss_pokemon())).setCallback((slot, clickType, slotActionType) -> {
-                                        if (joinable_raids.get(index).addPlayer(player)) {
-                                            nr.logger().info("[RAIDS] {} has joined the {} raid!", player.getName(), joinable_raids.get(index).boss_info().name());
-                                            player.sendMessage(Text.of("You have joined the " + joinable_raids.get(index).boss_info().name() + " raid!"));
+                                        if (joinable_raids.get(index).raidBoss_category().require_pass()) {
+                                            if (joinable_raids.get(index).addPlayer(player)) {
+                                                nr.logger().info("[RAIDS] {} has joined the {} raid!", player.getName(), joinable_raids.get(index).boss_info().name());
+                                                player.sendMessage(Text.of("You have joined the " + joinable_raids.get(index).boss_info().name() + " raid!"));
 
-                                            int newCount = held_item.getCount() - 1;
-                                            if (newCount == 0) {
-                                                player.setStackInHand(hand, ItemStack.EMPTY);
-                                            } else {
-                                                held_item.setCount(newCount);
+                                                held_item.decrement(1);
                                                 player.setStackInHand(hand, held_item);
-                                            }
 
-                                            gui.close();
+                                                player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("used_pass"), joinable_raids.get(index))));
+
+                                                gui.close();
+                                            } else {
+                                                player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_already_used_pass"), joinable_raids.get(index))));
+                                            }
+                                        } else {
+                                            player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_no_pass_needed"), joinable_raids.get(index))));
                                         }
                                     }).build();
                                     gui.setSlot(i, element);
@@ -326,21 +332,22 @@ public class EventManager {
                                 gui.open();
                             } else {
                                 for (Raid raid : nr.active_raids().values()) {
-                                    if (raid.boss_info().name().equalsIgnoreCase(boss_name)) {
-                                        if (raid.addPlayer(player)) {
-                                            nr.logger().info("[RAIDS] {} has joined the {} raid!", player.getName(), raid.boss_info().name());
-                                            player.sendMessage(Text.of("You have joined the " + raid.boss_info().name() + " raid!"));
+                                    if (raid.participating_players().contains(player)) {
+                                        return TypedActionResult.fail(held_item);
+                                    }
 
-                                            int newCount = held_item.getCount() - 1;
-                                            if (newCount == 0) {
-                                                player.setStackInHand(hand, ItemStack.EMPTY);
-                                            } else {
-                                                held_item.setCount(newCount);
+                                    if (raid.boss_info().name().equalsIgnoreCase(boss_name)) {
+                                        if (raid.raidBoss_category().require_pass()) {
+                                            if (raid.addPlayer(player)) {
+                                                held_item.decrement(1);
                                                 player.setStackInHand(hand, held_item);
+
+                                                player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("used_pass"), raid)));
+                                            } else {
+                                                player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_already_used_pass"), raid)));
                                             }
                                         } else {
-                                            nr.logger().info("[RAIDS] {} is already in this raid!", player.getName());
-                                            player.sendMessage(Text.of("You are already in this raid!"));
+                                            player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_no_pass_needed"), raid)));
                                         }
                                     }
                                 }
@@ -365,15 +372,12 @@ public class EventManager {
                                 for (int i = 0; i < available_raids.size(); i++) {
                                     int index = i;
                                     GuiElement element = new GuiElementBuilder(PokemonItem.from(available_raids.get(i).species())).setCallback((slot, clickType, slotActionType) -> {
-                                        nr.raidCommands().start(available_raids.get(index));
+                                        nr.raidCommands().start(available_raids.get(index), player, held_item);
 
-                                        int newCount = held_item.getCount() - 1;
-                                        if (newCount == 0) {
-                                            player.setStackInHand(hand, ItemStack.EMPTY);
-                                        } else {
-                                            held_item.setCount(newCount);
-                                            player.setStackInHand(hand, held_item);
-                                        }
+                                        held_item.decrement(1);
+                                        player.setStackInHand(hand, held_item);
+
+                                        player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("used_voucher"), available_raids.get(index))));
 
                                         gui.close();
                                     }).build();
@@ -395,27 +399,20 @@ public class EventManager {
                                     boss_info = available_raids.get(rand.nextInt(available_raids.size()));
                                 }
 
-                                int newCount = held_item.getCount() - 1;
-                                if (newCount == 0) {
-                                    player.setStackInHand(hand, ItemStack.EMPTY);
-                                } else {
-                                    held_item.setCount(newCount);
-                                    player.setStackInHand(hand, held_item);
-                                }
+                                held_item.decrement(1);
+                                player.setStackInHand(hand, held_item);
 
-                                nr.raidCommands().start(boss_info);
+                                nr.raidCommands().start(boss_info, player, held_item);
+                                player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("used_voucher"), boss_info)));
                             } else {
                                 for (Boss boss : nr.config().getBosses()) {
                                     if (boss.name().equalsIgnoreCase(boss_name)) {
-                                        nr.raidCommands().start(boss);
+                                        nr.raidCommands().start(boss, player, held_item);
 
-                                        int newCount = held_item.getCount() - 1;
-                                        if (newCount == 0) {
-                                            player.setStackInHand(hand, ItemStack.EMPTY);
-                                        } else {
-                                            held_item.setCount(newCount);
-                                            player.setStackInHand(hand, held_item);
-                                        }
+                                        held_item.decrement(1);
+                                        player.setStackInHand(hand, held_item);
+
+                                        player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("used_voucher"), boss)));
 
                                         break;
                                     }

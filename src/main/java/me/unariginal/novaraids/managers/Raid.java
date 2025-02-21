@@ -10,18 +10,22 @@ import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.*;
 import me.unariginal.novaraids.utils.TextUtil;
 import net.kyori.adventure.bossbar.BossBar;
+import net.kyori.adventure.text.Component;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.*;
+import java.util.List;
 
 public class Raid {
     private final NovaRaids nr = NovaRaids.INSTANCE;
+    private final Messages messages = nr.config().getMessages();
 
     private final UUID uuid;
     private final Boss boss_info;
@@ -34,6 +38,9 @@ public class Raid {
     private int current_health;
     private final int max_health;
 
+    private ServerPlayerEntity started_by;
+    private ItemStack starting_item;
+
     private final int min_players;
     private final int max_players;
     private final List<ServerPlayerEntity> participating_players = new ArrayList<>();
@@ -42,17 +49,24 @@ public class Raid {
     private final Map<Long, List<Task>> tasks = new HashMap<>();
     private final Map<ServerPlayerEntity, BossBar> player_bossbars = new HashMap<>();
 
-    private long raid_start_time;
-    private long raid_end_time;
+    private long raid_start_time = 0;
+    private long raid_end_time = 0;
     private long phase_length;
     private long phase_start_time;
+    private long fight_start_time;
+    private long fight_end_time;
     private BossbarData bossbar_data;
 
     private int stage;
 
-    public Raid(Boss boss_info, Location raidBoss_location) {
+    public Raid(Boss boss_info, Location raidBoss_location, ServerPlayerEntity started_by, ItemStack starting_item) {
         this.boss_info = boss_info;
         this.raidBoss_location = raidBoss_location;
+        this.started_by = started_by;
+        this.starting_item = starting_item;
+        if (starting_item != null) {
+            starting_item.setCount(1);
+        }
 
         raidBoss_pokemon = boss_info.createPokemon();
         raidBoss_pokemon_uncatchable = boss_info.createPokemon();
@@ -114,25 +128,41 @@ public class Raid {
         phase_length = nr.config().getSettings().setup_phase_time();
         phase_start_time = nr.server().getOverworld().getTime();
 
+        broadcast(TextUtil.format(messages.parse(messages.message("start_pre_phase"), this)));
+
         addTask(raidBoss_location.world(), phase_length * 20L, this::fight_phase);
     }
 
     private void fight_phase() {
-        stage = 2;
+        if (participating_players.size() >= min_players && !participating_players.isEmpty()) {
+            stage = 2;
 
-        bossbar_data = nr.config().getBossbar("fight", raidBoss_category.name(), boss_info.name());
-        show_bossbar(bossbar_data);
+            bossbar_data = nr.config().getBossbar("fight", raidBoss_category.name(), boss_info.name());
+            show_bossbar(bossbar_data);
 
-        phase_length = nr.config().getSettings().fight_phase_time();
-        phase_start_time = nr.server().getOverworld().getTime();
+            phase_length = nr.config().getSettings().fight_phase_time();
+            phase_start_time = nr.server().getOverworld().getTime();
+            fight_start_time = phase_start_time;
 
-        addTask(raidBoss_location.world(), phase_length * 20L, this::raid_lost);
+            participating_broadcast(TextUtil.format(messages.parse(messages.message("start_fight_phase"), this)));
+
+            addTask(raidBoss_location.world(), phase_length * 20L, this::raid_lost);
+        } else {
+            stage = -1;
+            participating_broadcast(TextUtil.format(messages.parse(messages.message("not_enough_players"), this)));
+            if (raidBoss_category.require_pass()) {
+                if (starting_item != null) {
+                    started_by.giveItemStack(starting_item);
+                }
+            }
+        }
     }
 
     private void raid_lost() {
         stage = -1;
         tasks.clear();
         raid_end_time = nr.server().getOverworld().getTime();
+        participating_broadcast(TextUtil.format(messages.parse(messages.message("out_of_time"), this)));
     }
 
     public void pre_catch_phase() {
@@ -143,10 +173,14 @@ public class Raid {
 
         phase_length = nr.config().getSettings().pre_catch_phase_time();
         phase_start_time = nr.server().getOverworld().getTime();
+        fight_end_time = phase_start_time;
 
         tasks.clear();
 
         end_battles();
+
+        participating_broadcast(TextUtil.format(messages.parse(messages.message("boss_defeated"), this)));
+        participating_broadcast(TextUtil.format(messages.parse(messages.message("catch_phase_warning"), this)));
 
         addTask(raidBoss_location.world(), phase_length * 20L, this::catch_phase);
     }
@@ -163,6 +197,8 @@ public class Raid {
         for (ServerPlayerEntity player : participating_players) {
             BattleManager.invoke_catch_encounter(this, player);
         }
+
+        participating_broadcast(TextUtil.format(messages.parse(messages.message("start_catch_phase"), this)));
 
         addTask(raidBoss_location.world(), phase_length * 20L, this::raid_won);
     }
@@ -244,6 +280,8 @@ public class Raid {
             }
         }
         raid_end_time = nr.server().getOverworld().getTime();
+        participating_broadcast(TextUtil.format(messages.parse(messages.message("catch_phase_end"), this)));
+        participating_broadcast(TextUtil.format(messages.parse(messages.message("raid_end"), this)));
     }
 
     private void addTask(ServerWorld world, Long delay, Runnable action) {
@@ -334,8 +372,19 @@ public class Raid {
         return raid_end_time;
     }
 
+    public long raid_completion_time() {
+        if (raid_end_time() > 0) {
+            return raid_end_time() - raid_start_time();
+        }
+        return 0;
+    }
+
     public long raid_timer() {
         return nr.server().getOverworld().getTime() - raid_start_time;
+    }
+
+    public long boss_defeat_time() {
+        return fight_end_time - fight_start_time;
     }
 
     public BossbarData bossbar_data() {
@@ -390,6 +439,18 @@ public class Raid {
         return max_health;
     }
 
+    public void broadcast(Component component) {
+        nr.server().getPlayerManager().getPlayerList().forEach(p -> {
+            p.sendMessage(component);
+        });
+    }
+
+    public void participating_broadcast(Component component) {
+        for (ServerPlayerEntity player : participating_players) {
+            player.sendMessage(component);
+        }
+    }
+
     public List<ServerPlayerEntity> participating_players() {
         return participating_players;
     }
@@ -408,6 +469,7 @@ public class Raid {
         int index = get_player_index(player);
         if (index != -1) {
             participating_players.remove(index);
+            player.hideBossBar(bossbars().get(player));
         }
     }
 
@@ -466,7 +528,7 @@ public class Raid {
         if (bossbar.use_overlay()) {
             for (ServerPlayerEntity player : participating_players) {
                 if (player != null) {
-                    player.sendActionBar(nr.mm().deserialize(TextUtil.parse(bossbar.overlay_text(), this)));
+                    player.sendActionBar(TextUtil.format(nr.config().getMessages().parse(bossbar.overlay_text(), this)));
                 }
             }
         }
