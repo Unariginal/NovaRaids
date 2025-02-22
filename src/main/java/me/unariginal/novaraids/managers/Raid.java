@@ -470,6 +470,7 @@ public class Raid {
         if (index != -1) {
             participating_players.remove(index);
             player.hideBossBar(bossbars().get(player));
+            player_bossbars.remove(player);
         }
     }
 

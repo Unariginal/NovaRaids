@@ -28,6 +28,7 @@
     "warning_no_pass": "%prefix% This raid requires a pass to join!",
     "warning_already_used_pass": "%prefix% You've already joined this raid!",
     "warning_no_pass_needed": "%prefix% You don't need a pass for this raid!",
+    "warning_not_joinable": "%prefix% This raid is not join-able!",
     "used_voucher": "%prefix% You've successfully started a raid for %boss.form% %boss.species%!",
     "error_no_boss": "%prefix%",
     "give_command": "%prefix%",

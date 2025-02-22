@@ -268,6 +268,7 @@ public class RaidCommands {
             if (nr.config().getSettings().pass_item_data() != null) {
                 item_to_give.applyChanges(nr.config().getSettings().pass_item_data());
             }
+            item_to_give.applyComponentsFrom(ComponentMap.builder().add(DataComponentTypes.MAX_STACK_SIZE, 1).build());
             custom_data.putString("raid_item", "raid_pass");
             item_name = Text.literal("Raid Pass").styled(style -> style.withColor(Formatting.LIGHT_PURPLE).withItalic(false));
             if (boss_name.equalsIgnoreCase("*")) {
@@ -312,6 +313,7 @@ public class RaidCommands {
             if (nr.config().getSettings().voucher_item_data() != null) {
                 item_to_give.applyChanges(nr.config().getSettings().voucher_item_data());
             }
+            item_to_give.applyComponentsFrom(ComponentMap.builder().add(DataComponentTypes.MAX_STACK_SIZE, 1).build());
             custom_data.putString("raid_item", "raid_voucher");
             item_name = Text.literal("Raid Voucher").styled(style -> style.withItalic(false).withColor(Formatting.AQUA));
             if (boss_name.equalsIgnoreCase("*")) {

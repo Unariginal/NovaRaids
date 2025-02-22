@@ -43,6 +43,7 @@ public class NovaRaids implements ModInitializer {
             EventManager.battle_events();
             EventManager.catch_events();
             EventManager.right_click_events();
+            EventManager.player_events();
         });
 
         // Server tick loop

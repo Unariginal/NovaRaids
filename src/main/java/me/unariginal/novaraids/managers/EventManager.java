@@ -8,6 +8,7 @@ import com.cobblemon.mod.common.battles.actor.PlayerBattleActor;
 import com.cobblemon.mod.common.battles.actor.PokemonBattleActor;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.item.PokemonItem;
+import com.cobblemon.mod.common.platform.events.ServerPlayerEvent;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import eu.pb4.sgui.api.elements.GuiElement;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
@@ -16,7 +17,9 @@ import kotlin.Unit;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.Boss;
 import me.unariginal.novaraids.utils.TextUtil;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.Entity;
@@ -39,91 +42,6 @@ public class EventManager {
     public static void catch_events() {
 
     }
-
-//    public static void handle_capture(ServerPlayerEntity player, EmptyPokeBallEntity ball, Raid raid) {
-//        PokemonEntity fake_entity = new PokemonEntity(ball.getWorld(), raid.raidBoss_pokemon().clone(true, null), CobblemonEntities.POKEMON);
-//        AtomicReference<CaptureContext> captureContext = new AtomicReference<>(Cobblemon.config.getCaptureCalculator().processCapture(player, ball, fake_entity));
-//        if (captureContext.get() != null) {
-//            PokeBallCaptureCalculatedEvent[] event = {new PokeBallCaptureCalculatedEvent(player, fake_entity, ball, captureContext.get())};
-//            CobblemonEvents.POKE_BALL_CAPTURE_CALCULATED.post(event, (e) -> {
-//                captureContext.set(e.getCaptureResult());
-//                return Unit.INSTANCE;
-//            });
-//        }
-//        if (captureContext.get() != null) {
-//            SchedulingFunctionsKt.lerpOnServer(captureContext.get().getNumberOfShakes() * 0.5f, time -> {
-//                double ticks = Math.floor(time * 20);
-//                if (ticks % 10 == 0) {
-//                    SimpleParticleType particleType = ParticleTypes.SMOKE;
-//                    int particleCount = 10;
-//                    float particleSpeed = 0.1f;
-//                    float particleSpread = (ball.getCapturingPokemon() != null) ? (float) ball.getCapturingPokemon().getBoundingBox().getAverageSideLength() : 0.5f;
-//
-//                    player.networkHandler.sendPacket(
-//                            new ParticleS2CPacket(
-//                                    particleType,
-//                                    true,
-//                                    ball.getPos().x,
-//                                    ball.getPos().y,
-//                                    ball.getPos().z,
-//                                    particleSpread,
-//                                    particleSpread,
-//                                    particleSpread,
-//                                    particleSpeed,
-//                                    particleCount
-//                            )
-//                    );
-//                    ball.getWorld().playSoundAtBlockCenter(ball.getBlockPos(), SoundEvents.UI_BUTTON_CLICK.value(), SoundCategory.MASTER, 2.5F, 0.5F, true);
-//                }
-//                return Unit.INSTANCE;
-//            });
-//
-//            SchedulingFunctionsKt.afterOnServer(30, player.getWorld(), () -> {
-//                if (captureContext.get().isSuccessfulCapture()) {
-//                    if (fake_entity.isBattling()) {
-//                        Objects.requireNonNull(BattleRegistry.INSTANCE.getBattleByParticipatingPlayer(player)).end();
-//                    }
-//                    if (fake_entity.getPokemon().isWild() && fake_entity.isAlive()) {
-//                        fake_entity.discard();
-//                        PartyStore party = Cobblemon.INSTANCE.getStorage().getParty(player);
-//                        fake_entity.getPokemon().setCaughtBall(ball.getPokeBall());
-//                        ball.getPokeBall().getEffects().forEach(effect -> effect.apply(player, fake_entity.getPokemon()));
-//
-//                        party.add(fake_entity.getPokemon());
-//                        PokemonCapturedEvent[] event = {new PokemonCapturedEvent(
-//                                fake_entity.getPokemon(),
-//                                player,
-//                                ball
-//                        )};
-//                        CobblemonEvents.POKEMON_CAPTURED.post(
-//                                event,
-//                                (e) -> Unit.INSTANCE
-//                        );
-//                    }
-//                    player.networkHandler.sendPacket(new EntitiesDestroyS2CPacket(fake_entity.getId()));
-//                    ball.getWorld().playSoundAtBlockCenter(ball.getBlockPos(), SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.MASTER, 1.0f, 1.65f, true);
-//                    ball.getCaptureFuture().complete(true);
-//                } else {
-//                    fake_entity.getDataTracker().set(PokemonEntity.getBEAM_MODE(), (byte) 0);
-//                    fake_entity.setInvisible(false);
-//                    ball.getWorld().addParticle(
-//                            ParticleTypes.CLOUD,
-//                            ball.getPos().x,
-//                            ball.getPos().y,
-//                            ball.getPos().z,
-//                            2,
-//                            ball.getPos().normalize().multiply(0.1d).y,
-//                            0.0
-//                    );
-//                    ball.getWorld().playSoundAtBlockCenter(ball.getBlockPos(), SoundEvents.BLOCK_WOOD_PLACE, SoundCategory.MASTER, 1.0f, 2.5F, true);
-//                    ball.getCaptureFuture().complete(false);
-//                    fake_entity.cry();
-//                }
-//                return Unit.INSTANCE;
-//            });
-//            ball.discard();
-//        }
-//    }
 
     public static void battle_events() {
         CobblemonEvents.BATTLE_STARTED_PRE.subscribe(Priority.HIGHEST, event -> {
@@ -232,47 +150,6 @@ public class EventManager {
             }
             return Unit.INSTANCE;
         });
-//        CobblemonEvents.THROWN_POKEBALL_HIT.subscribe(Priority.HIGHEST, event -> {
-//            EmptyPokeBallEntity pokeball = event.getPokeBall();
-//            PokemonEntity pokemon_entity = event.getPokemon();
-//            Pokemon pokemon = pokemon_entity.getPokemon();
-//            PokemonEntity clone_pokemon_entity = new PokemonEntity(pokemon_entity.getWorld(), pokemon.clone(true, null), CobblemonEntities.POKEMON);
-//            for (Raid raid : cr.active_raids().values()) {
-//                if (raid.uuid().equals(pokemon_entity.getUuid())) {
-//                    if (raid.stage() == 4) {
-//                        CobblemonEvents.THROWN_POKEBALL_HIT.postThen(
-//                                new ThrownPokeballHitEvent(pokeball, clone_pokemon_entity),
-//                                (Function1<? super ThrownPokeballHitEvent, Unit>) (e) -> {
-//                                    EmptyPokeBallEntity e_pokeball = e.getPokeBall();
-//                                    try {
-//                                        Method m = e_pokeball.getClass().getDeclaredMethod("drop");
-//                                        m.setAccessible(true);
-//                                        m.invoke(e_pokeball);
-//                                    } catch (NoSuchMethodException | InvocationTargetException |
-//                                             IllegalAccessException error) {
-//                                        error.printStackTrace();
-//                                    }
-//                                    return Unit.INSTANCE;
-//                                },
-//                                (Function1<? super ThrownPokeballHitEvent, Unit>) (e) -> {
-//                                    EmptyPokeBallEntity e_pokeball = e.getPokeBall();
-//                                    try {
-//                                        Method m = e_pokeball.getClass().getDeclaredMethod("attemptCatch", PokemonEntity.class);
-//                                        m.setAccessible(true);
-//                                        m.invoke(e_pokeball, clone_pokemon_entity);
-//                                    } catch (NoSuchMethodException | InvocationTargetException |
-//                                             IllegalAccessException error) {
-//                                        error.printStackTrace();
-//                                    }
-//                                    return Unit.INSTANCE;
-//                                }
-//                        );
-//                    }
-//                    event.cancel();
-//                }
-//            }
-//            return Unit.INSTANCE;
-//        });
     }
 
     public static void right_click_events() {
@@ -295,7 +172,7 @@ public class EventManager {
                             if (boss_name.equalsIgnoreCase("*")) {
                                 List<Raid> joinable_raids = new ArrayList<>();
                                 if (category.equalsIgnoreCase("*")) {
-                                    joinable_raids.addAll(nr.active_raids().values());
+                                    joinable_raids.addAll(nr.active_raids().values().stream().filter(raid -> raid.stage() == 1).toList());
                                 } else {
                                     for (Raid raid : nr.active_raids().values()) {
                                         if (raid.boss_info().category().equalsIgnoreCase(category)) {
@@ -310,18 +187,19 @@ public class EventManager {
                                     int index = i;
                                     GuiElement element = new GuiElementBuilder(PokemonItem.from(joinable_raids.get(i).raidBoss_pokemon())).setCallback((slot, clickType, slotActionType) -> {
                                         if (joinable_raids.get(index).raidBoss_category().require_pass()) {
-                                            if (joinable_raids.get(index).addPlayer(player)) {
-                                                nr.logger().info("[RAIDS] {} has joined the {} raid!", player.getName(), joinable_raids.get(index).boss_info().name());
-                                                player.sendMessage(Text.of("You have joined the " + joinable_raids.get(index).boss_info().name() + " raid!"));
+                                            if (nr.active_raids().get(nr.get_raid_id(joinable_raids.get(index))).stage() == 1) {
+                                                if (joinable_raids.get(index).addPlayer(player)) {
+                                                    held_item.decrement(1);
+                                                    player.setStackInHand(hand, held_item);
 
-                                                held_item.decrement(1);
-                                                player.setStackInHand(hand, held_item);
+                                                    player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("used_pass"), joinable_raids.get(index))));
 
-                                                player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("used_pass"), joinable_raids.get(index))));
-
-                                                gui.close();
+                                                    gui.close();
+                                                } else {
+                                                    player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_already_used_pass"), joinable_raids.get(index))));
+                                                }
                                             } else {
-                                                player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_already_used_pass"), joinable_raids.get(index))));
+                                                player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_not_joinable"), joinable_raids.get(index))));
                                             }
                                         } else {
                                             player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_no_pass_needed"), joinable_raids.get(index))));
@@ -338,13 +216,17 @@ public class EventManager {
 
                                     if (raid.boss_info().name().equalsIgnoreCase(boss_name)) {
                                         if (raid.raidBoss_category().require_pass()) {
-                                            if (raid.addPlayer(player)) {
-                                                held_item.decrement(1);
-                                                player.setStackInHand(hand, held_item);
+                                            if (raid.stage() == 1) {
+                                                if (raid.addPlayer(player)) {
+                                                    held_item.decrement(1);
+                                                    player.setStackInHand(hand, held_item);
 
-                                                player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("used_pass"), raid)));
+                                                    player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("used_pass"), raid)));
+                                                } else {
+                                                    player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_already_used_pass"), raid)));
+                                                }
                                             } else {
-                                                player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_already_used_pass"), raid)));
+                                                player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_not_joinable"), raid)));
                                             }
                                         } else {
                                             player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_no_pass_needed"), raid)));
@@ -425,6 +307,14 @@ public class EventManager {
                 return TypedActionResult.pass(held_item);
             }
             return null;
+        });
+    }
+
+    public static void player_events() {
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+            for (Raid raid : nr.active_raids().values()) {
+                raid.removePlayer(handler.getPlayer());
+            }
         });
     }
 }

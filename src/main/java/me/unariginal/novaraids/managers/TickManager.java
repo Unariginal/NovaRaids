@@ -43,9 +43,12 @@ public class TickManager {
 
                 double distance = Double.NaN;
 
-                if (player.getPos().distanceTo(raid.raidBoss_location().pos()) < raid_pushback) {
+                double hyp = Math.pow(deltaX, 2) + Math.pow(deltaZ, 2);
+                hyp = Math.sqrt(hyp);
+
+                if (hyp < raid_pushback) {
                     distance =  raid_pushback + 1;
-                } else if (player.getPos().distanceTo(raid.raidBoss_location().pos()) > raid_radius) {
+                } else if (hyp > raid_radius) {
                     distance = raid_radius - 1;
                 }
 
@@ -53,7 +56,7 @@ public class TickManager {
                     double new_x = cx + distance * Math.cos(Math.toRadians(angle));
                     double new_z = cz + distance * Math.sin(Math.toRadians(angle));
 
-                    player.teleport(new_x, player.getPos().getY(), new_z, false);
+                    player.teleport(new_x, raid.raidBoss_location().pos().getY(), new_z, false);
                 }
             }
         }
