@@ -17,6 +17,7 @@ public record Messages(String prefix, Map<String, String> messages) {
         output = parse(output);
         output = parse(output, raid.boss_info());
         output = output
+                .replaceAll("%boss.form%", (raid.raidBoss_pokemon().getForm().getName().equalsIgnoreCase("normal") ? "" : raid.raidBoss_pokemon().getForm().getName()))
                 .replaceAll("%boss.maxhp%", String.valueOf(raid.max_health()))
                 .replaceAll("%raid.defeat_time%", (raid.boss_defeat_time() > 0) ? TextUtil.hms(raid.boss_defeat_time()) : "")
                 .replaceAll("%raid.completion_time%", (raid.raid_completion_time() > 0) ? TextUtil.hms(raid.raid_completion_time()) : "")
@@ -37,7 +38,6 @@ public record Messages(String prefix, Map<String, String> messages) {
         String output = message;
         output = parse(output);
         output = output
-                .replaceAll("%boss.form%", (boss.form().getName().equalsIgnoreCase("normal") ? "" : boss.form().getName()))
                 .replaceAll("%boss.species%", boss.species().getName())
                 .replaceAll("%boss%", boss.name());
 

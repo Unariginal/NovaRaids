@@ -4,6 +4,8 @@ import com.cobblemon.mod.common.api.abilities.Ability;
 import com.cobblemon.mod.common.api.moves.Move;
 import com.cobblemon.mod.common.api.moves.MoveSet;
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
+import com.cobblemon.mod.common.api.pokemon.feature.SpeciesFeature;
+import com.cobblemon.mod.common.api.pokemon.feature.SpeciesFeatures;
 import com.cobblemon.mod.common.api.pokemon.stats.Stat;
 import com.cobblemon.mod.common.pokemon.*;
 import net.minecraft.item.Item;
@@ -16,6 +18,7 @@ public record Boss(String name,
                    Species species,
                    int level,
                    FormData form,
+                   String features,
                    Map<Ability, Double> possible_abilities,
                    Map<Nature, Double> possible_natures,
                    Map<Gender, Double> possible_gender,
@@ -27,6 +30,7 @@ public record Boss(String name,
                    EVs evs,
                    int base_health,
                    String category,
+                   Float facing,
                    Map<String, Double> spawn_locations,
                    Map<List<String>, List<String>> rewards,
                    CatchSettings catch_settings
@@ -55,6 +59,7 @@ public record Boss(String name,
         pokemon.setSpecies(species);
         pokemon.setLevel(level);
         pokemon.setForm(form);
+        PokemonProperties.Companion.parse(features).apply(pokemon);
         pokemon.updateAbility((Ability) getRandomEntry(possible_abilities).getKey());
         pokemon.setNature((Nature) getRandomEntry(possible_natures).getKey());
         pokemon.setGender((Gender) getRandomEntry(possible_gender).getKey());

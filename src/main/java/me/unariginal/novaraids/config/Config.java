@@ -341,6 +341,8 @@ public class Config {
                     String form_str = pokemon_details.get("form").getAsString();
                     FormData form = species.getFormByName(form_str);
 
+                    String features = pokemon_details.get("features").getAsString();
+
                     Map<Gender, Double> possible_genders = new HashMap<>();
                     JsonArray genders = pokemon_details.getAsJsonArray("gender");
                     for (JsonElement element : genders) {
@@ -389,6 +391,7 @@ public class Config {
                     JsonObject boss_details = bossObject.getAsJsonObject("boss_details");
                     int base_health = boss_details.get("base_health").getAsInt();
                     String category = boss_details.get("category").getAsString();
+                    Float facing = boss_details.get("body_direction").getAsFloat();
 
                     Map<String, Double> spawn_locations = new HashMap<>();
                     JsonArray locations = boss_details.getAsJsonArray("locations");
@@ -427,6 +430,7 @@ public class Config {
                             species,
                             level,
                             form,
+                            features,
                             possible_abilities,
                             possible_natures,
                             possible_genders,
@@ -438,6 +442,7 @@ public class Config {
                             evs,
                             base_health,
                             category,
+                            facing,
                             spawn_locations,
                             rewards,
                             catchSettings)

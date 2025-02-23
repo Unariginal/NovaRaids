@@ -15,6 +15,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.packet.s2c.play.PositionFlag;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
@@ -72,6 +73,7 @@ public class Raid {
         raidBoss_pokemon_uncatchable = boss_info.createPokemon();
         raidBoss_pokemon_uncatchable.getCustomProperties().add(UncatchableProperty.INSTANCE.uncatchable());
         raidBoss_entity = generate_boss_entity();
+        raidBoss_entity.setBodyYaw(boss_info.facing());
         uuid = raidBoss_entity.getUuid();
 
         max_health = boss_info.base_health();
@@ -306,7 +308,8 @@ public class Raid {
         if (stage != -1 && stage != 0) {
             if (raidBoss_entity != null) {
                 if (raidBoss_entity.getPos() != raidBoss_location.pos()) {
-                    raidBoss_entity.teleport(raidBoss_location.pos().x, raidBoss_location.pos().y, raidBoss_location.pos().z, false);
+                    raidBoss_entity.teleport(raidBoss_location.world(), raidBoss_location.pos().x, raidBoss_location.pos().y, raidBoss_location.pos().z, null, boss_info.facing(), 0);
+                    //raidBoss_entity.teleport(raidBoss_location.pos().x, raidBoss_location.pos().y, raidBoss_location.pos().z, false);
                 }
             }
         }
@@ -323,6 +326,7 @@ public class Raid {
             entity.setAiDisabled(true);
             entity.setGlowing(nr.config().getSettings().bosses_glow());
             entity.setInvulnerable(true);
+            entity.setBodyYaw(boss_info().facing());
             return Unit.INSTANCE;
         });
     }

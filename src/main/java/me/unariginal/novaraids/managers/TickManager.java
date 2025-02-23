@@ -66,7 +66,6 @@ public class TickManager {
         List<Raid> to_remove = new ArrayList<>();
         for (Raid raid : nr.active_raids().values()) {
             if (raid.stage() == -1) {
-                raid.stop();
                 to_remove.add(raid);
                 continue;
             }
@@ -80,6 +79,7 @@ public class TickManager {
 
         for (Raid raid : to_remove) {
             nr.remove_raid(raid);
+            raid.stop();
         }
     }
 

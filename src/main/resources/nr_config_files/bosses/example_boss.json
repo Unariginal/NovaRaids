@@ -3,6 +3,7 @@
     "species": "eevee",
     "level": 50,
     "form": "normal",
+    "features": "",
     "ability": [
       {
         "ability": "adaptability",
@@ -70,6 +71,7 @@
   "boss_details": {
     "base_health": 1000,
     "category": "common",
+    "body_direction": 0.0,
     "locations": [
       {
         "location": "center_location",
