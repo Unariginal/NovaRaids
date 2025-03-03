@@ -203,14 +203,20 @@ public class RaidCommands {
                                         return 1;
                                     })
                     )
+                    .then(
+                            CommandManager.literal("queue")
+                                    .requires(Permissions.require("novaraids.queue", 4))
+                                    .executes(this::queue)
+                    )
         ));
     }
 
     private int reload(CommandContext<ServerCommandSource> ctx) {
         nr.reloadConfig();
         if (ctx.getSource().isExecutedByPlayer()) {
-            // TODO: Replace with proper message
-            ctx.getSource().sendMessage(nr.mm().deserialize("[Raids] Config reloaded!"));
+            if (ctx.getSource().getPlayer() != null) {
+                ctx.getSource().getPlayer().sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("reload_command"))));
+            }
         } else {
             ctx.getSource().sendMessage(Text.literal("[Raids] Config reloaded!"));
         }
@@ -239,7 +245,7 @@ public class RaidCommands {
         }
 
         if (spawn_location == null) {
-            nr.logger().error("[RAIDS] Location could not be found.");
+            nr.logError("[RAIDS] Location could not be found.");
             return 0;
         }
 
@@ -258,7 +264,9 @@ public class RaidCommands {
         int id = IntegerArgumentType.getInteger(ctx, "id");
         if (nr.active_raids().containsKey(id)) {
             if (ctx.getSource().isExecutedByPlayer()) {
-                ctx.getSource().getPlayer().sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("raid_stopped"), nr.active_raids().get(id))));
+                if (ctx.getSource().getPlayer() != null) {
+                    ctx.getSource().getPlayer().sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("raid_stopped"), nr.active_raids().get(id))));
+                }
             }
             nr.active_raids().get(id).stop();
             nr.remove_raid(nr.active_raids().get(id));
@@ -440,5 +448,33 @@ public class RaidCommands {
         }
         gui.open();
         return 1;
+    }
+
+    private int queue(CommandContext<ServerCommandSource> ctx) {
+        ServerPlayerEntity player = ctx.getSource().getPlayer();
+        if (player != null) {
+            Messages messages = nr.config().getMessages();
+            if (nr.queued_raids().isEmpty()) {
+                player.sendMessage(TextUtil.format(messages.parse(messages.message("no_queued_raids"))));
+                return 0;
+            }
+
+            SimpleGui gui = new SimpleGui(ScreenHandlerType.GENERIC_9X6, player, false);
+            gui.setTitle(Text.literal(messages.parse(messages.message("raid_queue_gui_title"))));
+            int slot = 0;
+            for (QueueItem item : nr.queued_raids()) {
+                GuiElement element = new GuiElementBuilder(PokemonItem.from(item.boss_info().createPokemon()))
+                        .setName(Text.literal(messages.parse("%boss.form% %boss.species%", item.boss_info())).styled(style -> style.withColor(Formatting.LIGHT_PURPLE).withItalic(false)))
+                        .build();
+                gui.setSlot(slot, element);
+                slot++;
+                if (slot > 53) {
+                    break;
+                }
+            }
+            gui.open();
+            return 1;
+        }
+        return 0;
     }
 }

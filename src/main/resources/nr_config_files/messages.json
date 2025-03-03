@@ -13,6 +13,7 @@
     "not_enough_players": "%prefix% There wasn't enough players to start the raid!",
     "player_damage_report": "%prefix% %raid.player% did %raid.player.damage% to the boss!",
     "no_active_raids": "%prefix% There are no active raids!",
+    "no_queued_raids": "%prefix% There are no queued raids!",
     "banned_list": "%prefix%",
     "warning_banned_pokemon": "%prefix% %banned.pokemon% is banned from raids!",
     "warning_banned_move": "%prefix% %banned.move% is banned from raids!",
@@ -35,6 +36,7 @@
     "give_command": "%prefix%",
     "reload_command": "%prefix% Reloaded!",
     "raid_stopped": "%prefix% You've stopped the raid against %boss.form% %boss.species%!",
-    "raid_list_gui_title": "Active Raids"
+    "raid_list_gui_title": "Active Raids",
+    "raid_queue_gui_title": "Queued Raids"
   }
 }

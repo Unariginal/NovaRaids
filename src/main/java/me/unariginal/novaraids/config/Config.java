@@ -9,7 +9,6 @@ import com.cobblemon.mod.common.api.moves.MoveSet;
 import com.cobblemon.mod.common.api.moves.MoveTemplate;
 import com.cobblemon.mod.common.api.moves.Moves;
 import com.cobblemon.mod.common.api.pokemon.Natures;
-import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
 import com.cobblemon.mod.common.api.pokemon.PokemonSpecies;
 import com.cobblemon.mod.common.api.pokemon.stats.Stats;
 import com.cobblemon.mod.common.pokemon.*;
@@ -35,10 +34,10 @@ import net.minecraft.util.math.Vec3d;
 import java.io.*;
 import java.time.LocalTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class Config {
     private final NovaRaids nr = NovaRaids.INSTANCE;
+    public boolean debug = true;
     private Settings settings;
     private Messages messages;
     private List<Category> categories;
@@ -52,7 +51,7 @@ public class Config {
         try {
             checkFiles();
         } catch (IOException e) {
-            nr.logger().error("[RAIDS] Failed to generate default configuration files. Error: {}", e.getMessage());
+            nr.logError("[RAIDS] Failed to generate default configuration files. Error: " + e.getMessage());
         }
 
         loadConfig();
@@ -127,7 +126,7 @@ public class Config {
         try {
             return JsonParser.parseReader(new FileReader(file));
         } catch (FileNotFoundException e) {
-            nr.logger().error("[RAIDS] Failed to load file. Error: {}", e.getMessage());
+            nr.logError("[RAIDS] Failed to load file. Error: " + e.getMessage());
             return null;
         }
     }
@@ -138,7 +137,9 @@ public class Config {
         JsonElement root = getRoot(configFile);
         assert root != null;
         JsonObject config = root.getAsJsonObject();
-        nr.logger().info("[RAIDS] Loading config..");
+        nr.logInfo("[RAIDS] Loading config..");
+
+        debug = config.get("debug").getAsBoolean();
 
         TimeZone timezone = TimeZone.getTimeZone(config.get("timezone").getAsString());
         TimeZone.setDefault(timezone);
@@ -262,7 +263,7 @@ public class Config {
         JsonElement root = getRoot(categoriesFile);
         assert root != null;
         JsonObject categories = root.getAsJsonObject();
-        nr.logger().info("[RAIDS] Loading categories...");
+        nr.logInfo("[RAIDS] Loading categories...");
 
         List<Category> categoriesList = new ArrayList<>();
         for (String category : categories.keySet()) {
@@ -452,7 +453,7 @@ public class Config {
                             catchSettings)
                     );
                 } else {
-                    nr.logger().error("[RAIDS] Invalid Boss Species: {}", pokemon_details.get("species").getAsString());
+                    nr.logError("[RAIDS] Invalid Boss Species: " + pokemon_details.get("species").getAsString());
                 }
                 this.bosses = bossesList;
             }
@@ -488,6 +489,7 @@ public class Config {
             locationsList.add(loc);
         }
         this.locations = locationsList;
+        nr.logInfo("[RAIDS] Loaded " + locations.size() + " locations");
     }
 
     private void loadBossBars() {
@@ -511,6 +513,7 @@ public class Config {
             bossbarDataList.add(new BossbarData(bossbar, phase, use_overlay, overlay_text, bar_color, bar_style, bar_text, bosses, categories));
         }
         this.bossbars = bossbarDataList;
+        nr.logInfo("[RAIDS] Loaded " + bossbars.size() + " bossbars");
     }
 
     private void loadMessages() {
@@ -526,6 +529,7 @@ public class Config {
             messages_map.put(key, messages.get(key).getAsString());
         }
         this.messages = new Messages(prefix, command, messages_map);
+        nr.logInfo("[RAIDS] Loaded messages.");
     }
 
     private void loadRewards() {
@@ -539,6 +543,7 @@ public class Config {
             String type = rewardObject.get("type").getAsString();
             Reward reward = null;
             if (type.equalsIgnoreCase("item")) {
+                nr.logInfo("[RAIDS] Loading new item reward.");
                 String item = rewardObject.get("item").getAsString();
                 JsonElement data = null;
                 if (rewardObject.get("data") != null) {
@@ -549,9 +554,11 @@ public class Config {
                 int max_count = count.get("max").getAsInt();
                 reward = new ItemReward(key, item, data, min_count, max_count);
             } else if (type.equalsIgnoreCase("command")) {
+                nr.logInfo("[RAIDS] Loading new command reward.");
                 List<String> commands = rewardObject.getAsJsonArray("commands").asList().stream().map(JsonElement::getAsString).toList();
                 reward = new CommandReward(key, commands);
             } else if (type.equalsIgnoreCase("pokemon")) {
+                nr.logInfo("[RAIDS] Loading new pokemon reward.");
                 JsonObject pokemon_info = rewardObject.getAsJsonObject("pokemon");
                 String species = pokemon_info.get("species").getAsString();
                 int level = pokemon_info.get("level").getAsInt();
@@ -587,11 +594,12 @@ public class Config {
 
                 reward = new PokemonReward(key, species, level, ability, nature, form, features, gender, shiny, scale, held_item, held_item_data, move_set, ivs, evs);
             } else {
-                nr.logger().error("Unknown reward type: {}", type);
+                nr.logError("Unknown reward type: " + type);
             }
             rewardsList.add(reward);
         }
         rewards = rewardsList;
+        nr.logInfo("[RAIDS] Loaded " + rewardsList.size() + " rewards.");
     }
 
     private void loadRewardPools() {
@@ -617,6 +625,7 @@ public class Config {
             rewardPools.add(new RewardPool(key, allow_duplicates, min_rolls, max_rolls, rewards_map));
         }
         reward_pools = rewardPools;
+        nr.logInfo("[RAIDS] Loaded " + rewardPools.size() + " reward pools.");
     }
 
     public Settings getSettings() {

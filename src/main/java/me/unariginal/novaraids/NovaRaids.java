@@ -87,6 +87,22 @@ public class NovaRaids implements ModInitializer {
         return LOGGER;
     }
 
+    public void logInfo(String message) {
+        if (config.debug) {
+            logger().info(message);
+        }
+    }
+
+    public void logWarning(String message) {
+        if (config.debug) {
+            logger().warn(message);
+        }
+    }
+
+    public void logError(String message) {
+        logger().error(message);
+    }
+
     public Map<Integer, Raid> active_raids() {
         return active_raids;
     }

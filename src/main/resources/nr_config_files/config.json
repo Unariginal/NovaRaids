@@ -1,4 +1,5 @@
 {
+  "debug": false,
   "timezone": "est",
   "raid_settings": {
     "raid_radius": 30,
