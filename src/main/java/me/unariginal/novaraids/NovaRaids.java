@@ -64,6 +64,13 @@ public class NovaRaids implements ModInitializer {
             for (Raid raid : active_raids.values()) {
                 raid.stop();
             }
+
+            for (QueueItem queue : queued_raids) {
+                queue.cancel_item();
+            }
+            queued_raids.clear();
+
+            // TODO: Save current raid, write queue to file
         });
     }
 

@@ -179,7 +179,7 @@ public class RaidCommands {
                                                                     Raid raid = nr.active_raids().get(IntegerArgumentType.getInteger(ctx, "id"));
                                                                     if (raid.participating_players().size() < raid.max_players() || Permissions.check(player, "novaraids.join.override")) {
                                                                         if (raid.addPlayer(player)) {
-
+                                                                            player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("joined_raid"), raid)));
                                                                         }
                                                                     }
                                                                 }
@@ -433,8 +433,6 @@ public class RaidCommands {
                     if (player != null) {
                         if (raid.addPlayer(player)) {
                             player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("joined_raid"), raid)));
-                        } else {
-                            player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_already_joined_raid"), raid)));
                         }
                         gui.close();
                     }
@@ -459,12 +457,28 @@ public class RaidCommands {
                 return 0;
             }
 
+            List<Text> lore = List.of(Text.empty());
+            if (Permissions.check(player, "novaraids.queue.cancel")) {
+                lore = List.of(Text.empty(), Text.literal("Right click to cancel this raid!").styled(style -> style.withItalic(false).withColor(Formatting.RED)));
+            }
+
             SimpleGui gui = new SimpleGui(ScreenHandlerType.GENERIC_9X6, player, false);
             gui.setTitle(Text.literal(messages.parse(messages.message("raid_queue_gui_title"))));
             int slot = 0;
             for (QueueItem item : nr.queued_raids()) {
                 GuiElement element = new GuiElementBuilder(PokemonItem.from(item.boss_info().createPokemon()))
                         .setName(Text.literal(messages.parse("%boss.form% %boss.species%", item.boss_info())).styled(style -> style.withColor(Formatting.LIGHT_PURPLE).withItalic(false)))
+                        .setLore(lore)
+                        .setCallback((i, clickType, slotActionType) -> {
+                            if (clickType.isRight) {
+                                if (Permissions.check(player, "novaraids.queue.cancel")) {
+                                    gui.close();
+                                    item.cancel_item();
+                                    player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("queue_item_cancelled"), item.boss_info())));
+                                    nr.queued_raids().remove(item); // TODO: Make sure this doesn't cause a concurrent modification exception!!!!
+                                }
+                            }
+                        })
                         .build();
                 gui.setSlot(slot, element);
                 slot++;

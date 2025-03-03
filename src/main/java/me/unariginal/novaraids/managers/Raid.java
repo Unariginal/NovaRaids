@@ -510,11 +510,18 @@ public class Raid {
             for (Raid raid : nr.active_raids().values()) {
                 index = raid.get_player_index(player);
             }
+
+            if (raidBoss_category().require_pass()) {
+                index = -2;
+                player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_no_pass"), this)));
+            }
         }
 
         if (index == -1) {
             participating_players().add(player);
             show_bossbar(bossbar_data);
+        } else if (index != -2) {
+            player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_already_joined_raid"), this)));
         }
 
         return index == -1;

@@ -36,6 +36,7 @@
     "give_command": "%prefix%",
     "reload_command": "%prefix% Reloaded!",
     "raid_stopped": "%prefix% You've stopped the raid against %boss.form% %boss.species%!",
+    "queue_item_cancelled": "%prefix% You've cancelled the queue for %boss.form% %boss.species%!",
     "raid_list_gui_title": "Active Raids",
     "raid_queue_gui_title": "Queued Raids"
   }
