@@ -31,6 +31,7 @@ public record Boss(String name,
                    int base_health,
                    String category,
                    Float facing,
+                   boolean do_catch_phase,
                    Map<String, Double> spawn_locations,
                    Map<List<String>, List<String>> rewards,
                    CatchSettings catch_settings

@@ -3,13 +3,22 @@ package me.unariginal.novaraids.managers;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.Boss;
 import me.unariginal.novaraids.utils.TextUtil;
+import net.minecraft.server.command.CommandManager;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.Map;
+import java.util.Objects;
 
-public record Messages(String prefix, Map<String, String> messages) {
+public record Messages(String prefix, String raid_start_command, Map<String, String> messages) {
     public String message(String key) {
         return messages.get(key);
+    }
+
+    public void execute_command() {
+        CommandManager cmdManager = Objects.requireNonNull(NovaRaids.INSTANCE.server()).getCommandManager();
+        ServerCommandSource source = NovaRaids.INSTANCE.server().getCommandSource();
+        cmdManager.executeWithPrefix(source, raid_start_command);
     }
 
     public String parse(String message, Raid raid) {

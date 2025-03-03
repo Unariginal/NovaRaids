@@ -149,7 +149,8 @@ public class Config {
         boolean bosses_glow = settingsObject.get("bosses_glow").getAsBoolean();
         boolean do_health_scaling = settingsObject.get("do_health_scaling").getAsBoolean();
         int health_increase = settingsObject.get("health_increase_per_player").getAsInt();
-        boolean do_catch_phase = settingsObject.get("do_catch_phase").getAsBoolean();
+        boolean heal_party_on_challenge = settingsObject.get("heal_party_on_challenge").getAsBoolean();
+        boolean use_queue_system = settingsObject.get("use_queue_system").getAsBoolean();
         int setup_phase_time = settingsObject.get("setup_phase_time").getAsInt();
         int fight_phase_time = settingsObject.get("fight_phase_time").getAsInt();
         int pre_catch_phase_time = settingsObject.get("pre_catch_phase_time").getAsInt();
@@ -234,7 +235,8 @@ public class Config {
                 bosses_glow,
                 do_health_scaling,
                 health_increase,
-                do_catch_phase,
+                heal_party_on_challenge,
+                use_queue_system,
                 setup_phase_time,
                 fight_phase_time,
                 pre_catch_phase_time,
@@ -392,6 +394,7 @@ public class Config {
                     int base_health = boss_details.get("base_health").getAsInt();
                     String category = boss_details.get("category").getAsString();
                     Float facing = boss_details.get("body_direction").getAsFloat();
+                    boolean do_catch_phase = boss_details.get("do_catch_phase").getAsBoolean();
 
                     Map<String, Double> spawn_locations = new HashMap<>();
                     JsonArray locations = boss_details.getAsJsonArray("locations");
@@ -443,6 +446,7 @@ public class Config {
                             base_health,
                             category,
                             facing,
+                            do_catch_phase,
                             spawn_locations,
                             rewards,
                             catchSettings)
@@ -516,11 +520,12 @@ public class Config {
         JsonObject messagesObject = root.getAsJsonObject();
         Map<String, String> messages_map = new HashMap<>();
         String prefix = messagesObject.get("prefix").getAsString();
+        String command = messagesObject.get("raid_start_command").getAsString();
         JsonObject messages = messagesObject.getAsJsonObject("messages");
         for (String key : messages.keySet()) {
             messages_map.put(key, messages.get(key).getAsString());
         }
-        this.messages = new Messages(prefix, messages_map);
+        this.messages = new Messages(prefix, command, messages_map);
     }
 
     private void loadRewards() {
@@ -553,6 +558,7 @@ public class Config {
                 String ability = pokemon_info.get("ability").getAsString();
                 String nature = pokemon_info.get("nature").getAsString();
                 String form = pokemon_info.get("form").getAsString();
+                String features = pokemon_info.get("features").getAsString();
                 String gender = pokemon_info.get("gender").getAsString();
                 boolean shiny = pokemon_info.get("shiny").getAsBoolean();
                 float scale = pokemon_info.get("scale").getAsFloat();
@@ -579,7 +585,7 @@ public class Config {
                 evs.set(Stats.SPECIAL_DEFENCE, evObject.get("sp_def").getAsInt());
                 evs.set(Stats.SPEED, evObject.get("spd").getAsInt());
 
-                reward = new PokemonReward(key, species, level, ability, nature, form, gender, shiny, scale, held_item, held_item_data, move_set, ivs, evs);
+                reward = new PokemonReward(key, species, level, ability, nature, form, features, gender, shiny, scale, held_item, held_item_data, move_set, ivs, evs);
             } else {
                 nr.logger().error("Unknown reward type: {}", type);
             }

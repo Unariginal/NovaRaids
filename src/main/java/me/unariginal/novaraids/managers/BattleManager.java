@@ -13,6 +13,7 @@ import com.cobblemon.mod.common.pokemon.Gender;
 import com.cobblemon.mod.common.pokemon.IVs;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import kotlin.Unit;
+import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.CatchSettings;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
@@ -107,7 +108,8 @@ public class BattleManager {
         UUID leading_pokemon = get_leading_pokemon(party);
 
         if (boss_clone != null && leading_pokemon != null) {
-            BattleBuilder.INSTANCE.pve(player, boss_clone, leading_pokemon, BattleFormat.Companion.getGEN_9_SINGLES(), false, true, Cobblemon.config.getDefaultFleeDistance(), party);
+            raid.add_clone(boss_clone);
+            BattleBuilder.INSTANCE.pve(player, boss_clone, leading_pokemon, BattleFormat.Companion.getGEN_9_SINGLES(), false, NovaRaids.INSTANCE.config().getSettings().heal_party_on_challenge(), Cobblemon.config.getDefaultFleeDistance(), party);
         }
     }
 
@@ -134,7 +136,8 @@ public class BattleManager {
         UUID leading_pokemon = get_leading_pokemon(party);
 
         if (boss_clone != null && leading_pokemon != null) {
-            BattleBuilder.INSTANCE.pve(player, boss_clone, leading_pokemon, BattleFormat.Companion.getGEN_9_SINGLES(), false, true, Cobblemon.config.getDefaultFleeDistance(), party);
+            raid.add_clone(boss_clone);
+            BattleBuilder.INSTANCE.pve(player, boss_clone, leading_pokemon, BattleFormat.Companion.getGEN_9_SINGLES(), false, NovaRaids.INSTANCE.config().getSettings().heal_party_on_challenge(), Cobblemon.config.getDefaultFleeDistance(), party);
         }
     }
 }

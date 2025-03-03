@@ -31,6 +31,7 @@ public class PokemonReward extends Reward {
     private final String ability;
     private final String nature;
     private final String form;
+    private final String features;
     private final String gender;
     private final boolean shiny;
     private final float scale;
@@ -40,13 +41,14 @@ public class PokemonReward extends Reward {
     private final IVs ivs;
     private final EVs evs;
 
-    public PokemonReward(String name, String species, int level, String ability, String nature, String form, String gender, boolean shiny, float scale, String held_item, JsonElement held_item_data, List<String> move_set, IVs ivs, EVs evs) {
+    public PokemonReward(String name, String species, int level, String ability, String nature, String form, String features, String gender, boolean shiny, float scale, String held_item, JsonElement held_item_data, List<String> move_set, IVs ivs, EVs evs) {
         super(name, "pokemon");
         this.species = species;
         this.level = level;
         this.ability = ability;
         this.nature = nature;
         this.form = form;
+        this.features = features;
         this.gender = gender;
         this.shiny = shiny;
         this.scale = scale;
@@ -75,8 +77,12 @@ public class PokemonReward extends Reward {
         return Natures.INSTANCE.getNature(nature);
     }
 
-    public PokemonProperties form() {
-        return PokemonProperties.Companion.parse(form);
+    public FormData form() {
+        return species().getFormByName(form);
+    }
+
+    public PokemonProperties features() {
+        return PokemonProperties.Companion.parse(features);
     }
 
     public Gender gender() {
@@ -138,7 +144,8 @@ public class PokemonReward extends Reward {
         pokemon.setLevel(level());
         pokemon.updateAbility(ability());
         pokemon.setNature(nature());
-        form().apply(pokemon);
+        pokemon.setForm(form());
+        features().apply(pokemon);
         pokemon.setGender(gender());
         pokemon.setShiny(shiny());
         pokemon.setScaleModifier(scale());

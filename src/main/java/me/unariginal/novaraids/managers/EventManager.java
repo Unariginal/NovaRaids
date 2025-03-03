@@ -192,11 +192,11 @@ public class EventManager {
                                                     held_item.decrement(1);
                                                     player.setStackInHand(hand, held_item);
 
-                                                    player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("used_pass"), joinable_raids.get(index))));
+                                                    player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("joined_raid"), joinable_raids.get(index))));
 
                                                     gui.close();
                                                 } else {
-                                                    player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_already_used_pass"), joinable_raids.get(index))));
+                                                    player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_already_joined_raid"), joinable_raids.get(index))));
                                                 }
                                             } else {
                                                 player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_not_joinable"), joinable_raids.get(index))));
@@ -221,9 +221,9 @@ public class EventManager {
                                                     held_item.decrement(1);
                                                     player.setStackInHand(hand, held_item);
 
-                                                    player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("used_pass"), raid)));
+                                                    player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("joined_raid"), raid)));
                                                 } else {
-                                                    player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_already_used_pass"), raid)));
+                                                    player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_already_joined_raid"), raid)));
                                                 }
                                             } else {
                                                 player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_not_joinable"), raid)));

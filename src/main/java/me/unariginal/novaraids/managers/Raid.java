@@ -6,6 +6,7 @@ import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.cobblemon.mod.common.pokemon.properties.UncatchableProperty;
 import kotlin.Unit;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.*;
 import me.unariginal.novaraids.utils.TextUtil;
@@ -15,7 +16,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.packet.s2c.play.PositionFlag;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
@@ -39,8 +39,8 @@ public class Raid {
     private int current_health;
     private final int max_health;
 
-    private ServerPlayerEntity started_by;
-    private ItemStack starting_item;
+    private final ServerPlayerEntity started_by;
+    private final ItemStack starting_item;
 
     private final int min_players;
     private final int max_players;
@@ -49,6 +49,8 @@ public class Raid {
 
     private final Map<Long, List<Task>> tasks = new HashMap<>();
     private final Map<ServerPlayerEntity, BossBar> player_bossbars = new HashMap<>();
+
+    private final List<PokemonEntity> clones = new ArrayList<>();
 
     private long raid_start_time = 0;
     private long raid_end_time = 0;
@@ -102,13 +104,17 @@ public class Raid {
             }
         }
 
-        for (Entity entity : raidBoss_location.world().iterateEntities()) {
-            if (entity.getPos().distanceTo(raidBoss_location.pos()) <= nr.config().getSettings().raid_radius()) {
-                if (entity instanceof PokemonEntity pokemon_entity) {
-                    if (pokemon_entity.getPokemon().getPersistentData().contains("boss_clone")) {
-                        if (pokemon_entity.getPokemon().getPersistentData().getBoolean("boss_clone")) {
-                            pokemon_entity.remove(Entity.RemovalReason.DISCARDED);
+        for (PokemonEntity pokemon : clones) {
+            if (pokemon != null) {
+                if (pokemon.isAlive()) {
+                    if (pokemon.isBattling() && pokemon.getBattleId() != null) {
+                        PokemonBattle battle = BattleRegistry.INSTANCE.getBattle(pokemon.getBattleId());
+                        if (battle != null) {
+                            battle.end();
                         }
+                    }
+                    if (!pokemon.isRemoved()) {
+                        pokemon.remove(Entity.RemovalReason.DISCARDED);
                     }
                 }
             }
@@ -119,9 +125,10 @@ public class Raid {
         }
 
         raid_end_time = nr.server().getOverworld().getTime();
+        nr.init_next_raid();
     }
 
-    private void setup_phase() {
+    public void setup_phase() {
         stage = 1;
 
         bossbar_data = nr.config().getBossbar("setup", raidBoss_category.name(), boss_info.name());
@@ -131,11 +138,12 @@ public class Raid {
         phase_start_time = nr.server().getOverworld().getTime();
 
         broadcast(TextUtil.format(messages.parse(messages.message("start_pre_phase"), this)));
+        nr.config().getMessages().execute_command();
 
         addTask(raidBoss_location.world(), phase_length * 20L, this::fight_phase);
     }
 
-    private void fight_phase() {
+    public void fight_phase() {
         if (participating_players.size() >= min_players && !participating_players.isEmpty()) {
             stage = 2;
 
@@ -160,7 +168,7 @@ public class Raid {
         }
     }
 
-    private void raid_lost() {
+    public void raid_lost() {
         stage = -1;
         tasks.clear();
         raid_end_time = nr.server().getOverworld().getTime();
@@ -187,7 +195,7 @@ public class Raid {
         addTask(raidBoss_location.world(), phase_length * 20L, this::catch_phase);
     }
 
-    private void catch_phase() {
+    public void catch_phase() {
         stage = 4;
 
         bossbar_data = nr.config().getBossbar("catch", raidBoss_category.name(), boss_info.name());
@@ -205,7 +213,7 @@ public class Raid {
         addTask(raidBoss_location.world(), phase_length * 20L, this::raid_won);
     }
 
-    private void raid_won() {
+    public void raid_won() {
         stage = -1;
         tasks.clear();
 
@@ -286,7 +294,7 @@ public class Raid {
         participating_broadcast(TextUtil.format(messages.parse(messages.message("raid_end"), this)));
     }
 
-    private void addTask(ServerWorld world, Long delay, Runnable action) {
+    public void addTask(ServerWorld world, Long delay, Runnable action) {
         long current_tick = world.getTime();
         long execute_tick = current_tick + delay;
 
@@ -455,6 +463,23 @@ public class Raid {
         }
     }
 
+    public void add_clone(PokemonEntity pokemon) {
+        for (PokemonEntity clone : clones) {
+            if (clone.getUuid().equals(pokemon.getUuid())) {
+                return;
+            }
+        }
+        clones.add(pokemon);
+    }
+
+    public void remove_clone(PokemonEntity clone) {
+        clones.remove(clone);
+    }
+
+    public List<PokemonEntity> get_clones() {
+        return clones;
+    }
+
     public List<ServerPlayerEntity> participating_players() {
         return participating_players;
     }
@@ -480,10 +505,18 @@ public class Raid {
 
     public boolean addPlayer(ServerPlayerEntity player) {
         int index = get_player_index(player);
+
+        if (!Permissions.check(player, "novaraids.join.override")) {
+            for (Raid raid : nr.active_raids().values()) {
+                index = raid.get_player_index(player);
+            }
+        }
+
         if (index == -1) {
             participating_players().add(player);
             show_bossbar(bossbar_data);
         }
+
         return index == -1;
     }
 

@@ -1,5 +1,6 @@
 {
   "prefix": "<dark_gray>[</dark_gray><color:#ffbf00>RAID<dark_gray>]</dark_gray>",
+  "raid_start_command": "",
   "messages": {
     "start_pre_phase": "%prefix% A raid is starting against %boss.form% %boss.species%!",
     "start_fight_phase": "%prefix% Time to fight %boss.form% %boss.species% (%boss.maxhp% HP)!",
@@ -24,9 +25,9 @@
     "warning_not_your_raid_pokeball": "%prefix% That isn't your raid pokeball!",
     "warning_raid_pokeball_outside_raid": "%prefix% You can't use raid pokeballs outside of a raid!",
     "warning_deny_normal_pokeball": "%prefix% You can only use raid pokeballs in a raid!",
-    "used_pass": "%prefix% You've successfully joined the %boss.form% %boss.species% raid!",
+    "joined_raid": "%prefix% You've successfully joined the %boss.form% %boss.species% raid!",
     "warning_no_pass": "%prefix% This raid requires a pass to join!",
-    "warning_already_used_pass": "%prefix% You've already joined this raid!",
+    "warning_already_joined_raid": "%prefix% You've already joined a raid!",
     "warning_no_pass_needed": "%prefix% You don't need a pass for this raid!",
     "warning_not_joinable": "%prefix% This raid is not join-able!",
     "used_voucher": "%prefix% You've successfully started a raid for %boss.form% %boss.species%!",

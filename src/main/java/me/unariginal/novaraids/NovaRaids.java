@@ -2,6 +2,7 @@ package me.unariginal.novaraids;
 
 import me.unariginal.novaraids.commands.RaidCommands;
 import me.unariginal.novaraids.config.Config;
+import me.unariginal.novaraids.data.QueueItem;
 import me.unariginal.novaraids.managers.EventManager;
 import me.unariginal.novaraids.managers.Raid;
 import me.unariginal.novaraids.managers.TickManager;
@@ -14,7 +15,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.Queue;
 
 public class NovaRaids implements ModInitializer {
     private static final String MOD_ID = "novaraids";
@@ -27,6 +30,7 @@ public class NovaRaids implements ModInitializer {
     private RaidCommands raidCommands;
 
     private final Map<Integer, Raid> active_raids = new HashMap<>();
+    private final Queue<QueueItem> queued_raids = new LinkedList<>();
 
     @Override
     public void onInitialize() {
@@ -85,6 +89,30 @@ public class NovaRaids implements ModInitializer {
 
     public Map<Integer, Raid> active_raids() {
         return active_raids;
+    }
+
+    public Queue<QueueItem> queued_raids() {
+        return queued_raids;
+    }
+
+    public void add_queue_item(QueueItem item) {
+        if (!queued_raids.contains(item)) {
+            queued_raids.add(item);
+        }
+    }
+
+    public void remove_queue_item(QueueItem item) {
+        queued_raids.remove(item);
+    }
+
+    public void init_next_raid() {
+        if (config.getSettings().use_queue_system()) {
+            if (active_raids.isEmpty()) {
+                if (!queued_raids.isEmpty()) {
+                    queued_raids.remove().start_raid();
+                }
+            }
+        }
     }
 
     public RaidCommands raidCommands() {

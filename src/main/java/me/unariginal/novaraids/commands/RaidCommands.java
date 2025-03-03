@@ -13,6 +13,7 @@ import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.Boss;
 import me.unariginal.novaraids.data.Category;
 import me.unariginal.novaraids.data.Location;
+import me.unariginal.novaraids.data.QueueItem;
 import me.unariginal.novaraids.managers.Messages;
 import me.unariginal.novaraids.managers.Raid;
 import me.unariginal.novaraids.utils.TextUtil;
@@ -30,6 +31,7 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.ClickType;
 import net.minecraft.util.Formatting;
 
 import java.util.ArrayList;
@@ -165,14 +167,22 @@ public class RaidCommands {
                                             CommandManager.argument("id", IntegerArgumentType.integer(1))
                                                     .executes(ctx -> {
                                                         if (ctx.getSource().isExecutedByPlayer()) {
-                                                            for (Raid raid : nr.active_raids().values()) {
-                                                                if (raid.participating_players().contains(ctx.getSource().getPlayer())) {
-                                                                    return 0;
+                                                            ServerPlayerEntity player = ctx.getSource().getPlayer();
+                                                            if (player != null) {
+                                                                for (Raid raid : nr.active_raids().values()) {
+                                                                    if (raid.participating_players().contains(player)) {
+                                                                        return 0;
+                                                                    }
                                                                 }
-                                                            }
 
-                                                            if (nr.active_raids().containsKey(IntegerArgumentType.getInteger(ctx, "id"))) {
-                                                                nr.active_raids().get(IntegerArgumentType.getInteger(ctx, "id")).addPlayer(ctx.getSource().getPlayer());
+                                                                if (nr.active_raids().containsKey(IntegerArgumentType.getInteger(ctx, "id"))) {
+                                                                    Raid raid = nr.active_raids().get(IntegerArgumentType.getInteger(ctx, "id"));
+                                                                    if (raid.participating_players().size() < raid.max_players() || Permissions.check(player, "novaraids.join.override")) {
+                                                                        if (raid.addPlayer(player)) {
+
+                                                                        }
+                                                                    }
+                                                                }
                                                             }
                                                         }
                                                         return 1;
@@ -233,7 +243,14 @@ public class RaidCommands {
             return 0;
         }
 
-        nr.add_raid(new Raid(boss_info, spawn_location, player, starting_item));
+        if (!nr.config().getSettings().use_queue_system()) {
+            nr.add_raid(new Raid(boss_info, spawn_location, player, starting_item));
+        } else {
+            nr.add_queue_item(new QueueItem(boss_info, spawn_location, player, starting_item));
+            if (nr.active_raids().isEmpty()) {
+                nr.init_next_raid();
+            }
+        }
         return 1;
     }
 
@@ -394,7 +411,7 @@ public class RaidCommands {
         int slot = 0;
         for (Map.Entry<Integer, Raid> entry : nr.active_raids().entrySet()) {
             Raid raid = entry.getValue();
-            GuiElement element = new GuiElementBuilder(PokemonItem.from(entry.getValue().raidBoss_pokemon()))
+            GuiElement element = new GuiElementBuilder(PokemonItem.from(raid.raidBoss_pokemon()))
                     .setName(Text.literal(messages.parse("[ID: %raid.id%] %boss.form% %boss.species%", raid)).styled(style -> style.withColor(Formatting.LIGHT_PURPLE).withItalic(false)))
                     .setLore(
                             List.of(Text.literal(messages.parse("HP: %boss.currenthp%/%boss.maxhp%", raid)).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)),
@@ -402,8 +419,19 @@ public class RaidCommands {
                                     Text.literal(messages.parse("Phase: %raid.phase%", raid)).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)),
                                     Text.literal(messages.parse("Players: %raid.player_count%/%raid.max_players%", raid)).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)),
                                     Text.literal(messages.parse("Raid Timer: %raid.timer%", raid)).styled(style -> style.withColor(Formatting.GRAY).withItalic(false))
-                                    )
-            ).build();
+                            )
+            ).setCallback((i, clickType, slotActionType) -> {
+                if (clickType.isLeft) {
+                    if (player != null) {
+                        if (raid.addPlayer(player)) {
+                            player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("joined_raid"), raid)));
+                        } else {
+                            player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_already_joined_raid"), raid)));
+                        }
+                        gui.close();
+                    }
+                }
+            }).build();
             gui.setSlot(slot, element);
             slot++;
             if (slot > 53) {
