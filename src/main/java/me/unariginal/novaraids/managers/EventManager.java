@@ -40,7 +40,10 @@ public class EventManager {
     private static final NovaRaids nr = NovaRaids.INSTANCE;
 
     public static void catch_events() {
-
+//        CobblemonEvents.THROWN_POKEBALL_HIT.subscribe(Priority.HIGHEST, event -> {
+//            event.getPokeBall();
+//            return Unit.INSTANCE;
+//        });
     }
 
     public static void battle_events() {
@@ -303,6 +306,34 @@ public class EventManager {
                                         break;
                                     }
                                 }
+                            }
+                        } else if (custom_data.copyNbt().getString("raid_item").equals("raid_ball")) {
+                            boolean can_throw = true;
+
+                            if (custom_data.contains("owner_uuid")) {
+                                if (!custom_data.copyNbt().getString("owner_uuid").equals(player.getUuidAsString())) {
+                                    can_throw = false;
+                                    player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_not_your_raid_pokeball"))));
+                                }
+                            }
+
+                            if (can_throw) {
+                                for (Raid raid : nr.active_raids().values()) {
+                                    if (raid.participating_players().contains(player)) {
+                                        if (raid.stage() == 4) {
+                                            can_throw = true;
+                                            break;
+                                        } else {
+                                            can_throw = false;
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (can_throw) {
+                                return TypedActionResult.success(held_item);
+                            } else {
+                                return TypedActionResult.fail(held_item);
                             }
                         }
                     }

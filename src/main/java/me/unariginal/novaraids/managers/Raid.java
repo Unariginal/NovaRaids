@@ -1,5 +1,6 @@
 package me.unariginal.novaraids.managers;
 
+import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.battles.model.PokemonBattle;
 import com.cobblemon.mod.common.battles.BattleRegistry;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
@@ -529,6 +530,17 @@ public class Raid {
 
             if (BanHandler.hasContraband(player)) {
                 index = -2;
+            }
+
+            int num_pokemon = 0;
+            for (Pokemon pokemon : Cobblemon.INSTANCE.getStorage().getParty(player)) {
+                if (pokemon != null) {
+                    num_pokemon++;
+                }
+            }
+            if (num_pokemon == 0) {
+                index = -2;
+                player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_no_pokemon"), this)));
             }
         }
 
