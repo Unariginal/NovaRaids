@@ -9,6 +9,7 @@ import kotlin.Unit;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.*;
+import me.unariginal.novaraids.utils.BanHandler;
 import me.unariginal.novaraids.utils.TextUtil;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
@@ -522,6 +523,10 @@ public class Raid {
                 index = -2;
                 player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_not_joinable"), this)));
             }
+
+            if (BanHandler.hasContraband(player)) {
+                index = -2;
+            }
         }
 
         if (index == -1) {
@@ -535,7 +540,7 @@ public class Raid {
             player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_already_joined_raid"), this)));
         }
 
-        return index == -1;
+        return index == -1 || index == -2;
     }
 
     public void update_player_damage(ServerPlayerEntity player, int damage) {

@@ -184,23 +184,27 @@ public class EventManager {
                                 SimpleGui gui = new SimpleGui(ScreenHandlerType.GENERIC_9X6, player, false);
                                 gui.setTitle(Text.literal("Pick A Raid!"));
                                 for (int i = 0; i < joinable_raids.size(); i++) {
-                                    int index = i;
+                                    Raid raid = joinable_raids.get(i);
                                     GuiElement element = new GuiElementBuilder(PokemonItem.from(joinable_raids.get(i).raidBoss_pokemon())).setCallback((slot, clickType, slotActionType) -> {
-                                        if (joinable_raids.get(index).raidBoss_category().require_pass()) {
-                                            if (nr.active_raids().get(nr.get_raid_id(joinable_raids.get(index))).stage() == 1) {
-                                                if (joinable_raids.get(index).addPlayer(player)) {
-                                                    held_item.decrement(1);
-                                                    player.setStackInHand(hand, held_item);
+                                        if (raid.raidBoss_category().require_pass()) {
+                                            if (nr.active_raids().get(nr.get_raid_id(raid)).stage() == 1) {
+                                                if (nr.active_raids().get(nr.get_raid_id(raid)).participating_players().size() < nr.active_raids().get(nr.get_raid_id(raid)).max_players()) {
+                                                    if (raid.addPlayer(player)) {
+                                                        held_item.decrement(1);
+                                                        player.setStackInHand(hand, held_item);
 
-                                                    player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("joined_raid"), joinable_raids.get(index))));
+                                                        player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("joined_raid"), raid)));
 
-                                                    gui.close();
+                                                        gui.close();
+                                                    }
+                                                } else {
+                                                    player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_max_players"), raid)));
                                                 }
                                             } else {
-                                                player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_not_joinable"), joinable_raids.get(index))));
+                                                player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_not_joinable"), raid)));
                                             }
                                         } else {
-                                            player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_no_pass_needed"), joinable_raids.get(index))));
+                                            player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_no_pass_needed"), raid)));
                                         }
                                     }).build();
                                     gui.setSlot(i, element);
@@ -215,11 +219,15 @@ public class EventManager {
                                     if (raid.boss_info().name().equalsIgnoreCase(boss_name)) {
                                         if (raid.raidBoss_category().require_pass()) {
                                             if (raid.stage() == 1) {
-                                                if (raid.addPlayer(player)) {
-                                                    held_item.decrement(1);
-                                                    player.setStackInHand(hand, held_item);
+                                                if (raid.participating_players().size() < raid.max_players()) {
+                                                    if (raid.addPlayer(player)) {
+                                                        held_item.decrement(1);
+                                                        player.setStackInHand(hand, held_item);
 
-                                                    player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("joined_raid"), raid)));
+                                                        player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("joined_raid"), raid)));
+                                                    }
+                                                } else {
+                                                    player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_max_players"), raid)));
                                                 }
                                             } else {
                                                 player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_not_joinable"), raid)));

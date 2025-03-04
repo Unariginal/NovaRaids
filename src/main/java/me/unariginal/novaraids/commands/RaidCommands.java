@@ -178,6 +178,8 @@ public class RaidCommands {
                                                                         if (raid.addPlayer(player)) {
                                                                             player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("joined_raid"), raid)));
                                                                         }
+                                                                    } else {
+                                                                        player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_max_players"), raid)));
                                                                     }
                                                                 }
                                                             }
@@ -429,6 +431,9 @@ public class RaidCommands {
             if (!raid.raidBoss_category().require_pass()) {
                 lore.add(Text.empty());
                 lore.add(Text.literal("Click to join this raid!").styled(style -> style.withColor(Formatting.GREEN).withItalic(false)));
+            } else {
+                lore.add(Text.empty());
+                lore.add(Text.literal("This raid requires a pass!").styled(style -> style.withColor(Formatting.RED).withItalic(false)));
             }
 
             GuiElement element = new GuiElementBuilder(PokemonItem.from(raid.raidBoss_pokemon()))
