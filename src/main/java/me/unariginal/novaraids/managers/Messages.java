@@ -70,10 +70,11 @@ public record Messages(String prefix, String raid_start_command, Map<String, Str
         return output;
     }
 
-    public String parse(String message, Raid raid, ServerPlayerEntity player, int damage) {
+    public String parse(String message, Raid raid, ServerPlayerEntity player, int damage, int place) {
         String output = message;
         output = parse(output, raid);
         output = output
+                .replaceAll("%raid.player.place%", String.valueOf(place))
                 .replaceAll("%raid.player%", player.getName().getString())
                 .replaceAll("%raid.player.damage%", String.valueOf(damage));
 

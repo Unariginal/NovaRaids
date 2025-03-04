@@ -14,7 +14,6 @@
     "player_damage_report": "%prefix% %raid.player% did %raid.player.damage% to the boss!",
     "no_active_raids": "%prefix% There are no active raids!",
     "no_queued_raids": "%prefix% There are no queued raids!",
-    "banned_list": "%prefix%",
     "warning_banned_pokemon": "%prefix% %banned.pokemon% is banned from raids!",
     "warning_banned_move": "%prefix% %banned.move% is banned from raids!",
     "warning_banned_ability": "%prefix% %banned.ability% is banned from raids!",
@@ -32,14 +31,14 @@
     "warning_no_pass_needed": "%prefix% You don't need a pass for this raid!",
     "warning_not_joinable": "%prefix% This raid is not joinable!",
     "used_voucher": "%prefix% You've successfully started a raid for %boss.form% %boss.species%!",
-    "error_no_boss": "%prefix%",
-    "give_command": "%prefix%",
     "reload_command": "%prefix% Reloaded!",
     "raid_stopped": "%prefix% You've stopped the raid against %boss.form% %boss.species%!",
     "queue_item_cancelled": "%prefix% You've cancelled the queue for %boss.form% %boss.species%!",
     "added_to_queue": "%prefix% %boss.form% %boss.species% has been added to the queue!",
     "raid_list_gui_title": "Active Raids",
     "raid_queue_gui_title": "Queued Raids",
-    "contraband_gui_title": "Raid Contraband"
+    "contraband_gui_title": "Raid Contraband",
+    "leaderboard_message_header": "------- Raid Results -------",
+    "leaderboard_message_item": " - [%raid.player.place%] %raid.player% : %raid.player.damage% damage"
   }
 }

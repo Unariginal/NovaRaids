@@ -120,7 +120,7 @@ public class EventManager {
                     if (raid.participating_players().contains(player)) {
                         raid.apply_damage(damage);
                         raid.update_player_damage(player, damage);
-                        raid.participating_broadcast(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("player_damage_report"), raid, player, damage)));
+                        raid.participating_broadcast(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("player_damage_report"), raid, player, damage, -1)));
                         break;
                     }
                 }

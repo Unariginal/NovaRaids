@@ -218,12 +218,11 @@ public class Raid {
         stage = -1;
         tasks.clear();
 
+        participating_broadcast(TextUtil.format(messages.parse(messages.message("leaderboard_message_header"), this)));
         int place_index = 0;
         for (Map.Entry<ServerPlayerEntity, Integer> entry : get_damage_leaderboard()) {
             place_index++;
-            for (ServerPlayerEntity player : participating_players) {
-                player.sendMessage(Text.literal(place_index + ". " + entry.getKey().getNameForScoreboard() + " : " + entry.getValue() + " damage"));
-            }
+            participating_broadcast(TextUtil.format(messages.parse(messages.message("leaderboard_message_item"), this, entry.getKey(), entry.getValue(), place_index)));
             if (place_index == 10) {
                 break;
             }
