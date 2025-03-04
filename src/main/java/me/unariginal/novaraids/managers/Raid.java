@@ -311,6 +311,10 @@ public class Raid {
         }
     }
 
+    public void removeTask(long execute_tick) {
+        tasks.remove(execute_tick);
+    }
+
     public Map<Long, List<Task>> getTasks() {
         return tasks;
     }

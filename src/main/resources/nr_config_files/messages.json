@@ -30,7 +30,7 @@
     "warning_no_pass": "%prefix% This raid requires a pass to join!",
     "warning_already_joined_raid": "%prefix% You've already joined a raid!",
     "warning_no_pass_needed": "%prefix% You don't need a pass for this raid!",
-    "warning_not_joinable": "%prefix% This raid is not join-able!",
+    "warning_not_joinable": "%prefix% This raid is not joinable!",
     "used_voucher": "%prefix% You've successfully started a raid for %boss.form% %boss.species%!",
     "error_no_boss": "%prefix%",
     "give_command": "%prefix%",
@@ -39,6 +39,7 @@
     "queue_item_cancelled": "%prefix% You've cancelled the queue for %boss.form% %boss.species%!",
     "added_to_queue": "%prefix% %boss.form% %boss.species% has been added to the queue!",
     "raid_list_gui_title": "Active Raids",
-    "raid_queue_gui_title": "Queued Raids"
+    "raid_queue_gui_title": "Queued Raids",
+    "contraband_gui_title": "Raid Contraband"
   }
 }
