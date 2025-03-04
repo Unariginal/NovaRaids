@@ -5,7 +5,9 @@ import me.unariginal.novaraids.managers.Raid;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 
-public record QueueItem(Boss boss_info, Location raidBoss_location, ServerPlayerEntity started_by, ItemStack starting_item) {
+import java.util.UUID;
+
+public record QueueItem(UUID uuid, Boss boss_info, Location raidBoss_location, ServerPlayerEntity started_by, ItemStack starting_item) {
     private static final NovaRaids nr = NovaRaids.INSTANCE;
 
     public void start_raid() {

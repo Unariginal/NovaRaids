@@ -2,6 +2,7 @@ package me.unariginal.novaraids.managers;
 
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.Task;
+import me.unariginal.novaraids.utils.TextUtil;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 
@@ -75,6 +76,7 @@ public class TickManager {
                     if (raid.boss_info().do_catch_phase()) {
                         raid.pre_catch_phase();
                     } else {
+                        raid.participating_broadcast(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("boss_defeated"), raid)));
                         raid.raid_won();
                     }
                 }

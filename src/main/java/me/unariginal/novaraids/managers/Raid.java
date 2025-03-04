@@ -37,7 +37,7 @@ public class Raid {
     private final Category raidBoss_category;
 
     private int current_health;
-    private final int max_health;
+    private int max_health;
 
     private final ServerPlayerEntity started_by;
     private final ItemStack starting_item;
@@ -97,12 +97,13 @@ public class Raid {
             raidBoss_entity.remove(Entity.RemovalReason.DISCARDED);
         }
 
-        for (ServerPlayerEntity player : participating_players) {
-            PokemonBattle battle = BattleRegistry.INSTANCE.getBattleByParticipatingPlayer(player);
-            if (battle != null) {
-                battle.end();
-            }
-        }
+//        for (ServerPlayerEntity player : participating_players) {
+//            PokemonBattle battle = BattleRegistry.INSTANCE.getBattleByParticipatingPlayer(player);
+//            if (battle != null) {
+//                battle.end();
+//            }
+//        }
+        end_battles();
 
         for (PokemonEntity pokemon : clones) {
             if (pokemon != null) {
@@ -189,7 +190,6 @@ public class Raid {
 
         end_battles();
 
-        participating_broadcast(TextUtil.format(messages.parse(messages.message("boss_defeated"), this)));
         participating_broadcast(TextUtil.format(messages.parse(messages.message("catch_phase_warning"), this)));
 
         addTask(raidBoss_location.world(), phase_length * 20L, this::catch_phase);
@@ -290,7 +290,9 @@ public class Raid {
             }
         }
         raid_end_time = nr.server().getOverworld().getTime();
-        participating_broadcast(TextUtil.format(messages.parse(messages.message("catch_phase_end"), this)));
+        if (boss_info.do_catch_phase()) {
+            participating_broadcast(TextUtil.format(messages.parse(messages.message("catch_phase_end"), this)));
+        }
         participating_broadcast(TextUtil.format(messages.parse(messages.message("raid_end"), this)));
     }
 
@@ -515,10 +517,19 @@ public class Raid {
                 index = -2;
                 player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_no_pass"), this)));
             }
+
+            if (stage != 1) {
+                index = -2;
+                player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_not_joinable"), this)));
+            }
         }
 
         if (index == -1) {
             participating_players().add(player);
+            if (nr.config().getSettings().do_health_scaling() && participating_players().size() > 1) {
+                max_health += nr.config().getSettings().health_increase();
+                current_health += nr.config().getSettings().health_increase();
+            }
             show_bossbar(bossbar_data);
         } else if (index != -2) {
             player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_already_joined_raid"), this)));

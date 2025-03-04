@@ -34,10 +34,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.ClickType;
 import net.minecraft.util.Formatting;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 public class RaidCommands {
     private final NovaRaids nr = NovaRaids.INSTANCE;
@@ -169,11 +166,11 @@ public class RaidCommands {
                                                         if (ctx.getSource().isExecutedByPlayer()) {
                                                             ServerPlayerEntity player = ctx.getSource().getPlayer();
                                                             if (player != null) {
-                                                                for (Raid raid : nr.active_raids().values()) {
-                                                                    if (raid.participating_players().contains(player)) {
-                                                                        return 0;
-                                                                    }
-                                                                }
+//                                                                for (Raid raid : nr.active_raids().values()) {
+//                                                                    if (raid.participating_players().contains(player)) {
+//                                                                        return 0;
+//                                                                    }
+//                                                                }
 
                                                                 if (nr.active_raids().containsKey(IntegerArgumentType.getInteger(ctx, "id"))) {
                                                                     Raid raid = nr.active_raids().get(IntegerArgumentType.getInteger(ctx, "id"));
@@ -233,7 +230,7 @@ public class RaidCommands {
             total_weight += spawn_locations.get(location);
         }
 
-        double random_weight = rand.nextDouble(total_weight + 1);
+        double random_weight = rand.nextDouble(total_weight);
         total_weight = 0.0;
         Location spawn_location = null;
         for (String location : spawn_locations.keySet()) {
@@ -252,9 +249,12 @@ public class RaidCommands {
         if (!nr.config().getSettings().use_queue_system()) {
             nr.add_raid(new Raid(boss_info, spawn_location, player, starting_item));
         } else {
-            nr.add_queue_item(new QueueItem(boss_info, spawn_location, player, starting_item));
+            nr.add_queue_item(new QueueItem(UUID.randomUUID(), boss_info, spawn_location, player, starting_item));
+
             if (nr.active_raids().isEmpty()) {
                 nr.init_next_raid();
+            } else {
+                player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("added_to_queue"), boss_info)));
             }
         }
         return 1;
@@ -419,16 +419,22 @@ public class RaidCommands {
         int slot = 0;
         for (Map.Entry<Integer, Raid> entry : nr.active_raids().entrySet()) {
             Raid raid = entry.getValue();
+            List<Text> lore = new ArrayList<>();
+            lore.add(Text.literal(messages.parse("HP: %boss.currenthp%/%boss.maxhp%", raid)).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)));
+            lore.add(Text.literal(messages.parse("Category: %raid.category%", raid)).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)));
+            lore.add(Text.literal(messages.parse("Phase: %raid.phase%", raid)).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)));
+            lore.add(Text.literal(messages.parse("Players: %raid.player_count%/%raid.max_players%", raid)).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)));
+            lore.add(Text.literal(messages.parse("Raid Timer: %raid.timer%", raid)).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)));
+
+            if (!raid.raidBoss_category().require_pass()) {
+                lore.add(Text.empty());
+                lore.add(Text.literal("Click to join this raid!").styled(style -> style.withColor(Formatting.GREEN).withItalic(false)));
+            }
+
             GuiElement element = new GuiElementBuilder(PokemonItem.from(raid.raidBoss_pokemon()))
                     .setName(Text.literal(messages.parse("[ID: %raid.id%] %boss.form% %boss.species%", raid)).styled(style -> style.withColor(Formatting.LIGHT_PURPLE).withItalic(false)))
-                    .setLore(
-                            List.of(Text.literal(messages.parse("HP: %boss.currenthp%/%boss.maxhp%", raid)).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)),
-                                    Text.literal(messages.parse("Category: %raid.category%", raid)).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)),
-                                    Text.literal(messages.parse("Phase: %raid.phase%", raid)).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)),
-                                    Text.literal(messages.parse("Players: %raid.player_count%/%raid.max_players%", raid)).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)),
-                                    Text.literal(messages.parse("Raid Timer: %raid.timer%", raid)).styled(style -> style.withColor(Formatting.GRAY).withItalic(false))
-                            )
-            ).setCallback((i, clickType, slotActionType) -> {
+                    .setLore(lore)
+                    .setCallback((i, clickType, slotActionType) -> {
                 if (clickType.isLeft) {
                     if (player != null) {
                         if (raid.addPlayer(player)) {
@@ -465,7 +471,8 @@ public class RaidCommands {
             SimpleGui gui = new SimpleGui(ScreenHandlerType.GENERIC_9X6, player, false);
             gui.setTitle(Text.literal(messages.parse(messages.message("raid_queue_gui_title"))));
             int slot = 0;
-            for (QueueItem item : nr.queued_raids()) {
+            nr.logInfo("[RAIDS] Total queued raids: " + nr.queued_raids().size());
+            for (QueueItem item : nr.queued_raids().stream().toList()) {
                 GuiElement element = new GuiElementBuilder(PokemonItem.from(item.boss_info().createPokemon()))
                         .setName(Text.literal(messages.parse("%boss.form% %boss.species%", item.boss_info())).styled(style -> style.withColor(Formatting.LIGHT_PURPLE).withItalic(false)))
                         .setLore(lore)

@@ -1,5 +1,6 @@
 package me.unariginal.novaraids.managers;
 
+import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.Boss;
 import me.unariginal.novaraids.utils.TextUtil;
@@ -16,9 +17,11 @@ public record Messages(String prefix, String raid_start_command, Map<String, Str
     }
 
     public void execute_command() {
-        CommandManager cmdManager = Objects.requireNonNull(NovaRaids.INSTANCE.server()).getCommandManager();
-        ServerCommandSource source = NovaRaids.INSTANCE.server().getCommandSource();
-        cmdManager.executeWithPrefix(source, raid_start_command);
+        if (!raid_start_command.isEmpty()) {
+            CommandManager cmdManager = Objects.requireNonNull(NovaRaids.INSTANCE.server()).getCommandManager();
+            ServerCommandSource source = NovaRaids.INSTANCE.server().getCommandSource();
+            cmdManager.executeWithPrefix(source, raid_start_command);
+        }
     }
 
     public String parse(String message, Raid raid) {
@@ -26,9 +29,8 @@ public record Messages(String prefix, String raid_start_command, Map<String, Str
         output = parse(output);
         output = parse(output, raid.boss_info());
         output = output
-                .replaceAll("%boss.form%", (raid.raidBoss_pokemon().getForm().getName().equalsIgnoreCase("normal") ? "" : raid.raidBoss_pokemon().getForm().getName()))
                 .replaceAll("%boss.maxhp%", String.valueOf(raid.max_health()))
-                .replaceAll("%raid.defeat_time%", (raid.boss_defeat_time() > 0) ? TextUtil.hms(raid.boss_defeat_time()) : "")
+                .replaceAll("%raid.defeat_time%", (raid.boss_defeat_time() > 0) ? TextUtil.hms(raid.boss_defeat_time() * 20L) : "")
                 .replaceAll("%raid.completion_time%", (raid.raid_completion_time() > 0) ? TextUtil.hms(raid.raid_completion_time()) : "")
                 .replaceAll("%raid.phase_timer%", TextUtil.hms(((raid.phase_start_time() + (raid.phase_length() * 20L)) - NovaRaids.INSTANCE.server().getOverworld().getTime())/20))
                 .replaceAll("%boss.currenthp%", String.valueOf(raid.current_health()))
@@ -49,6 +51,21 @@ public record Messages(String prefix, String raid_start_command, Map<String, Str
         output = output
                 .replaceAll("%boss.species%", boss.species().getName())
                 .replaceAll("%boss%", boss.name());
+
+        boolean normal = boss.display_form().isEmpty() || boss.display_form().equalsIgnoreCase("normal");
+        if (output.contains(" %boss.form%")) {
+            if (normal) {
+                output = output.substring(0, output.indexOf(" %boss.form%")).concat(output.substring(output.indexOf(" %boss.form%") + " %boss.form%".length()));
+            } else {
+                output = output.replaceAll("%boss.form%", boss.display_form());
+            }
+        } else if (output.contains("%boss.form% ")) {
+            if (normal) {
+                output = output.substring(0, output.indexOf("%boss.form% ")).concat(output.substring(output.indexOf("%boss.form% ") + "%boss.form% ".length()));
+            } else {
+                output = output.replaceAll("%boss.form%", boss.display_form());
+            }
+        }
 
         return output;
     }

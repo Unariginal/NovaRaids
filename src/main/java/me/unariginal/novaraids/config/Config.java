@@ -37,7 +37,6 @@ import java.util.*;
 
 public class Config {
     private final NovaRaids nr = NovaRaids.INSTANCE;
-    public boolean debug = true;
     private Settings settings;
     private Messages messages;
     private List<Category> categories;
@@ -107,18 +106,20 @@ public class Config {
             }
         }
 
-        File boss_example = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/bosses/example_boss.json").toFile();
-        if (boss_example.createNewFile()) {
-            InputStream stream = NovaRaids.class.getResourceAsStream("/nr_config_files/bosses/example_boss.json");
-            assert stream != null;
-            OutputStream out = new FileOutputStream(boss_example);
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = stream.read(buffer)) > 0) {
-                out.write(buffer, 0, length);
+        if (bossesFolder.listFiles() == null || Objects.requireNonNull(bossesFolder.listFiles()).length == 0) {
+            File boss_example = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/bosses/example_boss.json").toFile();
+            if (boss_example.createNewFile()) {
+                InputStream stream = NovaRaids.class.getResourceAsStream("/nr_config_files/bosses/example_boss.json");
+                assert stream != null;
+                OutputStream out = new FileOutputStream(boss_example);
+                byte[] buffer = new byte[1024];
+                int length;
+                while ((length = stream.read(buffer)) > 0) {
+                    out.write(buffer, 0, length);
+                }
+                stream.close();
+                out.close();
             }
-            stream.close();
-            out.close();
         }
     }
 
@@ -139,7 +140,7 @@ public class Config {
         JsonObject config = root.getAsJsonObject();
         nr.logInfo("[RAIDS] Loading config..");
 
-        debug = config.get("debug").getAsBoolean();
+        nr.debug = config.get("debug").getAsBoolean();
 
         TimeZone timezone = TimeZone.getTimeZone(config.get("timezone").getAsString());
         TimeZone.setDefault(timezone);
@@ -392,6 +393,7 @@ public class Config {
                     evs.set(Stats.SPEED, evObject.get("spd").getAsInt());
 
                     JsonObject boss_details = bossObject.getAsJsonObject("boss_details");
+                    String display_form = boss_details.get("display_form").getAsString();
                     int base_health = boss_details.get("base_health").getAsInt();
                     String category = boss_details.get("category").getAsString();
                     Float facing = boss_details.get("body_direction").getAsFloat();
@@ -444,6 +446,7 @@ public class Config {
                             moves,
                             ivs,
                             evs,
+                            display_form,
                             base_health,
                             category,
                             facing,
@@ -456,6 +459,7 @@ public class Config {
                     nr.logError("[RAIDS] Invalid Boss Species: " + pokemon_details.get("species").getAsString());
                 }
                 this.bosses = bossesList;
+                nr.logInfo("[RAIDS] Loaded " + bosses.size() + " bosses.");
             }
         }
     }

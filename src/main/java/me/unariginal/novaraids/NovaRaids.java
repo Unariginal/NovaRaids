@@ -26,6 +26,7 @@ public class NovaRaids implements ModInitializer {
 
     private final MiniMessage mm = MiniMessage.miniMessage();
     private Config config;
+    public boolean debug = true;
     private MinecraftServer server;
     private RaidCommands raidCommands;
 
@@ -61,15 +62,14 @@ public class NovaRaids implements ModInitializer {
 
         // Clean up at server stop
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
-            for (Raid raid : active_raids.values()) {
-                raid.stop();
-            }
-
             for (QueueItem queue : queued_raids) {
                 queue.cancel_item();
             }
             queued_raids.clear();
 
+            for (Raid raid : active_raids.values()) {
+                raid.stop();
+            }
             // TODO: Save current raid, write queue to file
         });
     }
@@ -95,13 +95,13 @@ public class NovaRaids implements ModInitializer {
     }
 
     public void logInfo(String message) {
-        if (config.debug) {
+        if (debug) {
             logger().info(message);
         }
     }
 
     public void logWarning(String message) {
-        if (config.debug) {
+        if (debug) {
             logger().warn(message);
         }
     }
@@ -121,6 +121,8 @@ public class NovaRaids implements ModInitializer {
     public void add_queue_item(QueueItem item) {
         if (!queued_raids.contains(item)) {
             queued_raids.add(item);
+        } else {
+            logInfo("[RAIDS] Queue item already exists!");
         }
     }
 
@@ -130,11 +132,11 @@ public class NovaRaids implements ModInitializer {
 
     public void init_next_raid() {
         if (config.getSettings().use_queue_system()) {
-            if (active_raids.isEmpty()) {
+            //if (active_raids.isEmpty()) {
                 if (!queued_raids.isEmpty()) {
                     queued_raids.remove().start_raid();
                 }
-            }
+            //}
         }
     }
 

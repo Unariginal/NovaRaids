@@ -69,6 +69,7 @@
     }
   },
   "boss_details": {
+    "display_form": "",
     "base_health": 1000,
     "category": "common",
     "body_direction": 0.0,
