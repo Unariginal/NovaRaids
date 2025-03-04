@@ -1,5 +1,6 @@
 package me.unariginal.novaraids.managers;
 
+import com.cobblemon.mod.common.CobblemonItems;
 import com.cobblemon.mod.common.api.Priority;
 import com.cobblemon.mod.common.api.battles.model.PokemonBattle;
 import com.cobblemon.mod.common.api.battles.model.actor.BattleActor;
@@ -7,6 +8,7 @@ import com.cobblemon.mod.common.api.events.CobblemonEvents;
 import com.cobblemon.mod.common.battles.actor.PlayerBattleActor;
 import com.cobblemon.mod.common.battles.actor.PokemonBattleActor;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
+import com.cobblemon.mod.common.item.PokeBallItem;
 import com.cobblemon.mod.common.item.PokemonItem;
 import com.cobblemon.mod.common.platform.events.ServerPlayerEvent;
 import com.cobblemon.mod.common.pokemon.Pokemon;
@@ -24,6 +26,7 @@ import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.screen.ScreenHandlerType;
@@ -307,13 +310,19 @@ public class EventManager {
                                     }
                                 }
                             }
-                        } else if (custom_data.copyNbt().getString("raid_item").equals("raid_ball")) {
-                            boolean can_throw = true;
+                        } else if (custom_data.copyNbt().getString("raid_item").equals("raid_ball") && nr.config().getSettings().use_raid_pokeballs()) {
+                            boolean can_throw = false;
 
                             if (custom_data.contains("owner_uuid")) {
-                                if (!custom_data.copyNbt().getString("owner_uuid").equals(player.getUuidAsString())) {
-                                    can_throw = false;
+                                if (!custom_data.copyNbt().getUuid("owner_uuid").equals(player.getUuid())) {
                                     player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_not_your_raid_pokeball"))));
+                                    return TypedActionResult.fail(held_item);
+                                }
+                            }
+
+                            for (Raid raid : nr.active_raids().values()) {
+                                if (raid.participating_players().contains(player)) {
+                                    can_throw = true;
                                 }
                             }
 
@@ -328,13 +337,26 @@ public class EventManager {
                                         }
                                     }
                                 }
-                            }
-
-                            if (can_throw) {
-                                return TypedActionResult.success(held_item);
                             } else {
+                                player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_raid_pokeball_outside_raid"))));
                                 return TypedActionResult.fail(held_item);
                             }
+
+                            if (!can_throw) {
+                                player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_not_catch_phase"))));
+                                return TypedActionResult.fail(held_item);
+                            } else {
+                                return TypedActionResult.pass(held_item);
+                            }
+                        }
+                    }
+                }
+
+                if (isPokeball(held_item) && nr.config().getSettings().use_raid_pokeballs()) {
+                    for (Raid raid : nr.active_raids().values()) {
+                        if (raid.participating_players().contains(player)) {
+                            player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_deny_normal_pokeball"))));
+                            return TypedActionResult.fail(held_item);
                         }
                     }
                 }
@@ -343,6 +365,15 @@ public class EventManager {
             }
             return null;
         });
+    }
+
+    public static boolean isPokeball(ItemStack itemstack) {
+        for (PokeBallItem item : CobblemonItems.pokeBalls) {
+            if (item.equals(itemstack.getItem())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static void player_events() {

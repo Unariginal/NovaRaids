@@ -513,7 +513,8 @@ public class Raid {
     public boolean addPlayer(ServerPlayerEntity player) {
         int index = get_player_index(player);
 
-        if (!Permissions.check(player, "novaraids.join.override")) {
+        if (!Permissions.check(player, "novaraids.override")) {
+            nr.logInfo("Checking if player can join the raid..");
             for (Raid raid : nr.active_raids().values()) {
                 index = raid.get_player_index(player);
             }
@@ -542,6 +543,8 @@ public class Raid {
                 index = -2;
                 player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_no_pokemon"), this)));
             }
+        } else {
+            nr.logInfo("Player has permission override!");
         }
 
         if (index == -1) {
@@ -555,7 +558,7 @@ public class Raid {
             player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_already_joined_raid"), this)));
         }
 
-        return index == -1 || index == -2;
+        return index == -1;
     }
 
     public void update_player_damage(ServerPlayerEntity player, int damage) {

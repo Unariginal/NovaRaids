@@ -174,7 +174,7 @@ public class RaidCommands {
 
                                                                 if (nr.active_raids().containsKey(IntegerArgumentType.getInteger(ctx, "id"))) {
                                                                     Raid raid = nr.active_raids().get(IntegerArgumentType.getInteger(ctx, "id"));
-                                                                    if (raid.participating_players().size() < raid.max_players() || Permissions.check(player, "novaraids.join.override")) {
+                                                                    if (raid.participating_players().size() < raid.max_players() || Permissions.check(player, "novaraids.override")) {
                                                                         if (raid.addPlayer(player)) {
                                                                             player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("joined_raid"), raid)));
                                                                         }
@@ -248,112 +248,116 @@ public class RaidCommands {
         if (ctx.getSource().isExecutedByPlayer()) {
             ServerPlayerEntity player = ctx.getSource().getPlayer();
             if (player != null) {
-                SimpleGui main_gui = new SimpleGui(ScreenHandlerType.HOPPER, player, false);
-                main_gui.setTitle(Text.literal(nr.config().getMessages().message("contraband_gui_title")));
+                try {
+                    SimpleGui main_gui = new SimpleGui(ScreenHandlerType.HOPPER, player, false);
+                    main_gui.setTitle(Text.literal(nr.config().getMessages().message("contraband_gui_title")));
 
-                SimpleGui pokemon_gui = new SimpleGui(ScreenHandlerType.GENERIC_9X6, player, false);
-                pokemon_gui.setTitle(Text.literal("Banned Pokemon"));
+                    SimpleGui pokemon_gui = new SimpleGui(ScreenHandlerType.GENERIC_9X6, player, false);
+                    pokemon_gui.setTitle(Text.literal("Banned Pokemon"));
 
-                int slot = 0;
-                for (Species species : nr.config().getSettings().banned_pokemon()) {
-                    GuiElement banned_pokemon = new GuiElementBuilder(PokemonItem.from(species))
-                            .setName(Text.literal(species.getName()))
+                    int slot = 0;
+                    for (Species species : nr.config().getSettings().banned_pokemon()) {
+                        GuiElement banned_pokemon = new GuiElementBuilder(PokemonItem.from(species))
+                                .setName(Text.literal(species.getName()))
+                                .build();
+                        pokemon_gui.setSlot(slot, banned_pokemon);
+                        slot++;
+                    }
+
+                    SimpleGui move_gui = new SimpleGui(ScreenHandlerType.GENERIC_9X6, player, false);
+                    move_gui.setTitle(Text.literal("Banned Moves"));
+
+                    slot = 0;
+                    for (Move move : nr.config().getSettings().banned_moves()) {
+                        GuiElement banned_move = new GuiElementBuilder(Items.PAPER)
+                                .setName(move.getDisplayName())
+                                .build();
+                        move_gui.setSlot(slot, banned_move);
+                        slot++;
+                    }
+
+                    SimpleGui ability_gui = new SimpleGui(ScreenHandlerType.GENERIC_9X6, player, false);
+                    ability_gui.setTitle(Text.literal("Banned Abilities"));
+
+                    slot = 0;
+                    for (Ability ability : nr.config().getSettings().banned_abilities()) {
+                        GuiElement banned_ability = new GuiElementBuilder(Items.NETHER_STAR)
+                                .setName(Text.literal(ability.getDisplayName()))
+                                .build();
+                        ability_gui.setSlot(slot, banned_ability);
+                        slot++;
+                    }
+
+                    SimpleGui held_item_gui = new SimpleGui(ScreenHandlerType.GENERIC_9X6, player, false);
+                    held_item_gui.setTitle(Text.literal("Banned Held Items"));
+
+                    slot = 0;
+                    for (Item item : nr.config().getSettings().banned_held_items()) {
+                        GuiElement banned_held_item = new GuiElementBuilder(item)
+                                .build();
+                        held_item_gui.setSlot(slot, banned_held_item);
+                        slot++;
+                    }
+
+                    SimpleGui bag_item_gui = new SimpleGui(ScreenHandlerType.GENERIC_9X6, player, false);
+                    bag_item_gui.setTitle(Text.literal("Banned Bag Items"));
+
+                    slot = 0;
+                    for (Item item : nr.config().getSettings().banned_bag_items()) {
+                        GuiElement banned_bag_item = new GuiElementBuilder(item)
+                                .build();
+                        bag_item_gui.setSlot(slot, banned_bag_item);
+                        slot++;
+                    }
+
+                    GuiElement banned_pokemon_main = new GuiElementBuilder(CobblemonItems.POKE_BALL)
+                            .setName(Text.literal("Banned Pokemon").styled(style -> style.withColor(Formatting.RED).withItalic(false)))
+                            .setCallback(((i, clickType, slotActionType) -> {
+                                main_gui.close();
+                                pokemon_gui.open();
+                            })).build();
+
+                    main_gui.setSlot(0, banned_pokemon_main);
+
+                    GuiElement banned_moves_main = new GuiElementBuilder(CobblemonItems.RAZOR_CLAW)
+                            .setName(Text.literal("Banned Moves").styled(style -> style.withColor(Formatting.RED).withItalic(false)))
+                            .setCallback(((i, clickType, slotActionType) -> {
+                                main_gui.close();
+                                move_gui.open();
+                            }))
                             .build();
-                    pokemon_gui.setSlot(slot, banned_pokemon);
-                    slot++;
-                }
+                    main_gui.setSlot(1, banned_moves_main);
 
-                SimpleGui move_gui = new SimpleGui(ScreenHandlerType.GENERIC_9X6, player, false);
-                move_gui.setTitle(Text.literal("Banned Moves"));
-
-                slot = 0;
-                for (Move move : nr.config().getSettings().banned_moves()) {
-                    GuiElement banned_move = new GuiElementBuilder(Items.PAPER)
-                            .setName(Text.literal(move.getName()))
+                    GuiElement banned_abilities_main = new GuiElementBuilder(CobblemonItems.ABILITY_PATCH)
+                            .setName(Text.literal("Banned Abilities").styled(style -> style.withColor(Formatting.RED).withItalic(false)))
+                            .setCallback(((i, clickType, slotActionType) -> {
+                                main_gui.close();
+                                ability_gui.open();
+                            }))
                             .build();
-                    move_gui.setSlot(slot, banned_move);
-                    slot++;
-                }
+                    main_gui.setSlot(2, banned_abilities_main);
 
-                SimpleGui ability_gui = new SimpleGui(ScreenHandlerType.GENERIC_9X6, player, false);
-                ability_gui.setTitle(Text.literal("Banned Abilities"));
-
-                slot = 0;
-                for (Ability ability : nr.config().getSettings().banned_abilities()) {
-                    GuiElement banned_ability = new GuiElementBuilder(Items.NETHER_STAR)
-                            .setName(Text.literal(ability.getName()))
+                    GuiElement banned_held_items_main = new GuiElementBuilder(CobblemonItems.LEFTOVERS)
+                            .setName(Text.literal("Banned Held Items").styled(style -> style.withColor(Formatting.RED).withItalic(false)))
+                            .setCallback(((i, clickType, slotActionType) -> {
+                                main_gui.close();
+                                held_item_gui.open();
+                            }))
                             .build();
-                    ability_gui.setSlot(slot, banned_ability);
-                    slot++;
-                }
+                    main_gui.setSlot(3, banned_held_items_main);
 
-                SimpleGui held_item_gui = new SimpleGui(ScreenHandlerType.GENERIC_9X6, player, false);
-                held_item_gui.setTitle(Text.literal("Banned Held Items"));
-
-                slot = 0;
-                for (Item item : nr.config().getSettings().banned_held_items()) {
-                    GuiElement banned_held_item = new GuiElementBuilder(item)
+                    GuiElement banned_bag_items_main = new GuiElementBuilder(CobblemonItems.POTION)
+                            .setName(Text.literal("Banned Bag Items").styled(style -> style.withColor(Formatting.RED).withItalic(false)))
+                            .setCallback(((i, clickType, slotActionType) -> {
+                                main_gui.close();
+                                bag_item_gui.open();
+                            }))
                             .build();
-                    held_item_gui.setSlot(slot, banned_held_item);
-                    slot++;
+                    main_gui.setSlot(4, banned_bag_items_main);
+                    main_gui.open();
+                } catch (Exception e) {
+                    nr.logError(e.getMessage());
                 }
-
-                SimpleGui bag_item_gui = new SimpleGui(ScreenHandlerType.GENERIC_9X6, player, false);
-                bag_item_gui.setTitle(Text.literal("Banned Bag Items"));
-
-                slot = 0;
-                for (Item item : nr.config().getSettings().banned_bag_items()) {
-                    GuiElement banned_bag_item = new GuiElementBuilder(item)
-                            .build();
-                    bag_item_gui.setSlot(slot, banned_bag_item);
-                    slot++;
-                }
-
-                GuiElement banned_pokemon_main = new GuiElementBuilder(CobblemonItems.POKE_BALL)
-                        .setName(Text.literal("Banned Pokemon").styled(style -> style.withColor(Formatting.RED).withItalic(false)))
-                        .setCallback(((i, clickType, slotActionType) -> {
-                            main_gui.close();
-                            pokemon_gui.open();
-                        })).build();
-
-                main_gui.setSlot(0, banned_pokemon_main);
-
-                GuiElement banned_moves_main = new GuiElementBuilder(CobblemonItems.RAZOR_CLAW)
-                        .setName(Text.literal("Banned Moves").styled(style -> style.withColor(Formatting.RED).withItalic(false)))
-                        .setCallback(((i, clickType, slotActionType) -> {
-                            main_gui.close();
-                            move_gui.open();
-                        }))
-                        .build();
-                main_gui.setSlot(1, banned_moves_main);
-
-                GuiElement banned_abilities_main = new GuiElementBuilder(CobblemonItems.ABILITY_PATCH)
-                        .setName(Text.literal("Banned Abilities").styled(style -> style.withColor(Formatting.RED).withItalic(false)))
-                        .setCallback(((i, clickType, slotActionType) -> {
-                            main_gui.close();
-                            ability_gui.open();
-                        }))
-                        .build();
-                main_gui.setSlot(2, banned_abilities_main);
-
-                GuiElement banned_held_items_main = new GuiElementBuilder(CobblemonItems.LEFTOVERS)
-                        .setName(Text.literal("Banned Held Items").styled(style -> style.withColor(Formatting.RED).withItalic(false)))
-                        .setCallback(((i, clickType, slotActionType) -> {
-                            main_gui.close();
-                            held_item_gui.open();
-                        }))
-                        .build();
-                main_gui.setSlot(3, banned_held_items_main);
-
-                GuiElement banned_bag_items_main = new GuiElementBuilder(CobblemonItems.POTION)
-                        .setName(Text.literal("Banned Bag Items").styled(style -> style.withColor(Formatting.RED).withItalic(false)))
-                        .setCallback(((i, clickType, slotActionType) -> {
-                            main_gui.close();
-                            move_gui.open();
-                        }))
-                        .build();
-                main_gui.setSlot(4, banned_moves_main);
-                main_gui.open();
             }
         }
         return 1;
