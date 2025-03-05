@@ -18,6 +18,7 @@ import eu.pb4.sgui.api.gui.SimpleGui;
 import kotlin.Unit;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.Boss;
+import me.unariginal.novaraids.utils.BanHandler;
 import me.unariginal.novaraids.utils.TextUtil;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
@@ -72,7 +73,9 @@ public class EventManager {
                             return Unit.INSTANCE;
                         }
                         if (raid.stage() == 2) {
-                            BattleManager.invoke_battle(raid, player);
+                            if (!BanHandler.hasContraband(player)) {
+                                BattleManager.invoke_battle(raid, player);
+                            }
                         }
                         event.setReason(null);
                         event.cancel();
