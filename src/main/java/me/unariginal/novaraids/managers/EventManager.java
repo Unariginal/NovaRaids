@@ -16,6 +16,7 @@ import eu.pb4.sgui.api.elements.GuiElement;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.gui.SimpleGui;
 import kotlin.Unit;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.Boss;
 import me.unariginal.novaraids.utils.BanHandler;
@@ -197,7 +198,7 @@ public class EventManager {
                                     GuiElement element = new GuiElementBuilder(PokemonItem.from(joinable_raids.get(i).raidBoss_pokemon())).setCallback((slot, clickType, slotActionType) -> {
                                         if (raid.raidBoss_category().require_pass()) {
                                             if (nr.active_raids().get(nr.get_raid_id(raid)).stage() == 1) {
-                                                if (nr.active_raids().get(nr.get_raid_id(raid)).participating_players().size() < nr.active_raids().get(nr.get_raid_id(raid)).max_players()) {
+                                                if (nr.active_raids().get(nr.get_raid_id(raid)).participating_players().size() < nr.active_raids().get(nr.get_raid_id(raid)).max_players() || nr.active_raids().get(nr.get_raid_id(raid)).max_players() == -1 || Permissions.check(player, "novaraids.override")) {
                                                     if (raid.addPlayer(player)) {
                                                         held_item.decrement(1);
                                                         player.setStackInHand(hand, held_item);
@@ -228,7 +229,7 @@ public class EventManager {
                                     if (raid.boss_info().name().equalsIgnoreCase(boss_name)) {
                                         if (raid.raidBoss_category().require_pass()) {
                                             if (raid.stage() == 1) {
-                                                if (raid.participating_players().size() < raid.max_players()) {
+                                                if (raid.participating_players().size() < raid.max_players() || raid.max_players() == -1 || Permissions.check(player, "novaraids.override")) {
                                                     if (raid.addPlayer(player)) {
                                                         held_item.decrement(1);
                                                         player.setStackInHand(hand, held_item);

@@ -174,7 +174,7 @@ public class RaidCommands {
 
                                                                 if (nr.active_raids().containsKey(IntegerArgumentType.getInteger(ctx, "id"))) {
                                                                     Raid raid = nr.active_raids().get(IntegerArgumentType.getInteger(ctx, "id"));
-                                                                    if (raid.participating_players().size() < raid.max_players() || Permissions.check(player, "novaraids.override")) {
+                                                                    if (raid.participating_players().size() < raid.max_players() || Permissions.check(player, "novaraids.override") || raid.max_players() == -1) {
                                                                         if (raid.addPlayer(player)) {
                                                                             player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("joined_raid"), raid)));
                                                                         }
@@ -564,51 +564,55 @@ public class RaidCommands {
     private int list(CommandContext<ServerCommandSource> ctx) {
         ServerPlayerEntity player = ctx.getSource().getPlayer();
         Messages messages = nr.config().getMessages();
-        if (nr.active_raids().isEmpty()) {
-            player.sendMessage(TextUtil.format(messages.parse(messages.message("no_active_raids"))));
-            return 0;
-        }
-
-        SimpleGui gui = new SimpleGui(ScreenHandlerType.GENERIC_9X6, player, false);
-        gui.setTitle(Text.literal(messages.parse(messages.message("raid_list_gui_title"))));
-        int slot = 0;
-        for (Map.Entry<Integer, Raid> entry : nr.active_raids().entrySet()) {
-            Raid raid = entry.getValue();
-            List<Text> lore = new ArrayList<>();
-            lore.add(Text.literal(messages.parse("HP: %boss.currenthp%/%boss.maxhp%", raid)).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)));
-            lore.add(Text.literal(messages.parse("Category: %raid.category%", raid)).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)));
-            lore.add(Text.literal(messages.parse("Phase: %raid.phase%", raid)).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)));
-            lore.add(Text.literal(messages.parse("Players: %raid.player_count%/%raid.max_players%", raid)).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)));
-            lore.add(Text.literal(messages.parse("Raid Timer: %raid.timer%", raid)).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)));
-
-            if (!raid.raidBoss_category().require_pass()) {
-                lore.add(Text.empty());
-                lore.add(Text.literal("Click to join this raid!").styled(style -> style.withColor(Formatting.GREEN).withItalic(false)));
-            } else {
-                lore.add(Text.empty());
-                lore.add(Text.literal("This raid requires a pass!").styled(style -> style.withColor(Formatting.RED).withItalic(false)));
+        if (player != null) {
+            if (nr.active_raids().isEmpty()) {
+                player.sendMessage(TextUtil.format(messages.parse(messages.message("no_active_raids"))));
+                return 0;
             }
 
-            GuiElement element = new GuiElementBuilder(PokemonItem.from(raid.raidBoss_pokemon()))
-                    .setName(Text.literal(messages.parse("[ID: %raid.id%] %boss.form% %boss.species%", raid)).styled(style -> style.withColor(Formatting.LIGHT_PURPLE).withItalic(false)))
-                    .setLore(lore)
-                    .setCallback((i, clickType, slotActionType) -> {
-                if (clickType.isLeft) {
-                    if (player != null) {
-                        if (raid.addPlayer(player)) {
-                            player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("joined_raid"), raid)));
-                        }
-                        gui.close();
-                    }
+            SimpleGui gui = new SimpleGui(ScreenHandlerType.GENERIC_9X6, player, false);
+            gui.setTitle(Text.literal(messages.parse(messages.message("raid_list_gui_title"))));
+            int slot = 0;
+            for (Map.Entry<Integer, Raid> entry : nr.active_raids().entrySet()) {
+                Raid raid = entry.getValue();
+                List<Text> lore = new ArrayList<>();
+                lore.add(Text.literal(messages.parse("HP: %boss.currenthp%/%boss.maxhp%", raid)).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)));
+                lore.add(Text.literal(messages.parse("Category: %raid.category%", raid)).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)));
+                lore.add(Text.literal(messages.parse("Phase: %raid.phase%", raid)).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)));
+                lore.add(Text.literal(messages.parse("Players: %raid.player_count%/%raid.max_players%", raid)).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)));
+                lore.add(Text.literal(messages.parse("Raid Timer: %raid.timer%", raid)).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)));
+
+                if (!raid.raidBoss_category().require_pass()) {
+                    lore.add(Text.empty());
+                    lore.add(Text.literal("Click to join this raid!").styled(style -> style.withColor(Formatting.GREEN).withItalic(false)));
+                } else {
+                    lore.add(Text.empty());
+                    lore.add(Text.literal("This raid requires a pass!").styled(style -> style.withColor(Formatting.RED).withItalic(false)));
                 }
-            }).build();
-            gui.setSlot(slot, element);
-            slot++;
-            if (slot > 53) {
-                break;
+
+                GuiElement element = new GuiElementBuilder(PokemonItem.from(raid.raidBoss_pokemon()))
+                        .setName(Text.literal(messages.parse("[ID: %raid.id%] %boss.form% %boss.species%", raid)).styled(style -> style.withColor(Formatting.LIGHT_PURPLE).withItalic(false)))
+                        .setLore(lore)
+                        .setCallback((i, clickType, slotActionType) -> {
+                            if (clickType.isLeft) {
+                                if (raid.participating_players().size() < raid.max_players() || Permissions.check(player, "novaraids.override") || raid.max_players() == -1) {
+                                    if (raid.addPlayer(player)) {
+                                        player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("joined_raid"), raid)));
+                                    }
+                                } else {
+                                    player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_max_players"), raid)));
+                                }
+                                gui.close();
+                            }
+                        }).build();
+                gui.setSlot(slot, element);
+                slot++;
+                if (slot > 53) {
+                    break;
+                }
             }
+            gui.open();
         }
-        gui.open();
         return 1;
     }
 
