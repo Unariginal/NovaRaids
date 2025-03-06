@@ -199,7 +199,7 @@ public class EventManager {
                                         if (raid.raidBoss_category().require_pass()) {
                                             if (nr.active_raids().get(nr.get_raid_id(raid)).stage() == 1) {
                                                 if (nr.active_raids().get(nr.get_raid_id(raid)).participating_players().size() < nr.active_raids().get(nr.get_raid_id(raid)).max_players() || nr.active_raids().get(nr.get_raid_id(raid)).max_players() == -1 || Permissions.check(player, "novaraids.override")) {
-                                                    if (raid.addPlayer(player)) {
+                                                    if (raid.addPlayer(player, true)) {
                                                         held_item.decrement(1);
                                                         player.setStackInHand(hand, held_item);
 
@@ -230,7 +230,7 @@ public class EventManager {
                                         if (raid.raidBoss_category().require_pass()) {
                                             if (raid.stage() == 1) {
                                                 if (raid.participating_players().size() < raid.max_players() || raid.max_players() == -1 || Permissions.check(player, "novaraids.override")) {
-                                                    if (raid.addPlayer(player)) {
+                                                    if (raid.addPlayer(player, true)) {
                                                         held_item.decrement(1);
                                                         player.setStackInHand(hand, held_item);
 

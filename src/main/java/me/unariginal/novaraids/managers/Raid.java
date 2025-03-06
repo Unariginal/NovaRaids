@@ -510,7 +510,7 @@ public class Raid {
         }
     }
 
-    public boolean addPlayer(ServerPlayerEntity player) {
+    public boolean addPlayer(ServerPlayerEntity player, boolean usedPass) {
         int index = get_player_index(player);
 
         if (!Permissions.check(player, "novaraids.override")) {
@@ -519,7 +519,7 @@ public class Raid {
                 index = raid.get_player_index(player);
             }
 
-            if (raidBoss_category().require_pass()) {
+            if (raidBoss_category().require_pass() && !usedPass) {
                 index = -2;
                 player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_no_pass"), this)));
             }
