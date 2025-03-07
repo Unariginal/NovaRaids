@@ -45,6 +45,7 @@
     "shiny": false,
     "scale": 1.0,
     "held_item": "cobblemon:leftovers",
+    "held_item_data": {},
     "moves": [
       "bite",
       "tackle",

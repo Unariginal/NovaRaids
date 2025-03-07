@@ -1,14 +1,15 @@
 package me.unariginal.novaraids.data;
 
 import com.cobblemon.mod.common.api.abilities.Ability;
-import com.cobblemon.mod.common.api.moves.Move;
 import com.cobblemon.mod.common.api.moves.MoveSet;
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
-import com.cobblemon.mod.common.api.pokemon.feature.SpeciesFeature;
-import com.cobblemon.mod.common.api.pokemon.feature.SpeciesFeatures;
 import com.cobblemon.mod.common.api.pokemon.stats.Stat;
 import com.cobblemon.mod.common.pokemon.*;
+import com.google.gson.JsonElement;
+import com.mojang.serialization.JsonOps;
+import net.minecraft.component.ComponentChanges;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,7 @@ public record Boss(String name,
                    boolean shiny,
                    float scale,
                    Item held_item,
+                   JsonElement held_item_data,
                    MoveSet moves,
                    IVs ivs,
                    EVs evs,
@@ -56,6 +58,21 @@ public record Boss(String name,
         return map.entrySet().iterator().next();
     }
 
+    public ComponentChanges get_held_item_data() {
+        if (held_item_data != null) {
+            return ComponentChanges.CODEC.decode(JsonOps.INSTANCE, held_item_data).getOrThrow().getFirst();
+        }
+        return null;
+    }
+
+    public ItemStack held_item_stack() {
+        ItemStack stack = new ItemStack(held_item());
+        if (get_held_item_data() != null) {
+            stack.applyChanges(get_held_item_data());
+        }
+        return stack;
+    }
+
     public Pokemon createPokemon() {
         Pokemon pokemon = new Pokemon();
         pokemon.setSpecies(species);
@@ -69,7 +86,7 @@ public record Boss(String name,
         pokemon.setScaleModifier(scale);
 
         if (held_item != null) {
-            pokemon.setHeldItem$common(held_item.getDefaultStack());
+            pokemon.setHeldItem$common(held_item_stack());
         }
 
         pokemon.getMoveSet().setMove(0, moves.get(0));

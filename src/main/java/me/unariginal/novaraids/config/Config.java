@@ -365,6 +365,11 @@ public class Config {
                         held_item = Registries.ITEM.get(Identifier.of(pokemon_details.get("held_item").getAsString()));
                     }
 
+                    JsonElement held_item_data = null;
+                    if (pokemon_details.get("held_item_data") != null) {
+                        held_item_data = pokemon_details.get("held_item_data");
+                    }
+
                     MoveSet moves = new MoveSet();
                     JsonArray moves_list = pokemon_details.getAsJsonArray("moves");
                     for (int i = 0; (i < moves_list.size() && i < 4); i++) {
@@ -443,6 +448,7 @@ public class Config {
                             shiny,
                             scale,
                             held_item,
+                            held_item_data,
                             moves,
                             ivs,
                             evs,
