@@ -43,6 +43,7 @@ import java.util.UUID;
 
 public class EventManager {
     private static final NovaRaids nr = NovaRaids.INSTANCE;
+    private static final Messages messages = nr.config().getMessages();
 
     public static void catch_events() {
 //        CobblemonEvents.THROWN_POKEBALL_HIT.subscribe(Priority.HIGHEST, event -> {
@@ -65,19 +66,42 @@ public class EventManager {
                 }
             }
 
-            if (player != null && pokemonEntity != null) {
-                UUID entity_uuid = pokemonEntity.getUuid();
-                for (Raid raid : nr.active_raids().values()) {
-                    if (raid.uuid().equals(entity_uuid)) {
-                        if (raid.get_player_index(player) == -1) {
+            if (player != null) {
+                if (pokemonEntity != null) {
+                    UUID entity_uuid = pokemonEntity.getUuid();
+                    for (Raid raid : nr.active_raids().values()) {
+                        for (PokemonEntity clone : raid.get_clones().keySet()) {
+                            if (clone.getUuid().equals(entity_uuid)) {
+                                if (!raid.get_clones().get(clone).equals(player.getUuid())) {
+                                    player.sendMessage(TextUtil.format(messages.parse(messages.message("warning_not_your_encounter"), raid)));
+                                    event.setReason(null);
+                                    event.cancel();
+                                    return Unit.INSTANCE;
+                                }
+                            }
+                        }
+
+                        if (raid.uuid().equals(entity_uuid)) {
+                            if (raid.get_player_index(player) == -1) {
+                                event.setReason(null);
+                                event.cancel();
+                                return Unit.INSTANCE;
+                            }
+                            if (raid.stage() == 2) {
+                                if (!BanHandler.hasContraband(player)) {
+                                    BattleManager.invoke_battle(raid, player);
+                                }
+                            }
+                            event.setReason(null);
                             event.cancel();
                             return Unit.INSTANCE;
                         }
-                        if (raid.stage() == 2) {
-                            if (!BanHandler.hasContraband(player)) {
-                                BattleManager.invoke_battle(raid, player);
-                            }
-                        }
+                    }
+                }
+
+                for (Raid raid : nr.active_raids().values()) {
+                    if (raid.participating_players().contains(player)) {
+                        player.sendMessage(TextUtil.format(messages.parse(messages.message("warning_battle_during_raid"), raid)));
                         event.setReason(null);
                         event.cancel();
                         return Unit.INSTANCE;
@@ -91,13 +115,20 @@ public class EventManager {
         CobblemonEvents.BATTLE_FLED.subscribe(Priority.HIGHEST, event -> {
             PokemonBattle battle = event.getBattle();
             for (BattleActor actor : battle.getActors()) {
-                if (actor instanceof PokemonBattleActor pokemonBattleActor) {
-                    PokemonEntity pokemonEntity = pokemonBattleActor.getEntity();
-                    if (pokemonEntity != null) {
-                        Pokemon pokemon = pokemonEntity.getPokemon();
-                        if (pokemon.getPersistentData().contains("boss_clone")) {
-                            if (pokemon.getPersistentData().getBoolean("boss_clone")) {
-                                pokemonEntity.remove(Entity.RemovalReason.DISCARDED);
+                if (actor instanceof PlayerBattleActor playerBattleActor) {
+                    ServerPlayerEntity player = playerBattleActor.getEntity();
+                    if (player != null) {
+                        for (Raid raid : nr.active_raids().values()) {
+                            if (raid.participating_players().contains(player)) {
+                                List<PokemonEntity> toRemove = new ArrayList<>();
+                                for (PokemonEntity cloneEntity : raid.get_clones().keySet()) {
+                                    if (raid.get_clones().get(cloneEntity).equals(player.getUuid())) {
+                                        toRemove.add(cloneEntity);
+                                    }
+                                }
+                                for (PokemonEntity cloneEntity : toRemove) {
+                                    raid.remove_clone(cloneEntity);
+                                }
                             }
                         }
                     }

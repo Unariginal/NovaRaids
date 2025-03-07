@@ -21,6 +21,8 @@
     "warning_banned_bag_item": "%prefix% %banned.bag_item% is banned from raids!",
     "warning_max_players": "%prefix% This raid is full!",
     "warning_cooldown": "%prefix% You're on cooldown!",
+    "warning_battle_during_raid": "%prefix% You can't battle wild pokemon during a raid!",
+    "warning_not_your_encounter": "%prefix% This isn't your catch encounter!",
     "warning_no_pokemon": "%prefix% You can't enter a raid with no pokemon!",
     "warning_not_your_raid_pokeball": "%prefix% That isn't your raid pokeball!",
     "warning_raid_pokeball_outside_raid": "%prefix% You can't use raid pokeballs outside of a raid!",

@@ -108,7 +108,7 @@ public class BattleManager {
         UUID leading_pokemon = get_leading_pokemon(party);
 
         if (boss_clone != null && leading_pokemon != null) {
-            raid.add_clone(boss_clone);
+            raid.add_clone(boss_clone, player);
             BattleBuilder.INSTANCE.pve(player, boss_clone, leading_pokemon, BattleFormat.Companion.getGEN_9_SINGLES(), false, NovaRaids.INSTANCE.config().getSettings().heal_party_on_challenge(), Cobblemon.config.getDefaultFleeDistance(), party);
         }
     }
@@ -123,7 +123,9 @@ public class BattleManager {
         pokemon.setScaleModifier(0.1f);
 
         PokemonEntity boss_clone = pokemon.sendOut(raid.raidBoss_location().world(), raid.raidBoss_location().pos(), null, entity -> {
-            entity.addStatusEffect(new StatusEffectInstance(StatusEffects.INVISIBILITY, -1, 9999, false, false));
+            if (!NovaRaids.INSTANCE.debug) {
+                entity.addStatusEffect(new StatusEffectInstance(StatusEffects.INVISIBILITY, -1, 9999, false, false));
+            }
             entity.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, -1, 9999, false, false));
             entity.setNoGravity(true);
             entity.setAiDisabled(true);
@@ -136,7 +138,7 @@ public class BattleManager {
         UUID leading_pokemon = get_leading_pokemon(party);
 
         if (boss_clone != null && leading_pokemon != null) {
-            raid.add_clone(boss_clone);
+            raid.add_clone(boss_clone, player);
             BattleBuilder.INSTANCE.pve(player, boss_clone, leading_pokemon, BattleFormat.Companion.getGEN_9_SINGLES(), false, NovaRaids.INSTANCE.config().getSettings().heal_party_on_challenge(), Cobblemon.config.getDefaultFleeDistance(), party);
         }
     }

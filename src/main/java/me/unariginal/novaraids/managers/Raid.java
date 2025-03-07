@@ -21,6 +21,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.*;
@@ -52,7 +54,7 @@ public class Raid {
     private final Map<Long, List<Task>> tasks = new HashMap<>();
     private final Map<ServerPlayerEntity, BossBar> player_bossbars = new HashMap<>();
 
-    private final List<PokemonEntity> clones = new ArrayList<>();
+    private final Map<PokemonEntity, UUID> clones = new HashMap<>();
 
     private long raid_start_time = 0;
     private long raid_end_time = 0;
@@ -99,33 +101,23 @@ public class Raid {
             raidBoss_entity.remove(Entity.RemovalReason.DISCARDED);
         }
 
-//        for (ServerPlayerEntity player : participating_players) {
-//            PokemonBattle battle = BattleRegistry.INSTANCE.getBattleByParticipatingPlayer(player);
-//            if (battle != null) {
-//                battle.end();
-//            }
-//        }
         end_battles();
 
-        for (PokemonEntity pokemon : clones) {
-            if (pokemon != null) {
-                if (pokemon.isAlive()) {
-                    if (pokemon.isBattling() && pokemon.getBattleId() != null) {
-                        PokemonBattle battle = BattleRegistry.INSTANCE.getBattle(pokemon.getBattleId());
-                        if (battle != null) {
-                            battle.end();
-                        }
-                    }
-                    if (!pokemon.isRemoved()) {
-                        pokemon.remove(Entity.RemovalReason.DISCARDED);
-                    }
-                }
-            }
+        List<PokemonEntity> toRemove = new ArrayList<>(clones.keySet());
+        for (PokemonEntity pokemon : toRemove) {
+            remove_clone(pokemon);
         }
 
         for (ServerPlayerEntity player : player_bossbars.keySet()) {
             player.hideBossBar(player_bossbars.get(player));
         }
+
+        Vec3d pos = raidBoss_location.pos();
+        ServerWorld world = raidBoss_location.world();
+
+        int chunkX = (int) Math.floor(pos.getX() / 16);
+        int chunkZ = (int) Math.floor(pos.getZ() / 16);
+        world.setChunkForced(chunkX, chunkZ, false);
 
         raid_end_time = nr.server().getOverworld().getTime();
         nr.init_next_raid();
@@ -324,7 +316,6 @@ public class Raid {
             if (raidBoss_entity != null) {
                 if (raidBoss_entity.getPos() != raidBoss_location.pos()) {
                     raidBoss_entity.teleport(raidBoss_location.world(), raidBoss_location.pos().x, raidBoss_location.pos().y, raidBoss_location.pos().z, null, boss_info.facing(), 0);
-                    //raidBoss_entity.teleport(raidBoss_location.pos().x, raidBoss_location.pos().y, raidBoss_location.pos().z, false);
                 }
             }
         }
@@ -333,6 +324,9 @@ public class Raid {
     private PokemonEntity generate_boss_entity() {
         ServerWorld world = raidBoss_location.world();
         Vec3d pos = raidBoss_location.pos();
+        int chunkX = (int) Math.floor(pos.getX() / 16);
+        int chunkZ = (int) Math.floor(pos.getZ() / 16);
+        world.setChunkForced(chunkX, chunkZ, true);
         return raidBoss_pokemon_uncatchable.sendOut(world, pos, null, entity -> {
             entity.setPersistent();
             entity.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, -1, 9999, true, false));
@@ -470,20 +464,43 @@ public class Raid {
         }
     }
 
-    public void add_clone(PokemonEntity pokemon) {
-        for (PokemonEntity clone : clones) {
+    public void add_clone(PokemonEntity pokemon, ServerPlayerEntity player) {
+        for (PokemonEntity clone : clones.keySet()) {
             if (clone.getUuid().equals(pokemon.getUuid())) {
                 return;
             }
         }
-        clones.add(pokemon);
+        clones.put(pokemon, player.getUuid());
     }
 
     public void remove_clone(PokemonEntity clone) {
+        if (clone != null) {
+            if (clone.isAlive()) {
+                int chunkX = (int) Math.floor(clone.getPos().getX() / 16);
+                int chunkZ = (int) Math.floor(clone.getPos().getZ() / 16);
+                ServerWorld world = nr.server().getOverworld();
+                for (ServerWorld worldLoop : nr.server().getWorlds()) {
+                    if (worldLoop.getRegistryKey().equals(clone.getWorld().getRegistryKey())) {
+                        world = worldLoop;
+                    }
+                }
+                world.setChunkForced(chunkX, chunkZ, true);
+                if (clone.isBattling() && clone.getBattleId() != null) {
+                    PokemonBattle battle = BattleRegistry.INSTANCE.getBattle(clone.getBattleId());
+                    if (battle != null) {
+                        battle.end();
+                    }
+                }
+                if (!clone.isRemoved()) {
+                    clone.remove(Entity.RemovalReason.DISCARDED);
+                }
+                world.setChunkForced(chunkX, chunkZ, false);
+            }
+        }
         clones.remove(clone);
     }
 
-    public List<PokemonEntity> get_clones() {
+    public Map<PokemonEntity, UUID> get_clones() {
         return clones;
     }
 
@@ -507,6 +524,15 @@ public class Raid {
             participating_players.remove(index);
             player.hideBossBar(bossbars().get(player));
             player_bossbars.remove(player);
+            List<PokemonEntity> toRemove = new ArrayList<>();
+            for (PokemonEntity clone : clones.keySet()) {
+                if (clones.get(clone).equals(player.getUuid())) {
+                    toRemove.add(clone);
+                }
+            }
+            for (PokemonEntity clone : toRemove) {
+                remove_clone(clone);
+            }
         }
     }
 
