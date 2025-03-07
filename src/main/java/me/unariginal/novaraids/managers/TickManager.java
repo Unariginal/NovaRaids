@@ -79,12 +79,7 @@ public class TickManager {
 
             if (raid.stage() == 2) {
                 if (raid.current_health() <= 0) {
-                    if (raid.boss_info().do_catch_phase()) {
-                        raid.pre_catch_phase();
-                    } else {
-                        raid.participating_broadcast(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("boss_defeated"), raid)));
-                        raid.raid_won();
-                    }
+                    raid.pre_catch_phase();
                 }
             }
         }

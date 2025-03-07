@@ -39,8 +39,16 @@
       "pass_item": "minecraft:paper",
       "pass_item_data": {},
       "use_raid_pokeballs": true,
-      "raid_pokeball": "cobblemon:premier_ball",
-      "raid_pokeball_data": {}
+      "raid_pokeballs": {
+        "premier": {
+          "pokeball": "cobblemon:premier_ball",
+          "data": {}
+        },
+        "ultra": {
+          "pokeball": "cobblemon:ultra_ball",
+          "data": {}
+        }
+      }
     }
   }
 }

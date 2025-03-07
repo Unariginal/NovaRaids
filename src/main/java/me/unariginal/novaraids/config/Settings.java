@@ -7,6 +7,7 @@ import net.minecraft.component.ComponentChanges;
 import net.minecraft.item.Item;
 
 import java.util.List;
+import java.util.Map;
 
 public record Settings(int raid_radius,
                        int raid_pushback_radius,
@@ -29,6 +30,6 @@ public record Settings(int raid_radius,
                        Item pass_item,
                        ComponentChanges pass_item_data,
                        boolean use_raid_pokeballs,
-                       Item raid_pokeball,
-                       ComponentChanges raid_pokeball_data
+                       Map<String, Item> raid_pokeballs,
+                       Map<String, ComponentChanges> raid_pokeball_data
 ) {}

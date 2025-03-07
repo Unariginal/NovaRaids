@@ -221,13 +221,19 @@ public class Config {
         }
 
         boolean use_raid_pokeballs = items.get("use_raid_pokeballs").getAsBoolean();
-        Item raid_pokeball = null;
-        ComponentChanges raid_pokeball_data = null;
+        Map<String, Item> pokeball_items = new HashMap<>();
+        Map<String, ComponentChanges> pokeball_item_data = new HashMap<>();
         if (use_raid_pokeballs) {
-            raid_pokeball = Registries.ITEM.get(Identifier.of(items.get("raid_pokeball").getAsString()));
-            if (items.get("raid_pokeball_data") != null) {
-                DataResult<Pair<ComponentChanges, JsonElement>> data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, items.get("raid_pokeball_data"));
-                raid_pokeball_data = data.getOrThrow().getFirst();
+            JsonObject balls = items.getAsJsonObject("raid_pokeballs");
+            for (String key : balls.keySet()) {
+                JsonObject ball = balls.getAsJsonObject(key);
+                Item ball_item = Registries.ITEM.get(Identifier.of(ball.get("pokeball").getAsString()));
+                ComponentChanges ball_data = null;
+                if (ball.get("data") != null) {
+                    ball_data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, ball.get("data")).getOrThrow().getFirst();
+                }
+                pokeball_items.put(key, ball_item);
+                pokeball_item_data.put(key, ball_data);
             }
         }
 
@@ -253,8 +259,8 @@ public class Config {
                 pass_item,
                 pass_item_data,
                 use_raid_pokeballs,
-                raid_pokeball,
-                raid_pokeball_data
+                pokeball_items,
+                pokeball_item_data
         );
     }
 

@@ -95,24 +95,24 @@ public class RaidCommands {
                                                                     .then(
                                                                             CommandManager.argument("boss", StringArgumentType.string())
                                                                                     .suggests(new BossSuggestions())
-                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "pass", StringArgumentType.getString(ctx, "boss"), null, 0))
+                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "pass", StringArgumentType.getString(ctx, "boss"), null, "", 0))
                                                                     )
                                                                     .then(
                                                                             CommandManager.literal("*")
-                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "pass", "*", null, 0))
+                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "pass", "*", null, "", 0))
                                                                                     .then(
                                                                                             CommandManager.argument("category", StringArgumentType.string())
                                                                                                     .suggests(new CategorySuggestions())
-                                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "pass", "*", StringArgumentType.getString(ctx, "category"), 0))
+                                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "pass", "*", StringArgumentType.getString(ctx, "category"), "", 0))
                                                                                     )
                                                                     )
                                                                     .then(
                                                                             CommandManager.literal("random")
-                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "pass", "random", null, 0))
+                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "pass", "random", null, "", 0))
                                                                                     .then(
                                                                                             CommandManager.argument("category", StringArgumentType.string())
                                                                                                     .suggests(new CategorySuggestions())
-                                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "pass", "random", StringArgumentType.getString(ctx, "category"), 0))
+                                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "pass", "random", StringArgumentType.getString(ctx, "category"), "", 0))
                                                                                     )
                                                                     )
                                                     )
@@ -121,32 +121,41 @@ public class RaidCommands {
                                                                     .then(
                                                                             CommandManager.argument("boss", StringArgumentType.string())
                                                                                     .suggests(new BossSuggestions())
-                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "voucher", StringArgumentType.getString(ctx, "boss"), null, 0))
+                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "voucher", StringArgumentType.getString(ctx, "boss"), null, "", 0))
                                                                     )
                                                                     .then(
                                                                             CommandManager.literal("*")
-                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "voucher", "*", null, 0))
+                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "voucher", "*", null, "", 0))
                                                                                     .then(
                                                                                             CommandManager.argument("category", StringArgumentType.string())
                                                                                                     .suggests(new CategorySuggestions())
-                                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "voucher", "*", StringArgumentType.getString(ctx, "category"), 0))
+                                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "voucher", "*", StringArgumentType.getString(ctx, "category"), "", 0))
                                                                                     )
                                                                     )
                                                                     .then(
                                                                             CommandManager.literal("random")
-                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "voucher", "random", null, 0))
+                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "voucher", "random", null, "", 0))
                                                                                     .then(
                                                                                             CommandManager.argument("category", StringArgumentType.string())
                                                                                                     .suggests(new CategorySuggestions())
-                                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "voucher", "random", StringArgumentType.getString(ctx, "category"), 0))
+                                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "voucher", "random", StringArgumentType.getString(ctx, "category"), "", 0))
                                                                                     )
                                                                     )
                                                     )
                                                     .then(
                                                             CommandManager.literal("pokeball")
                                                                     .then(
-                                                                            CommandManager.argument("amount", IntegerArgumentType.integer(1))
-                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "pokeball", null, null, IntegerArgumentType.getInteger(ctx, "amount")))
+                                                                            CommandManager.argument("pokeball", StringArgumentType.string())
+                                                                                    .suggests((ctx, builder) -> {
+                                                                                        for (String key : nr.config().getSettings().raid_pokeballs().keySet()) {
+                                                                                            builder.suggest(key);
+                                                                                        }
+                                                                                        return builder.buildFuture();
+                                                                                    })
+                                                                                    .then(
+                                                                                            CommandManager.argument("amount", IntegerArgumentType.integer(1))
+                                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "pokeball", null, null, StringArgumentType.getString(ctx, "pokeball"), IntegerArgumentType.getInteger(ctx, "amount")))
+                                                                                    )
                                                                     )
 
                                                     )
@@ -166,12 +175,6 @@ public class RaidCommands {
                                                         if (ctx.getSource().isExecutedByPlayer()) {
                                                             ServerPlayerEntity player = ctx.getSource().getPlayer();
                                                             if (player != null) {
-//                                                                for (Raid raid : nr.active_raids().values()) {
-//                                                                    if (raid.participating_players().contains(player)) {
-//                                                                        return 0;
-//                                                                    }
-//                                                                }
-
                                                                 if (nr.active_raids().containsKey(IntegerArgumentType.getInteger(ctx, "id"))) {
                                                                     Raid raid = nr.active_raids().get(IntegerArgumentType.getInteger(ctx, "id"));
                                                                     if (raid.participating_players().size() < raid.max_players() || Permissions.check(player, "novaraids.override") || raid.max_players() == -1) {
@@ -430,10 +433,9 @@ public class RaidCommands {
         return 0;
     }
 
-    public int give(ServerPlayerEntity source_player, ServerPlayerEntity target_player, String item_type, String boss_name, String category, int amount) {
+    public int give(ServerPlayerEntity source_player, ServerPlayerEntity target_player, String item_type, String boss_name, String category, String key, int amount) {
         Item voucher_item = nr.config().getSettings().voucher_item();
         Item pass_item = nr.config().getSettings().pass_item();
-        Item raid_pokeball = nr.config().getSettings().raid_pokeball();
 
         ItemStack item_to_give = null;
         NbtCompound custom_data = new NbtCompound();
@@ -521,6 +523,7 @@ public class RaidCommands {
                 lore = lore.with(Text.literal("Use to start a " + boss_name + " raid!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
             }
         } else {
+            Item raid_pokeball = nr.config().getSettings().raid_pokeballs().get(key);
             if (raid_pokeball != null) {
                 item_to_give = new ItemStack(raid_pokeball, amount);
                 custom_data.putString("raid_item", "raid_ball");
@@ -528,7 +531,7 @@ public class RaidCommands {
                 item_name = Text.literal("Raid Pokeball").styled(style -> style.withItalic(false).withColor(Formatting.RED));
                 lore = lore.with(Text.literal("Use this to try and capture raid bosses!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
                 if (nr.config().getSettings().raid_pokeball_data() != null) {
-                    item_to_give.applyChanges(nr.config().getSettings().raid_pokeball_data());
+                    item_to_give.applyChanges(nr.config().getSettings().raid_pokeball_data().get(key));
                 }
             } else {
                 if (source_player != null) {

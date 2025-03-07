@@ -20,9 +20,6 @@ import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.*;
@@ -173,10 +170,12 @@ public class Raid {
     public void pre_catch_phase() {
         stage = 3;
 
-        bossbar_data = nr.config().getBossbar("pre_catch", raidBoss_category.name(), boss_info.name());
-        show_bossbar(bossbar_data);
+        if (boss_info.do_catch_phase()) {
+            bossbar_data = nr.config().getBossbar("pre_catch", raidBoss_category.name(), boss_info.name());
+            show_bossbar(bossbar_data);
 
-        phase_length = nr.config().getSettings().pre_catch_phase_time();
+            phase_length = nr.config().getSettings().pre_catch_phase_time();
+        }
         phase_start_time = nr.server().getOverworld().getTime();
         fight_end_time = phase_start_time;
 
@@ -184,9 +183,17 @@ public class Raid {
 
         end_battles();
 
-        participating_broadcast(TextUtil.format(messages.parse(messages.message("catch_phase_warning"), this)));
+        raidBoss_entity.addStatusEffect(new StatusEffectInstance(StatusEffects.INVISIBILITY, -1, 9999, false, false));
+        raidBoss_entity.setGlowing(false);
+        handle_rewards();
 
-        addTask(raidBoss_location.world(), phase_length * 20L, this::catch_phase);
+        if (boss_info.do_catch_phase()) {
+            participating_broadcast(TextUtil.format(messages.parse(messages.message("catch_phase_warning"), this)));
+            addTask(raidBoss_location.world(), phase_length * 20L, this::catch_phase);
+        } else {
+            raid_end_time = nr.server().getOverworld().getTime();
+            participating_broadcast(TextUtil.format(messages.parse(messages.message("raid_end"), this)));
+        }
     }
 
     public void catch_phase() {
@@ -211,6 +218,14 @@ public class Raid {
         stage = -1;
         tasks.clear();
 
+        raid_end_time = nr.server().getOverworld().getTime();
+        if (boss_info.do_catch_phase()) {
+            participating_broadcast(TextUtil.format(messages.parse(messages.message("catch_phase_end"), this)));
+        }
+        participating_broadcast(TextUtil.format(messages.parse(messages.message("raid_end"), this)));
+    }
+
+    public void handle_rewards() {
         participating_broadcast(TextUtil.format(messages.parse(messages.message("leaderboard_message_header"), this)));
         int place_index = 0;
         for (Map.Entry<ServerPlayerEntity, Integer> entry : get_damage_leaderboard()) {
@@ -282,11 +297,6 @@ public class Raid {
                 }
             }
         }
-        raid_end_time = nr.server().getOverworld().getTime();
-        if (boss_info.do_catch_phase()) {
-            participating_broadcast(TextUtil.format(messages.parse(messages.message("catch_phase_end"), this)));
-        }
-        participating_broadcast(TextUtil.format(messages.parse(messages.message("raid_end"), this)));
     }
 
     public void addTask(ServerWorld world, Long delay, Runnable action) {
