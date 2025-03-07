@@ -1,5 +1,11 @@
 package me.unariginal.novaraids.managers;
 
+import com.cobblemon.mod.common.api.battles.model.PokemonBattle;
+import com.cobblemon.mod.common.api.battles.model.actor.BattleActor;
+import com.cobblemon.mod.common.battles.ActiveBattlePokemon;
+import com.cobblemon.mod.common.battles.BattleRegistry;
+import com.cobblemon.mod.common.battles.pokemon.BattlePokemon;
+import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.Task;
 import me.unariginal.novaraids.utils.TextUtil;
@@ -129,6 +135,52 @@ public class TickManager {
             }
 
             raid.show_overlay(raid.bossbar_data());
+        }
+    }
+
+    public static void fix_player_pokemon() {
+        for (Raid raid : nr.active_raids().values()) {
+            for (ServerPlayerEntity player : raid.participating_players()) {
+                PokemonBattle battle = BattleRegistry.INSTANCE.getBattleByParticipatingPlayer(player);
+                if (battle != null) {
+                    BattleActor actor = battle.getActor(player);
+                    if (actor != null) {
+                        if (!actor.getActivePokemon().isEmpty()) {
+                            for (ActiveBattlePokemon activeBattlePokemon : actor.getActivePokemon()) {
+                                BattlePokemon battlePokemon = activeBattlePokemon.getBattlePokemon();
+                                if (battlePokemon != null) {
+                                    PokemonEntity entity = battlePokemon.getEntity();
+                                    if (entity != null) {
+                                        double x = entity.getPos().getX();
+                                        double z = entity.getPos().getZ();
+                                        double cx = raid.raidBoss_location().pos().getX();
+                                        double cz = raid.raidBoss_location().pos().getZ();
+
+
+                                        // Get direction vector
+                                        double deltaX = x - cx;
+                                        double deltaZ = z - cz;
+
+                                        // Get angle of approach
+                                        double angle = Math.toDegrees(Math.atan2(deltaZ, deltaX));
+
+                                        if (angle < 0) {
+                                            angle += 360;
+                                        }
+
+                                        double distance = nr.config().getSettings().raid_radius() + 2;
+
+                                        double new_x = cx + distance * Math.cos(Math.toRadians(angle));
+                                        double new_z = cz + distance * Math.sin(Math.toRadians(angle));
+
+                                        entity.setPosition(new_x, raid.raidBoss_location().pos().getY(), new_z);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

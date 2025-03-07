@@ -5,12 +5,13 @@ import com.cobblemon.mod.common.api.Priority;
 import com.cobblemon.mod.common.api.battles.model.PokemonBattle;
 import com.cobblemon.mod.common.api.battles.model.actor.BattleActor;
 import com.cobblemon.mod.common.api.events.CobblemonEvents;
+import com.cobblemon.mod.common.battles.ActiveBattlePokemon;
 import com.cobblemon.mod.common.battles.actor.PlayerBattleActor;
 import com.cobblemon.mod.common.battles.actor.PokemonBattleActor;
+import com.cobblemon.mod.common.battles.pokemon.BattlePokemon;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.item.PokeBallItem;
 import com.cobblemon.mod.common.item.PokemonItem;
-import com.cobblemon.mod.common.platform.events.ServerPlayerEvent;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import eu.pb4.sgui.api.elements.GuiElement;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
@@ -21,14 +22,11 @@ import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.Boss;
 import me.unariginal.novaraids.utils.BanHandler;
 import me.unariginal.novaraids.utils.TextUtil;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.screen.ScreenHandlerType;
@@ -46,10 +44,6 @@ public class EventManager {
     private static final Messages messages = nr.config().getMessages();
 
     public static void catch_events() {
-//        CobblemonEvents.THROWN_POKEBALL_HIT.subscribe(Priority.HIGHEST, event -> {
-//            event.getPokeBall();
-//            return Unit.INSTANCE;
-//        });
     }
 
     public static void battle_events() {
@@ -67,9 +61,12 @@ public class EventManager {
             }
 
             if (player != null) {
+                nr.logInfo("[RAIDS] Player is not null");
                 if (pokemonEntity != null) {
+                    nr.logInfo("[RAIDS] Pokemon Entity is not null");
                     UUID entity_uuid = pokemonEntity.getUuid();
                     for (Raid raid : nr.active_raids().values()) {
+                        nr.logInfo("[RAIDS] Checking Clones..");
                         for (PokemonEntity clone : raid.get_clones().keySet()) {
                             if (clone.getUuid().equals(entity_uuid)) {
                                 if (!raid.get_clones().get(clone).equals(player.getUuid())) {
@@ -77,25 +74,35 @@ public class EventManager {
                                     event.setReason(null);
                                     event.cancel();
                                     return Unit.INSTANCE;
+                                } else {
+                                    nr.logInfo("[RAIDS] This is the right player and clone thingy");
+                                    return Unit.INSTANCE;
                                 }
                             }
                         }
 
+                        nr.logInfo("[RAIDS] Checking if raid uuid matches the pokemon entity uuid");
                         if (raid.uuid().equals(entity_uuid)) {
+                            nr.logInfo("[RAIDS] Checking if player is in this raid");
                             if (raid.get_player_index(player) == -1) {
                                 event.setReason(null);
                                 event.cancel();
                                 return Unit.INSTANCE;
                             }
+
+                            nr.logInfo("[RAIDS] Checking if this is the fight phase");
                             if (raid.stage() == 2) {
                                 if (!BanHandler.hasContraband(player)) {
                                     BattleManager.invoke_battle(raid, player);
                                 }
                             }
+
+                            nr.logInfo("[RAIDS] Cancelling Event");
                             event.setReason(null);
                             event.cancel();
                             return Unit.INSTANCE;
                         }
+                        nr.logInfo("[RAIDS] No Match");
                     }
                 }
 
@@ -153,6 +160,14 @@ public class EventManager {
                     }
                 } else if (actor instanceof PlayerBattleActor playerBattleActor) {
                     player = playerBattleActor.getEntity();
+                    if (!playerBattleActor.getActivePokemon().isEmpty()) {
+                        for (ActiveBattlePokemon activeBattlePokemon : playerBattleActor.getActivePokemon()) {
+                            BattlePokemon battlePokemon = activeBattlePokemon.getBattlePokemon();
+                            if (battlePokemon != null) {
+                                battlePokemon.getOriginalPokemon().recall();
+                            }
+                        }
+                    }
                 }
             }
 

@@ -58,6 +58,7 @@ public class NovaRaids implements ModInitializer {
             TickManager.execute_tasks();
             TickManager.update_bossbars();
             TickManager.fix_player_positions();
+            TickManager.fix_player_pokemon();
         });
 
         // Clean up at server stop
