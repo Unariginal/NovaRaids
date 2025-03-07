@@ -1,5 +1,7 @@
 package me.unariginal.novaraids.data;
 
+import me.unariginal.novaraids.data.rewards.DistributionSection;
+
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
@@ -12,5 +14,5 @@ public record Category(
         int min_wait_time,
         int max_wait_time,
         List<LocalTime> set_times,
-        Map<List<String>, List<String>> rewards
+        List<DistributionSection> rewards
 ) {}

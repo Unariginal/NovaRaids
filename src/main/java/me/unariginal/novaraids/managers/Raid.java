@@ -10,6 +10,9 @@ import kotlin.Unit;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.*;
+import me.unariginal.novaraids.data.rewards.DistributionSection;
+import me.unariginal.novaraids.data.rewards.Place;
+import me.unariginal.novaraids.data.rewards.RewardPool;
 import me.unariginal.novaraids.utils.BanHandler;
 import me.unariginal.novaraids.utils.TextUtil;
 import net.kyori.adventure.bossbar.BossBar;
@@ -21,6 +24,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Vec3d;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 import java.util.List;
@@ -236,63 +240,50 @@ public class Raid {
             }
         }
 
-        Set<List<String>> places_set;
-        Map<List<String>, List<String>> rewards_map;
+        List<DistributionSection> rewards;
         if (boss_info.rewards().isEmpty()) {
-            places_set = raidBoss_category.rewards().keySet();
-            rewards_map = raidBoss_category.rewards();
+            rewards = raidBoss_category.rewards();
         } else {
-            places_set = boss_info.rewards().keySet();
-            rewards_map = boss_info.rewards();
+            rewards = boss_info.rewards();
         }
 
-        for (List<String> places : places_set) {
-            for (String place : places) {
-                if (place.contains("%")) {
-                    String percent_string = place.replace("%", "");
-                    int percent = Integer.parseInt(percent_string);
-                    int positions = get_damage_leaderboard().size() * (percent / 100);
-                    for (String reward_name : rewards_map.get(places)) {
+        List<ServerPlayerEntity> no_more_rewards = new ArrayList<>();
+        for (DistributionSection reward : rewards) {
+            List<Place> places = reward.places();
+            for (Place place : places) {
+                List<ServerPlayerEntity> players_to_reward = new ArrayList<>();
+                if (StringUtils.isNumeric(place.place())) {
+                    int placeIndex = Integer.parseInt(place.place());
+                    placeIndex--;
+                    if (placeIndex >= 0 && placeIndex < get_damage_leaderboard().size()) {
+                        players_to_reward.add(get_damage_leaderboard().get(placeIndex).getKey());
+                    }
+                } else if (place.place().contains("%")) {
+                    String percentStr = place.place().replace("%", "");
+                    if (StringUtils.isNumeric(percentStr)) {
+                        int percent = Integer.parseInt(percentStr);
+                        int positions = get_damage_leaderboard().size() * (percent / 100);
                         for (int i = 0; i < positions; i++) {
-                            ServerPlayerEntity player = get_damage_leaderboard().get(i).getKey();
-                            nr.config().getRewardPool(reward_name).distributeRewards(player);
+                            players_to_reward.add(get_damage_leaderboard().get(i).getKey());
                         }
                     }
-                    break;
-                }
-            }
-
-            if (places.contains("participating")) {
-                for (String reward_name : rewards_map.get(places)) {
-                    for (ServerPlayerEntity player : participating_players) {
-                        nr.config().getRewardPool(reward_name).distributeRewards(player);
+                } else if (place.place().equalsIgnoreCase("participating")) {
+                    for (Map.Entry<ServerPlayerEntity, Integer> entry : get_damage_leaderboard()) {
+                        players_to_reward.add(entry.getKey());
                     }
                 }
-            } else {
-                if (places.contains("1")) {
-                    if (!get_damage_leaderboard().isEmpty()) {
-                        for (String reward_name : rewards_map.get(places)) {
-                            ServerPlayerEntity player = get_damage_leaderboard().getFirst().getKey();
-                            nr.config().getRewardPool(reward_name).distributeRewards(player);
+
+                for (RewardPool pool : reward.pools()) {
+                    for (ServerPlayerEntity player : players_to_reward) {
+                        if (!no_more_rewards.contains(player)) {
+                            pool.distributeRewards(player);
                         }
                     }
                 }
 
-                if (places.contains("2")) {
-                    if (get_damage_leaderboard().size() > 1) {
-                        for (String reward_name : rewards_map.get(places)) {
-                            ServerPlayerEntity player = get_damage_leaderboard().get(1).getKey();
-                            nr.config().getRewardPool(reward_name).distributeRewards(player);
-                        }
-                    }
-                }
-
-                if (places.contains("3")) {
-                    if (get_damage_leaderboard().size() > 2) {
-                        for (String reward_name : rewards_map.get(places)) {
-                            ServerPlayerEntity player = get_damage_leaderboard().get(2).getKey();
-                            nr.config().getRewardPool(reward_name).distributeRewards(player);
-                        }
+                for (ServerPlayerEntity player : players_to_reward) {
+                    if (!place.allow_other_rewards()) {
+                        no_more_rewards.add(player);
                     }
                 }
             }

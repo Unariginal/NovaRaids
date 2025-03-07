@@ -17,26 +17,54 @@
     ],
     "rewards": [
       {
-        "places": ["1"],
+        "places": [
+          {
+            "place": "1",
+            "allow_other_rewards": false
+          }
+        ],
         "reward_pools": [
           "pool_example_2"
         ]
       },
       {
-        "places": ["1", "2", "3"],
+        "places": [
+          {
+            "place": "1",
+            "allow_other_rewards": false
+          },
+          {
+            "place": "2",
+            "allow_other_rewards": false
+          },
+          {
+            "place": "3",
+            "allow_other_rewards": true
+          }
+        ],
         "reward_pools": [
           "pool_example_1"
         ]
       },
       {
-        "places": ["participating"],
+        "places": [
+          {
+            "place": "participating",
+            "allow_other_rewards": false
+          }
+        ],
         "reward_pools": [
           "pool_example_1",
           "pool_example_2"
         ]
       },
       {
-        "places": ["25%"],
+        "places": [
+          {
+            "place": "25%",
+            "allow_other_rewards": false
+          }
+        ],
         "reward_pools": [
           "pool_example_2"
         ]

@@ -294,15 +294,29 @@ public class Config {
             }
 
             JsonArray rewards = categoryObject.getAsJsonArray("rewards");
-            Map<List<String>, List<String>> rewards_map = new HashMap<>();
+            List<DistributionSection> rewards_list = new ArrayList<>();
             for (JsonElement element : rewards) {
-                JsonObject reward = element.getAsJsonObject();
-                List<String> places = reward.getAsJsonArray("places").asList().stream().map(JsonElement::getAsString).toList();
-                List<String> reward_pools = reward.getAsJsonArray("reward_pools").asList().stream().map(JsonElement::getAsString).toList();
-                rewards_map.put(places, reward_pools);
+                JsonObject sectionObj = element.getAsJsonObject();
+                List<Place> places = new ArrayList<>();
+                JsonArray placesArr = sectionObj.getAsJsonArray("places");
+                for (JsonElement placeElement : placesArr) {
+                    JsonObject placeObj = placeElement.getAsJsonObject();
+                    places.add(new Place(placeObj.get("place").getAsString(), placeObj.get("allow_other_rewards").getAsBoolean()));
+                }
+                List<RewardPool> pools = new ArrayList<>();
+                JsonArray poolsArr = sectionObj.getAsJsonArray("reward_pools");
+                for (JsonElement poolElement : poolsArr) {
+                    String poolObj = poolElement.getAsString();
+                    for (RewardPool rewardPool : reward_pools) {
+                        if (rewardPool.name().equals(poolObj)) {
+                            pools.add(rewardPool);
+                        }
+                    }
+                }
+                rewards_list.add(new DistributionSection(places, pools));
             }
 
-            categoriesList.add(new Category(category, require_pass, min_players, max_players, min_wait_time, max_wait_time, set_times_list, rewards_map));
+            categoriesList.add(new Category(category, require_pass, min_players, max_players, min_wait_time, max_wait_time, set_times_list, rewards_list));
         }
         this.categories = categoriesList;
     }
@@ -420,12 +434,26 @@ public class Config {
                     }
 
                     JsonArray rewards_override = boss_details.getAsJsonArray("rewards_override");
-                    Map<List<String>, List<String>> rewards = new HashMap<>();
+                    List<DistributionSection> rewards_list = new ArrayList<>();
                     for (JsonElement element : rewards_override) {
-                        JsonObject rewardObject = element.getAsJsonObject();
-                        List<String> places = rewardObject.getAsJsonArray("places").asList().stream().map(JsonElement::getAsString).toList();
-                        List<String> reward_pools = rewardObject.getAsJsonArray("reward_pools").asList().stream().map(JsonElement::getAsString).toList();
-                        rewards.put(places, reward_pools);
+                        JsonObject sectionObj = element.getAsJsonObject();
+                        List<Place> places = new ArrayList<>();
+                        JsonArray placesArr = sectionObj.getAsJsonArray("places");
+                        for (JsonElement placeElement : placesArr) {
+                            JsonObject placeObj = placeElement.getAsJsonObject();
+                            places.add(new Place(placeObj.get("place").getAsString(), placeObj.get("allow_other_rewards").getAsBoolean()));
+                        }
+                        List<RewardPool> pools = new ArrayList<>();
+                        JsonArray poolsArr = sectionObj.getAsJsonArray("reward_pools");
+                        for (JsonElement poolElement : poolsArr) {
+                            String poolObj = poolElement.getAsString();
+                            for (RewardPool rewardPool : reward_pools) {
+                                if (rewardPool.name().equals(poolObj)) {
+                                    pools.add(rewardPool);
+                                }
+                            }
+                        }
+                        rewards_list.add(new DistributionSection(places, pools));
                     }
 
                     JsonObject catch_settings = bossObject.getAsJsonObject("catch_settings");
@@ -464,7 +492,7 @@ public class Config {
                             facing,
                             do_catch_phase,
                             spawn_locations,
-                            rewards,
+                            rewards_list,
                             catchSettings)
                     );
                 } else {

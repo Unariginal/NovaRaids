@@ -7,6 +7,7 @@ import com.cobblemon.mod.common.api.pokemon.stats.Stat;
 import com.cobblemon.mod.common.pokemon.*;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
+import me.unariginal.novaraids.data.rewards.DistributionSection;
 import net.minecraft.component.ComponentChanges;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -36,7 +37,7 @@ public record Boss(String name,
                    Float facing,
                    boolean do_catch_phase,
                    Map<String, Double> spawn_locations,
-                   Map<List<String>, List<String>> rewards,
+                   List<DistributionSection> rewards,
                    CatchSettings catch_settings
 ) {
     public Map.Entry<?, Double> getRandomEntry(Map<?, Double> map) {

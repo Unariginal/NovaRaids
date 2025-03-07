@@ -87,15 +87,14 @@
     ],
     "rewards_override": [
       {
-        "places": ["1"],
+        "places": [
+          {
+            "place": "1",
+            "allow_other_rewards": false
+          }
+        ],
         "reward_pools": [
           "pool_example_2"
-        ]
-      },
-      {
-        "places": ["participating"],
-        "reward_pools": [
-          "pool_example_1"
         ]
       }
     ]
