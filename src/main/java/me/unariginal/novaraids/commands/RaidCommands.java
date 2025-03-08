@@ -408,14 +408,16 @@ public class RaidCommands {
         }
 
         if (!nr.config().getSettings().use_queue_system()) {
-            nr.add_raid(new Raid(boss_info, spawn_location, player.getUuid(), starting_item));
+            nr.add_raid(new Raid(boss_info, spawn_location, (player != null) ? player.getUuid() : null, starting_item));
         } else {
-            nr.add_queue_item(new QueueItem(UUID.randomUUID(), boss_info, spawn_location, player, starting_item));
+            nr.add_queue_item(new QueueItem(UUID.randomUUID(), boss_info, spawn_location, (player != null) ? player.getUuid() : null, starting_item));
 
             if (nr.active_raids().isEmpty()) {
                 nr.init_next_raid();
             } else {
-                player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("added_to_queue"), boss_info)));
+                if (player != null) {
+                    player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("added_to_queue"), boss_info)));
+                }
             }
         }
         return 1;

@@ -33,6 +33,7 @@ import net.minecraft.util.math.Vec3d;
 
 import java.io.*;
 import java.time.LocalTime;
+import java.time.ZonedDateTime;
 import java.util.*;
 
 public class Config {
@@ -142,7 +143,7 @@ public class Config {
 
         nr.debug = config.get("debug").getAsBoolean();
 
-        TimeZone timezone = TimeZone.getTimeZone(config.get("timezone").getAsString());
+        TimeZone timezone = TimeZone.getTimeZone(config.get("timezone").getAsString().toUpperCase());
         TimeZone.setDefault(timezone);
 
         JsonObject settingsObject = config.getAsJsonObject("raid_settings");
@@ -291,6 +292,7 @@ public class Config {
             for (JsonElement element : set_times) {
                 String time = element.getAsString();
                 set_times_list.add(LocalTime.parse(time));
+                nr.logInfo("[RAIDS] Setting set time: " + LocalTime.parse(time));
             }
 
             JsonArray rewards = categoryObject.getAsJsonArray("rewards");
@@ -421,6 +423,7 @@ public class Config {
                     String display_form = boss_details.get("display_form").getAsString();
                     int base_health = boss_details.get("base_health").getAsInt();
                     String category = boss_details.get("category").getAsString();
+                    double category_weight = boss_details.get("category_weight").getAsDouble();
                     Float facing = boss_details.get("body_direction").getAsFloat();
                     boolean do_catch_phase = boss_details.get("do_catch_phase").getAsBoolean();
 
@@ -489,6 +492,7 @@ public class Config {
                             display_form,
                             base_health,
                             category,
+                            category_weight,
                             facing,
                             do_catch_phase,
                             spawn_locations,

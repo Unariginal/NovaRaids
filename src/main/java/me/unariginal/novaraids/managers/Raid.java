@@ -98,8 +98,8 @@ public class Raid {
     public void stop() {
         stage = -1;
 
-        if (raidBoss_entity != null) {
-            raidBoss_entity.remove(Entity.RemovalReason.DISCARDED);
+        if (raidBoss_entity != null && raidBoss_entity.isAlive() && !raidBoss_entity.isRemoved()) {
+            raidBoss_entity.kill();
         }
 
         end_battles();
@@ -193,8 +193,7 @@ public class Raid {
 
         end_battles();
 
-        raidBoss_entity.addStatusEffect(new StatusEffectInstance(StatusEffects.INVISIBILITY, -1, 9999, false, false));
-        raidBoss_entity.setGlowing(false);
+        raidBoss_entity.kill();
         handle_rewards();
 
         if (boss_info.do_catch_phase()) {
@@ -511,9 +510,9 @@ public class Raid {
                         battle.end();
                     }
                 }
-                if (!clone.isRemoved()) {
-                    clone.remove(Entity.RemovalReason.DISCARDED);
-                }
+
+                clone.kill();
+
                 world.setChunkForced(chunkX, chunkZ, false);
             }
         }

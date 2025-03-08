@@ -73,6 +73,7 @@
     "display_form": "",
     "base_health": 1000,
     "category": "common",
+    "category_weight": 10.0,
     "body_direction": 0.0,
     "do_catch_phase": true,
     "locations": [

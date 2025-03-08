@@ -7,40 +7,42 @@ import com.cobblemon.mod.common.battles.BattleRegistry;
 import com.cobblemon.mod.common.battles.pokemon.BattlePokemon;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import me.unariginal.novaraids.NovaRaids;
+import me.unariginal.novaraids.data.Boss;
+import me.unariginal.novaraids.data.Category;
 import me.unariginal.novaraids.data.Task;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAmount;
+import java.time.temporal.TemporalUnit;
+import java.util.*;
 
 public class TickManager {
     private static final NovaRaids nr = NovaRaids.INSTANCE;
+    private static LocalTime set_time_buffer = LocalTime.now(TimeZone.getDefault().toZoneId());
 
     public static void fix_boss_positions() {
         for (Raid raid : nr.active_raids().values()) {
             raid.fixBossPosition();
             if (raid.stage() == 2 || raid.stage() == 4) {
+                List<PokemonEntity> toRemove = new ArrayList<>();
                 for (PokemonEntity pokemonEntity : raid.get_clones().keySet()) {
                     UUID player_uuid = raid.get_clones().get(pokemonEntity);
                     ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(player_uuid);
                     if (player != null) {
                         PokemonBattle battle = BattleRegistry.INSTANCE.getBattleByParticipatingPlayer(player);
                         if (battle == null) {
-                            raid.remove_clone(pokemonEntity);
+                            toRemove.add(pokemonEntity);
                         }
                     } else {
-                        raid.remove_clone(pokemonEntity);
+                        toRemove.add(pokemonEntity);
                     }
                 }
-            }
-
-            if (raid.stage() == 4) {
-                raid.raidBoss_entity().addStatusEffect(new StatusEffectInstance(StatusEffects.INVISIBILITY, -1, 9999, false, false));
-                raid.raidBoss_entity().setGlowing(false);
+                for (PokemonEntity pokemonEntity : toRemove) {
+                    raid.remove_clone(pokemonEntity);
+                }
             }
 
             if (raid.stage() > 1 && raid.participating_players().isEmpty()) {
@@ -204,6 +206,42 @@ public class TickManager {
                                     }
                                 }
                             }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public static void scheduled_raids() {
+        if (!nr.config().getSettings().use_queue_system()) {
+            LocalTime now = LocalTime.now(TimeZone.getDefault().toZoneId());
+            for (Category category : nr.config().getCategories()) {
+                if (!category.set_times().isEmpty()) {
+                    for (LocalTime time : category.set_times()) {
+                        if (set_time_buffer.until(now, ChronoUnit.SECONDS) >= 1 && time.getHour() == now.getHour() && time.getMinute() == now.getMinute() && time.getSecond() == now.getSecond()) {
+                            set_time_buffer = now;
+                            List<Boss> possible_bosses = new ArrayList<>();
+                            for (Boss boss : nr.config().getBosses()) {
+                                if (boss.category().equalsIgnoreCase(category.name())) {
+                                    possible_bosses.add(boss);
+                                }
+                            }
+                            double total_weight = 0.0;
+                            for (Boss boss : possible_bosses) {
+                                total_weight += boss.category_weight();
+                            }
+                            double random_weight = new Random().nextDouble(total_weight);
+                            total_weight = 0.0;
+                            Boss chosen_boss = possible_bosses.getFirst();
+                            for (Boss boss : possible_bosses) {
+                                total_weight += boss.category_weight();
+                                if (total_weight < random_weight) {
+                                    chosen_boss = boss;
+                                }
+                            }
+
+                            nr.raidCommands().start(chosen_boss, null, null);
                         }
                     }
                 }

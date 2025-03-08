@@ -404,6 +404,7 @@ public class EventManager {
                     for (Raid raid : nr.active_raids().values()) {
                         if (raid.participating_players().contains(player.getUuid())) {
                             player.sendMessage(TextUtil.format(messages.parse(messages.message("warning_banned_bag_item").replaceAll("%banned.bag_item%", held_item.getItem().getName().getString()))));
+                            return TypedActionResult.fail(held_item);
                         }
                     }
                 }
