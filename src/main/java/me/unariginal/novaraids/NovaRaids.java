@@ -9,7 +9,6 @@ import me.unariginal.novaraids.managers.TickManager;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.minecraft.server.MinecraftServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +23,6 @@ public class NovaRaids implements ModInitializer {
     private final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
     public static NovaRaids INSTANCE;
 
-    private final MiniMessage mm = MiniMessage.miniMessage();
     private Config config;
     public boolean debug = true;
     private MinecraftServer server;
@@ -73,10 +71,6 @@ public class NovaRaids implements ModInitializer {
             }
             // TODO: Save current raid, write queue to file
         });
-    }
-
-    public MiniMessage mm() {
-        return mm;
     }
 
     public Config config() {
@@ -133,11 +127,9 @@ public class NovaRaids implements ModInitializer {
 
     public void init_next_raid() {
         if (config.getSettings().use_queue_system()) {
-            //if (active_raids.isEmpty()) {
-                if (!queued_raids.isEmpty()) {
-                    queued_raids.remove().start_raid();
-                }
-            //}
+            if (!queued_raids.isEmpty()) {
+                queued_raids.remove().start_raid();
+            }
         }
     }
 

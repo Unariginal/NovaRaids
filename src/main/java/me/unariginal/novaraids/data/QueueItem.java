@@ -11,7 +11,7 @@ public record QueueItem(UUID uuid, Boss boss_info, Location raidBoss_location, S
     private static final NovaRaids nr = NovaRaids.INSTANCE;
 
     public void start_raid() {
-        nr.add_raid(new Raid(boss_info, raidBoss_location, started_by, starting_item));
+        nr.add_raid(new Raid(boss_info, raidBoss_location, started_by.getUuid(), starting_item));
     }
 
     public void cancel_item() {

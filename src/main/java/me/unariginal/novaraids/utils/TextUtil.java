@@ -1,9 +1,5 @@
 package me.unariginal.novaraids.utils;
 
-import me.unariginal.novaraids.NovaRaids;
-import me.unariginal.novaraids.data.Boss;
-import me.unariginal.novaraids.managers.Messages;
-import me.unariginal.novaraids.managers.Raid;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 

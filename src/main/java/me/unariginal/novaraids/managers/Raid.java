@@ -44,16 +44,16 @@ public class Raid {
     private int current_health;
     private int max_health;
 
-    private final ServerPlayerEntity started_by;
+    private final UUID started_by;
     private final ItemStack starting_item;
 
     private final int min_players;
     private final int max_players;
-    private final List<ServerPlayerEntity> participating_players = new ArrayList<>();
-    private final Map<ServerPlayerEntity, Integer> damage_by_player = new HashMap<>();
+    private final List<UUID> participating_players = new ArrayList<>();
+    private final Map<UUID, Integer> damage_by_player = new HashMap<>();
 
     private final Map<Long, List<Task>> tasks = new HashMap<>();
-    private final Map<ServerPlayerEntity, BossBar> player_bossbars = new HashMap<>();
+    private final Map<UUID, BossBar> player_bossbars = new HashMap<>();
 
     private final Map<PokemonEntity, UUID> clones = new HashMap<>();
 
@@ -67,7 +67,7 @@ public class Raid {
 
     private int stage;
 
-    public Raid(Boss boss_info, Location raidBoss_location, ServerPlayerEntity started_by, ItemStack starting_item) {
+    public Raid(Boss boss_info, Location raidBoss_location, UUID started_by, ItemStack starting_item) {
         this.boss_info = boss_info;
         this.raidBoss_location = raidBoss_location;
         this.started_by = started_by;
@@ -109,8 +109,11 @@ public class Raid {
             remove_clone(pokemon);
         }
 
-        for (ServerPlayerEntity player : player_bossbars.keySet()) {
-            player.hideBossBar(player_bossbars.get(player));
+        for (UUID player_uuid : player_bossbars.keySet()) {
+            ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(player_uuid);
+            if (player != null) {
+                player.hideBossBar(player_bossbars.get(player_uuid));
+            }
         }
 
         Vec3d pos = raidBoss_location.pos();
@@ -158,7 +161,10 @@ public class Raid {
             participating_broadcast(TextUtil.format(messages.parse(messages.message("not_enough_players"), this)));
             if (raidBoss_category.require_pass()) {
                 if (starting_item != null) {
-                    started_by.giveItemStack(starting_item);
+                    ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(started_by);
+                    if (player != null) {
+                        player.giveItemStack(starting_item);
+                    }
                 }
             }
         }
@@ -209,8 +215,11 @@ public class Raid {
         phase_length = nr.config().getSettings().catch_phase_time();
         phase_start_time = nr.server().getOverworld().getTime();
 
-        for (ServerPlayerEntity player : participating_players) {
-            BattleManager.invoke_catch_encounter(this, player);
+        for (UUID player_uuid : participating_players) {
+            ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(player_uuid);
+            if (player != null) {
+                BattleManager.invoke_catch_encounter(this, player);
+            }
         }
 
         participating_broadcast(TextUtil.format(messages.parse(messages.message("start_catch_phase"), this)));
@@ -232,11 +241,14 @@ public class Raid {
     public void handle_rewards() {
         participating_broadcast(TextUtil.format(messages.parse(messages.message("leaderboard_message_header"), this)));
         int place_index = 0;
-        for (Map.Entry<ServerPlayerEntity, Integer> entry : get_damage_leaderboard()) {
-            place_index++;
-            participating_broadcast(TextUtil.format(messages.parse(messages.message("leaderboard_message_item"), this, entry.getKey(), entry.getValue(), place_index)));
-            if (place_index == 10) {
-                break;
+        for (Map.Entry<UUID, Integer> entry : get_damage_leaderboard()) {
+            ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(entry.getKey());
+            if (player != null) {
+                place_index++;
+                participating_broadcast(TextUtil.format(messages.parse(messages.message("leaderboard_message_item"), this, player, entry.getValue(), place_index)));
+                if (place_index == 10) {
+                    break;
+                }
             }
         }
 
@@ -256,7 +268,8 @@ public class Raid {
                     int placeIndex = Integer.parseInt(place.place());
                     placeIndex--;
                     if (placeIndex >= 0 && placeIndex < get_damage_leaderboard().size()) {
-                        players_to_reward.add(get_damage_leaderboard().get(placeIndex).getKey());
+                        ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(get_damage_leaderboard().get(placeIndex).getKey());
+                        players_to_reward.add(player);
                     }
                 } else if (place.place().contains("%")) {
                     String percentStr = place.place().replace("%", "");
@@ -264,12 +277,14 @@ public class Raid {
                         int percent = Integer.parseInt(percentStr);
                         int positions = get_damage_leaderboard().size() * (percent / 100);
                         for (int i = 0; i < positions; i++) {
-                            players_to_reward.add(get_damage_leaderboard().get(i).getKey());
+                            ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(get_damage_leaderboard().get(i).getKey());
+                            players_to_reward.add(player);
                         }
                     }
                 } else if (place.place().equalsIgnoreCase("participating")) {
-                    for (Map.Entry<ServerPlayerEntity, Integer> entry : get_damage_leaderboard()) {
-                        players_to_reward.add(entry.getKey());
+                    for (Map.Entry<UUID, Integer> entry : get_damage_leaderboard()) {
+                        ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(entry.getKey());
+                        players_to_reward.add(player);
                     }
                 }
 
@@ -342,10 +357,13 @@ public class Raid {
     }
 
     private void end_battles() {
-        for (ServerPlayerEntity player : participating_players) {
-            PokemonBattle battle = BattleRegistry.INSTANCE.getBattleByParticipatingPlayer(player);
-            if (battle != null) {
-                battle.end();
+        for (UUID player_uuid : participating_players) {
+            ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(player_uuid);
+            if (player != null) {
+                PokemonBattle battle = BattleRegistry.INSTANCE.getBattleByParticipatingPlayer(player);
+                if (battle != null) {
+                    battle.end();
+                }
             }
         }
     }
@@ -454,14 +472,15 @@ public class Raid {
     }
 
     public void broadcast(Component component) {
-        nr.server().getPlayerManager().getPlayerList().forEach(p -> {
-            p.sendMessage(component);
-        });
+        nr.server().getPlayerManager().getPlayerList().forEach(p -> p.sendMessage(component));
     }
 
     public void participating_broadcast(Component component) {
-        for (ServerPlayerEntity player : participating_players) {
-            player.sendMessage(component);
+        for (UUID player_uuid : participating_players) {
+            ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(player_uuid);
+            if (player != null) {
+                player.sendMessage(component);
+            }
         }
     }
 
@@ -505,126 +524,138 @@ public class Raid {
         return clones;
     }
 
-    public List<ServerPlayerEntity> participating_players() {
+    public List<UUID> participating_players() {
         return participating_players;
     }
 
-    public int get_player_index(ServerPlayerEntity player) {
+    public int get_player_index(UUID player_uuid) {
         int index;
         for (index = 0; index < participating_players.size(); index++) {
-            if (participating_players.get(index).equals(player)) {
+            if (participating_players.get(index).equals(player_uuid)) {
                 return index;
             }
         }
         return -1;
     }
 
-    public void removePlayer(ServerPlayerEntity player) {
-        int index = get_player_index(player);
+    public void removePlayer(UUID player_uuid) {
+        int index = get_player_index(player_uuid);
         if (index != -1) {
-            participating_players.remove(index);
-            player.hideBossBar(bossbars().get(player));
-            player_bossbars.remove(player);
-            List<PokemonEntity> toRemove = new ArrayList<>();
-            for (PokemonEntity clone : clones.keySet()) {
-                if (clones.get(clone).equals(player.getUuid())) {
-                    toRemove.add(clone);
+            ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(player_uuid);
+            if (player != null) {
+                participating_players.remove(index);
+                player.hideBossBar(bossbars().get(player_uuid));
+                player_bossbars.remove(player_uuid);
+                List<PokemonEntity> toRemove = new ArrayList<>();
+                for (PokemonEntity clone : clones.keySet()) {
+                    if (clones.get(clone).equals(player.getUuid())) {
+                        toRemove.add(clone);
+                    }
+                }
+                for (PokemonEntity clone : toRemove) {
+                    remove_clone(clone);
                 }
             }
-            for (PokemonEntity clone : toRemove) {
-                remove_clone(clone);
-            }
         }
     }
 
-    public boolean addPlayer(ServerPlayerEntity player, boolean usedPass) {
-        int index = get_player_index(player);
+    public boolean addPlayer(UUID player_uuid, boolean usedPass) {
+        int index = get_player_index(player_uuid);
 
-        if (!Permissions.check(player, "novaraids.override")) {
-            nr.logInfo("Checking if player can join the raid..");
-            for (Raid raid : nr.active_raids().values()) {
-                index = raid.get_player_index(player);
-            }
-
-            if (raidBoss_category().require_pass() && !usedPass) {
-                index = -2;
-                player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_no_pass"), this)));
-            }
-
-            if (stage != 1) {
-                index = -2;
-                player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_not_joinable"), this)));
-            }
-
-            if (BanHandler.hasContraband(player)) {
-                index = -2;
-            }
-
-            int num_pokemon = 0;
-            for (Pokemon pokemon : Cobblemon.INSTANCE.getStorage().getParty(player)) {
-                if (pokemon != null) {
-                    num_pokemon++;
+        ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(player_uuid);
+        if (player != null) {
+            if (!Permissions.check(player, "novaraids.override")) {
+                for (Raid raid : nr.active_raids().values()) {
+                    index = raid.get_player_index(player_uuid);
+                    if (index != -1) {
+                        player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_already_joined_raid"), this)));
+                        return false;
+                    }
                 }
-            }
-            if (num_pokemon == 0) {
-                index = -2;
-                player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_no_pokemon"), this)));
-            }
-        } else {
-            nr.logInfo("Player has permission override!");
-        }
 
-        if (index == -1) {
-            participating_players().add(player);
-            if (nr.config().getSettings().do_health_scaling() && participating_players().size() > 1) {
-                max_health += nr.config().getSettings().health_increase();
-                current_health += nr.config().getSettings().health_increase();
-            }
-            show_bossbar(bossbar_data);
-        } else if (index != -2) {
-            player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_already_joined_raid"), this)));
-        }
+                if (raidBoss_category().require_pass() && !usedPass) {
+                    index = -2;
+                    player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_no_pass"), this)));
+                }
 
-        return index == -1;
+                if (stage != 1) {
+                    index = -2;
+                    player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_not_joinable"), this)));
+                }
+
+                if (BanHandler.hasContraband(player)) {
+                    index = -2;
+                }
+
+                int num_pokemon = 0;
+                for (Pokemon pokemon : Cobblemon.INSTANCE.getStorage().getParty(player)) {
+                    if (pokemon != null) {
+                        num_pokemon++;
+                    }
+                }
+
+                if (num_pokemon == 0) {
+                    index = -2;
+                    player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_no_pokemon"), this)));
+                }
+            } else {
+                nr.logInfo("Player has permission override!");
+            }
+
+            if (index == -1) {
+                participating_players().add(player_uuid);
+                if (nr.config().getSettings().do_health_scaling() && participating_players().size() > 1) {
+                    max_health += nr.config().getSettings().health_increase();
+                    current_health += nr.config().getSettings().health_increase();
+                }
+                show_bossbar(bossbar_data);
+            } else if (index != -2) {
+                player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_already_joined_raid"), this)));
+            }
+            return index == -1;
+        }
+        return false;
     }
 
-    public void update_player_damage(ServerPlayerEntity player, int damage) {
-        if (damage_by_player.containsKey(player)) {
-            damage += damage_by_player.get(player);
+    public void update_player_damage(UUID player_uuid, int damage) {
+        if (damage_by_player.containsKey(player_uuid)) {
+            damage += damage_by_player.get(player_uuid);
         }
-        damage_by_player.put(player, damage);
+        damage_by_player.put(player_uuid, damage);
     }
 
-    public List<Map.Entry<ServerPlayerEntity, Integer>> get_damage_leaderboard() {
-        List<Map.Entry<ServerPlayerEntity, Integer>> leaderboard_backwards = damage_by_player.entrySet().stream().sorted(Map.Entry.comparingByValue()).toList();
-        List<Map.Entry<ServerPlayerEntity, Integer>> leaderboard = new ArrayList<>();
+    public List<Map.Entry<UUID, Integer>> get_damage_leaderboard() {
+        List<Map.Entry<UUID, Integer>> leaderboard_backwards = damage_by_player.entrySet().stream().sorted(Map.Entry.comparingByValue()).toList();
+        List<Map.Entry<UUID, Integer>> leaderboard = new ArrayList<>();
         for (int i = leaderboard_backwards.size() - 1; i >= 0; i--) {
             leaderboard.add(leaderboard_backwards.get(i));
         }
         return leaderboard;
     }
 
-    public Map<ServerPlayerEntity, BossBar> bossbars() {
+    public Map<UUID, BossBar> bossbars() {
         return player_bossbars;
     }
 
     private void show_bossbar(BossbarData bossbar) {
         hide_bossbar();
         if (bossbar != null) {
-            for (ServerPlayerEntity player : participating_players) {
-                BossBar bar = bossbar.createBossBar(this);
+            for (UUID player_uuid : participating_players) {
+                ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(player_uuid);
                 if (player != null) {
+                    BossBar bar = bossbar.createBossBar(this);
                     player.showBossBar(bar);
-                    player_bossbars.put(player, bar);
+                    player_bossbars.put(player_uuid, bar);
                 }
             }
         }
     }
 
     private void hide_bossbar() {
-        for (ServerPlayerEntity player : player_bossbars.keySet()) {
+        for (UUID player_uuid : player_bossbars.keySet()) {
+            ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(player_uuid);
             if (player != null) {
-                player.hideBossBar(player_bossbars.get(player));
+                player.hideBossBar(player_bossbars.get(player_uuid));
             }
         }
         player_bossbars.clear();
@@ -632,7 +663,8 @@ public class Raid {
 
     public void show_overlay(BossbarData bossbar) {
         if (bossbar.use_overlay()) {
-            for (ServerPlayerEntity player : participating_players) {
+            for (UUID player_uuid : participating_players) {
+                ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(player_uuid);
                 if (player != null) {
                     player.sendActionBar(TextUtil.format(nr.config().getMessages().parse(bossbar.overlay_text(), this)));
                 }

@@ -4,7 +4,6 @@ import me.unariginal.novaraids.data.rewards.DistributionSection;
 
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Map;
 
 public record Category(
         String name,

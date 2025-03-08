@@ -10,7 +10,6 @@ import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.managers.Messages;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.List;

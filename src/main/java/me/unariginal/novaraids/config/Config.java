@@ -54,13 +54,13 @@ public class Config {
         }
 
         loadConfig();
-        loadCategories();
-        loadBosses();
-        loadLocations();
-        loadBossBars();
         loadMessages();
+        loadBossBars();
+        loadLocations();
         loadRewards();
         loadRewardPools();
+        loadCategories();
+        loadBosses();
     }
 
     private void checkFiles() throws IOException {

@@ -178,7 +178,7 @@ public class RaidCommands {
                                                                 if (nr.active_raids().containsKey(IntegerArgumentType.getInteger(ctx, "id"))) {
                                                                     Raid raid = nr.active_raids().get(IntegerArgumentType.getInteger(ctx, "id"));
                                                                     if (raid.participating_players().size() < raid.max_players() || Permissions.check(player, "novaraids.override") || raid.max_players() == -1) {
-                                                                        if (raid.addPlayer(player, false)) {
+                                                                        if (raid.addPlayer(player.getUuid(), false)) {
                                                                             player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("joined_raid"), raid)));
                                                                         }
                                                                     } else {
@@ -197,8 +197,11 @@ public class RaidCommands {
                                     .executes(ctx -> {
                                         if (ctx.getSource().isExecutedByPlayer()) {
                                             for (Raid raid : nr.active_raids().values()) {
-                                                if (raid.participating_players().contains(ctx.getSource().getPlayer())) {
-                                                    raid.removePlayer(ctx.getSource().getPlayer());
+                                                ServerPlayerEntity player = ctx.getSource().getPlayer();
+                                                if (player != null) {
+                                                    if (raid.participating_players().contains(player.getUuid())) {
+                                                        raid.removePlayer(player.getUuid());
+                                                    }
                                                 }
                                             }
                                         }
@@ -405,7 +408,7 @@ public class RaidCommands {
         }
 
         if (!nr.config().getSettings().use_queue_system()) {
-            nr.add_raid(new Raid(boss_info, spawn_location, player, starting_item));
+            nr.add_raid(new Raid(boss_info, spawn_location, player.getUuid(), starting_item));
         } else {
             nr.add_queue_item(new QueueItem(UUID.randomUUID(), boss_info, spawn_location, player, starting_item));
 
@@ -599,7 +602,7 @@ public class RaidCommands {
                         .setCallback((i, clickType, slotActionType) -> {
                             if (clickType.isLeft) {
                                 if (raid.participating_players().size() < raid.max_players() || Permissions.check(player, "novaraids.override") || raid.max_players() == -1) {
-                                    if (raid.addPlayer(player, false)) {
+                                    if (raid.addPlayer(player.getUuid(), false)) {
                                         player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("joined_raid"), raid)));
                                     }
                                 } else {

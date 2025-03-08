@@ -1,6 +1,5 @@
 package me.unariginal.novaraids.managers;
 
-import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.Boss;
 import me.unariginal.novaraids.utils.TextUtil;
