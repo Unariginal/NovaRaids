@@ -248,7 +248,7 @@ public class TickManager {
 
         double total_weight = 0.0;
         for (Boss boss : possible_bosses) {
-            total_weight += boss.category_weight();
+            total_weight += boss.random_weight();
         }
 
         if (total_weight > 0.0) {
@@ -256,7 +256,7 @@ public class TickManager {
             total_weight = 0.0;
             Boss chosen_boss = possible_bosses.getFirst();
             for (Boss boss : possible_bosses) {
-                total_weight += boss.category_weight();
+                total_weight += boss.random_weight();
                 if (random_weight < total_weight) {
                     chosen_boss = boss;
                     break;

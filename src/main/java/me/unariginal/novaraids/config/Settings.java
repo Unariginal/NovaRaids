@@ -12,8 +12,6 @@ import java.util.Map;
 public record Settings(int raid_radius,
                        int raid_pushback_radius,
                        boolean bosses_glow,
-                       boolean do_health_scaling,
-                       int health_increase,
                        boolean heal_party_on_challenge,
                        boolean use_queue_system,
                        int setup_phase_time,

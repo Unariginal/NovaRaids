@@ -2,7 +2,10 @@ package me.unariginal.novaraids.managers;
 
 import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.drop.DropTable;
+import com.cobblemon.mod.common.api.moves.BenchedMove;
+import com.cobblemon.mod.common.api.moves.Move;
 import com.cobblemon.mod.common.api.pokemon.Natures;
+import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
 import com.cobblemon.mod.common.api.pokemon.stats.Stat;
 import com.cobblemon.mod.common.api.storage.party.PartyStore;
 import com.cobblemon.mod.common.battles.BattleBuilder;
@@ -52,8 +55,12 @@ public class BattleManager {
             pokemon.setScaleModifier(1.0f);
         }
 
-        if (!settings.keep_form()) {
-            pokemon.setForm(pokemon.getSpecies().getStandardForm());
+        if (settings.form_override() != null) {
+            pokemon.setForm(settings.form_override());
+        }
+
+        if (!settings.features_override().isEmpty()) {
+            PokemonProperties.Companion.parse(settings.features_override()).apply(pokemon);
         }
 
         if (!settings.keep_held_item()) {
@@ -71,7 +78,7 @@ public class BattleManager {
         }
 
         if (settings.randomize_ivs()) {
-            IVs new_ivs = IVs.createRandomIVs(0);
+            IVs new_ivs = IVs.createRandomIVs(settings.min_perfect_ivs());
             for (Map.Entry<? extends Stat, ? extends Integer> iv : new_ivs) {
                 pokemon.setIV(iv.getKey(), iv.getValue());
             }
@@ -92,6 +99,18 @@ public class BattleManager {
 
         if (settings.randomize_ability()) {
             pokemon.updateAbility(pokemon.getForm().getAbilities().select(pokemon.getSpecies(), pokemon.getAspects()).getFirst());
+        }
+
+        if (settings.reset_moves()) {
+            pokemon.getMoveSet().clear();
+            int slot = 0;
+            for (BenchedMove move : pokemon.getBenchedMoves()) {
+                pokemon.getMoveSet().setMove(slot, new Move(move.getMoveTemplate(), move.getMoveTemplate().getPp(), move.getPpRaisedStages()));
+                slot++;
+                if (slot > 4) {
+                    break;
+                }
+            }
         }
 
         pokemon.setLevel(settings.level_override());

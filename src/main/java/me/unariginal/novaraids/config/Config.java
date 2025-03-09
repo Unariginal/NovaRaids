@@ -33,7 +33,6 @@ import net.minecraft.util.math.Vec3d;
 
 import java.io.*;
 import java.time.LocalTime;
-import java.time.ZonedDateTime;
 import java.util.*;
 
 public class Config {
@@ -150,8 +149,6 @@ public class Config {
         int raid_radius = settingsObject.get("raid_radius").getAsInt();
         int raid_pushback_radius = settingsObject.get("raid_pushback_radius").getAsInt();
         boolean bosses_glow = settingsObject.get("bosses_glow").getAsBoolean();
-        boolean do_health_scaling = settingsObject.get("do_health_scaling").getAsBoolean();
-        int health_increase = settingsObject.get("health_increase_per_player").getAsInt();
         boolean heal_party_on_challenge = settingsObject.get("heal_party_on_challenge").getAsBoolean();
         boolean use_queue_system = settingsObject.get("use_queue_system").getAsBoolean();
         int setup_phase_time = settingsObject.get("setup_phase_time").getAsInt();
@@ -242,8 +239,6 @@ public class Config {
                 raid_radius,
                 raid_pushback_radius,
                 bosses_glow,
-                do_health_scaling,
-                health_increase,
                 heal_party_on_challenge,
                 use_queue_system,
                 setup_phase_time,
@@ -422,8 +417,9 @@ public class Config {
                     JsonObject boss_details = bossObject.getAsJsonObject("boss_details");
                     String display_form = boss_details.get("display_form").getAsString();
                     int base_health = boss_details.get("base_health").getAsInt();
+                    int health_increase_per_player = boss_details.get("health_increase_per_player").getAsInt();
                     String category = boss_details.get("category").getAsString();
-                    double category_weight = boss_details.get("category_weight").getAsDouble();
+                    double random_weight = boss_details.get("random_weight").getAsDouble();
                     Float facing = boss_details.get("body_direction").getAsFloat();
                     boolean do_catch_phase = boss_details.get("do_catch_phase").getAsBoolean();
 
@@ -460,18 +456,24 @@ public class Config {
                     }
 
                     JsonObject catch_settings = bossObject.getAsJsonObject("catch_settings");
-                    boolean keep_form = catch_settings.get("keep_form").getAsBoolean();
+                    FormData form_override = null;
+                    if (!catch_settings.get("form_override").getAsString().isEmpty()) {
+                        form_override = species.getFormByName(catch_settings.get("form_override").getAsString());
+                    }
+                    String features_override = catch_settings.get("features_override").getAsString();
                     boolean keep_scale = catch_settings.get("keep_scale").getAsBoolean();
                     boolean keep_held_item = catch_settings.get("keep_held_item").getAsBoolean();
                     boolean randomize_ivs = catch_settings.get("randomize_ivs").getAsBoolean();
+                    int min_ivs = catch_settings.get("min_perfect_ivs").getAsInt();
                     boolean keep_evs = catch_settings.get("keep_evs").getAsBoolean();
                     boolean randomize_gender = catch_settings.get("randomize_gender").getAsBoolean();
                     boolean randomize_nature = catch_settings.get("randomize_nature").getAsBoolean();
                     boolean randomize_ability = catch_settings.get("randomize_ability").getAsBoolean();
+                    boolean reset_moves = catch_settings.get("reset_moves").getAsBoolean();
                     int level_override = catch_settings.get("level_override").getAsInt();
                     int shiny_chance = catch_settings.get("shiny_chance").getAsInt();
 
-                    CatchSettings catchSettings = new CatchSettings(keep_form, keep_scale, keep_held_item, randomize_ivs, keep_evs, randomize_gender, randomize_nature, randomize_ability, level_override, shiny_chance);
+                    CatchSettings catchSettings = new CatchSettings(form_override, features_override, keep_scale, keep_held_item, randomize_ivs, min_ivs, keep_evs, randomize_gender, randomize_nature, randomize_ability, reset_moves, level_override, shiny_chance);
 
                     bossesList.add(new Boss(
                             bossFile.getName().replace(".json", ""),
@@ -491,8 +493,9 @@ public class Config {
                             evs,
                             display_form,
                             base_health,
+                            health_increase_per_player,
                             category,
-                            category_weight,
+                            random_weight,
                             facing,
                             do_catch_phase,
                             spawn_locations,

@@ -18,7 +18,6 @@ import me.unariginal.novaraids.utils.BanHandler;
 import me.unariginal.novaraids.utils.TextUtil;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.item.ItemStack;
@@ -605,9 +604,9 @@ public class Raid {
 
             if (index == -1) {
                 participating_players().add(player_uuid);
-                if (nr.config().getSettings().do_health_scaling() && participating_players().size() > 1) {
-                    max_health += nr.config().getSettings().health_increase();
-                    current_health += nr.config().getSettings().health_increase();
+                if (participating_players().size() > 1) {
+                    max_health += boss_info.health_increase_per_player();
+                    current_health += boss_info.health_increase_per_player();
                 }
                 show_bossbar(bossbar_data);
             } else if (index != -2) {

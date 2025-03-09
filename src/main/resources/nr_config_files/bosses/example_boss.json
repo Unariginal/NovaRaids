@@ -72,8 +72,9 @@
   "boss_details": {
     "display_form": "",
     "base_health": 1000,
+    "health_increase_per_player": 100,
     "category": "common",
-    "category_weight": 10.0,
+    "random_weight": 10.0,
     "body_direction": 0.0,
     "do_catch_phase": true,
     "locations": [
@@ -101,14 +102,17 @@
     ]
   },
   "catch_settings": {
-    "keep_form": false,
+    "form_override": "",
+    "features_override": "",
     "keep_scale": false,
     "keep_held_item": false,
     "randomize_ivs": true,
+    "min_perfect_ivs": 0,
     "keep_evs": false,
     "randomize_gender": true,
     "randomize_nature": true,
     "randomize_ability": true,
+    "reset_moves": true,
     "level_override": 1,
     "shiny_chance": 8192
   }
