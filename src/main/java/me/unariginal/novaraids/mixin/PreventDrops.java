@@ -19,7 +19,6 @@ public class PreventDrops {
             Pokemon pokemon = pokemonEntity.getPokemon();
             if (pokemon.getPersistentData().contains("raid_entity")) {
                 if (pokemon.getPersistentData().getBoolean("raid_entity")) {
-                    NovaRaids.INSTANCE.logInfo("[RAIDS] Raid entity detected! (Living Entity Mixin");
                     pokemon.removeHeldItem();
                     pokemonEntity.teleport(pokemonEntity.getX(), -1000, pokemonEntity.getZ(), false);
                 }
