@@ -2,8 +2,7 @@ package me.unariginal.novaraids.managers;
 
 import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.drop.DropTable;
-import com.cobblemon.mod.common.api.moves.BenchedMove;
-import com.cobblemon.mod.common.api.moves.Move;
+import com.cobblemon.mod.common.api.moves.MoveTemplate;
 import com.cobblemon.mod.common.api.pokemon.Natures;
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
 import com.cobblemon.mod.common.api.pokemon.stats.Stat;
@@ -25,6 +24,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.UUID;
 
 public class BattleManager {
@@ -103,9 +103,10 @@ public class BattleManager {
 
         if (settings.reset_moves()) {
             pokemon.getMoveSet().clear();
+            Set<MoveTemplate> moves = pokemon.getSpecies().getMoves().getLevelUpMovesUpTo(pokemon.getLevel());
             int slot = 0;
-            for (BenchedMove move : pokemon.getBenchedMoves()) {
-                pokemon.getMoveSet().setMove(slot, new Move(move.getMoveTemplate(), move.getMoveTemplate().getPp(), move.getPpRaisedStages()));
+            for (MoveTemplate move : moves) {
+                pokemon.getMoveSet().setMove(slot, move.create());
                 slot++;
                 if (slot > 4) {
                     break;
