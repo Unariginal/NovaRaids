@@ -2,6 +2,7 @@ package me.unariginal.novaraids.managers;
 
 import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.battles.model.PokemonBattle;
+import com.cobblemon.mod.common.api.drop.DropTable;
 import com.cobblemon.mod.common.battles.BattleRegistry;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.pokemon.Pokemon;
@@ -351,6 +352,7 @@ public class Raid {
             entity.setGlowing(nr.config().getSettings().bosses_glow());
             entity.setInvulnerable(true);
             entity.setBodyYaw(boss_info().facing());
+            entity.setDrops(new DropTable());
             return Unit.INSTANCE;
         });
     }

@@ -4,7 +4,8 @@
   "package": "me.unariginal.novaraids.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "PreventDrops"
+    "PreventDrops",
+    "PreventHeldItems"
   ],
   "injectors": {
     "defaultRequire": 1

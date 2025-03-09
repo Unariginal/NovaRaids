@@ -11,6 +11,7 @@ import me.unariginal.novaraids.data.rewards.DistributionSection;
 import net.minecraft.component.ComponentChanges;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
 
 import java.util.List;
 import java.util.Map;
@@ -48,16 +49,19 @@ public record Boss(String name,
             total_weight += value;
         }
 
-        double random_weight = new Random().nextDouble(total_weight);
-        total_weight = 0.0;
+        if (total_weight > 0.0) {
+            double random_weight = new Random().nextDouble(total_weight);
+            total_weight = 0.0;
 
-        for (Map.Entry<?, Double> entry : map.entrySet()) {
-            total_weight += entry.getValue();
-            if (total_weight < random_weight) {
-                return entry;
+            for (Map.Entry<?, Double> entry : map.entrySet()) {
+                total_weight += entry.getValue();
+                if (random_weight < total_weight) {
+                    return entry;
+                }
             }
         }
         return map.entrySet().iterator().next();
+
     }
 
     public ComponentChanges get_held_item_data() {
@@ -103,6 +107,10 @@ public record Boss(String name,
         for (Map.Entry<? extends Stat, ? extends Integer> ev : evs) {
             pokemon.setEV(ev.getKey(), ev.getValue());
         }
+
+        NbtCompound nbt = pokemon.getPersistentData();
+        nbt.putBoolean("raid_entity", true);
+        pokemon.setPersistentData$common(nbt);
 
         return pokemon;
     }

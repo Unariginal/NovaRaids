@@ -1,6 +1,7 @@
 package me.unariginal.novaraids.managers;
 
 import com.cobblemon.mod.common.Cobblemon;
+import com.cobblemon.mod.common.api.drop.DropTable;
 import com.cobblemon.mod.common.api.pokemon.Natures;
 import com.cobblemon.mod.common.api.pokemon.stats.Stat;
 import com.cobblemon.mod.common.api.storage.party.PartyStore;
@@ -38,6 +39,7 @@ public class BattleManager {
     public static void invoke_catch_encounter(Raid raid, ServerPlayerEntity player) {
         Pokemon pokemon = raid.raidBoss_pokemon().clone(true, null);
         NbtCompound data = new NbtCompound();
+        data.putBoolean("raid_entity", true);
         data.putBoolean("boss_clone", true);
         data.putBoolean("catch_encounter", true);
         pokemon.setPersistentData$common(data);
@@ -99,7 +101,7 @@ public class BattleManager {
             entity.setNoGravity(true);
             entity.setAiDisabled(true);
             entity.setMovementSpeed(0.0f);
-            entity.setDrops(null);
+            entity.setDrops(new DropTable());
             return Unit.INSTANCE;
         });
 
@@ -115,6 +117,7 @@ public class BattleManager {
     public static void invoke_battle(Raid raid, ServerPlayerEntity player) {
         Pokemon pokemon = raid.raidBoss_pokemon_uncatchable().clone(true, null);
         NbtCompound data = new NbtCompound();
+        data.putBoolean("raid_entity", true);
         data.putBoolean("boss_clone", true);
         data.putBoolean("catch_encounter", false);
         pokemon.setPersistentData$common(data);

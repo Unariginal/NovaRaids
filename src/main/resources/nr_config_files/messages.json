@@ -14,6 +14,7 @@
     "player_damage_report": "%prefix% %raid.player% did %raid.player.damage% to the boss!",
     "no_active_raids": "%prefix% There are no active raids!",
     "no_queued_raids": "%prefix% There are no queued raids!",
+    "no_available_locations": "%prefix% Failed to start raid. All possible locations are busy.",
     "warning_banned_pokemon": "%prefix% %banned.pokemon% is banned from raids!",
     "warning_banned_move": "%prefix% %banned.move% is banned from raids!",
     "warning_banned_ability": "%prefix% %banned.ability% is banned from raids!",

@@ -44,7 +44,6 @@ public class NovaRaids implements ModInitializer {
             reloadConfig();
 
             EventManager.battle_events();
-            EventManager.catch_events();
             EventManager.right_click_events();
             EventManager.player_events();
         });

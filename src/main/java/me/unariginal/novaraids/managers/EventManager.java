@@ -5,6 +5,7 @@ import com.cobblemon.mod.common.api.Priority;
 import com.cobblemon.mod.common.api.battles.model.PokemonBattle;
 import com.cobblemon.mod.common.api.battles.model.actor.BattleActor;
 import com.cobblemon.mod.common.api.events.CobblemonEvents;
+import com.cobblemon.mod.common.api.events.drops.LootDroppedEvent;
 import com.cobblemon.mod.common.battles.ActiveBattlePokemon;
 import com.cobblemon.mod.common.battles.actor.PlayerBattleActor;
 import com.cobblemon.mod.common.battles.actor.PokemonBattleActor;
@@ -42,9 +43,6 @@ import java.util.UUID;
 public class EventManager {
     private static final NovaRaids nr = NovaRaids.INSTANCE;
     private static final Messages messages = nr.config().getMessages();
-
-    public static void catch_events() {
-    }
 
     public static void battle_events() {
         CobblemonEvents.BATTLE_STARTED_PRE.subscribe(Priority.HIGHEST, event -> {
@@ -303,14 +301,15 @@ public class EventManager {
                                 for (int i = 0; i < available_raids.size(); i++) {
                                     int index = i;
                                     GuiElement element = new GuiElementBuilder(PokemonItem.from(available_raids.get(i).species())).setCallback((slot, clickType, slotActionType) -> {
-                                        nr.raidCommands().start(available_raids.get(index), player, held_item);
+                                        if (nr.raidCommands().start(available_raids.get(index), player, held_item) != 0) {
 
-                                        held_item.decrement(1);
-                                        player.setStackInHand(hand, held_item);
+                                            held_item.decrement(1);
+                                            player.setStackInHand(hand, held_item);
 
-                                        player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("used_voucher"), available_raids.get(index))));
+                                            player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("used_voucher"), available_raids.get(index))));
 
-                                        gui.close();
+                                            gui.close();
+                                        }
                                     }).build();
                                     gui.setSlot(i, element);
                                 }
@@ -330,21 +329,22 @@ public class EventManager {
                                     boss_info = available_raids.get(rand.nextInt(available_raids.size()));
                                 }
 
-                                held_item.decrement(1);
-                                player.setStackInHand(hand, held_item);
+                                if (nr.raidCommands().start(boss_info, player, held_item) != 0) {
+                                    held_item.decrement(1);
+                                    player.setStackInHand(hand, held_item);
 
-                                nr.raidCommands().start(boss_info, player, held_item);
-                                player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("used_voucher"), boss_info)));
+                                    player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("used_voucher"), boss_info)));
+                                }
                             } else {
                                 for (Boss boss : nr.config().getBosses()) {
                                     if (boss.name().equalsIgnoreCase(boss_name)) {
-                                        nr.raidCommands().start(boss, player, held_item);
+                                        if (nr.raidCommands().start(boss, player, held_item) != 0) {
 
-                                        held_item.decrement(1);
-                                        player.setStackInHand(hand, held_item);
+                                            held_item.decrement(1);
+                                            player.setStackInHand(hand, held_item);
 
-                                        player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("used_voucher"), boss)));
-
+                                            player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("used_voucher"), boss)));
+                                        }
                                         break;
                                     }
                                 }

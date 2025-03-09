@@ -5,6 +5,8 @@ import com.cobblemon.mod.common.api.abilities.Ability;
 import com.cobblemon.mod.common.api.moves.Move;
 import com.cobblemon.mod.common.item.PokemonItem;
 import com.cobblemon.mod.common.pokemon.Species;
+import com.cobblemon.mod.common.util.LocalizationUtilsKt;
+import com.cobblemon.mod.common.util.MiscUtilsKt;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -31,6 +33,7 @@ import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.ClickEvent;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
@@ -42,6 +45,7 @@ public class RaidCommands {
     public RaidCommands() {
         CommandRegistrationCallback.EVENT.register((commandDispatcher, commandRegistryAccess, registrationEnvironment) -> commandDispatcher.register(
             CommandManager.literal("raid")
+                    .executes(this::modInfo)
                     .then(
                             CommandManager.literal("reload")
                                     .requires(Permissions.require("novaraids.reload", 4))
@@ -250,6 +254,18 @@ public class RaidCommands {
         return 1;
     }
 
+    private int modInfo(CommandContext<ServerCommandSource> ctx) {
+        ServerPlayerEntity player = ctx.getSource().getPlayer();
+        if (player != null) {
+            player.sendMessage(Text.literal("--------- Nova Raids ---------"));
+            player.sendMessage(Text.literal("Author: Unariginal ").append(Text.literal("(Ariginal)").styled(style -> style.withItalic(true))));
+            player.sendMessage(Text.literal("Version: Alpha v0.6.0"));
+            player.sendMessage(Text.literal("Source").styled(style -> style.withUnderline(true).withItalic(true).withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://github.com/Unariginal/NovaRaids"))));
+            player.sendMessage(Text.literal("----------------------------"));
+        }
+        return 1;
+    }
+
     private int checkbanned(CommandContext<ServerCommandSource> ctx) {
         if (ctx.getSource().isExecutedByPlayer()) {
             ServerPlayerEntity player = ctx.getSource().getPlayer();
@@ -288,7 +304,7 @@ public class RaidCommands {
                     slot = 0;
                     for (Ability ability : nr.config().getSettings().banned_abilities()) {
                         GuiElement banned_ability = new GuiElementBuilder(Items.NETHER_STAR)
-                                .setName(Text.literal(ability.getDisplayName()))
+                                .setName(MiscUtilsKt.asTranslated(ability.getDisplayName()))
                                 .build();
                         ability_gui.setSlot(slot, banned_ability);
                         slot++;
@@ -383,44 +399,76 @@ public class RaidCommands {
     }
 
     public int start(Boss boss_info, ServerPlayerEntity player, ItemStack starting_item) {
-        Map<String, Double> spawn_locations = boss_info.spawn_locations();
+        if (!nr.server().getPlayerManager().getPlayerList().isEmpty()) {
+            if (boss_info != null) {
+                Map<String, Double> spawn_locations = boss_info.spawn_locations();
+                Map<String, Double> valid_locations = new HashMap<>();
 
-        Random rand = new Random();
-        double total_weight = 0.0;
-        for (String location : spawn_locations.keySet()) {
-            total_weight += spawn_locations.get(location);
-        }
+                for (String key : spawn_locations.keySet()) {
+                    boolean valid_spawn = true;
+                    for (Raid raid : nr.active_raids().values()) {
+                        if (raid.raidBoss_location().name().equalsIgnoreCase(key)) {
+                            valid_spawn = false;
+                            break;
+                        }
+                    }
+                    if (valid_spawn) {
+                        valid_locations.put(key, spawn_locations.get(key));
+                    }
+                }
 
-        double random_weight = rand.nextDouble(total_weight);
-        total_weight = 0.0;
-        Location spawn_location = null;
-        for (String location : spawn_locations.keySet()) {
-            total_weight += spawn_locations.get(location);
-            if (random_weight < total_weight) {
-                spawn_location = nr.config().getLocation(location);
-                break;
+                Location spawn_location = null;
+
+                if (!valid_locations.isEmpty()) {
+                    Random rand = new Random();
+                    double total_weight = 0.0;
+                    for (String location : valid_locations.keySet()) {
+                        total_weight += valid_locations.get(location);
+                    }
+
+                    double random_weight = rand.nextDouble(total_weight);
+                    total_weight = 0.0;
+
+                    for (String location : valid_locations.keySet()) {
+                        total_weight += valid_locations.get(location);
+                        if (random_weight < total_weight) {
+                            spawn_location = nr.config().getLocation(location);
+                            break;
+                        }
+                    }
+
+                    if (spawn_location == null) {
+                        nr.logError("[RAIDS] Location could not be found.");
+                        return 0;
+                    }
+                } else {
+                    nr.logInfo("[RAIDS] No valid spawn locations found. All possible locations are busy.");
+                    if (player != null) {
+                        player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("no_available_locations"), boss_info)));
+                    }
+                    return 0;
+                }
+
+                if (!nr.config().getSettings().use_queue_system()) {
+                    nr.add_raid(new Raid(boss_info, spawn_location, (player != null) ? player.getUuid() : null, starting_item));
+                } else {
+                    nr.add_queue_item(new QueueItem(UUID.randomUUID(), boss_info, spawn_location, (player != null) ? player.getUuid() : null, starting_item));
+
+                    if (nr.active_raids().isEmpty()) {
+                        nr.init_next_raid();
+                    } else {
+                        if (player != null) {
+                            player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("added_to_queue"), boss_info)));
+                        }
+                    }
+                }
+                return 1;
             }
-        }
-
-        if (spawn_location == null) {
-            nr.logError("[RAIDS] Location could not be found.");
+            nr.logError("[RAIDS] Boss was null!");
             return 0;
         }
-
-        if (!nr.config().getSettings().use_queue_system()) {
-            nr.add_raid(new Raid(boss_info, spawn_location, (player != null) ? player.getUuid() : null, starting_item));
-        } else {
-            nr.add_queue_item(new QueueItem(UUID.randomUUID(), boss_info, spawn_location, (player != null) ? player.getUuid() : null, starting_item));
-
-            if (nr.active_raids().isEmpty()) {
-                nr.init_next_raid();
-            } else {
-                if (player != null) {
-                    player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("added_to_queue"), boss_info)));
-                }
-            }
-        }
-        return 1;
+        nr.logInfo("[RAIDS] No players online!");
+        return 0;
     }
 
     private int stop(CommandContext<ServerCommandSource> ctx) {
