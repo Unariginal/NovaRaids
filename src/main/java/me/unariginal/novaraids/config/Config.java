@@ -53,14 +53,20 @@ public class Config {
             nr.logError("[RAIDS] Failed to generate default configuration files. Error: " + e.getMessage());
         }
 
-        loadConfig();
-        loadMessages();
-        loadBossBars();
-        loadLocations();
-        loadRewards();
-        loadRewardPools();
-        loadCategories();
-        loadBosses();
+        try {
+            loadConfig();
+            loadMessages();
+            loadBossBars();
+            loadLocations();
+            loadRewards();
+            loadRewardPools();
+            loadCategories();
+            loadBosses();
+        } catch (NullPointerException e) {
+            nr.logError("[RAIDS] Failed to load config files. Error: " + e.getMessage());
+        } catch (UnsupportedOperationException u) {
+            nr.logError("[RAIDS] Failed to parse json element. Error: " + u.getMessage());
+        }
     }
 
     private void checkFiles() throws IOException {
@@ -127,12 +133,21 @@ public class Config {
         try {
             return JsonParser.parseReader(new FileReader(file));
         } catch (FileNotFoundException e) {
-            nr.logError("[RAIDS] Failed to load file. Error: " + e.getMessage());
-            return null;
+            nr.logError("[RAIDS] Failed to load file " + file.getName() + " at root object.");
+            throw new NullPointerException();
         }
     }
 
-    private void loadConfig() {
+    private JsonElement getSafe(JsonObject obj, String key, String type, String context) {
+        if (obj.get(key) != null) {
+            return obj.get(key);
+        } else {
+            nr.logError("[RAIDS] Failed to find " + type + " '" + key + "' at " + context + ".");
+            throw new NullPointerException();
+        }
+    }
+
+    private void loadConfig() throws NullPointerException, UnsupportedOperationException {
         File configFile = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/config.json").toFile();
 
         JsonElement root = getRoot(configFile);
@@ -140,28 +155,28 @@ public class Config {
         JsonObject config = root.getAsJsonObject();
         nr.logInfo("[RAIDS] Loading config..");
 
-        nr.debug = config.get("debug").getAsBoolean();
+        nr.debug = getSafe(config, "debug", "boolean", "config.json").getAsBoolean();
 
-        TimeZone timezone = TimeZone.getTimeZone(config.get("timezone").getAsString().toUpperCase());
+        TimeZone timezone = TimeZone.getTimeZone(getSafe(config, "timezone", "String", "config.json").getAsString().toUpperCase());
         TimeZone.setDefault(timezone);
 
-        JsonObject settingsObject = config.getAsJsonObject("raid_settings");
-        int raid_radius = settingsObject.get("raid_radius").getAsInt();
-        int raid_pushback_radius = settingsObject.get("raid_pushback_radius").getAsInt();
-        boolean bosses_glow = settingsObject.get("bosses_glow").getAsBoolean();
-        boolean heal_party_on_challenge = settingsObject.get("heal_party_on_challenge").getAsBoolean();
-        boolean use_queue_system = settingsObject.get("use_queue_system").getAsBoolean();
-        int setup_phase_time = settingsObject.get("setup_phase_time").getAsInt();
-        int fight_phase_time = settingsObject.get("fight_phase_time").getAsInt();
-        int pre_catch_phase_time = settingsObject.get("pre_catch_phase_time").getAsInt();
-        int catch_phase_time = settingsObject.get("catch_phase_time").getAsInt();
+        JsonObject settingsObject = getSafe(config, "raid_settings", "Json Object", "config.json").getAsJsonObject();
+        int raid_radius = getSafe(settingsObject, "raid_radius", "Integer", "config.json/raid_settings").getAsInt();
+        int raid_pushback_radius = getSafe(settingsObject, "raid_pushback_radius", "Integer", "config.json/raid_settings").getAsInt();
+        boolean bosses_glow = getSafe(settingsObject, "bosses_glow", "Boolean", "config.json/raid_settings").getAsBoolean();
+        boolean heal_party_on_challenge = getSafe(settingsObject, "heal_party_on_challenge", "Boolean", "config.json/raid_settings").getAsBoolean();
+        boolean use_queue_system = getSafe(settingsObject, "use_queue_system", "Boolean", "config.json/raid_settings").getAsBoolean();
+        int setup_phase_time = getSafe(settingsObject, "setup_phase_time", "Boolean", "config.json/raid_settings").getAsInt();
+        int fight_phase_time = getSafe(settingsObject, "fight_phase_time", "Integer", "config.json/raid_settings").getAsInt();
+        int pre_catch_phase_time = getSafe(settingsObject, "pre_catch_phase_time", "Integer", "config.json/raid_settings").getAsInt();
+        int catch_phase_time = getSafe(settingsObject, "catch_phase_time", "Integer", "config.json/raid_settings").getAsInt();
 
-        JsonObject banned_section = settingsObject.getAsJsonObject("banned_section");
-        JsonArray banned_pokemon = banned_section.getAsJsonArray("banned_pokemon");
-        JsonArray banned_moves = banned_section.getAsJsonArray("banned_moves");
-        JsonArray banned_abilities = banned_section.getAsJsonArray("banned_abilities");
-        JsonArray banned_held_items = banned_section.getAsJsonArray("banned_held_items");
-        JsonArray banned_bag_items = banned_section.getAsJsonArray("banned_bag_items");
+        JsonObject banned_section = getSafe(settingsObject, "banned_section", "Json Object", "config.json/raid_settings").getAsJsonObject();
+        JsonArray banned_pokemon = getSafe(banned_section, "banned_pokemon", "Json String Array", "config.json/raid_settings/banned_section").getAsJsonArray();
+        JsonArray banned_moves = getSafe(banned_section, "banned_moves", "Json String Array", "config.json/raid_settings/banned_section").getAsJsonArray();
+        JsonArray banned_abilities = getSafe(banned_section, "banned_abilities", "Json String Array", "config.json/raid_settings/banned_section").getAsJsonArray();
+        JsonArray banned_held_items = getSafe(banned_section, "banned_held_items", "Json String Array", "config.json/raid_settings/banned_section").getAsJsonArray();
+        JsonArray banned_bag_items = getSafe(banned_section, "banned_bag_items", "Json String Array", "config.json/raid_settings/banned_section").getAsJsonArray();
 
         List<Species> banned_pokemon_list = new ArrayList<>();
         for (JsonElement element : banned_pokemon) {
@@ -204,28 +219,28 @@ public class Config {
             banned_bag_item_list.add(item);
         }
 
-        JsonObject items = settingsObject.getAsJsonObject("items");
-        Item voucher_item = Registries.ITEM.get(Identifier.of(items.get("voucher_item").getAsString()));
+        JsonObject items = getSafe(settingsObject, "items", "Json Object", "config.json/raid_settings").getAsJsonObject();
+        Item voucher_item = Registries.ITEM.get(Identifier.of(getSafe(items, "voucher_item", "String", "config.json/raid_settings/items").getAsString()));
         ComponentChanges voucher_item_data = null;
         if (items.get("voucher_item_data") != null) {
             DataResult<Pair<ComponentChanges, JsonElement>> data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, items.get("voucher_item_data"));
             voucher_item_data = data.getOrThrow().getFirst();
         }
-        Item pass_item = Registries.ITEM.get(Identifier.of(items.get("pass_item").getAsString()));
+        Item pass_item = Registries.ITEM.get(Identifier.of(getSafe(items, "pass_item", "String", "config.json/raid_settings/items").getAsString()));
         ComponentChanges pass_item_data = null;
         if (items.get("pass_item_data") != null) {
             DataResult<Pair<ComponentChanges, JsonElement>> data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, items.get("pass_item_data"));
             pass_item_data = data.getOrThrow().getFirst();
         }
 
-        boolean use_raid_pokeballs = items.get("use_raid_pokeballs").getAsBoolean();
+        boolean use_raid_pokeballs = getSafe(items, "use_raid_pokeballs", "Boolean", "config.json/raid_settings/items").getAsBoolean();
         Map<String, Item> pokeball_items = new HashMap<>();
         Map<String, ComponentChanges> pokeball_item_data = new HashMap<>();
         if (use_raid_pokeballs) {
-            JsonObject balls = items.getAsJsonObject("raid_pokeballs");
+            JsonObject balls = getSafe(items, "raid_pokeballs", "Json Object", "config.json/raid_settings/items").getAsJsonObject();
             for (String key : balls.keySet()) {
-                JsonObject ball = balls.getAsJsonObject(key);
-                Item ball_item = Registries.ITEM.get(Identifier.of(ball.get("pokeball").getAsString()));
+                JsonObject ball = getSafe(balls, key, "Json Object", "config.json/raid_settings/items/raid_pokeballs").getAsJsonObject();
+                Item ball_item = Registries.ITEM.get(Identifier.of(getSafe(ball, "pokeball", "String", "config.json/raid_settings/items/raid_pokeballs/" + key).getAsString()));
                 ComponentChanges ball_data = null;
                 if (ball.get("data") != null) {
                     ball_data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, ball.get("data")).getOrThrow().getFirst();
@@ -260,7 +275,7 @@ public class Config {
         );
     }
 
-    private void loadCategories() {
+    private void loadCategories() throws NullPointerException, UnsupportedOperationException {
         File categoriesFile = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/categories.json").toFile();
 
         JsonElement root = getRoot(categoriesFile);
@@ -270,38 +285,37 @@ public class Config {
 
         List<Category> categoriesList = new ArrayList<>();
         for (String category : categories.keySet()) {
-            JsonObject categoryObject = categories.get(category).getAsJsonObject();
+            JsonObject categoryObject = getSafe(categories, category, "Json Object", "categories.json").getAsJsonObject();
 
-            boolean require_pass = categoryObject.get("require_pass").getAsBoolean();
+            boolean require_pass = getSafe(categoryObject, "require_pass", "Boolean", "categories.json/" + category).getAsBoolean();
 
-            JsonObject player_count = categoryObject.getAsJsonObject("player_count");
-            int min_players = player_count.get("min").getAsInt();
-            int max_players = player_count.get("max").getAsInt();
+            JsonObject player_count = getSafe(categoryObject, "player_count", "Json Object", "categories.json/" + category).getAsJsonObject();
+            int min_players = getSafe(player_count, "min", "Integer", "categories.json/" + category + "/player_count").getAsInt();
+            int max_players = getSafe(player_count, "max", "Integer", "categories.json/" + category + "/player_count").getAsInt();
 
-            JsonObject random_wait_time = categoryObject.getAsJsonObject("random_wait_time");
-            int min_wait_time = random_wait_time.get("min").getAsInt();
-            int max_wait_time = random_wait_time.get("max").getAsInt();
+            JsonObject random_wait_time = getSafe(categoryObject, "random_wait_time", "Json Object", "categories.json/" + category).getAsJsonObject();
+            int min_wait_time = getSafe(random_wait_time, "min", "Integer", "categories.json/" + category + "/random_wait_time").getAsInt();
+            int max_wait_time = getSafe(random_wait_time, "max", "Integer", "categories.json/" + category + "/random_wait_time").getAsInt();
 
-            JsonArray set_times = categoryObject.getAsJsonArray("set_times");
+            JsonArray set_times = getSafe(categoryObject, "set_times", "Json String Array", "categories.json/" + category).getAsJsonArray();
             List<LocalTime> set_times_list = new ArrayList<>();
             for (JsonElement element : set_times) {
                 String time = element.getAsString();
                 set_times_list.add(LocalTime.parse(time));
-                nr.logInfo("[RAIDS] Setting set time: " + LocalTime.parse(time));
             }
 
-            JsonArray rewards = categoryObject.getAsJsonArray("rewards");
+            JsonArray rewards = getSafe(categoryObject, "rewards", "Json Object Array", "categories.json/" + category).getAsJsonArray();
             List<DistributionSection> rewards_list = new ArrayList<>();
             for (JsonElement element : rewards) {
                 JsonObject sectionObj = element.getAsJsonObject();
                 List<Place> places = new ArrayList<>();
-                JsonArray placesArr = sectionObj.getAsJsonArray("places");
+                JsonArray placesArr = getSafe(sectionObj, "places", "Json Object Array", "categories.json/" + category + "/rewards").getAsJsonArray();
                 for (JsonElement placeElement : placesArr) {
                     JsonObject placeObj = placeElement.getAsJsonObject();
-                    places.add(new Place(placeObj.get("place").getAsString(), placeObj.get("allow_other_rewards").getAsBoolean()));
+                    places.add(new Place(getSafe(placeObj, "place", "String", "categories.json/" + category + "/rewards/places").getAsString(), placeObj.get("allow_other_rewards").getAsBoolean()));
                 }
                 List<RewardPool> pools = new ArrayList<>();
-                JsonArray poolsArr = sectionObj.getAsJsonArray("reward_pools");
+                JsonArray poolsArr = getSafe(sectionObj, "reward_pools", "Json String Array", "categories.json/" + category + "/rewards").getAsJsonArray();
                 for (JsonElement poolElement : poolsArr) {
                     String poolObj = poolElement.getAsString();
                     for (RewardPool rewardPool : reward_pools) {
@@ -318,7 +332,7 @@ public class Config {
         this.categories = categoriesList;
     }
 
-    private void loadBosses() {
+    private void loadBosses() throws NullPointerException, UnsupportedOperationException {
         File bossesFolder = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/bosses").toFile();
         if (!bossesFolder.exists()) {
             if (!bossesFolder.mkdirs()) {
@@ -332,54 +346,54 @@ public class Config {
                 JsonElement root = getRoot(bossFile);
                 assert root != null;
                 JsonObject bossObject = root.getAsJsonObject();
-                JsonObject pokemon_details = bossObject.getAsJsonObject("pokemon_details");
-                Species species = PokemonSpecies.INSTANCE.getByName(pokemon_details.get("species").getAsString());
+                JsonObject pokemon_details = getSafe(bossObject, "pokemon_details", "Json Object", bossFile.getName()).getAsJsonObject();
+                Species species = PokemonSpecies.INSTANCE.getByName(getSafe(pokemon_details, "species", "String", bossFile.getName() + "/pokemon_details").getAsString());
                 if (species != null) {
-                    int level = pokemon_details.get("level").getAsInt();
+                    int level = getSafe(pokemon_details, "level", "Integer", bossFile.getName() + "/pokemon_details").getAsInt();
 
                     Map<Ability, Double> possible_abilities = new HashMap<>();
-                    JsonArray abilities = pokemon_details.getAsJsonArray("ability");
+                    JsonArray abilities = getSafe(pokemon_details, "ability", "Json Object Array", bossFile.getName() + "/pokemon_details").getAsJsonArray();
                     for (JsonElement element : abilities) {
                         JsonObject abilityObj = element.getAsJsonObject();
-                        String ability = abilityObj.get("ability").getAsString();
+                        String ability = getSafe(abilityObj, "ability", "String", bossFile.getName() + "/pokemon_details/ability").getAsString();
                         AbilityTemplate abilityTemplate = Abilities.INSTANCE.get(ability);
                         if (abilityTemplate != null) {
-                            possible_abilities.put(abilityTemplate.create(false, Priority.LOWEST), abilityObj.get("weight").getAsDouble());
+                            possible_abilities.put(abilityTemplate.create(false, Priority.LOWEST), getSafe(abilityObj, "weight", "Double", bossFile.getName() + "/pokemon_details/ability").getAsDouble());
                         }
                     }
 
                     Map<Nature, Double> possible_natures = new HashMap<>();
-                    JsonArray natures = pokemon_details.getAsJsonArray("nature");
+                    JsonArray natures = getSafe(pokemon_details, "nature", "Json Object Array", bossFile.getName() + "/pokemon_details").getAsJsonArray();
                     for (JsonElement element : natures) {
                         JsonObject natureObj = element.getAsJsonObject();
-                        String nature_str = natureObj.get("nature").getAsString();
+                        String nature_str = getSafe(natureObj, "nature", "String", bossFile.getName() + "/pokemon_details/nature").getAsString();
                         Nature nature = Natures.INSTANCE.getNature(nature_str);
                         if (nature != null) {
-                            possible_natures.put(nature, natureObj.get("weight").getAsDouble());
+                            possible_natures.put(nature, getSafe(natureObj, "weight", "Double", bossFile.getName() + "/pokemon_details/nature").getAsDouble());
                         }
                     }
 
-                    String form_str = pokemon_details.get("form").getAsString();
+                    String form_str = getSafe(pokemon_details, "form", "String", bossFile.getName() + "/pokemon_details").getAsString();
                     FormData form = species.getFormByName(form_str);
 
-                    String features = pokemon_details.get("features").getAsString();
+                    String features = getSafe(pokemon_details, "features", "String", bossFile.getName() + "/pokemon_details").getAsString();
 
                     Map<Gender, Double> possible_genders = new HashMap<>();
-                    JsonArray genders = pokemon_details.getAsJsonArray("gender");
+                    JsonArray genders = getSafe(pokemon_details, "gender", "Json Object Array", bossFile.getName() + "/pokemon_details").getAsJsonArray();
                     for (JsonElement element : genders) {
                         JsonObject genderObj = element.getAsJsonObject();
-                        String gender_str = genderObj.get("gender").getAsString();
+                        String gender_str = getSafe(genderObj, "gender", "String", bossFile.getName() + "/pokemon_details/gender").getAsString();
                         Gender gender = Gender.valueOf(gender_str.toUpperCase());
-                        possible_genders.put(gender, genderObj.get("weight").getAsDouble());
+                        possible_genders.put(gender, getSafe(genderObj, "weight", "Double", bossFile.getName() + "/pokemon_details/gender").getAsDouble());
                     }
 
-                    boolean shiny = pokemon_details.get("shiny").getAsBoolean();
-                    float scale = pokemon_details.get("scale").getAsFloat();
+                    boolean shiny = getSafe(pokemon_details, "shiny", "Boolean", bossFile.getName() + "/pokemon_details").getAsBoolean();
+                    float scale = getSafe(pokemon_details, "scale", "Float", bossFile.getName() + "/pokemon_details").getAsFloat();
 
-                    String held_item_string = pokemon_details.get("held_item").getAsString();
+                    String held_item_string = getSafe(pokemon_details, "held_item", "String", bossFile.getName() + "/pokemon_details").getAsString();
                     Item held_item = null;
-                    if (held_item_string != null && !held_item_string.isEmpty()) {
-                        held_item = Registries.ITEM.get(Identifier.of(pokemon_details.get("held_item").getAsString()));
+                    if (!held_item_string.isEmpty()) {
+                        held_item = Registries.ITEM.get(Identifier.of(held_item_string));
                     }
 
                     JsonElement held_item_data = null;
@@ -388,7 +402,7 @@ public class Config {
                     }
 
                     MoveSet moves = new MoveSet();
-                    JsonArray moves_list = pokemon_details.getAsJsonArray("moves");
+                    JsonArray moves_list = getSafe(pokemon_details, "moves", "Json String Array", bossFile.getName() + "/pokemon_details").getAsJsonArray();
                     for (int i = 0; (i < moves_list.size() && i < 4); i++) {
                         MoveTemplate moveTemplate = Moves.INSTANCE.getByName(moves_list.get(i).getAsString());
                         if (moveTemplate != null) {
@@ -396,54 +410,54 @@ public class Config {
                         }
                     }
 
-                    JsonObject ivObject = pokemon_details.getAsJsonObject("ivs");
+                    JsonObject ivObject = getSafe(pokemon_details, "ivs", "Json Object", bossFile.getName() + "/pokemon_details").getAsJsonObject();
                     IVs ivs = new IVs();
-                    ivs.set(Stats.HP, ivObject.get("hp").getAsInt());
-                    ivs.set(Stats.ATTACK, ivObject.get("atk").getAsInt());
-                    ivs.set(Stats.DEFENCE, ivObject.get("def").getAsInt());
-                    ivs.set(Stats.SPECIAL_ATTACK, ivObject.get("sp_atk").getAsInt());
-                    ivs.set(Stats.SPECIAL_DEFENCE, ivObject.get("sp_def").getAsInt());
-                    ivs.set(Stats.SPEED, ivObject.get("spd").getAsInt());
+                    ivs.set(Stats.HP, getSafe(ivObject, "hp", "Integer", bossFile.getName() + "/pokemon_details/ivs").getAsInt());
+                    ivs.set(Stats.ATTACK, getSafe(ivObject, "atk", "Integer", bossFile.getName() + "/pokemon_details/ivs").getAsInt());
+                    ivs.set(Stats.DEFENCE, getSafe(ivObject, "def", "Integer", bossFile.getName() + "/pokemon_details/ivs").getAsInt());
+                    ivs.set(Stats.SPECIAL_ATTACK, getSafe(ivObject, "sp_atk", "Integer", bossFile.getName() + "/pokemon_details/ivs").getAsInt());
+                    ivs.set(Stats.SPECIAL_DEFENCE, getSafe(ivObject, "sp_def", "Integer", bossFile.getName() + "/pokemon_details/ivs").getAsInt());
+                    ivs.set(Stats.SPEED, getSafe(ivObject, "spd", "Integer", bossFile.getName() + "/pokemon_details/ivs").getAsInt());
 
-                    JsonObject evObject = pokemon_details.getAsJsonObject("evs");
+                    JsonObject evObject = getSafe(pokemon_details, "evs", "Json Object", bossFile.getName() + "/pokemon_details").getAsJsonObject();
                     EVs evs = new EVs();
-                    evs.set(Stats.HP, evObject.get("hp").getAsInt());
-                    evs.set(Stats.ATTACK, evObject.get("atk").getAsInt());
-                    evs.set(Stats.DEFENCE, evObject.get("def").getAsInt());
-                    evs.set(Stats.SPECIAL_ATTACK, evObject.get("sp_atk").getAsInt());
-                    evs.set(Stats.SPECIAL_DEFENCE, evObject.get("sp_def").getAsInt());
-                    evs.set(Stats.SPEED, evObject.get("spd").getAsInt());
+                    evs.set(Stats.HP, getSafe(evObject, "hp", "Integer", bossFile.getName() + "/pokemon_details/evs").getAsInt());
+                    evs.set(Stats.ATTACK, getSafe(evObject, "atk", "Integer", bossFile.getName() + "/pokemon_details/evs").getAsInt());
+                    evs.set(Stats.DEFENCE, getSafe(evObject, "def", "Integer", bossFile.getName() + "/pokemon_details/evs").getAsInt());
+                    evs.set(Stats.SPECIAL_ATTACK, getSafe(evObject, "sp_atk", "Integer", bossFile.getName() + "/pokemon_details/evs").getAsInt());
+                    evs.set(Stats.SPECIAL_DEFENCE, getSafe(evObject, "sp_def", "Integer", bossFile.getName() + "/pokemon_details/evs").getAsInt());
+                    evs.set(Stats.SPEED, getSafe(evObject, "spd", "Integer", bossFile.getName() + "/pokemon_details/evs").getAsInt());
 
-                    JsonObject boss_details = bossObject.getAsJsonObject("boss_details");
-                    String display_form = boss_details.get("display_form").getAsString();
-                    int base_health = boss_details.get("base_health").getAsInt();
-                    int health_increase_per_player = boss_details.get("health_increase_per_player").getAsInt();
-                    String category = boss_details.get("category").getAsString();
-                    double random_weight = boss_details.get("random_weight").getAsDouble();
-                    Float facing = boss_details.get("body_direction").getAsFloat();
-                    boolean do_catch_phase = boss_details.get("do_catch_phase").getAsBoolean();
+                    JsonObject boss_details = getSafe(bossObject, "boss_details", "Json Object", bossFile.getName()).getAsJsonObject();
+                    String display_form = getSafe(boss_details, "display_form", "String", bossFile.getName() + "/boss_details").getAsString();
+                    int base_health = getSafe(boss_details, "base_health", "Integer", bossFile.getName() + "/boss_details").getAsInt();
+                    int health_increase_per_player = getSafe(boss_details, "health_increase_per_player", "Integer", bossFile.getName() + "/boss_details").getAsInt();
+                    String category = getSafe(boss_details, "category", "String", bossFile.getName() + "/boss_details").getAsString();
+                    double random_weight = getSafe(boss_details, "random_weight", "Double", bossFile.getName() + "/boss_details").getAsDouble();
+                    Float facing = getSafe(boss_details, "body_direction", "Float", bossFile.getName() + "/boss_details").getAsFloat();
+                    boolean do_catch_phase = getSafe(boss_details, "do_catch_phase", "Boolean", bossFile.getName() + "/boss_details").getAsBoolean();
 
                     Map<String, Double> spawn_locations = new HashMap<>();
-                    JsonArray locations = boss_details.getAsJsonArray("locations");
+                    JsonArray locations = getSafe(boss_details, "locations", "Json Object Array", bossFile.getName() + "/boss_details").getAsJsonArray();
                     for (JsonElement element : locations) {
                         JsonObject locationObject = element.getAsJsonObject();
-                        String location = locationObject.get("location").getAsString();
-                        double weight = locationObject.get("weight").getAsDouble();
+                        String location = getSafe(locationObject, "location", "String", bossFile.getName() + "/boss_details/locations").getAsString();
+                        double weight = getSafe(locationObject, "weight", "Double", bossFile.getName() + "/boss_details/locations").getAsDouble();
                         spawn_locations.put(location, weight);
                     }
 
-                    JsonArray rewards_override = boss_details.getAsJsonArray("rewards_override");
+                    JsonArray rewards_override = getSafe(boss_details, "rewards_override", "Json Object Array", bossFile.getName() + "/boss_details").getAsJsonArray();
                     List<DistributionSection> rewards_list = new ArrayList<>();
                     for (JsonElement element : rewards_override) {
                         JsonObject sectionObj = element.getAsJsonObject();
                         List<Place> places = new ArrayList<>();
-                        JsonArray placesArr = sectionObj.getAsJsonArray("places");
+                        JsonArray placesArr = getSafe(sectionObj, "places", "Json Object Array", bossFile.getName() + "/boss_details/rewards_override").getAsJsonArray();
                         for (JsonElement placeElement : placesArr) {
                             JsonObject placeObj = placeElement.getAsJsonObject();
-                            places.add(new Place(placeObj.get("place").getAsString(), placeObj.get("allow_other_rewards").getAsBoolean()));
+                            places.add(new Place(getSafe(placeObj, "place", "String", bossFile.getName() + "/boss_details/rewards_override/places").getAsString(), getSafe(placeObj, "allow_other_rewards", "Boolean", bossFile.getName() + "/boss_details/rewards_override/places").getAsBoolean()));
                         }
                         List<RewardPool> pools = new ArrayList<>();
-                        JsonArray poolsArr = sectionObj.getAsJsonArray("reward_pools");
+                        JsonArray poolsArr = getSafe(sectionObj, "reward_pools", "Json String Array", bossFile.getName() + "/boss_details/rewards_override").getAsJsonArray();
                         for (JsonElement poolElement : poolsArr) {
                             String poolObj = poolElement.getAsString();
                             for (RewardPool rewardPool : reward_pools) {
@@ -455,23 +469,23 @@ public class Config {
                         rewards_list.add(new DistributionSection(places, pools));
                     }
 
-                    JsonObject catch_settings = bossObject.getAsJsonObject("catch_settings");
+                    JsonObject catch_settings = getSafe(bossObject, "catch_settings", "Json Object", bossFile.getName()).getAsJsonObject();
                     FormData form_override = null;
-                    if (!catch_settings.get("form_override").getAsString().isEmpty()) {
+                    if (!getSafe(catch_settings, "form_override", "String", bossFile.getName() + "/catch_settings").getAsString().isEmpty()) {
                         form_override = species.getFormByName(catch_settings.get("form_override").getAsString());
                     }
-                    String features_override = catch_settings.get("features_override").getAsString();
-                    boolean keep_scale = catch_settings.get("keep_scale").getAsBoolean();
-                    boolean keep_held_item = catch_settings.get("keep_held_item").getAsBoolean();
-                    boolean randomize_ivs = catch_settings.get("randomize_ivs").getAsBoolean();
-                    int min_ivs = catch_settings.get("min_perfect_ivs").getAsInt();
-                    boolean keep_evs = catch_settings.get("keep_evs").getAsBoolean();
-                    boolean randomize_gender = catch_settings.get("randomize_gender").getAsBoolean();
-                    boolean randomize_nature = catch_settings.get("randomize_nature").getAsBoolean();
-                    boolean randomize_ability = catch_settings.get("randomize_ability").getAsBoolean();
-                    boolean reset_moves = catch_settings.get("reset_moves").getAsBoolean();
-                    int level_override = catch_settings.get("level_override").getAsInt();
-                    int shiny_chance = catch_settings.get("shiny_chance").getAsInt();
+                    String features_override = getSafe(catch_settings, "features_override", "String", bossFile.getName() + "/catch_settings").getAsString();
+                    boolean keep_scale = getSafe(catch_settings, "keep_scale", "Boolean", bossFile.getName() + "/catch_settings").getAsBoolean();
+                    boolean keep_held_item = getSafe(catch_settings, "keep_held_item", "Boolean", bossFile.getName() + "/catch_settings").getAsBoolean();
+                    boolean randomize_ivs = getSafe(catch_settings, "randomize_ivs", "Boolean", bossFile.getName() + "/catch_settings").getAsBoolean();
+                    int min_ivs = getSafe(catch_settings, "min_perfect_ivs", "Integer", bossFile.getName() + "/catch_settings").getAsInt();
+                    boolean keep_evs = getSafe(catch_settings, "keep_evs", "Boolean", bossFile.getName() + "/catch_settings").getAsBoolean();
+                    boolean randomize_gender = getSafe(catch_settings, "randomize_gender", "Boolean", bossFile.getName() + "/catch_settings").getAsBoolean();
+                    boolean randomize_nature = getSafe(catch_settings, "randomize_nature", "Boolean", bossFile.getName() + "/catch_settings").getAsBoolean();
+                    boolean randomize_ability = getSafe(catch_settings, "randomize_ability", "Boolean", bossFile.getName() + "/catch_settings").getAsBoolean();
+                    boolean reset_moves = getSafe(catch_settings, "reset_moves", "Boolean", bossFile.getName() + "/catch_settings").getAsBoolean();
+                    int level_override = getSafe(catch_settings, "level_override", "Integer", bossFile.getName() + "/catch_settings").getAsInt();
+                    int shiny_chance = getSafe(catch_settings, "shiny_chance", "Integer", bossFile.getName() + "/catch_settings").getAsInt();
 
                     CatchSettings catchSettings = new CatchSettings(form_override, features_override, keep_scale, keep_held_item, randomize_ivs, min_ivs, keep_evs, randomize_gender, randomize_nature, randomize_ability, reset_moves, level_override, shiny_chance);
 
@@ -511,7 +525,7 @@ public class Config {
         }
     }
 
-    private void loadLocations() {
+    private void loadLocations() throws NullPointerException, UnsupportedOperationException {
         File locationsFile = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/locations.json").toFile();
 
         JsonElement root = getRoot(locationsFile);
@@ -520,14 +534,14 @@ public class Config {
         JsonObject locationsObject = root.getAsJsonObject();
         List<Location> locationsList = new ArrayList<>();
         for (String location : locationsObject.keySet()) {
-            JsonObject locationObject = locationsObject.getAsJsonObject(location);
+            JsonObject locationObject = getSafe(locationsObject, location, "Json Object", "locations.json").getAsJsonObject();
 
-            double x = locationObject.get("x_pos").getAsDouble();
-            double y = locationObject.get("y_pos").getAsDouble();
-            double z = locationObject.get("z_pos").getAsDouble();
+            double x = getSafe(locationObject, "x_pos", "Double", "locations.json/" + location).getAsDouble();
+            double y = getSafe(locationObject, "y_pos", "Double", "locations.json/" + location).getAsDouble();
+            double z = getSafe(locationObject, "z_pos", "Double", "locations.json/" + location).getAsDouble();
             Vec3d pos = new Vec3d(x, y, z);
 
-            String world_path = locationObject.get("world").getAsString();
+            String world_path = getSafe(locationObject, "world", "String", "locations.json/" + location).getAsString();
             ServerWorld world = nr.server().getOverworld();
             for (ServerWorld world_loop : nr.server().getWorlds()) {
                 if ((world_loop.getRegistryKey().getValue().getNamespace() + ":" + world_loop.getRegistryKey().getValue().getPath()).equalsIgnoreCase(world_path)) {
@@ -543,7 +557,7 @@ public class Config {
         nr.logInfo("[RAIDS] Loaded " + locations.size() + " locations");
     }
 
-    private void loadBossBars() {
+    private void loadBossBars() throws NullPointerException, UnsupportedOperationException {
         File bossbarsFile = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/bossbars.json").toFile();
 
         JsonElement root = getRoot(bossbarsFile);
@@ -552,30 +566,30 @@ public class Config {
         JsonObject bossbarsObject = root.getAsJsonObject();
         List<BossbarData> bossbarDataList = new ArrayList<>();
         for (String bossbar : bossbarsObject.keySet()) {
-            JsonObject bossbarObject = bossbarsObject.getAsJsonObject(bossbar);
-            String phase = bossbarObject.get("phase").getAsString();
-            boolean use_overlay = bossbarObject.get("use_overlay").getAsBoolean();
-            String overlay_text = bossbarObject.get("overlay_text").getAsString();
-            String bar_color = bossbarObject.get("bar_color").getAsString();
-            String bar_style = bossbarObject.get("bar_style").getAsString();
-            String bar_text = bossbarObject.get("bar_text").getAsString();
-            List<String> bosses = bossbarObject.getAsJsonArray("bosses").asList().stream().map(JsonElement::getAsString).toList();
-            List<String> categories = bossbarObject.getAsJsonArray("categories").asList().stream().map(JsonElement::getAsString).toList();
+            JsonObject bossbarObject = getSafe(bossbarsObject, bossbar, "Json Object", "bossbars.json").getAsJsonObject();
+            String phase = getSafe(bossbarObject, "phase", "String", "bossbars.json/" + bossbar).getAsString();
+            boolean use_overlay = getSafe(bossbarObject, "use_overlay", "Boolean", "bossbars.json/" + bossbar).getAsBoolean();
+            String overlay_text = getSafe(bossbarObject, "overlay_text", "String", "bossbars.json/" + bossbar).getAsString();
+            String bar_color = getSafe(bossbarObject, "bar_color", "String", "bossbars.json/" + bossbar).getAsString();
+            String bar_style = getSafe(bossbarObject, "bar_style", "String", "bossbars.json/" + bossbar).getAsString();
+            String bar_text = getSafe(bossbarObject, "bar_text", "String", "bossbars.json/" + bossbar).getAsString();
+            List<String> bosses = getSafe(bossbarObject, "bosses", "Json String Array", "bossbars.json/" + bossbar).getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList();
+            List<String> categories = getSafe(bossbarObject, "categories", "Json String Array", "bossbars.json/" + bossbar).getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList();
             bossbarDataList.add(new BossbarData(bossbar, phase, use_overlay, overlay_text, bar_color, bar_style, bar_text, bosses, categories));
         }
         this.bossbars = bossbarDataList;
         nr.logInfo("[RAIDS] Loaded " + bossbars.size() + " bossbars");
     }
 
-    private void loadMessages() {
+    private void loadMessages() throws NullPointerException, UnsupportedOperationException {
         File messagesFile = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/messages.json").toFile();
         JsonElement root = getRoot(messagesFile);
         assert root != null;
         JsonObject messagesObject = root.getAsJsonObject();
         Map<String, String> messages_map = new HashMap<>();
-        String prefix = messagesObject.get("prefix").getAsString();
-        String command = messagesObject.get("raid_start_command").getAsString();
-        JsonObject messages = messagesObject.getAsJsonObject("messages");
+        String prefix = getSafe(messagesObject, "prefix", "String", "messages.json").getAsString();
+        String command = getSafe(messagesObject, "raid_start_command", "String", "messages.json").getAsString();
+        JsonObject messages = getSafe(messagesObject, "messages", "Json Object", "messages.json").getAsJsonObject();
         for (String key : messages.keySet()) {
             messages_map.put(key, messages.get(key).getAsString());
         }
@@ -583,65 +597,66 @@ public class Config {
         nr.logInfo("[RAIDS] Loaded messages.");
     }
 
-    private void loadRewards() {
+    private void loadRewards() throws NullPointerException, UnsupportedOperationException {
         File rewardsFile = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/rewards.json").toFile();
         JsonElement root = getRoot(rewardsFile);
         assert root != null;
         JsonObject rewardsObject = root.getAsJsonObject();
         List<Reward> rewardsList = new ArrayList<>();
         for (String key : rewardsObject.keySet()) {
-            JsonObject rewardObject = rewardsObject.getAsJsonObject(key);
-            String type = rewardObject.get("type").getAsString();
+            JsonObject rewardObject = getSafe(rewardsObject, key, "Json Object", "rewards.json").getAsJsonObject();
+            String type = getSafe(rewardObject, "type", "String", "rewards.json/" + key).getAsString();
             Reward reward = null;
             if (type.equalsIgnoreCase("item")) {
                 nr.logInfo("[RAIDS] Loading new item reward.");
-                String item = rewardObject.get("item").getAsString();
+                String item = getSafe(rewardObject, "item", "String", "rewards.json/" + key).getAsString();
                 JsonElement data = null;
                 if (rewardObject.get("data") != null) {
                     data = rewardObject.get("data");
                 }
-                JsonObject count = rewardObject.getAsJsonObject("count");
-                int min_count = count.get("min").getAsInt();
-                int max_count = count.get("max").getAsInt();
+                JsonObject count = getSafe(rewardObject, "count", "Json Object", "rewards.json/" + key).getAsJsonObject();
+                int min_count = getSafe(count, "min", "String", "rewards.json/" + key + "/count").getAsInt();
+                int max_count = getSafe(count, "max", "String", "rewards.json/" + key + "/count").getAsInt();
                 reward = new ItemReward(key, item, data, min_count, max_count);
             } else if (type.equalsIgnoreCase("command")) {
                 nr.logInfo("[RAIDS] Loading new command reward.");
-                List<String> commands = rewardObject.getAsJsonArray("commands").asList().stream().map(JsonElement::getAsString).toList();
+                List<String> commands = getSafe(rewardObject, "commands", "Json String Array", "rewards.json/" + key).getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList();
                 reward = new CommandReward(key, commands);
             } else if (type.equalsIgnoreCase("pokemon")) {
                 nr.logInfo("[RAIDS] Loading new pokemon reward.");
-                JsonObject pokemon_info = rewardObject.getAsJsonObject("pokemon");
-                String species = pokemon_info.get("species").getAsString();
-                int level = pokemon_info.get("level").getAsInt();
-                String ability = pokemon_info.get("ability").getAsString();
-                String nature = pokemon_info.get("nature").getAsString();
-                String form = pokemon_info.get("form").getAsString();
-                String features = pokemon_info.get("features").getAsString();
-                String gender = pokemon_info.get("gender").getAsString();
-                boolean shiny = pokemon_info.get("shiny").getAsBoolean();
-                float scale = pokemon_info.get("scale").getAsFloat();
-                String held_item = pokemon_info.get("held_item").getAsString();
+                JsonObject pokemon_info = getSafe(rewardObject, "pokemon", "Json Object", "rewards.json/" + key).getAsJsonObject();
+                String species = getSafe(pokemon_info, "species", "String", "rewards.json/" + key + "/pokemon").getAsString();
+                int level = getSafe(pokemon_info, "level", "Integer", "rewards.json/" + key + "/pokemon").getAsInt();
+                String ability = getSafe(pokemon_info, "ability", "String", "rewards.json/" + key + "/pokemon").getAsString();
+                String nature = getSafe(pokemon_info, "nature", "String", "rewards.json/" + key + "/pokemon").getAsString();
+                String form = getSafe(pokemon_info, "form", "String", "rewards.json/" + key + "/pokemon").getAsString();
+                String features = getSafe(pokemon_info, "features", "String", "rewards.json/" + key + "/pokemon").getAsString();
+                String gender = getSafe(pokemon_info, "gender", "String", "rewards.json/" + key + "/pokemon").getAsString();
+                boolean shiny = getSafe(pokemon_info, "shiny", "Boolean", "rewards.json/" + key + "/pokemon").getAsBoolean();
+                float scale = getSafe(pokemon_info, "scale", "Float", "rewards.json/" + key + "/pokemon").getAsFloat();
+                String held_item = getSafe(pokemon_info, "held_item", "String", "rewards.json/" + key + "/pokemon").getAsString();
                 JsonElement held_item_data = null;
                 if (pokemon_info.get("held_item_data") != null) {
                     held_item_data = pokemon_info.get("held_item_data");
                 }
-                List<String> move_set = pokemon_info.getAsJsonArray("moves").asList().stream().map(JsonElement::getAsString).toList();
-                JsonObject ivObject = pokemon_info.getAsJsonObject("ivs");
+                List<String> move_set = getSafe(pokemon_info, "moves", "Json String Array", "rewards.json/" + key + "/pokemon").getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList();
+                JsonObject ivObject = getSafe(pokemon_info, "ivs", "Json Object", "rewards.json/" + key + "/pokemon").getAsJsonObject();
                 IVs ivs = new IVs();
-                ivs.set(Stats.HP, ivObject.get("hp").getAsInt());
-                ivs.set(Stats.ATTACK, ivObject.get("atk").getAsInt());
-                ivs.set(Stats.DEFENCE, ivObject.get("def").getAsInt());
-                ivs.set(Stats.SPECIAL_ATTACK, ivObject.get("sp_atk").getAsInt());
-                ivs.set(Stats.SPECIAL_DEFENCE, ivObject.get("sp_def").getAsInt());
-                ivs.set(Stats.SPEED, ivObject.get("spd").getAsInt());
-                JsonObject evObject = pokemon_info.getAsJsonObject("evs");
+                ivs.set(Stats.HP, getSafe(ivObject, "hp", "Integer", "rewards.json/" + key + "/pokemon/ivs").getAsInt());
+                ivs.set(Stats.ATTACK, getSafe(ivObject, "atk", "Integer", "rewards.json/" + key + "/pokemon/ivs").getAsInt());
+                ivs.set(Stats.DEFENCE, getSafe(ivObject, "def", "Integer", "rewards.json/" + key + "/pokemon/ivs").getAsInt());
+                ivs.set(Stats.SPECIAL_ATTACK, getSafe(ivObject, "sp_atk", "Integer", "rewards.json/" + key + "/pokemon/ivs").getAsInt());
+                ivs.set(Stats.SPECIAL_DEFENCE, getSafe(ivObject, "sp_def", "Integer", "rewards.json/" + key + "/pokemon/ivs").getAsInt());
+                ivs.set(Stats.SPEED, getSafe(ivObject, "spd", "Integer", "rewards.json/" + key + "/pokemon/ivs").getAsInt());
+
+                JsonObject evObject = getSafe(pokemon_info, "evs", "Json Object", "rewards.json/" + key + "/pokemon").getAsJsonObject();
                 EVs evs = new EVs();
-                evs.set(Stats.HP, evObject.get("hp").getAsInt());
-                evs.set(Stats.ATTACK, evObject.get("atk").getAsInt());
-                evs.set(Stats.DEFENCE, evObject.get("def").getAsInt());
-                evs.set(Stats.SPECIAL_ATTACK, evObject.get("sp_atk").getAsInt());
-                evs.set(Stats.SPECIAL_DEFENCE, evObject.get("sp_def").getAsInt());
-                evs.set(Stats.SPEED, evObject.get("spd").getAsInt());
+                evs.set(Stats.HP, getSafe(evObject, "hp", "Integer", "rewards.json/" + key + "/pokemon/evs").getAsInt());
+                evs.set(Stats.ATTACK, getSafe(evObject, "atk", "Integer", "rewards.json/" + key + "/pokemon/evs").getAsInt());
+                evs.set(Stats.DEFENCE, getSafe(evObject, "def", "Integer", "rewards.json/" + key + "/pokemon/evs").getAsInt());
+                evs.set(Stats.SPECIAL_ATTACK, getSafe(evObject, "sp_atk", "Integer", "rewards.json/" + key + "/pokemon/evs").getAsInt());
+                evs.set(Stats.SPECIAL_DEFENCE, getSafe(evObject, "sp_def", "Integer", "rewards.json/" + key + "/pokemon/evs").getAsInt());
+                evs.set(Stats.SPEED, getSafe(evObject, "spd", "Integer", "rewards.json/" + key + "/pokemon/evs").getAsInt());
 
                 reward = new PokemonReward(key, species, level, ability, nature, form, features, gender, shiny, scale, held_item, held_item_data, move_set, ivs, evs);
             } else {
@@ -653,24 +668,25 @@ public class Config {
         nr.logInfo("[RAIDS] Loaded " + rewardsList.size() + " rewards.");
     }
 
-    private void loadRewardPools() {
+    private void loadRewardPools() throws NullPointerException, UnsupportedOperationException {
         File rewardPoolsFile = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/reward_pools.json").toFile();
         JsonElement root = getRoot(rewardPoolsFile);
         assert root != null;
         JsonObject rewardPoolsObject = root.getAsJsonObject();
         List<RewardPool> rewardPools = new ArrayList<>();
         for (String key : rewardPoolsObject.keySet()) {
-            JsonObject rewardPoolObject = rewardPoolsObject.getAsJsonObject(key);
-            boolean allow_duplicates = rewardPoolObject.get("allow_duplicates").getAsBoolean();
-            JsonObject rolls = rewardPoolObject.getAsJsonObject("rolls");
-            int min_rolls = rolls.get("min").getAsInt();
-            int max_rolls = rolls.get("max").getAsInt();
-            JsonArray rewards = rewardPoolObject.getAsJsonArray("rewards");
+            JsonObject rewardPoolObject = getSafe(rewardPoolsObject, key, "Json Object", "reward_pools.json").getAsJsonObject();
+            boolean allow_duplicates = getSafe(rewardPoolObject, "allow_duplicates", "Boolean", "reward_pools.json/" + key).getAsBoolean();
+            JsonObject rolls = getSafe(rewardPoolObject, "rolls", "Json Object", "reward_pools.json/" + key).getAsJsonObject();
+            int min_rolls = getSafe(rolls, "min", "Integer", "reward_pools.json/" + key + "/rolls").getAsInt();
+            int max_rolls = getSafe(rolls, "max", "Integer", "reward_pools.json/" + key + "/rolls").getAsInt();
+
+            JsonArray rewards = getSafe(rewardPoolObject, "rewards", "Json Object Array", "reward_pools.json/" + key).getAsJsonArray();
             Map<String, Double> rewards_map = new HashMap<>();
             for (JsonElement reward : rewards) {
                 JsonObject rewardObject = reward.getAsJsonObject();
-                String reward_name = rewardObject.get("reward").getAsString();
-                double weight = rewardObject.get("weight").getAsDouble();
+                String reward_name = getSafe(rewardObject, "reward", "Json Object", "reward_pools.json/" + key + "/rewards").getAsString();
+                double weight = getSafe(rewardObject, "weight", "Double", "reward_pools.json/" + key + "/rewards").getAsDouble();
                 rewards_map.put(reward_name, weight);
             }
             rewardPools.add(new RewardPool(key, allow_duplicates, min_rolls, max_rolls, rewards_map));
@@ -774,5 +790,9 @@ public class Config {
             }
         }
         return null;
+    }
+
+    public boolean loadedProperly() {
+        return settings != null && !bossbars.isEmpty() && !categories.isEmpty() && !bosses.isEmpty() && messages != null && !rewards.isEmpty() && !reward_pools.isEmpty() && !locations.isEmpty();
     }
 }

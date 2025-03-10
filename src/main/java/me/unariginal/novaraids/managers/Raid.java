@@ -662,11 +662,13 @@ public class Raid {
     }
 
     public void show_overlay(BossbarData bossbar) {
-        if (bossbar.use_overlay()) {
-            for (UUID player_uuid : participating_players) {
-                ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(player_uuid);
-                if (player != null) {
-                    player.sendActionBar(TextUtil.format(nr.config().getMessages().parse(bossbar.overlay_text(), this)));
+        if (bossbar != null) {
+            if (bossbar.use_overlay()) {
+                for (UUID player_uuid : participating_players) {
+                    ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(player_uuid);
+                    if (player != null) {
+                        player.sendActionBar(TextUtil.format(nr.config().getMessages().parse(bossbar.overlay_text(), this)));
+                    }
                 }
             }
         }

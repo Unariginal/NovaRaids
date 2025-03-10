@@ -42,34 +42,41 @@ public class NovaRaids implements ModInitializer {
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             this.server = server;
             reloadConfig();
-
-            EventManager.battle_events();
-            EventManager.right_click_events();
-            EventManager.player_events();
+            if (config.loadedProperly()) {
+                EventManager.battle_events();
+                EventManager.right_click_events();
+                EventManager.player_events();
+            } else {
+                LOGGER.error("[RAIDS] Config did not load properly! Mod will not be loaded.");
+            }
         });
 
         // Server tick loop
         ServerTickEvents.END_SERVER_TICK.register(server -> {
-            TickManager.fix_boss_positions();
-            TickManager.handle_defeated_bosses();
-            TickManager.execute_tasks();
-            TickManager.update_bossbars();
-            TickManager.fix_player_positions();
-            TickManager.fix_player_pokemon();
-            TickManager.scheduled_raids();
+            if (config.loadedProperly()) {
+                TickManager.fix_boss_positions();
+                TickManager.handle_defeated_bosses();
+                TickManager.execute_tasks();
+                TickManager.update_bossbars();
+                TickManager.fix_player_positions();
+                TickManager.fix_player_pokemon();
+                TickManager.scheduled_raids();
+            }
         });
 
         // Clean up at server stop
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
-            for (QueueItem queue : queued_raids) {
-                queue.cancel_item();
-            }
-            queued_raids.clear();
+            if (config.loadedProperly()) {
+                for (QueueItem queue : queued_raids) {
+                    queue.cancel_item();
+                }
+                queued_raids.clear();
 
-            for (Raid raid : active_raids.values()) {
-                raid.stop();
+                for (Raid raid : active_raids.values()) {
+                    raid.stop();
+                }
+                // TODO: Save current raid, write queue to file
             }
-            // TODO: Save current raid, write queue to file
         });
     }
 
