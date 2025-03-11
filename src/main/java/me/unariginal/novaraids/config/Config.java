@@ -12,10 +12,7 @@ import com.cobblemon.mod.common.api.pokemon.Natures;
 import com.cobblemon.mod.common.api.pokemon.PokemonSpecies;
 import com.cobblemon.mod.common.api.pokemon.stats.Stats;
 import com.cobblemon.mod.common.pokemon.*;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
@@ -23,15 +20,20 @@ import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.*;
 import me.unariginal.novaraids.data.rewards.*;
 import me.unariginal.novaraids.managers.Messages;
+import me.unariginal.novaraids.managers.Raid;
+import me.unariginal.novaraids.utils.TextUtil;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.component.ComponentChanges;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.UserCache;
 import net.minecraft.util.math.Vec3d;
 
 import java.io.*;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
 
@@ -84,6 +86,13 @@ public class Config {
             }
         }
 
+        File historyFolder = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/history").toFile();
+        if (!historyFolder.exists()) {
+            if (!historyFolder.mkdirs()) {
+                return;
+            }
+        }
+
         String[] fileNames = {
                 "config",
                 "locations",
@@ -127,6 +136,47 @@ public class Config {
                 out.close();
             }
         }
+    }
+
+    public void writeResults(Raid raid) throws IOException, NoSuchElementException {
+        File history_file = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/history/" + raid.boss_info().name() + ".json").toFile();
+
+        JsonObject root;
+        if (history_file.createNewFile()) {
+            root = new JsonObject();
+        } else {
+            root = getRoot(history_file).getAsJsonObject();
+        }
+
+        JsonObject this_raid = new JsonObject();
+        this_raid.addProperty("uuid", raid.uuid().toString());
+        this_raid.addProperty("length", TextUtil.hms(raid.raid_completion_time()));
+        this_raid.addProperty("had_catch_phase", raid.boss_info().do_catch_phase());
+        this_raid.addProperty("total_players", raid.get_damage_leaderboard().size());
+
+        JsonArray this_raid_leaderboard = new JsonArray();
+        int place = 1;
+        for (Map.Entry<UUID, Integer> entry : raid.get_damage_leaderboard()) {
+            JsonObject leaderboard_entry = new JsonObject();
+            leaderboard_entry.addProperty("player_uuid", entry.getKey().toString());
+            UserCache cache =  nr.server().getUserCache();
+            if (cache != null) {
+                leaderboard_entry.addProperty("player_name", cache.getByUuid(entry.getKey()).orElseThrow().getName());
+            } else {
+                leaderboard_entry.addProperty("player_name", entry.getKey().toString());
+            }
+            leaderboard_entry.addProperty("damage", entry.getValue());
+            leaderboard_entry.addProperty("place", place++);
+            this_raid_leaderboard.add(leaderboard_entry);
+        }
+        this_raid.add("leaderboard", this_raid_leaderboard);
+
+        root.add(LocalDateTime.now(TimeZone.getDefault().toZoneId()).toString(), this_raid);
+
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        Writer writer = new FileWriter(history_file);
+        gson.toJson(root, writer);
+        writer.close();
     }
 
     private JsonElement getRoot(File file) {

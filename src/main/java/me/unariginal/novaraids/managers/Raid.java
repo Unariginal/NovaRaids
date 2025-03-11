@@ -26,6 +26,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Vec3d;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
@@ -202,6 +203,11 @@ public class Raid {
         } else {
             raid_end_time = nr.server().getOverworld().getTime();
             participating_broadcast(TextUtil.format(messages.parse(messages.message("raid_end"), this)));
+            try {
+                nr.config().writeResults(this);
+            } catch (IOException | NoSuchElementException e) {
+                nr.logError("[RAIDS] Failed to write raid information to history file.");
+            }
         }
     }
 
@@ -235,6 +241,11 @@ public class Raid {
             participating_broadcast(TextUtil.format(messages.parse(messages.message("catch_phase_end"), this)));
         }
         participating_broadcast(TextUtil.format(messages.parse(messages.message("raid_end"), this)));
+        try {
+            nr.config().writeResults(this);
+        } catch (IOException | NoSuchElementException e) {
+            nr.logError("[RAIDS] Failed to write raid information to history file.");
+        }
     }
 
     public void handle_rewards() {
@@ -274,8 +285,8 @@ public class Raid {
                     String percentStr = place.place().replace("%", "");
                     if (StringUtils.isNumeric(percentStr)) {
                         int percent = Integer.parseInt(percentStr);
-                        int positions = get_damage_leaderboard().size() * (percent / 100);
-                        for (int i = 0; i < positions; i++) {
+                        double positions = get_damage_leaderboard().size() * ((double) percent / 100);
+                        for (int i = 0; i < ((int) positions); i++) {
                             ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(get_damage_leaderboard().get(i).getKey());
                             players_to_reward.add(player);
                         }
