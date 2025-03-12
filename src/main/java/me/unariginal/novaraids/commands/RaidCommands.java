@@ -667,7 +667,7 @@ public class RaidCommands {
                     lore.add(Text.literal(messages.parse("Players: %raid.player_count%/%raid.max_players%", raid)).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)));
                     lore.add(Text.literal(messages.parse("Raid Timer: %raid.timer%", raid)).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)));
 
-                    if (!raid.raidBoss_category().require_pass()) {
+                    if (!raid.raidBoss_category().require_pass() && raid.stage() == 1) {
                         lore.add(Text.empty());
                         lore.add(Text.literal("Click to join this raid!").styled(style -> style.withColor(Formatting.GREEN).withItalic(false)));
                     } else {

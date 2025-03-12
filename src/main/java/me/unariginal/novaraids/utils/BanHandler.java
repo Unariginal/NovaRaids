@@ -27,7 +27,6 @@ public class BanHandler {
         List<Move> banned_moves = nr.config().getSettings().banned_moves();
         List<Item> banned_held_items = nr.config().getSettings().banned_held_items();
         for (Pokemon pokemon : party) {
-            nr.logInfo("Pokemon: " + pokemon);
             for (Species species : banned_pokemon) {
                 if (pokemon.getSpecies().equals(species)) {
                     nr.logInfo("Not allowed pokemon");
