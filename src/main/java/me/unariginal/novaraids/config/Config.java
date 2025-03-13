@@ -214,6 +214,10 @@ public class Config {
         int raid_radius = getSafe(settingsObject, "raid_radius", "Integer", "config.json/raid_settings").getAsInt();
         int raid_pushback_radius = getSafe(settingsObject, "raid_pushback_radius", "Integer", "config.json/raid_settings").getAsInt();
         boolean bosses_glow = getSafe(settingsObject, "bosses_glow", "Boolean", "config.json/raid_settings").getAsBoolean();
+        String raidHookURL = getSafe(settingsObject, "raidHookURL", "String", "config.json/raid_settings").getAsString();
+        String raidTtitle = getSafe(settingsObject, "raidTtitle", "String", "config.json/raid_settings").getAsString();
+        String avatarUrl = getSafe(settingsObject, "avatarUrl", "String", "config.json/raid_settings").getAsString();
+        String raidHookName = getSafe(settingsObject, "raidHookName", "String", "config.json/raid_settings").getAsString();
         boolean heal_party_on_challenge = getSafe(settingsObject, "heal_party_on_challenge", "Boolean", "config.json/raid_settings").getAsBoolean();
         boolean use_queue_system = getSafe(settingsObject, "use_queue_system", "Boolean", "config.json/raid_settings").getAsBoolean();
         int setup_phase_time = getSafe(settingsObject, "setup_phase_time", "Boolean", "config.json/raid_settings").getAsInt();
