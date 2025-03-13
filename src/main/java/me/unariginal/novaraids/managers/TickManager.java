@@ -142,8 +142,8 @@ public class TickManager {
         for (Raid raid : nr.active_raids().values()) {
             if (raid.stage() == 2) {
                 float progress = (float) raid.current_health() / raid.max_health();
-                if (progress < 0) {
-                    progress = 0;
+                if (progress < 0F) {
+                    progress = 0F;
                 }
                 for (UUID player_uuid : raid.bossbars().keySet()) {
                     ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(player_uuid);
@@ -155,7 +155,11 @@ public class TickManager {
                 for (UUID player_uuid : raid.bossbars().keySet()) {
                     float remaining_ticks = (float) (raid.phase_end_time() - nr.server().getOverworld().getTime());
                     float progress = 1.0F / (raid.phase_length() * 20L);
-                    raid.bossbars().get(player_uuid).progress(progress * remaining_ticks);
+                    float total = progress * remaining_ticks;
+                    if (total < 0F) {
+                        total = 0F;
+                    }
+                    raid.bossbars().get(player_uuid).progress(total);
                 }
             }
 
