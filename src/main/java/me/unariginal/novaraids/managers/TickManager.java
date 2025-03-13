@@ -12,6 +12,7 @@ import me.unariginal.novaraids.data.Category;
 import me.unariginal.novaraids.data.Task;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.math.BlockPos;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -57,6 +58,7 @@ public class TickManager {
                 if (player != null) {
                     int raid_radius = nr.config().getSettings().raid_radius();
                     int raid_pushback = nr.config().getSettings().raid_pushback_radius();
+                    ServerWorld world = raid.raidBoss_location().world();
 
                     double x = player.getPos().getX();
                     double z = player.getPos().getZ();
@@ -92,8 +94,15 @@ public class TickManager {
                     if (!Double.isNaN(distance)) {
                         double new_x = cx + distance * Math.cos(Math.toRadians(angle));
                         double new_z = cz + distance * Math.sin(Math.toRadians(angle));
-
-                        player.teleport(new_x, raid.raidBoss_location().pos().getY(), new_z, false);
+                        double new_y = raid.raidBoss_location().pos().getY();
+                        int chunkX = (int) Math.floor(new_x / 16);
+                        int chunkZ = (int) Math.floor(new_z / 16);
+                        world.setChunkForced(chunkX, chunkZ, true);
+                        while (!world.getBlockState(new BlockPos((int) new_x, (int) new_y, (int) new_z)).isAir()) {
+                            new_y++;
+                        }
+                        player.teleport(world, new_x, new_y, new_z, (float) angle, 0);
+                        world.setChunkForced(chunkX, chunkZ, false);
                     }
                 }
             }
