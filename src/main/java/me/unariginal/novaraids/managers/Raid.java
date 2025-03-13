@@ -201,13 +201,7 @@ public class Raid {
             participating_broadcast(TextUtil.format(messages.parse(messages.message("catch_phase_warning"), this)));
             addTask(raidBoss_location.world(), phase_length * 20L, this::catch_phase);
         } else {
-            raid_end_time = nr.server().getOverworld().getTime();
-            participating_broadcast(TextUtil.format(messages.parse(messages.message("raid_end"), this)));
-            try {
-                nr.config().writeResults(this);
-            } catch (IOException | NoSuchElementException e) {
-                nr.logError("[RAIDS] Failed to write raid information to history file.");
-            }
+            raid_won();
         }
     }
 
@@ -279,7 +273,9 @@ public class Raid {
                     placeIndex--;
                     if (placeIndex >= 0 && placeIndex < get_damage_leaderboard().size()) {
                         ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(get_damage_leaderboard().get(placeIndex).getKey());
-                        players_to_reward.add(player);
+                        if (player != null) {
+                            players_to_reward.add(player);
+                        }
                     }
                 } else if (place.place().contains("%")) {
                     String percentStr = place.place().replace("%", "");
@@ -288,20 +284,26 @@ public class Raid {
                         double positions = get_damage_leaderboard().size() * ((double) percent / 100);
                         for (int i = 0; i < ((int) positions); i++) {
                             ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(get_damage_leaderboard().get(i).getKey());
-                            players_to_reward.add(player);
+                            if (player != null) {
+                                players_to_reward.add(player);
+                            }
                         }
                     }
                 } else if (place.place().equalsIgnoreCase("participating")) {
                     for (Map.Entry<UUID, Integer> entry : get_damage_leaderboard()) {
                         ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(entry.getKey());
-                        players_to_reward.add(player);
+                        if (player != null) {
+                            players_to_reward.add(player);
+                        }
                     }
                 }
 
                 for (RewardPool pool : reward.pools()) {
                     for (ServerPlayerEntity player : players_to_reward) {
-                        if (!no_more_rewards.contains(player)) {
-                            pool.distributeRewards(player);
+                        if (player != null) {
+                            if (!no_more_rewards.contains(player)) {
+                                pool.distributeRewards(player);
+                            }
                         }
                     }
                 }
@@ -557,6 +559,8 @@ public class Raid {
                 participating_players.remove(index);
                 player.hideBossBar(bossbars().get(player_uuid));
                 player_bossbars.remove(player_uuid);
+                damage_by_player.remove(player_uuid);
+
                 List<PokemonEntity> toRemove = new ArrayList<>();
                 for (PokemonEntity clone : clones.keySet()) {
                     if (clones.get(clone).equals(player.getUuid())) {
