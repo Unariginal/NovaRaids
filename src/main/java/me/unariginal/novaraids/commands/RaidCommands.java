@@ -5,7 +5,6 @@ import com.cobblemon.mod.common.api.abilities.Ability;
 import com.cobblemon.mod.common.api.moves.Move;
 import com.cobblemon.mod.common.item.PokemonItem;
 import com.cobblemon.mod.common.pokemon.Species;
-import com.cobblemon.mod.common.util.LocalizationUtilsKt;
 import com.cobblemon.mod.common.util.MiscUtilsKt;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;

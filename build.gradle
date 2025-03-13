@@ -82,12 +82,6 @@ java {
     withSourcesJar()
 }
 
-tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
-    kotlinOptions {
-        jvmTarget = "21"  // Ensure Kotlin uses the same JVM target as Java
-    }
-}
-
 jar {
     from("LICENSE") {
         rename { "${it}_${project.archivesBaseName}" }
