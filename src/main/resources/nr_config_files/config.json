@@ -2,6 +2,11 @@
   "debug": false,
   "timezone": "est",
   "raid_settings": {
+    "raid_webhook_toggle": false,
+    "raid_webhookurl": "https://discord.com/api/webhooks/",
+    "raid_title": "NovaRaid Hook For Raid: ",
+    "raid_avatarurl": "https://cdn.modrinth.com/data/MdwFAVRL/e54083a07bcd9436d1f8d2879b0d821a54588b9e.png",
+    "raid_role_at": "Raid Role Here",
     "raid_radius": 30,
     "raid_pushback_radius": 5,
     "bosses_glow": false,
