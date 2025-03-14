@@ -37,6 +37,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
 
+import static me.unariginal.novaraids.utils.WebhookHandler.*;
+
 public class Config {
     private final NovaRaids nr = NovaRaids.INSTANCE;
     private Settings settings;
@@ -220,6 +222,11 @@ public class Config {
         int fight_phase_time = getSafe(settingsObject, "fight_phase_time", "Integer", "config.json/raid_settings").getAsInt();
         int pre_catch_phase_time = getSafe(settingsObject, "pre_catch_phase_time", "Integer", "config.json/raid_settings").getAsInt();
         int catch_phase_time = getSafe(settingsObject, "catch_phase_time", "Integer", "config.json/raid_settings").getAsInt();
+        raid_webhook_toggle = getSafe(settingsObject, "raid_webhook_toggle", "boolean", "config.json/raid_settings").getAsBoolean();
+        raid_webhookurl = getSafe(settingsObject, "raid_webhookurl", "String", "config.json/raid_settings").getAsString();
+        raid_title = getSafe(settingsObject, "raid_title", "String", "config.json/raid_settings").getAsString();
+        raid_role_at = getSafe(settingsObject, "raid_role_at", "String", "config.json/raid_settings").getAsString();
+        raid_avatarurl = getSafe(settingsObject, "raid_avatarurl", "String", "config.json/raid_settings").getAsString();
 
         JsonObject banned_section = getSafe(settingsObject, "banned_section", "Json Object", "config.json/raid_settings").getAsJsonObject();
         JsonArray banned_pokemon = getSafe(banned_section, "banned_pokemon", "Json String Array", "config.json/raid_settings/banned_section").getAsJsonArray();
@@ -227,6 +234,7 @@ public class Config {
         JsonArray banned_abilities = getSafe(banned_section, "banned_abilities", "Json String Array", "config.json/raid_settings/banned_section").getAsJsonArray();
         JsonArray banned_held_items = getSafe(banned_section, "banned_held_items", "Json String Array", "config.json/raid_settings/banned_section").getAsJsonArray();
         JsonArray banned_bag_items = getSafe(banned_section, "banned_bag_items", "Json String Array", "config.json/raid_settings/banned_section").getAsJsonArray();
+
 
         List<Species> banned_pokemon_list = new ArrayList<>();
         for (JsonElement element : banned_pokemon) {
