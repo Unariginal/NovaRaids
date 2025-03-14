@@ -230,11 +230,12 @@ public class Config {
         JsonArray banned_held_items = getSafe(banned_section, "banned_held_items", "Json String Array", "config.json/raid_settings/banned_section").getAsJsonArray();
         JsonArray banned_bag_items = getSafe(banned_section, "banned_bag_items", "Json String Array", "config.json/raid_settings/banned_section").getAsJsonArray();
 
-        raid_webhook_toggle = getSafe(config, "raid_webhook_toggle", "boolean", "discord.json").getAsBoolean();
-        raid_webhookurl = getSafe(config, "raid_webhookurl", "String", "discord.json").getAsString();
-        raid_title = getSafe(config, "raid_title", "String", "discord.json").getAsString();
-        raid_role_at = getSafe(config, "raid_role_at", "String", "discord.json").getAsString();
-        raid_avatarurl = getSafe(config, "raid_avatarurl", "String", "discord.json").getAsString();
+        JsonObject discordObject = getSafe(config, "discord_settings", "Json Object", "config.json").getAsJsonObject();
+        raid_webhook_toggle = getSafe(discordObject, "raid_webhook_toggle", "boolean", "config.json/discord_settings").getAsBoolean();
+        raid_webhookurl = getSafe(discordObject, "raid_webhookurl", "String", "config.json/discord_settings").getAsString();
+        raid_title = getSafe(discordObject, "raid_title", "String", "config.json/discord_settings").getAsString();
+        raid_role_at = getSafe(discordObject, "raid_role_at", "String", "config.json/discord_settings").getAsString();
+        raid_avatarurl = getSafe(discordObject, "raid_avatarurl", "String", "config.json/discord_settings").getAsString();
 
         List<Species> banned_pokemon_list = new ArrayList<>();
         for (JsonElement element : banned_pokemon) {

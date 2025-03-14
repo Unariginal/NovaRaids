@@ -13,6 +13,9 @@ import java.net.URI;
 import java.util.*;
 import java.util.List;
 
+import org.json.JSONObject;
+import org.json.JSONException;
+
 
 public class WebhookHandler {
 
@@ -57,7 +60,7 @@ public class WebhookHandler {
             return url;
         }
 
-        List<String> fallbackUrls = Arrays.asList(
+        List<String> fallbackUrls = List.of(
                 "https://raw.githubusercontent.com/SkyNetCloud/sprites/master/sprites/pokemon/" +
                         pokemon.getSpecies().getNationalPokedexNumber() + ".png"
         );
