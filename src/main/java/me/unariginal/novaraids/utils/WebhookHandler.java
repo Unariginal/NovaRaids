@@ -13,6 +13,7 @@ import java.net.URI;
 import java.util.*;
 import java.util.List;
 
+import net.minecraft.util.UserCache;
 import org.json.JSONObject;
 import org.json.JSONException;
 
@@ -20,12 +21,12 @@ import org.json.JSONException;
 public class WebhookHandler {
 
     private static final NovaRaids nr = NovaRaids.INSTANCE;
-
+    private static UserCache cache =  nr.server().getUserCache();
     public static boolean raid_webhook_toggle = false;
     public static String raid_webhookurl = "https://discord.com/api/webhooks/";
-    public static String raid_title = "NovaRaid Hook For Raid: ";
+    public static String raid_title =  "Raid Alert!";
     public static String raid_avatarurl = "https://cdn.modrinth.com/data/MdwFAVRL/e54083a07bcd9436d1f8d2879b0d821a54588b9e.png";
-    public static String raid_role_at = "Raid Role Here";
+    public static String raid_role_at = "<@&roldidhere>";
 
     private static int genRanColor() {
         Random rand = new Random();
@@ -109,7 +110,7 @@ public class WebhookHandler {
 
         WebhookMessageBuilder messageBuilder = new WebhookMessageBuilder()
                 .setContent(raid_role_at)
-                .setUsername(raid_title + nr.fix_raid_ids())
+                .setUsername(raid_title)
                 .setAvatarUrl(raid_avatarurl)
                 .addEmbeds(embed);
 
@@ -136,7 +137,7 @@ public class WebhookHandler {
 
         for (int i = 0; i < Math.min(entries.size(), 10); i++) {
             Map.Entry<UUID, Integer> entry = entries.get(i);
-            embedBuilder.addField(new WebhookEmbed.EmbedField(false, (i + 1) + ". " + entry.getKey() + ":", entry.getValue().toString()));
+            embedBuilder.addField(new WebhookEmbed.EmbedField(false, (i + 1) + ". " + cache.getByUuid(entry.getKey()).orElseThrow().getName() + ":", entry.getValue().toString()));
         }
 
         embedBuilder.setThumbnailUrl(thumbnailUrl);
@@ -144,7 +145,7 @@ public class WebhookHandler {
         WebhookEmbed embed = embedBuilder.build();
 
         WebhookMessageBuilder messageBuilder = new WebhookMessageBuilder()
-                .setUsername(raid_title + nr.fix_raid_ids())
+                .setUsername(raid_title)
                 .setAvatarUrl(raid_avatarurl)
                 .addEmbeds(embed);
 

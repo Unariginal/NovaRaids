@@ -40,6 +40,10 @@ dependencies {
     modImplementation include("net.fabricmc.fabric-api:fabric-data-attachment-api-v1:1.4.1+9aea556b2d")
 
     modImplementation include("club.minnced:discord-webhooks:${project.discord_webhooks_version}")
+
+    include("com.squareup.okhttp3:okhttp:${project.okhttp_version}")
+    include("com.squareup.okio:okio:${project.okio_version}")
+    include("com.squareup.okio:okio-jvm:${project.okio_jvm_version}")
     include("org.json:json:${project.json_version}")
 
     include(modImplementation('me.lucko:fabric-permissions-api:0.3.1'))
