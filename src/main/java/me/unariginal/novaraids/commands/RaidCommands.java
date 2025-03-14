@@ -276,7 +276,7 @@ public class RaidCommands {
         if (player != null) {
             player.sendMessage(Text.literal("--------- Nova Raids ---------"));
             player.sendMessage(Text.literal("Author: Unariginal ").append(Text.literal("(Ariginal)").styled(style -> style.withItalic(true))));
-            player.sendMessage(Text.literal("Version: Beta v0.1.0"));
+            player.sendMessage(Text.literal("Version: Beta v0.1.1"));
             player.sendMessage(Text.literal("Source").styled(style -> style.withUnderline(true).withItalic(true).withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://github.com/Unariginal/NovaRaids"))));
             player.sendMessage(Text.literal("Wiki").styled(style -> style.withItalic(true).withUnderline(true).withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://github.com/Unariginal/NovaRaids/wiki"))));
             player.sendMessage(Text.literal("----------------------------"));

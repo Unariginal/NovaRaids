@@ -101,7 +101,7 @@ public class TickManager {
                         while (!world.getBlockState(new BlockPos((int) new_x, (int) new_y, (int) new_z)).isAir()) {
                             new_y++;
                         }
-                        player.teleport(world, new_x, new_y, new_z, (float) angle, 0);
+                        player.teleport(world, new_x, new_y, new_z, player.getYaw(), player.getPitch());
                         world.setChunkForced(chunkX, chunkZ, false);
                     }
                 }
