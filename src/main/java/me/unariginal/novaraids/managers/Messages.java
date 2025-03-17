@@ -39,7 +39,8 @@ public record Messages(String prefix, String raid_start_command, Map<String, Str
                 .replaceAll("%raid.phase%", raid.get_phase())
                 .replaceAll("%raid.category%", raid.raidBoss_category().name())
                 .replaceAll("%raid.id%", String.valueOf(NovaRaids.INSTANCE.get_raid_id(raid)))
-                .replaceAll("%raid.min_players%", String.valueOf(raid.min_players()));
+                .replaceAll("%raid.min_players%", String.valueOf(raid.min_players()))
+                .replaceAll("%raid.join_method%", (raid.raidBoss_category().require_pass()) ? "A Raid Pass" : "/raid list");
 
         return output;
     }

@@ -62,6 +62,9 @@ public class NovaRaids implements ModInitializer {
                 TickManager.fix_player_positions();
                 TickManager.fix_player_pokemon();
                 TickManager.scheduled_raids();
+                for (Raid raid : active_raids.values()) {
+                    raid.removePlayers();
+                }
             }
         });
 

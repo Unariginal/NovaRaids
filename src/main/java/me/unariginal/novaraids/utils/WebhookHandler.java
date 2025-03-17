@@ -13,6 +13,7 @@ import java.net.URI;
 import java.util.*;
 import java.util.List;
 
+import me.unariginal.novaraids.data.FieldData;
 import me.unariginal.novaraids.managers.Raid;
 import net.minecraft.util.UserCache;
 
@@ -21,11 +22,16 @@ public class WebhookHandler {
 
     private static final NovaRaids nr = NovaRaids.INSTANCE;
     private static final UserCache cache =  nr.server().getUserCache();
-    public static boolean raid_webhook_toggle = false;
-    public static String raid_webhookurl = "https://discord.com/api/webhooks/";
-    public static String raid_title =  "Raid Alert!";
-    public static String raid_avatarurl = "https://cdn.modrinth.com/data/MdwFAVRL/e54083a07bcd9436d1f8d2879b0d821a54588b9e.png";
-    public static String raid_role_at = "<@&roldidhere>";
+    public static boolean webhook_toggle = false;
+    public static String webhook_url = "https://discord.com/api/webhooks/";
+    public static String webhook_username =  "Raid Alert!";
+    public static String webhook_avatar_url = "https://cdn.modrinth.com/data/MdwFAVRL/e54083a07bcd9436d1f8d2879b0d821a54588b9e.png";
+    public static String role_ping = "<@&roldidhere>";
+    public static String start_embed_title = "%boss.form% %boss.species% Raid Has Started";
+    public static List<FieldData> start_embed_fields = new ArrayList<>();
+    public static String end_embed_title = "%boss.form% %boss.species% Raid Has Ended";
+    public static List<FieldData> end_embed_fields = new ArrayList<>();
+    public static boolean show_leaderboard = true;
 
     private static int hexToRGB(String hex) {
         if (hex.startsWith("#")) {
@@ -60,45 +66,25 @@ public class WebhookHandler {
             default -> hexToRGB("9FA19F");
         };
     }
-    private static String formatPokemonName(Raid raid) {
-        String name = raid.boss_info().display_form() + " " + raid.boss_info().species().getName().replace("cobblemon.species.", "").replace('_', ' ');
-        String[] words = name.split(" ");
-        StringBuilder formattedName = new StringBuilder();
-
-        for (String word : words) {
-            if (!word.isEmpty()) {
-                formattedName.append(Character.toUpperCase(word.charAt(0)))
-                        .append(word.substring(1))
-                        .append(" ");
-            }
-        }
-
-        return formattedName.toString().trim();
-    }
 
     private static String getThumbnailUrl(Pokemon pokemon) {
         String baseUrl = "https://play.pokemonshowdown.com/sprites/%rute%/%pokemon%%form%.gif";
 
+        if (!pokemon.getForm().formOnlyShowdownId().equalsIgnoreCase("normal")) {
+            String url = baseUrl.replace("%rute%", pokemon.getShiny() ? "ani-shiny" : "ani")
+                    .replace("%pokemon%", pokemon.getSpecies().getName().toLowerCase())
+                    .replace("%form%", "-" + pokemon.getForm().formOnlyShowdownId());
+            nr.logInfo("Pokemon URL: " + url);
+
+            if (isUrlAccessible(url)) {
+                return url;
+            }
+        }
+
         String url = baseUrl.replace("%rute%", pokemon.getShiny() ? "ani-shiny" : "ani")
                 .replace("%pokemon%", pokemon.getSpecies().getName().toLowerCase())
-                .replace("%form%", "-" + pokemon.getForm().formOnlyShowdownId());
+                .replace("%form%", "");
         nr.logInfo("Pokemon URL: " + url);
-
-        if (isUrlAccessible(url)) {
-            return url;
-        }
-
-        url = baseUrl.replace("%rute%", pokemon.getShiny() ? "ani-shiny" : "ani")
-                .replace("%pokemon%", pokemon.getSpecies().getName().toLowerCase())
-                .replace("%form%", "-" + pokemon.getForm().getName().toLowerCase());
-        nr.logInfo("Pokemon URL: " + url);
-
-        if (isUrlAccessible(url)) {
-            return url;
-        }
-
-        url = baseUrl.replace("%rute%", pokemon.getShiny() ? "ani-shiny" : "ani")
-                .replace("%pokemon%", pokemon.getSpecies().getName().toLowerCase());
 
         if (isUrlAccessible(url)) {
             return url;
@@ -133,76 +119,74 @@ public class WebhookHandler {
     }
 
     public static void sendStartRaidWebhook(Raid raid){
-        WebhookClient webhook = WebhookClient.withUrl(raid_webhookurl);
+        WebhookClient webhook = WebhookClient.withUrl(webhook_url);
         Pokemon pokemon = raid.raidBoss_pokemon();
         int randColor = genTypeColor(pokemon);
         String thumbnailUrl = getThumbnailUrl(pokemon);
-        String formattedPokemonName = formatPokemonName(raid);
-        String fieldName = "Players: " + raid.participating_players().size() + "/" + (raid.max_players() == -1 ? "∞" : raid.max_players()) + " ";
-        String fieldValue = "";
-        if (raid.raidBoss_category().require_pass()) {
-            fieldValue = "Join Now Using A Raid Pass!";
-        } else {
-            fieldValue = "Join Now Using `/raid list`!";
-        }
 
-        WebhookEmbed embed = new WebhookEmbedBuilder()
+        WebhookEmbedBuilder embedBuilder = new WebhookEmbedBuilder()
                 .setColor(randColor)
                 .setAuthor(
                         new WebhookEmbed.EmbedAuthor(
-                                formattedPokemonName + " Raid Has Started",
+                                nr.config().getMessages().parse(start_embed_title, raid),
                                 "",
                                 thumbnailUrl
                         )
-                )
-                .addField(new WebhookEmbed.EmbedField(false, fieldName, fieldValue))
-                .setThumbnailUrl(thumbnailUrl)
-                .build();
+                );
+        for (FieldData field : start_embed_fields) {
+            embedBuilder.addField(new WebhookEmbed.EmbedField(field.inline(), nr.config().getMessages().parse(field.name(), raid), nr.config().getMessages().parse(field.value(), raid)));
+        }
+        embedBuilder.setThumbnailUrl(thumbnailUrl);
+        WebhookEmbed embed = embedBuilder.build();
 
         WebhookMessageBuilder messageBuilder = new WebhookMessageBuilder()
-                .setContent(raid_role_at)
-                .setUsername(raid_title)
-                .setAvatarUrl(raid_avatarurl)
+                .setContent(role_ping)
+                .setUsername(webhook_username)
+                .setAvatarUrl(webhook_avatar_url)
                 .addEmbeds(embed);
 
         webhook.send(messageBuilder.build());
     }
 
     public static void sendEndRaidWebhook(Raid raid, List<Map.Entry<UUID, Integer>> entries) {
-        WebhookClient webhook = WebhookClient.withUrl(raid_webhookurl);
+        WebhookClient webhook = WebhookClient.withUrl(webhook_url);
         Pokemon pokemon = raid.raidBoss_pokemon();
         int randColor = genTypeColor(pokemon);
         String thumbnailUrl = getThumbnailUrl(pokemon);
-        String formattedPokemonName = formatPokemonName(raid);
 
         WebhookEmbedBuilder embedBuilder = new WebhookEmbedBuilder()
                 .setColor(randColor)
                 .setAuthor(
                         new WebhookEmbed.EmbedAuthor(
-                                formattedPokemonName + " Raid Has Ended",
+                                nr.config().getMessages().parse(end_embed_title, raid),
                                 "",
                                 thumbnailUrl
                         )
-                )
-                .addField(new WebhookEmbed.EmbedField(false, "Leaderboard:", ""));
+                );
 
-        for (int i = 0; i < Math.min(entries.size(), 10); i++) {
-            Map.Entry<UUID, Integer> entry = entries.get(i);
-            if (cache != null) {
-                embedBuilder.addField(new WebhookEmbed.EmbedField(false, (i + 1) + ". " + cache.getByUuid(entry.getKey()).orElseThrow().getName() + ":", entry.getValue().toString()));
+        for (FieldData field : end_embed_fields) {
+            embedBuilder.addField(new WebhookEmbed.EmbedField(field.inline(), nr.config().getMessages().parse(field.name(), raid), nr.config().getMessages().parse(field.value(), raid)));
+        }
+
+        if (show_leaderboard) {
+            embedBuilder.addField(new WebhookEmbed.EmbedField(false, "Leaderboard:", ""));
+
+            for (int i = 0; i < Math.min(entries.size(), 10); i++) {
+                Map.Entry<UUID, Integer> entry = entries.get(i);
+                if (cache != null) {
+                    embedBuilder.addField(new WebhookEmbed.EmbedField(false, (i + 1) + ". " + cache.getByUuid(entry.getKey()).orElseThrow().getName() + ":", entry.getValue().toString()));
+                }
             }
         }
 
         embedBuilder.setThumbnailUrl(thumbnailUrl);
-
         WebhookEmbed embed = embedBuilder.build();
 
         WebhookMessageBuilder messageBuilder = new WebhookMessageBuilder()
-                .setUsername(raid_title)
-                .setAvatarUrl(raid_avatarurl)
+                .setUsername(webhook_username)
+                .setAvatarUrl(webhook_avatar_url)
                 .addEmbeds(embed);
 
         webhook.send(messageBuilder.build());
     }
-
 }

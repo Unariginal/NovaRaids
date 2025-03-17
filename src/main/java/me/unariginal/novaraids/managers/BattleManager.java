@@ -96,14 +96,20 @@ public class BattleManager {
                             (pokemon.getForm().getMaleRatio() == 1F || new Random().nextFloat() < pokemon.getForm().getMaleRatio()) ?
                                     Gender.MALE : Gender.FEMALE
             );
+        } else {
+            pokemon.setGender(raid.raidBoss_pokemon().getGender());
         }
 
         if (settings.randomize_nature()) {
             pokemon.setNature(Natures.INSTANCE.getRandomNature());
+        } else {
+            pokemon.setNature(raid.raidBoss_pokemon().getNature());
         }
 
         if (settings.randomize_ability()) {
             pokemon.updateAbility(pokemon.getForm().getAbilities().select(pokemon.getSpecies(), pokemon.getAspects()).getFirst());
+        } else {
+            pokemon.updateAbility(raid.raidBoss_pokemon().getAbility());
         }
 
         if (settings.reset_moves()) {

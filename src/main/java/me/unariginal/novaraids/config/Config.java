@@ -26,7 +26,6 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.component.ComponentChanges;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.UserCache;
@@ -222,11 +221,6 @@ public class Config {
         int fight_phase_time = getSafe(settingsObject, "fight_phase_time", "Integer", "config.json/raid_settings").getAsInt();
         int pre_catch_phase_time = getSafe(settingsObject, "pre_catch_phase_time", "Integer", "config.json/raid_settings").getAsInt();
         int catch_phase_time = getSafe(settingsObject, "catch_phase_time", "Integer", "config.json/raid_settings").getAsInt();
-        raid_webhook_toggle = getSafe(settingsObject, "raid_webhook_toggle", "boolean", "config.json/raid_settings").getAsBoolean();
-        raid_webhookurl = getSafe(settingsObject, "raid_webhookurl", "String", "config.json/raid_settings").getAsString();
-        raid_title = getSafe(settingsObject, "raid_title", "String", "config.json/raid_settings").getAsString();
-        raid_role_at = getSafe(settingsObject, "raid_role_at", "String", "config.json/raid_settings").getAsString();
-        raid_avatarurl = getSafe(settingsObject, "raid_avatarurl", "String", "config.json/raid_settings").getAsString();
 
         JsonObject banned_section = getSafe(settingsObject, "banned_section", "Json Object", "config.json/raid_settings").getAsJsonObject();
         JsonArray banned_pokemon = getSafe(banned_section, "banned_pokemon", "Json String Array", "config.json/raid_settings/banned_section").getAsJsonArray();
@@ -234,7 +228,6 @@ public class Config {
         JsonArray banned_abilities = getSafe(banned_section, "banned_abilities", "Json String Array", "config.json/raid_settings/banned_section").getAsJsonArray();
         JsonArray banned_held_items = getSafe(banned_section, "banned_held_items", "Json String Array", "config.json/raid_settings/banned_section").getAsJsonArray();
         JsonArray banned_bag_items = getSafe(banned_section, "banned_bag_items", "Json String Array", "config.json/raid_settings/banned_section").getAsJsonArray();
-
 
         List<Species> banned_pokemon_list = new ArrayList<>();
         for (JsonElement element : banned_pokemon) {
@@ -655,6 +648,42 @@ public class Config {
         }
         this.messages = new Messages(prefix, command, messages_map);
         nr.logInfo("[RAIDS] Loaded messages.");
+
+        JsonObject discord = getSafe(messagesObject, "discord", "Json Object", "messages.json").getAsJsonObject();
+        webhook_toggle = getSafe(discord, "webhook_toggle", "boolean", "messages.json/discord").getAsBoolean();
+        if (webhook_toggle) {
+            webhook_url = getSafe(discord, "webhook_url", "String", "messages.json/discord").getAsString();
+            webhook_username = getSafe(discord, "webhook_username", "String", "messages.json/discord").getAsString();
+            webhook_avatar_url = getSafe(discord, "webhook_avatar_url", "String", "messages.json/discord").getAsString();
+            role_ping = getSafe(discord, "role_ping", "String", "messages.json/discord").getAsString();
+
+            JsonObject raid_start = getSafe(discord, "raid_start", "Json Object", "messages.json/discord").getAsJsonObject();
+            start_embed_title = getSafe(raid_start, "embed_title", "String", "messages.json/discord/raid_start").getAsString();
+            List<JsonObject> start_fields = getSafe(raid_start, "fields", "Json Object Array", "messages.json/discord/raid_start").getAsJsonArray().asList().stream().map(JsonElement::getAsJsonObject).toList();
+            if (!start_fields.isEmpty()) {
+                start_embed_fields.clear();
+                for (JsonObject field : start_fields) {
+                    boolean inline = getSafe(field, "inline", "boolean", "messages.json/discord/raid_start/fields").getAsBoolean();
+                    String name = getSafe(field, "name", "String", "messages.json/discord/raid_start/fields").getAsString();
+                    String value = getSafe(field, "value", "String", "messages.json/discord/raid_start/fields").getAsString();
+                    start_embed_fields.add(new FieldData(inline, name, value));
+                }
+            }
+
+            JsonObject raid_end = getSafe(discord, "raid_end", "Json Object", "messages.json/discord").getAsJsonObject();
+            end_embed_title = getSafe(raid_end, "embed_title", "String", "messages.json/discord/raid_end").getAsString();
+            List<JsonObject> end_fields = getSafe(raid_end, "fields", "Json Object Array", "messages.json/discord/raid_end").getAsJsonArray().asList().stream().map(JsonElement::getAsJsonObject).toList();
+            if (!end_fields.isEmpty()) {
+                end_embed_fields.clear();
+                for (JsonObject field : end_fields) {
+                    boolean inline = getSafe(field, "inline", "boolean", "messages.json/discord/raid_end/fields").getAsBoolean();
+                    String name = getSafe(field, "name", "String", "messages.json/discord/raid_end/fields").getAsString();
+                    String value = getSafe(field, "value", "String", "messages.json/discord/raid_end/fields").getAsString();
+                    end_embed_fields.add(new FieldData(inline, name, value));
+                }
+            }
+            show_leaderboard = getSafe(raid_end, "show_leaderboard", "Boolean", "messages.json/discord/raid_end").getAsBoolean();
+        }
     }
 
     private void loadRewards() throws NullPointerException, UnsupportedOperationException {

@@ -52,6 +52,8 @@ public class Raid {
     private final int min_players;
     private final int max_players;
     private final List<UUID> participating_players = new ArrayList<>();
+    private final List<UUID> markForDeletion = new ArrayList<>();
+    private boolean clearToDelete = true;
     private final Map<UUID, Integer> damage_by_player = new HashMap<>();
 
     private final Map<Long, List<Task>> tasks = new HashMap<>();
@@ -141,7 +143,7 @@ public class Raid {
         broadcast(TextUtil.format(messages.parse(messages.message("start_pre_phase"), this)));
         nr.config().getMessages().execute_command();
 
-        if(WebhookHandler.raid_webhook_toggle) {
+        if(WebhookHandler.webhook_toggle) {
             WebhookHandler.sendStartRaidWebhook(this);
         }
 
@@ -204,7 +206,7 @@ public class Raid {
         raidBoss_entity.kill();
         handle_rewards();
 
-        if (WebhookHandler.raid_webhook_toggle){
+        if (WebhookHandler.webhook_toggle){
             WebhookHandler.sendEndRaidWebhook(this, get_damage_leaderboard());
         }
 
@@ -573,7 +575,7 @@ public class Raid {
         if (index != -1) {
             ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(player_uuid);
             if (player != null) {
-                participating_players.remove(index);
+                markForDeletion.add(player_uuid);
                 player.hideBossBar(bossbars().get(player_uuid));
                 player_bossbars.remove(player_uuid);
                 damage_by_player.remove(player_uuid);
@@ -588,6 +590,12 @@ public class Raid {
                     remove_clone(clone);
                 }
             }
+        }
+    }
+
+    public void removePlayers() {
+        if (clearToDelete) {
+            participating_players().removeAll(markForDeletion);
         }
     }
 
@@ -673,6 +681,7 @@ public class Raid {
         hide_bossbar();
         if (bossbar != null) {
             for (UUID player_uuid : participating_players) {
+                clearToDelete = false;
                 ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(player_uuid);
                 if (player != null) {
                     BossBar bar = bossbar.createBossBar(this);
@@ -680,6 +689,7 @@ public class Raid {
                     player_bossbars.put(player_uuid, bar);
                 }
             }
+            clearToDelete = true;
         }
     }
 
@@ -697,11 +707,13 @@ public class Raid {
         if (bossbar != null) {
             if (bossbar.use_overlay()) {
                 for (UUID player_uuid : participating_players) {
+                    clearToDelete = false;
                     ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(player_uuid);
                     if (player != null) {
                         player.sendActionBar(TextUtil.format(nr.config().getMessages().parse(bossbar.overlay_text(), this)));
                     }
                 }
+                clearToDelete = true;
             }
         }
     }

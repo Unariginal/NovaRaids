@@ -47,23 +47,25 @@ public record Boss(String name,
     public Map.Entry<?, Double> getRandomEntry(Map<?, Double> map) {
         double total_weight = 0.0;
 
-        for (Double value : map.values()) {
-            total_weight += value;
-        }
+        if (!map.isEmpty()) {
+            for (Double value : map.values()) {
+                total_weight += value;
+            }
 
-        if (total_weight > 0.0) {
-            double random_weight = new Random().nextDouble(total_weight);
-            total_weight = 0.0;
+            if (total_weight > 0.0) {
+                double random_weight = new Random().nextDouble(total_weight);
+                total_weight = 0.0;
 
-            for (Map.Entry<?, Double> entry : map.entrySet()) {
-                total_weight += entry.getValue();
-                if (random_weight < total_weight) {
-                    return entry;
+                for (Map.Entry<?, Double> entry : map.entrySet()) {
+                    total_weight += entry.getValue();
+                    if (random_weight < total_weight) {
+                        return entry;
+                    }
                 }
             }
+            return map.entrySet().stream().findFirst().orElse(null);
         }
-        return map.entrySet().iterator().next();
-
+        return null;
     }
 
     public ComponentChanges get_held_item_data() {
@@ -98,9 +100,22 @@ public record Boss(String name,
         pokemon.heal();
         pokemon.setForm(form);
         PokemonProperties.Companion.parse(features).apply(pokemon);
-        pokemon.updateAbility((Ability) getRandomEntry(possible_abilities).getKey());
-        pokemon.setNature((Nature) getRandomEntry(possible_natures).getKey());
-        pokemon.setGender((Gender) getRandomEntry(possible_gender).getKey());
+
+        Map.Entry<?, Double> entry = getRandomEntry(possible_abilities);
+        if (entry != null) {
+            pokemon.updateAbility((Ability) entry.getKey());
+        }
+
+        entry = getRandomEntry(possible_natures);
+        if (entry != null) {
+            pokemon.setNature((Nature) entry.getKey());
+        }
+
+        entry = getRandomEntry(possible_gender);
+        if (entry != null) {
+            pokemon.setGender((Gender) entry.getKey());
+        }
+
         pokemon.setShiny(shiny);
         pokemon.setScaleModifier(scale);
 
