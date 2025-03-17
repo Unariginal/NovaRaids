@@ -3,18 +3,36 @@
     "x_pos": 0.0,
     "y_pos": 100.0,
     "z_pos": 0.0,
-    "world": "minecraft:overworld"
+    "world": "minecraft:overworld",
+    "use_set_join_location": true,
+    "join_location": {
+      "x_pos": 0.0,
+      "y_pos": 100.0,
+      "z_pos": 7.0
+    }
   },
   "left_location": {
     "x_pos": 10.0,
     "y_pos": 100.0,
     "z_pos": 0.0,
-    "world": "minecraft:overworld"
+    "world": "minecraft:overworld",
+    "use_set_join_location": true,
+    "join_location": {
+      "x_pos": 10.0,
+      "y_pos": 100.0,
+      "z_pos": 7.0
+    }
   },
   "right_location": {
     "x_pos": -10.0,
     "y_pos": 100.0,
     "z_pos": 0.0,
-    "world": "minecraft:overworld"
+    "world": "minecraft:overworld",
+    "use_set_join_location": true,
+    "join_location": {
+      "x_pos": -10.0,
+      "y_pos": 100.0,
+      "z_pos": 7.0
+    }
   }
 }

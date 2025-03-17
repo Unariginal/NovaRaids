@@ -603,7 +603,17 @@ public class Config {
                 }
             }
 
-            Location loc = new Location(location, pos, world);
+            boolean use_set_join_location = getSafe(locationObject, "use_set_join_location", "Boolean", "locations.json/" + location).getAsBoolean();
+            Vec3d tp_coords = new Vec3d(x, y, z);
+            if (use_set_join_location) {
+                JsonObject join_location = getSafe(locationObject, "join_location", "Json Object", "locations.json/" + location).getAsJsonObject();
+                double tp_x = getSafe(join_location, "x_pos", "Double", "locations.json/" + location + "/join_location").getAsDouble();
+                double tp_y = getSafe(join_location, "y_pos", "Double", "locations.json/" + location + "/join_location").getAsDouble();
+                double tp_z = getSafe(join_location, "z_pos", "Double", "locations.json/" + location + "/join_location").getAsDouble();
+                tp_coords = new Vec3d(tp_x, tp_y, tp_z);
+            }
+
+            Location loc = new Location(location, pos, world, use_set_join_location, tp_coords);
             locationsList.add(loc);
         }
         this.locations = locationsList;

@@ -596,6 +596,7 @@ public class Raid {
     public void removePlayers() {
         if (clearToDelete) {
             participating_players().removeAll(markForDeletion);
+            markForDeletion.clear();
         }
     }
 
@@ -649,6 +650,13 @@ public class Raid {
                     current_health += boss_info.health_increase_per_player();
                 }
                 show_bossbar(bossbar_data);
+                if (raidBoss_location.use_set_join_location()) {
+                    int chunkX = (int) Math.floor(raidBoss_location.join_location().x / 16);
+                    int chunkZ = (int) Math.floor(raidBoss_location.join_location().z / 16);
+                    raidBoss_location.world().setChunkForced(chunkX, chunkZ, true);
+                    player.teleport(raidBoss_location.world(), raidBoss_location.join_location().x, raidBoss_location.join_location().y, raidBoss_location.join_location().z, player.getYaw(), player.getPitch());
+                    raidBoss_location.world().setChunkForced(chunkX, chunkZ, false);
+                }
             } else if (index != -2) {
                 player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_already_joined_raid"), this)));
             }
