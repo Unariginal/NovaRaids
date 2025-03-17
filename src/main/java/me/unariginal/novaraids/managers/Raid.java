@@ -142,7 +142,7 @@ public class Raid {
         nr.config().getMessages().execute_command();
 
         if(WebhookHandler.raid_webhook_toggle) {
-            WebhookHandler.sendStartRaidWebhook(raidBoss_pokemon);
+            WebhookHandler.sendStartRaidWebhook(this);
         }
 
 
@@ -204,6 +204,10 @@ public class Raid {
         raidBoss_entity.kill();
         handle_rewards();
 
+        if (WebhookHandler.raid_webhook_toggle){
+            WebhookHandler.sendEndRaidWebhook(this, get_damage_leaderboard());
+        }
+
         if (boss_info.do_catch_phase()) {
             participating_broadcast(TextUtil.format(messages.parse(messages.message("catch_phase_warning"), this)));
             addTask(raidBoss_location.world(), phase_length * 20L, this::catch_phase);
@@ -242,10 +246,6 @@ public class Raid {
             participating_broadcast(TextUtil.format(messages.parse(messages.message("catch_phase_end"), this)));
         }
         participating_broadcast(TextUtil.format(messages.parse(messages.message("raid_end"), this)));
-
-        if (WebhookHandler.raid_webhook_toggle){
-            WebhookHandler.sendEndRaidWebhook(raidBoss_pokemon, get_damage_leaderboard());
-       }
 
         try {
             nr.config().writeResults(this);
