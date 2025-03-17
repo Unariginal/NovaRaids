@@ -46,6 +46,7 @@ public class NovaRaids implements ModInitializer {
                 EventManager.battle_events();
                 EventManager.right_click_events();
                 EventManager.player_events();
+                EventManager.cobblemon_events();
             } else {
                 LOGGER.error("[RAIDS] Config did not load properly! Mod will not be loaded.");
             }

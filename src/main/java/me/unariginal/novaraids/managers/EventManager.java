@@ -22,6 +22,7 @@ import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.Boss;
 import me.unariginal.novaraids.utils.BanHandler;
 import me.unariginal.novaraids.utils.TextUtil;
+import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.component.DataComponentTypes;
@@ -32,6 +33,7 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.TypedActionResult;
 
 import java.util.ArrayList;
@@ -431,6 +433,27 @@ public class EventManager {
                     raid.stop();
                 }
             }
+        });
+
+        AttackEntityCallback.EVENT.register(((playerEntity, world, hand, entity, entityHitResult) -> {
+            if (entity instanceof PokemonEntity pokemonEntity) {
+                Pokemon pokemon = pokemonEntity.getPokemon();
+                if (pokemon.getPersistentData().contains("raid_entity")) {
+                    return ActionResult.FAIL;
+                }
+            }
+            return ActionResult.PASS;
+        }));
+    }
+
+    public static void cobblemon_events() {
+        CobblemonEvents.POKEMON_ENTITY_SAVE_TO_WORLD.subscribe(Priority.HIGHEST, event -> {
+            PokemonEntity pokemonEntity = event.getPokemonEntity();
+            Pokemon pokemon = pokemonEntity.getPokemon();
+            if (pokemon.getPersistentData().contains("raid_entity")) {
+                event.cancel();
+            }
+            return Unit.INSTANCE;
         });
     }
 }

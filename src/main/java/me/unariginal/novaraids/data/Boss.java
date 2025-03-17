@@ -13,6 +13,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -83,7 +84,18 @@ public record Boss(String name,
     public Pokemon createPokemon() {
         Pokemon pokemon = new Pokemon();
         pokemon.setSpecies(species);
-        pokemon.setLevel(level);
+        if (level <= 100) {
+            pokemon.setLevel(level);
+        } else {
+            try {
+                Field level_field = pokemon.getClass().getDeclaredField("level");
+                level_field.setAccessible(true);
+                level_field.set(pokemon, level);
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+        pokemon.heal();
         pokemon.setForm(form);
         PokemonProperties.Companion.parse(features).apply(pokemon);
         pokemon.updateAbility((Ability) getRandomEntry(possible_abilities).getKey());

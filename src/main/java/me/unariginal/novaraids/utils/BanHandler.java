@@ -28,7 +28,7 @@ public class BanHandler {
         List<Item> banned_held_items = nr.config().getSettings().banned_held_items();
         for (Pokemon pokemon : party) {
             for (Species species : banned_pokemon) {
-                if (pokemon.getSpecies().equals(species)) {
+                if (pokemon.getSpecies().getName().equals(species.getName())) {
                     nr.logInfo("Not allowed pokemon");
                     player.sendMessage(TextUtil.format(messages.parse(messages.message("warning_banned_pokemon").replaceAll("%banned.pokemon%", species.getName()))));
                     return true;
@@ -36,7 +36,7 @@ public class BanHandler {
             }
 
             for (Ability ability : banned_abilities) {
-                if (pokemon.getAbility().equals(ability)) {
+                if (pokemon.getAbility().getName().equals(ability.getName())) {
                     nr.logInfo("Not allowed ability");
                     player.sendMessage(TextUtil.format(messages.parse(messages.message("warning_banned_ability").replaceAll("%banned.ability%", ability.getName()))));
                     return true;
@@ -44,10 +44,12 @@ public class BanHandler {
             }
 
             for (Move move : banned_moves) {
-                if (pokemon.getMoveSet().getMoves().contains(move)) {
-                    nr.logInfo("Not allowed move");
-                    player.sendMessage(TextUtil.format(messages.parse(messages.message("warning_banned_move").replaceAll("%banned.move%", move.getName()))));
-                    return true;
+                for (Move set : pokemon.getMoveSet()) {
+                    if (set.getName().equals(move.getName())) {
+                        nr.logInfo("Not allowed move");
+                        player.sendMessage(TextUtil.format(messages.parse(messages.message("warning_banned_move").replaceAll("%banned.move%", move.getName()))));
+                        return true;
+                    }
                 }
             }
 

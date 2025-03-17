@@ -14,6 +14,7 @@ import com.cobblemon.mod.common.pokemon.EVs;
 import com.cobblemon.mod.common.pokemon.Gender;
 import com.cobblemon.mod.common.pokemon.IVs;
 import com.cobblemon.mod.common.pokemon.Pokemon;
+import com.cobblemon.mod.common.pokemon.properties.UncatchableProperty;
 import kotlin.Unit;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.CatchSettings;
@@ -40,7 +41,7 @@ public class BattleManager {
     }
 
     public static void invoke_catch_encounter(Raid raid, ServerPlayerEntity player) {
-        Pokemon pokemon = raid.raidBoss_pokemon().clone(true, null);
+        Pokemon pokemon = raid.boss_info().createPokemon();
         NbtCompound data = new NbtCompound();
         data.putBoolean("raid_entity", true);
         data.putBoolean("boss_clone", true);
@@ -135,7 +136,8 @@ public class BattleManager {
     }
 
     public static void invoke_battle(Raid raid, ServerPlayerEntity player) {
-        Pokemon pokemon = raid.raidBoss_pokemon_uncatchable().clone(true, null);
+        Pokemon pokemon = raid.boss_info().createPokemon();
+        pokemon.getCustomProperties().add(UncatchableProperty.INSTANCE.uncatchable());
         NbtCompound data = new NbtCompound();
         data.putBoolean("raid_entity", true);
         data.putBoolean("boss_clone", true);

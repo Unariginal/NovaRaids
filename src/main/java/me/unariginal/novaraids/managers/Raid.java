@@ -23,6 +23,7 @@ import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import org.apache.commons.lang3.StringUtils;
 
@@ -361,10 +362,15 @@ public class Raid {
             entity.setMovementSpeed(0.0f);
             entity.setNoGravity(true);
             entity.setAiDisabled(true);
-            entity.setGlowing(nr.config().getSettings().bosses_glow());
+            if (nr.config().getSettings().bosses_glow()) {
+                entity.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, -1, 9999, true, false));
+            }
             entity.setInvulnerable(true);
             entity.setBodyYaw(boss_info().facing());
             entity.setDrops(new DropTable());
+            Box hitbox = entity.getBoundingBox();
+            hitbox.stretch(new Vec3d(raidBoss_pokemon_uncatchable.getScaleModifier(), raidBoss_pokemon_uncatchable.getScaleModifier(), raidBoss_pokemon_uncatchable.getScaleModifier()));
+            entity.setBoundingBox(hitbox);
             return Unit.INSTANCE;
         });
     }

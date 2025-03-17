@@ -53,56 +53,55 @@ public class TickManager {
 
     public static void fix_player_positions() {
         for (Raid raid : nr.active_raids().values()) {
-            for (UUID player_uuid : raid.participating_players()) {
-                ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(player_uuid);
+            for (ServerPlayerEntity player : nr.server().getPlayerManager().getPlayerList()) {
                 if (player != null) {
                     int raid_radius = nr.config().getSettings().raid_radius();
                     int raid_pushback = nr.config().getSettings().raid_pushback_radius();
                     ServerWorld world = raid.raidBoss_location().world();
+                    if (player.getServerWorld() == world) {
+                        double x = player.getPos().getX();
+                        double z = player.getPos().getZ();
+                        double cx = raid.raidBoss_location().pos().getX();
+                        double cz = raid.raidBoss_location().pos().getZ();
 
-                    double x = player.getPos().getX();
-                    double z = player.getPos().getZ();
-                    double cx = raid.raidBoss_location().pos().getX();
-                    double cz = raid.raidBoss_location().pos().getZ();
+                        // Get direction vector
+                        double deltaX = x - cx;
+                        double deltaZ = z - cz;
 
+                        // Get angle of approach
+                        double angle = Math.toDegrees(Math.atan2(deltaZ, deltaX));
 
-                    // Get direction vector
-                    double deltaX = x - cx;
-                    double deltaZ = z - cz;
-
-                    // Get angle of approach
-                    double angle = Math.toDegrees(Math.atan2(deltaZ, deltaX));
-
-                    // Modify based on quadrant
-                    if (angle < 0) {
-                        angle += 360;
-                    }
-
-                    double distance = Double.NaN;
-
-                    double hyp = Math.pow(deltaX, 2) + Math.pow(deltaZ, 2);
-                    hyp = Math.sqrt(hyp);
-
-                    if (hyp < raid_pushback) {
-                        distance = raid_pushback + 1;
-                    } else if (hyp > raid_radius) {
-                        if (raid.stage() < 3) {
-                            distance = raid_radius - 1;
+                        // Modify based on quadrant
+                        if (angle < 0) {
+                            angle += 360;
                         }
-                    }
 
-                    if (!Double.isNaN(distance)) {
-                        double new_x = cx + distance * Math.cos(Math.toRadians(angle));
-                        double new_z = cz + distance * Math.sin(Math.toRadians(angle));
-                        double new_y = raid.raidBoss_location().pos().getY();
-                        int chunkX = (int) Math.floor(new_x / 16);
-                        int chunkZ = (int) Math.floor(new_z / 16);
-                        world.setChunkForced(chunkX, chunkZ, true);
-                        while (!world.getBlockState(new BlockPos((int) new_x, (int) new_y, (int) new_z)).isAir()) {
-                            new_y++;
+                        double distance = Double.NaN;
+
+                        double hyp = Math.pow(deltaX, 2) + Math.pow(deltaZ, 2);
+                        hyp = Math.sqrt(hyp);
+
+                        if (hyp < raid_pushback) {
+                            distance = raid_pushback + 1;
+                        } else if (hyp > raid_radius) {
+                            if (raid.stage() < 3 && raid.participating_players().contains(player.getUuid())) {
+                                distance = raid_radius - 1;
+                            }
                         }
-                        player.teleport(world, new_x, new_y, new_z, player.getYaw(), player.getPitch());
-                        world.setChunkForced(chunkX, chunkZ, false);
+
+                        if (!Double.isNaN(distance)) {
+                            double new_x = cx + distance * Math.cos(Math.toRadians(angle));
+                            double new_z = cz + distance * Math.sin(Math.toRadians(angle));
+                            double new_y = raid.raidBoss_location().pos().getY();
+                            int chunkX = (int) Math.floor(new_x / 16);
+                            int chunkZ = (int) Math.floor(new_z / 16);
+                            world.setChunkForced(chunkX, chunkZ, true);
+                            while (!world.getBlockState(new BlockPos((int) new_x, (int) new_y, (int) new_z)).isAir()) {
+                                new_y++;
+                            }
+                            player.teleport(world, new_x, new_y, new_z, player.getYaw(), player.getPitch());
+                            world.setChunkForced(chunkX, chunkZ, false);
+                        }
                     }
                 }
             }
