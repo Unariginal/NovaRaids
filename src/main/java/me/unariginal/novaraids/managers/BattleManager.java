@@ -68,13 +68,17 @@ public class BattleManager {
             pokemon.removeHeldItem();
         }
 
-        if (!settings.keep_evs()) {
+        if (settings.keep_evs()) {
             EVs new_evs = new EVs();
             for (Map.Entry<? extends Stat, ? extends Integer> ev : pokemon.getEvs()) {
                 new_evs.add(ev.getKey(), ev.getValue());
             }
             for (Map.Entry<? extends Stat, ? extends Integer> ev : new_evs) {
                 pokemon.setEV(ev.getKey(), ev.getValue());
+            }
+        } else {
+            for (Map.Entry<? extends Stat, ? extends Integer> ev : pokemon.getEvs()) {
+                pokemon.setEV(ev.getKey(), 0);
             }
         }
 
