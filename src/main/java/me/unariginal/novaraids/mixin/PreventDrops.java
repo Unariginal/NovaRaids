@@ -2,8 +2,6 @@ package me.unariginal.novaraids.mixin;
 
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.pokemon.Pokemon;
-import me.unariginal.novaraids.NovaRaids;
-import me.unariginal.novaraids.managers.Raid;
 import net.minecraft.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

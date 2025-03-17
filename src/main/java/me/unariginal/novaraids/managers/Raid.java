@@ -16,6 +16,7 @@ import me.unariginal.novaraids.data.rewards.Place;
 import me.unariginal.novaraids.data.rewards.RewardPool;
 import me.unariginal.novaraids.utils.BanHandler;
 import me.unariginal.novaraids.utils.TextUtil;
+import me.unariginal.novaraids.utils.WebhookHandler;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import net.minecraft.entity.effect.StatusEffectInstance;
@@ -29,7 +30,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.List;
 
 public class Raid {
     private final NovaRaids nr = NovaRaids.INSTANCE;
@@ -141,6 +141,12 @@ public class Raid {
         broadcast(TextUtil.format(messages.parse(messages.message("start_pre_phase"), this)));
         nr.config().getMessages().execute_command();
 
+        if(WebhookHandler.raid_webhook_toggle) {
+            WebhookHandler.sendStartRaidWebhook(raidBoss_pokemon);
+        }
+
+
+
         addTask(raidBoss_location.world(), phase_length * 20L, this::fight_phase);
     }
 
@@ -236,6 +242,11 @@ public class Raid {
             participating_broadcast(TextUtil.format(messages.parse(messages.message("catch_phase_end"), this)));
         }
         participating_broadcast(TextUtil.format(messages.parse(messages.message("raid_end"), this)));
+
+        if (WebhookHandler.raid_webhook_toggle){
+            WebhookHandler.sendEndRaidWebhook(raidBoss_pokemon, get_damage_leaderboard());
+       }
+
         try {
             nr.config().writeResults(this);
         } catch (IOException | NoSuchElementException e) {
