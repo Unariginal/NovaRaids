@@ -270,6 +270,7 @@ public class Config {
         }
 
         JsonObject items = getSafe(settingsObject, "items", "Json Object", "config.json/raid_settings").getAsJsonObject();
+        boolean use_raid_vouchers = getSafe(items, "use_raid_vouchers", "Boolean", "config.json/raid_settings/items").getAsBoolean();
         Item voucher_item = Registries.ITEM.get(Identifier.of(getSafe(items, "voucher_item", "String", "config.json/raid_settings/items").getAsString()));
         ComponentChanges voucher_item_data = null;
         if (items.get("voucher_item_data") != null) {
@@ -315,6 +316,7 @@ public class Config {
                 banned_abilities_list,
                 banned_held_item_list,
                 banned_bag_item_list,
+                use_raid_vouchers,
                 voucher_item,
                 voucher_item_data,
                 pass_item,

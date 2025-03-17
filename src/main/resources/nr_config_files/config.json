@@ -32,6 +32,7 @@
       ]
     },
     "items": {
+      "use_raid_vouchers": true,
       "voucher_item": "minecraft:feather",
       "voucher_item_data": {},
       "pass_item": "minecraft:paper",

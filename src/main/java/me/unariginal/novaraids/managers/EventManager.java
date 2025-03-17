@@ -282,7 +282,7 @@ public class EventManager {
                                     }
                                 }
                             }
-                        } else if (custom_data.copyNbt().getString("raid_item").equals("raid_voucher")) {
+                        } else if (custom_data.copyNbt().getString("raid_item").equals("raid_voucher") && nr.config().getSettings().use_raid_voucher()) {
                             String boss_name = custom_data.copyNbt().getString("raid_boss");
                             String category = custom_data.copyNbt().getString("raid_category");
                             if (boss_name.equalsIgnoreCase("*")) {
