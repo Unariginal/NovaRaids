@@ -668,7 +668,7 @@ public class RaidCommands {
 
     public int start(Boss boss_info, ServerPlayerEntity player, ItemStack starting_item) {
         if (nr.config().loadedProperly()) {
-            if (!nr.server().getPlayerManager().getPlayerList().isEmpty()) {
+            if (!nr.server().getPlayerManager().getPlayerList().isEmpty() || nr.config().getSettings().run_raids_with_no_players()) {
                 if (boss_info != null) {
                     Map<String, Double> spawn_locations = boss_info.spawn_locations();
                     Map<String, Double> valid_locations = new HashMap<>();
