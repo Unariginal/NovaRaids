@@ -217,6 +217,7 @@ public class Config {
         boolean bosses_glow = getSafe(settingsObject, "bosses_glow", "Boolean", "config.json/raid_settings").getAsBoolean();
         boolean heal_party_on_challenge = getSafe(settingsObject, "heal_party_on_challenge", "Boolean", "config.json/raid_settings").getAsBoolean();
         boolean use_queue_system = getSafe(settingsObject, "use_queue_system", "Boolean", "config.json/raid_settings").getAsBoolean();
+        boolean run_raids_with_no_players = getSafe(settingsObject, "run_raids_with_no_players", "Boolean", "config.json/raid_settings").getAsBoolean();
         int setup_phase_time = getSafe(settingsObject, "setup_phase_time", "Boolean", "config.json/raid_settings").getAsInt();
         int fight_phase_time = getSafe(settingsObject, "fight_phase_time", "Integer", "config.json/raid_settings").getAsInt();
         int pre_catch_phase_time = getSafe(settingsObject, "pre_catch_phase_time", "Integer", "config.json/raid_settings").getAsInt();
@@ -308,6 +309,7 @@ public class Config {
                 bosses_glow,
                 heal_party_on_challenge,
                 use_queue_system,
+                run_raids_with_no_players,
                 setup_phase_time,
                 fight_phase_time,
                 pre_catch_phase_time,
@@ -488,6 +490,7 @@ public class Config {
                     String category = getSafe(boss_details, "category", "String", bossFile.getName() + "/boss_details").getAsString();
                     double random_weight = getSafe(boss_details, "random_weight", "Double", bossFile.getName() + "/boss_details").getAsDouble();
                     Float facing = getSafe(boss_details, "body_direction", "Float", bossFile.getName() + "/boss_details").getAsFloat();
+                    int level_cap = getSafe(boss_details, "level_cap", "Integer", bossFile.getName() + "/boss_details").getAsInt();
                     boolean do_catch_phase = getSafe(boss_details, "do_catch_phase", "Boolean", bossFile.getName() + "/boss_details").getAsBoolean();
 
                     Map<String, Double> spawn_locations = new HashMap<>();
@@ -564,6 +567,7 @@ public class Config {
                             category,
                             random_weight,
                             facing,
+                            level_cap,
                             do_catch_phase,
                             spawn_locations,
                             rewards_list,

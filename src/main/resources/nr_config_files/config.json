@@ -7,6 +7,7 @@
     "bosses_glow": false,
     "heal_party_on_challenge": false,
     "use_queue_system": false,
+    "run_raids_with_no_players": false,
     "setup_phase_time": 30,
     "fight_phase_time": 600,
     "pre_catch_phase_time": 30,

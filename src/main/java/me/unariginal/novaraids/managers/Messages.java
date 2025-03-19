@@ -50,7 +50,8 @@ public record Messages(String prefix, String raid_start_command, Map<String, Str
         output = parse(output);
         output = output
                 .replaceAll("%boss.species%", boss.species().getName())
-                .replaceAll("%boss%", boss.name());
+                .replaceAll("%boss%", boss.name())
+                .replaceAll("%boss.level_cap%", String.valueOf(boss.level_cap()));
 
         boolean normal = boss.display_form().isEmpty() || boss.display_form().equalsIgnoreCase("normal");
         if (output.contains(" %boss.form%")) {

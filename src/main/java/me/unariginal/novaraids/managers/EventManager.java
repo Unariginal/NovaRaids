@@ -1,5 +1,6 @@
 package me.unariginal.novaraids.managers;
 
+import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.CobblemonItems;
 import com.cobblemon.mod.common.api.Priority;
 import com.cobblemon.mod.common.api.battles.model.PokemonBattle;
@@ -79,6 +80,17 @@ public class EventManager {
                                 event.setReason(null);
                                 event.cancel();
                                 return Unit.INSTANCE;
+                            }
+
+                            for (Pokemon pokemon : Cobblemon.INSTANCE.getStorage().getParty(player)) {
+                                if (pokemon != null) {
+                                    if (pokemon.getLevel() < raid.boss_info().level_cap()) {
+                                        player.sendMessage(TextUtil.format(messages.parse(messages.message("warning_level_cap"), raid)));
+                                        event.setReason(null);
+                                        event.cancel();
+                                        return Unit.INSTANCE;
+                                    }
+                                }
                             }
 
                             if (raid.stage() == 2) {

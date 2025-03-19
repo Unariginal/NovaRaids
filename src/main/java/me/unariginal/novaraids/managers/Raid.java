@@ -147,8 +147,6 @@ public class Raid {
             WebhookHandler.sendStartRaidWebhook(this);
         }
 
-
-
         addTask(raidBoss_location.world(), phase_length * 20L, this::fight_phase);
     }
 
@@ -609,19 +607,19 @@ public class Raid {
                 for (Raid raid : nr.active_raids().values()) {
                     index = raid.get_player_index(player_uuid);
                     if (index != -1) {
-                        player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_already_joined_raid"), this)));
+                        player.sendMessage(TextUtil.format(messages.parse(messages.message("warning_already_joined_raid"), this)));
                         return false;
                     }
                 }
 
                 if (raidBoss_category().require_pass() && !usedPass) {
                     index = -2;
-                    player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_no_pass"), this)));
+                    player.sendMessage(TextUtil.format(messages.parse(messages.message("warning_no_pass"), this)));
                 }
 
                 if (stage != 1) {
                     index = -2;
-                    player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_not_joinable"), this)));
+                    player.sendMessage(TextUtil.format(messages.parse(messages.message("warning_not_joinable"), this)));
                 }
 
                 if (BanHandler.hasContraband(player)) {
@@ -632,12 +630,16 @@ public class Raid {
                 for (Pokemon pokemon : Cobblemon.INSTANCE.getStorage().getParty(player)) {
                     if (pokemon != null) {
                         num_pokemon++;
+                        if (pokemon.getLevel() < boss_info.level_cap()) {
+                            index = -2;
+                            player.sendMessage(TextUtil.format(messages.parse(messages.message("warning_level_cap"), this)));
+                        }
                     }
                 }
 
                 if (num_pokemon == 0) {
                     index = -2;
-                    player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_no_pokemon"), this)));
+                    player.sendMessage(TextUtil.format(messages.parse(messages.message("warning_no_pokemon"), this)));
                 }
             } else {
                 nr.logInfo("Player has permission override!");
@@ -658,7 +660,7 @@ public class Raid {
                     raidBoss_location.world().setChunkForced(chunkX, chunkZ, false);
                 }
             } else if (index != -2) {
-                player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_already_joined_raid"), this)));
+                player.sendMessage(TextUtil.format(messages.parse(messages.message("warning_already_joined_raid"), this)));
             }
             return index == -1;
         }
