@@ -225,27 +225,25 @@ public class TickManager {
     }
 
     public static void scheduled_raids() {
-        if (!nr.config().getSettings().use_queue_system()) {
-            LocalDateTime now = LocalDateTime.now(TimeZone.getDefault().toZoneId());
-            for (Category category : nr.config().getCategories()) {
-                if (!category.set_times().isEmpty()) {
-                    for (LocalTime time : category.set_times()) {
-                        if (set_time_buffer.until(now, ChronoUnit.SECONDS) >= 1 && time.getHour() == now.getHour() && time.getMinute() == now.getMinute() && time.getSecond() == now.getSecond()) {
-                            set_time_buffer = now;
-
-                            nr.raidCommands().start(choose_boss(category), null, null);
-                        }
-                    }
-                }
-                if (category.next_time() != null) {
-                    if (now.isAfter(category.next_time())) {
-                        category.new_next_time(now);
+        LocalDateTime now = LocalDateTime.now(TimeZone.getDefault().toZoneId());
+        for (Category category : nr.config().getCategories()) {
+            if (!category.set_times().isEmpty()) {
+                for (LocalTime time : category.set_times()) {
+                    if (set_time_buffer.until(now, ChronoUnit.SECONDS) >= 1 && time.getHour() == now.getHour() && time.getMinute() == now.getMinute() && time.getSecond() == now.getSecond()) {
                         set_time_buffer = now;
+
                         nr.raidCommands().start(choose_boss(category), null, null);
                     }
-                } else {
-                    category.new_next_time(now);
                 }
+            }
+            if (category.next_time() != null) {
+                if (now.isAfter(category.next_time())) {
+                    category.new_next_time(now);
+                    set_time_buffer = now;
+                    nr.raidCommands().start(choose_boss(category), null, null);
+                }
+            } else {
+                category.new_next_time(now);
             }
         }
     }
