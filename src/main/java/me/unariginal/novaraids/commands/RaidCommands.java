@@ -276,7 +276,7 @@ public class RaidCommands {
         if (player != null) {
             player.sendMessage(Text.literal("--------- Nova Raids ---------"));
             player.sendMessage(Text.literal("Author: Unariginal ").append(Text.literal("(Ariginal)").styled(style -> style.withItalic(true))));
-            player.sendMessage(Text.literal("Version: Beta v0.2.0"));
+            player.sendMessage(Text.literal("Version: Beta v0.2.1"));
             player.sendMessage(Text.literal("Source").styled(style -> style.withUnderline(true).withItalic(true).withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://github.com/Unariginal/NovaRaids"))));
             player.sendMessage(Text.literal("Wiki").styled(style -> style.withItalic(true).withUnderline(true).withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://github.com/Unariginal/NovaRaids/wiki"))));
             player.sendMessage(Text.literal("----------------------------"));
@@ -719,8 +719,10 @@ public class RaidCommands {
                     }
 
                     if (!nr.config().getSettings().use_queue_system()) {
+                        nr.logInfo("[RAIDS] Starting raid.");
                         nr.add_raid(new Raid(boss_info, spawn_location, (player != null) ? player.getUuid() : null, starting_item));
                     } else {
+                        nr.logInfo("[RAIDS] Adding queue raid.");
                         nr.add_queue_item(new QueueItem(UUID.randomUUID(), boss_info, spawn_location, (player != null) ? player.getUuid() : null, starting_item));
 
                         if (nr.active_raids().isEmpty()) {
@@ -915,6 +917,9 @@ public class RaidCommands {
                     if (!raid.raidBoss_category().require_pass() && raid.stage() == 1) {
                         lore.add(Text.empty());
                         lore.add(Text.literal("Click to join this raid!").styled(style -> style.withColor(Formatting.GREEN).withItalic(false)));
+                    } else if (raid.stage() != 1) {
+                        lore.add(Text.empty());
+                        lore.add(Text.literal("This raid has already begun!").styled(style -> style.withColor(Formatting.RED).withItalic(false)));
                     } else {
                         lore.add(Text.empty());
                         lore.add(Text.literal("This raid requires a pass!").styled(style -> style.withColor(Formatting.RED).withItalic(false)));
@@ -958,7 +963,7 @@ public class RaidCommands {
                 }
 
                 List<Text> lore = List.of(Text.empty());
-                if (Permissions.check(player, "novaraids.queue.cancel")) {
+                if (Permissions.check(player, "novaraids.cancelqueue")) {
                     lore = List.of(Text.empty(), Text.literal("Right click to cancel this raid!").styled(style -> style.withItalic(false).withColor(Formatting.RED)));
                 }
 
@@ -972,7 +977,7 @@ public class RaidCommands {
                             .setLore(lore)
                             .setCallback((i, clickType, slotActionType) -> {
                                 if (clickType.isRight) {
-                                    if (Permissions.check(player, "novaraids.queue.cancel")) {
+                                    if (Permissions.check(player, "novaraids.cancelqueue")) {
                                         gui.close();
                                         item.cancel_item();
                                         player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("queue_item_cancelled"), item.boss_info())));

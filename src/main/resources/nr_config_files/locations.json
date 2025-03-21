@@ -8,7 +8,9 @@
     "join_location": {
       "x_pos": 0.0,
       "y_pos": 100.0,
-      "z_pos": 7.0
+      "z_pos": 7.0,
+      "yaw": 0.0,
+      "pitch": 90.0
     }
   },
   "left_location": {
@@ -20,7 +22,9 @@
     "join_location": {
       "x_pos": 10.0,
       "y_pos": 100.0,
-      "z_pos": 7.0
+      "z_pos": 7.0,
+      "yaw": 0.0,
+      "pitch": 90.0
     }
   },
   "right_location": {
@@ -32,7 +36,9 @@
     "join_location": {
       "x_pos": -10.0,
       "y_pos": 100.0,
-      "z_pos": 7.0
+      "z_pos": 7.0,
+      "yaw": 0.0,
+      "pitch": 90.0
     }
   }
 }

@@ -15,11 +15,11 @@ public record Messages(String prefix, String raid_start_command, Map<String, Str
         return messages.get(key);
     }
 
-    public void execute_command() {
+    public void execute_command(Raid raid) {
         if (!raid_start_command.isEmpty()) {
             CommandManager cmdManager = Objects.requireNonNull(NovaRaids.INSTANCE.server()).getCommandManager();
             ServerCommandSource source = NovaRaids.INSTANCE.server().getCommandSource();
-            cmdManager.executeWithPrefix(source, raid_start_command);
+            cmdManager.executeWithPrefix(source, parse(raid_start_command, raid));
         }
     }
 

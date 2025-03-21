@@ -456,12 +456,12 @@ public class Config {
                         held_item_data = pokemon_details.get("held_item_data");
                     }
 
-                    MoveSet moves = new MoveSet();
+                    List<MoveTemplate> moves = new ArrayList<>();
                     JsonArray moves_list = getSafe(pokemon_details, "moves", "Json String Array", bossFile.getName() + "/pokemon_details").getAsJsonArray();
                     for (int i = 0; (i < moves_list.size() && i < 4); i++) {
                         MoveTemplate moveTemplate = Moves.INSTANCE.getByName(moves_list.get(i).getAsString());
                         if (moveTemplate != null) {
-                            moves.setMove(i, moveTemplate.create());
+                            moves.add(moveTemplate);
                         }
                     }
 
@@ -609,15 +609,27 @@ public class Config {
 
             boolean use_set_join_location = getSafe(locationObject, "use_set_join_location", "Boolean", "locations.json/" + location).getAsBoolean();
             Vec3d tp_coords = new Vec3d(x, y, z);
+            float tp_yaw = -1;
+            float tp_pitch = -1;
             if (use_set_join_location) {
                 JsonObject join_location = getSafe(locationObject, "join_location", "Json Object", "locations.json/" + location).getAsJsonObject();
                 double tp_x = getSafe(join_location, "x_pos", "Double", "locations.json/" + location + "/join_location").getAsDouble();
                 double tp_y = getSafe(join_location, "y_pos", "Double", "locations.json/" + location + "/join_location").getAsDouble();
                 double tp_z = getSafe(join_location, "z_pos", "Double", "locations.json/" + location + "/join_location").getAsDouble();
                 tp_coords = new Vec3d(tp_x, tp_y, tp_z);
+                tp_yaw = getSafe(join_location, "yaw", "Float", "locations.json/" + location + "/join_location").getAsFloat();
+                tp_pitch = getSafe(join_location, "pitch", "Float", "locations.json/" + location + "/join_location").getAsFloat();
+
+                int chunkX = (int) Math.floor(tp_coords.getX() / 16);
+                int chunkZ = (int) Math.floor(tp_coords.getZ() / 16);
+                world.setChunkForced(chunkX, chunkZ, true);
             }
 
-            Location loc = new Location(location, pos, world, use_set_join_location, tp_coords);
+            int chunkX = (int) Math.floor(pos.getX() / 16);
+            int chunkZ = (int) Math.floor(pos.getZ() / 16);
+            world.setChunkForced(chunkX, chunkZ, true);
+
+            Location loc = new Location(location, pos, world, use_set_join_location, tp_coords, tp_yaw, tp_pitch);
             locationsList.add(loc);
         }
         this.locations = locationsList;

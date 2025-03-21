@@ -123,10 +123,6 @@ public class Raid {
         Vec3d pos = raidBoss_location.pos();
         ServerWorld world = raidBoss_location.world();
 
-        int chunkX = (int) Math.floor(pos.getX() / 16);
-        int chunkZ = (int) Math.floor(pos.getZ() / 16);
-        world.setChunkForced(chunkX, chunkZ, false);
-
         raid_end_time = nr.server().getOverworld().getTime();
         nr.init_next_raid();
     }
@@ -141,7 +137,7 @@ public class Raid {
         phase_start_time = nr.server().getOverworld().getTime();
 
         broadcast(TextUtil.format(messages.parse(messages.message("start_pre_phase"), this)));
-        nr.config().getMessages().execute_command();
+        nr.config().getMessages().execute_command(this);
 
         if(WebhookHandler.webhook_toggle) {
             WebhookHandler.sendStartRaidWebhook(this);
@@ -364,9 +360,6 @@ public class Raid {
     private PokemonEntity generate_boss_entity() {
         ServerWorld world = raidBoss_location.world();
         Vec3d pos = raidBoss_location.pos();
-        int chunkX = (int) Math.floor(pos.getX() / 16);
-        int chunkZ = (int) Math.floor(pos.getZ() / 16);
-        world.setChunkForced(chunkX, chunkZ, true);
         return raidBoss_pokemon_uncatchable.sendOut(world, pos, null, entity -> {
             entity.setPersistent();
             entity.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, -1, 9999, true, false));
@@ -534,6 +527,7 @@ public class Raid {
                         world = worldLoop;
                     }
                 }
+
                 world.setChunkForced(chunkX, chunkZ, true);
                 if (clone.isBattling() && clone.getBattleId() != null) {
                     PokemonBattle battle = BattleRegistry.INSTANCE.getBattle(clone.getBattleId());
@@ -543,7 +537,6 @@ public class Raid {
                 }
 
                 clone.kill();
-
                 world.setChunkForced(chunkX, chunkZ, false);
             }
         }
@@ -633,6 +626,7 @@ public class Raid {
                         if (pokemon.getLevel() < boss_info.level_cap()) {
                             index = -2;
                             player.sendMessage(TextUtil.format(messages.parse(messages.message("warning_level_cap"), this)));
+                            break;
                         }
                     }
                 }
@@ -653,11 +647,7 @@ public class Raid {
                 }
                 show_bossbar(bossbar_data);
                 if (raidBoss_location.use_set_join_location()) {
-                    int chunkX = (int) Math.floor(raidBoss_location.join_location().x / 16);
-                    int chunkZ = (int) Math.floor(raidBoss_location.join_location().z / 16);
-                    raidBoss_location.world().setChunkForced(chunkX, chunkZ, true);
-                    player.teleport(raidBoss_location.world(), raidBoss_location.join_location().x, raidBoss_location.join_location().y, raidBoss_location.join_location().z, player.getYaw(), player.getPitch());
-                    raidBoss_location.world().setChunkForced(chunkX, chunkZ, false);
+                    player.teleport(raidBoss_location.world(), raidBoss_location.join_location().x, raidBoss_location.join_location().y, raidBoss_location.join_location().z, raidBoss_location.yaw(), raidBoss_location().pitch());
                 }
             } else if (index != -2) {
                 player.sendMessage(TextUtil.format(messages.parse(messages.message("warning_already_joined_raid"), this)));

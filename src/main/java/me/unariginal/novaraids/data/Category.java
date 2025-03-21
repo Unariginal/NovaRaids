@@ -1,5 +1,6 @@
 package me.unariginal.novaraids.data;
 
+import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.rewards.DistributionSection;
 
 import java.time.LocalDateTime;
@@ -37,10 +38,11 @@ public class Category {
     }
 
     public void new_next_time(LocalDateTime now) {
-        if (min_wait_time > 0 && max_wait_time > min_wait_time) {
+        if (min_wait_time > 0 && max_wait_time >= min_wait_time) {
             if (next_time == null || now.isAfter(next_time)) {
                 int random_seconds = new Random().nextInt(min_wait_time, max_wait_time + 1);
                 next_time = now.plusSeconds(random_seconds);
+                NovaRaids.INSTANCE.logInfo("[RAIDS] New next time: " + next_time);
                 return;
             }
         }

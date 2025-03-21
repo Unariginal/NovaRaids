@@ -2,6 +2,7 @@ package me.unariginal.novaraids.data;
 
 import com.cobblemon.mod.common.api.abilities.Ability;
 import com.cobblemon.mod.common.api.moves.MoveSet;
+import com.cobblemon.mod.common.api.moves.MoveTemplate;
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
 import com.cobblemon.mod.common.api.pokemon.stats.Stat;
 import com.cobblemon.mod.common.pokemon.*;
@@ -30,7 +31,7 @@ public record Boss(String name,
                    float scale,
                    Item held_item,
                    JsonElement held_item_data,
-                   MoveSet moves,
+                   List<MoveTemplate> moves,
                    IVs ivs,
                    EVs evs,
                    String display_form,
@@ -124,10 +125,10 @@ public record Boss(String name,
             pokemon.setHeldItem$common(held_item_stack());
         }
 
-        pokemon.getMoveSet().setMove(0, moves.get(0));
-        pokemon.getMoveSet().setMove(1, moves.get(1));
-        pokemon.getMoveSet().setMove(2, moves.get(2));
-        pokemon.getMoveSet().setMove(3, moves.get(3));
+        pokemon.getMoveSet().setMove(0, moves.get(0).create());
+        pokemon.getMoveSet().setMove(1, moves.get(1).create());
+        pokemon.getMoveSet().setMove(2, moves.get(2).create());
+        pokemon.getMoveSet().setMove(3, moves.get(3).create());
 
         for (Map.Entry<? extends Stat, ? extends Integer> iv : ivs) {
             pokemon.setIV(iv.getKey(), iv.getValue());

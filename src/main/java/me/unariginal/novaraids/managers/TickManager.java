@@ -195,7 +195,6 @@ public class TickManager {
                                             double cx = raid.raidBoss_location().pos().getX();
                                             double cz = raid.raidBoss_location().pos().getZ();
 
-
                                             // Get direction vector
                                             double deltaX = x - cx;
                                             double deltaZ = z - cz;
@@ -236,10 +235,12 @@ public class TickManager {
                     }
                 }
             }
+
             if (category.next_time() != null) {
                 if (now.isAfter(category.next_time())) {
                     category.new_next_time(now);
                     set_time_buffer = now;
+                    nr.logInfo("[RAIDS] Starting new random raid.");
                     nr.raidCommands().start(choose_boss(category), null, null);
                 }
             } else {
