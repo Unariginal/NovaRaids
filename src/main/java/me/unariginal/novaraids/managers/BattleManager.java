@@ -148,6 +148,9 @@ public class BattleManager {
     public static void invoke_battle(Raid raid, ServerPlayerEntity player) {
         Pokemon pokemon = raid.boss_info().createPokemon();
         pokemon.getCustomProperties().add(UncatchableProperty.INSTANCE.uncatchable());
+        pokemon.setAbility$common(raid.raidBoss_pokemon_uncatchable().getAbility());
+        pokemon.setGender(raid.raidBoss_pokemon_uncatchable().getGender());
+        pokemon.setNature(raid.raidBoss_pokemon_uncatchable().getNature());
         NbtCompound data = new NbtCompound();
         data.putBoolean("raid_entity", true);
         data.putBoolean("boss_clone", true);

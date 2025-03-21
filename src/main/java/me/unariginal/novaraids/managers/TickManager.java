@@ -84,7 +84,7 @@ public class TickManager {
                         if (hyp < raid_pushback) {
                             distance = raid_pushback + 1;
                         } else if (hyp > raid_radius) {
-                            if (raid.stage() < 3 && raid.participating_players().contains(player.getUuid())) {
+                            if (raid.stage() < 3 && raid.participating_players().contains(player.getUuid()) && raid.stage() != -1 ) {
                                 distance = raid_radius - 1;
                             }
                         }
@@ -177,41 +177,43 @@ public class TickManager {
 
     public static void fix_player_pokemon() {
         for (Raid raid : nr.active_raids().values()) {
-            for (UUID player_uuid : raid.participating_players()) {
-                ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(player_uuid);
-                if (player != null) {
-                    PokemonBattle battle = BattleRegistry.INSTANCE.getBattleByParticipatingPlayer(player);
-                    if (battle != null) {
-                        BattleActor actor = battle.getActor(player);
-                        if (actor != null) {
-                            if (!actor.getActivePokemon().isEmpty()) {
-                                for (ActiveBattlePokemon activeBattlePokemon : actor.getActivePokemon()) {
-                                    BattlePokemon battlePokemon = activeBattlePokemon.getBattlePokemon();
-                                    if (battlePokemon != null) {
-                                        PokemonEntity entity = battlePokemon.getEntity();
-                                        if (entity != null) {
-                                            double x = entity.getPos().getX();
-                                            double z = entity.getPos().getZ();
-                                            double cx = raid.raidBoss_location().pos().getX();
-                                            double cz = raid.raidBoss_location().pos().getZ();
+            if (raid.stage() == 2) {
+                for (UUID player_uuid : raid.participating_players()) {
+                    ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(player_uuid);
+                    if (player != null) {
+                        PokemonBattle battle = BattleRegistry.INSTANCE.getBattleByParticipatingPlayer(player);
+                        if (battle != null) {
+                            BattleActor actor = battle.getActor(player);
+                            if (actor != null) {
+                                if (!actor.getActivePokemon().isEmpty()) {
+                                    for (ActiveBattlePokemon activeBattlePokemon : actor.getActivePokemon()) {
+                                        BattlePokemon battlePokemon = activeBattlePokemon.getBattlePokemon();
+                                        if (battlePokemon != null) {
+                                            PokemonEntity entity = battlePokemon.getEntity();
+                                            if (entity != null) {
+                                                double x = entity.getPos().getX();
+                                                double z = entity.getPos().getZ();
+                                                double cx = raid.raidBoss_location().pos().getX();
+                                                double cz = raid.raidBoss_location().pos().getZ();
 
-                                            // Get direction vector
-                                            double deltaX = x - cx;
-                                            double deltaZ = z - cz;
+                                                // Get direction vector
+                                                double deltaX = x - cx;
+                                                double deltaZ = z - cz;
 
-                                            // Get angle of approach
-                                            double angle = Math.toDegrees(Math.atan2(deltaZ, deltaX));
+                                                // Get angle of approach
+                                                double angle = Math.toDegrees(Math.atan2(deltaZ, deltaX));
 
-                                            if (angle < 0) {
-                                                angle += 360;
+                                                if (angle < 0) {
+                                                    angle += 360;
+                                                }
+
+                                                double distance = nr.config().getSettings().raid_radius() + 2;
+
+                                                double new_x = cx + distance * Math.cos(Math.toRadians(angle));
+                                                double new_z = cz + distance * Math.sin(Math.toRadians(angle));
+
+                                                entity.setPosition(new_x, raid.raidBoss_location().pos().getY(), new_z);
                                             }
-
-                                            double distance = nr.config().getSettings().raid_radius() + 2;
-
-                                            double new_x = cx + distance * Math.cos(Math.toRadians(angle));
-                                            double new_z = cz + distance * Math.sin(Math.toRadians(angle));
-
-                                            entity.setPosition(new_x, raid.raidBoss_location().pos().getY(), new_z);
                                         }
                                     }
                                 }
