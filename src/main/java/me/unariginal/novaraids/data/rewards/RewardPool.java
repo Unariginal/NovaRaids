@@ -57,7 +57,7 @@ public class RewardPool {
                 }
             }
 
-            double random_weight = rand.nextDouble(total_weight + 1);
+            double random_weight = rand.nextDouble(total_weight);
             total_weight = 0.0;
             Reward reward = null;
             for (String reward_name : rewards().keySet()) {
