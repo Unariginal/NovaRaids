@@ -200,6 +200,12 @@ public class Raid {
         raidBoss_entity.kill();
         handle_rewards();
 
+        try {
+            nr.config().writeResults(this);
+        } catch (IOException | NoSuchElementException e) {
+            nr.logError("[RAIDS] Failed to write raid information to history file.");
+        }
+
         if (WebhookHandler.webhook_toggle){
             WebhookHandler.sendEndRaidWebhook(this, get_damage_leaderboard());
         }
@@ -242,12 +248,6 @@ public class Raid {
             participating_broadcast(TextUtil.format(messages.parse(messages.message("catch_phase_end"), this)));
         }
         participating_broadcast(TextUtil.format(messages.parse(messages.message("raid_end"), this)));
-
-        try {
-            nr.config().writeResults(this);
-        } catch (IOException | NoSuchElementException e) {
-            nr.logError("[RAIDS] Failed to write raid information to history file.");
-        }
     }
 
     public void handle_rewards() {
@@ -261,6 +261,12 @@ public class Raid {
                 if (place_index == 10) {
                     break;
                 }
+            }
+        }
+        for (Map.Entry<UUID, Integer> entry : get_damage_leaderboard()) {
+            ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(entry.getKey());
+            if (player != null) {
+                player.sendMessage(TextUtil.format(messages.parse(messages.message("leaderboard_individual"), this, player, entry.getValue(), place_index)));
             }
         }
 

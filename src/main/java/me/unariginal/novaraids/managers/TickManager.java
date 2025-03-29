@@ -150,24 +150,43 @@ public class TickManager {
         for (Raid raid : nr.active_raids().values()) {
             if (raid.stage() == 2) {
                 float progress = (float) raid.current_health() / raid.max_health();
+
                 if (progress < 0F) {
                     progress = 0F;
                 }
+
+                if (progress > 1F) {
+                    progress = 1F;
+                }
+
                 for (UUID player_uuid : raid.bossbars().keySet()) {
-                    ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(player_uuid);
-                    if (player != null) {
-                        raid.bossbars().get(player.getUuid()).progress(progress);
+                    try {
+                        raid.bossbars().get(player_uuid).progress(progress);
+                    } catch (IllegalArgumentException | NullPointerException e) {
+                        nr.logError("Error updating bossbar for player uuid: " + player_uuid);
+                        nr.logError("Error Message: " + e.getMessage());
                     }
                 }
             } else {
+                float remaining_ticks = (float) (raid.phase_end_time() - nr.server().getOverworld().getTime());
+                float progress = 1.0F / (raid.phase_length() * 20L);
+                float total = progress * remaining_ticks;
+
+                if (total < 0F) {
+                    total = 0F;
+                }
+
+                if (total > 1F) {
+                    total = 1F;
+                }
+
                 for (UUID player_uuid : raid.bossbars().keySet()) {
-                    float remaining_ticks = (float) (raid.phase_end_time() - nr.server().getOverworld().getTime());
-                    float progress = 1.0F / (raid.phase_length() * 20L);
-                    float total = progress * remaining_ticks;
-                    if (total < 0F) {
-                        total = 0F;
+                    try {
+                        raid.bossbars().get(player_uuid).progress(total);
+                    } catch (IllegalArgumentException | NullPointerException e) {
+                        nr.logError("Error updating bossbar for player uuid: " + player_uuid);
+                        nr.logError("Error Message: " + e.getMessage());
                     }
-                    raid.bossbars().get(player_uuid).progress(total);
                 }
             }
 

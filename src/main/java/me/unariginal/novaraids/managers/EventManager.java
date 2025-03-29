@@ -177,6 +177,7 @@ public class EventManager {
                         if (damage > raid.current_health()) {
                             damage = raid.current_health();
                         }
+
                         raid.apply_damage(damage);
                         raid.update_player_damage(player.getUuid(), damage);
                         raid.participating_broadcast(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("player_damage_report"), raid, player, damage, -1)));

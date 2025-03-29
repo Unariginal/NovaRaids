@@ -76,6 +76,7 @@ public record Messages(String prefix, String raid_start_command, Map<String, Str
         output = parse(output, raid);
         output = output
                 .replaceAll("%raid.player.place%", String.valueOf(place))
+                .replaceAll("%place_suffix%", ((place == 1) ? "st" : ((place == 2) ? "nd" : ((place == 3) ? "rd" : "th"))))
                 .replaceAll("%raid.player%", player.getName().getString())
                 .replaceAll("%raid.player.damage%", String.valueOf(damage));
 

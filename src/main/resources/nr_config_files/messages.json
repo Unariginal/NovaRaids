@@ -53,7 +53,8 @@
     "contraband_gui_title": "Raid Contraband",
 
     "leaderboard_message_header": "------- Raid Results -------",
-    "leaderboard_message_item": " - [%raid.player.place%] %raid.player% : %raid.player.damage% damage"
+    "leaderboard_message_item": " - [%raid.player.place%] %raid.player% : %raid.player.damage% damage",
+    "leaderboard_individual": "You placed %raid.player.place%%place_suffix% with %raid.player.damage% damage!"
   },
   "discord": {
     "webhook_toggle": false,

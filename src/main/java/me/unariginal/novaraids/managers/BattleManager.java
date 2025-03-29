@@ -130,7 +130,6 @@ public class BattleManager {
         PokemonEntity boss_clone = pokemon.sendOut(raid.raidBoss_location().world(), player.getPos().offset(player.getFacing(), 1), null, entity -> {
             entity.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, -1, 9999, false, false));
             entity.setNoGravity(true);
-            entity.setAiDisabled(true);
             entity.setMovementSpeed(0.0f);
             entity.setDrops(new DropTable());
             return Unit.INSTANCE;
