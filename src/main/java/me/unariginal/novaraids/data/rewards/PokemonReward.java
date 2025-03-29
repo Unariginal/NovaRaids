@@ -97,7 +97,10 @@ public class PokemonReward extends Reward {
     }
 
     public Item held_item() {
-        return Registries.ITEM.get(Identifier.of(held_item));
+        if (!held_item.isEmpty()) {
+            return Registries.ITEM.get(Identifier.of(held_item));
+        }
+        return null;
     }
 
     public ComponentChanges held_item_data() {

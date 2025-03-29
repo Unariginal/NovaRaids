@@ -120,9 +120,6 @@ public class Raid {
             }
         }
 
-        Vec3d pos = raidBoss_location.pos();
-        ServerWorld world = raidBoss_location.world();
-
         raid_end_time = nr.server().getOverworld().getTime();
         nr.init_next_raid();
     }
@@ -629,7 +626,7 @@ public class Raid {
                 for (Pokemon pokemon : Cobblemon.INSTANCE.getStorage().getParty(player)) {
                     if (pokemon != null) {
                         num_pokemon++;
-                        if (pokemon.getLevel() < boss_info.level_cap()) {
+                        if (pokemon.getLevel() < boss_info.minimum_level()) {
                             index = -2;
                             player.sendMessage(TextUtil.format(messages.parse(messages.message("warning_level_cap"), this)));
                             break;

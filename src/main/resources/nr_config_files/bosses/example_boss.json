@@ -76,7 +76,7 @@
     "category": "common",
     "random_weight": 10.0,
     "body_direction": 0.0,
-    "level_cap": 25,
+    "minimum_level": 25,
     "do_catch_phase": true,
     "locations": [
       {

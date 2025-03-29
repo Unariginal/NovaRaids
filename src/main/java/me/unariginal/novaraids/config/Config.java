@@ -5,7 +5,6 @@ import com.cobblemon.mod.common.api.abilities.Abilities;
 import com.cobblemon.mod.common.api.abilities.Ability;
 import com.cobblemon.mod.common.api.abilities.AbilityTemplate;
 import com.cobblemon.mod.common.api.moves.Move;
-import com.cobblemon.mod.common.api.moves.MoveSet;
 import com.cobblemon.mod.common.api.moves.MoveTemplate;
 import com.cobblemon.mod.common.api.moves.Moves;
 import com.cobblemon.mod.common.api.pokemon.Natures;
@@ -490,7 +489,7 @@ public class Config {
                     String category = getSafe(boss_details, "category", "String", bossFile.getName() + "/boss_details").getAsString();
                     double random_weight = getSafe(boss_details, "random_weight", "Double", bossFile.getName() + "/boss_details").getAsDouble();
                     Float facing = getSafe(boss_details, "body_direction", "Float", bossFile.getName() + "/boss_details").getAsFloat();
-                    int level_cap = getSafe(boss_details, "level_cap", "Integer", bossFile.getName() + "/boss_details").getAsInt();
+                    int minimum_level = getSafe(boss_details, "minimum_level", "Integer", bossFile.getName() + "/boss_details").getAsInt();
                     boolean do_catch_phase = getSafe(boss_details, "do_catch_phase", "Boolean", bossFile.getName() + "/boss_details").getAsBoolean();
 
                     Map<String, Double> spawn_locations = new HashMap<>();
@@ -567,7 +566,7 @@ public class Config {
                             category,
                             random_weight,
                             facing,
-                            level_cap,
+                            minimum_level,
                             do_catch_phase,
                             spawn_locations,
                             rewards_list,

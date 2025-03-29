@@ -1,7 +1,6 @@
 package me.unariginal.novaraids.data;
 
 import com.cobblemon.mod.common.api.abilities.Ability;
-import com.cobblemon.mod.common.api.moves.MoveSet;
 import com.cobblemon.mod.common.api.moves.MoveTemplate;
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
 import com.cobblemon.mod.common.api.pokemon.stats.Stat;
@@ -40,7 +39,7 @@ public record Boss(String name,
                    String category,
                    double random_weight,
                    Float facing,
-                   int level_cap,
+                   int minimum_level,
                    boolean do_catch_phase,
                    Map<String, Double> spawn_locations,
                    List<DistributionSection> rewards,

@@ -30,7 +30,7 @@
     "warning_banned_held_item": "%prefix% %banned.held_item% is banned from raids!",
     "warning_banned_bag_item": "%prefix% %banned.bag_item% is banned from raids!",
     "warning_max_players": "%prefix% This raid is full!",
-    "warning_level_cap": "%prefix% Your pokemon must be above level %boss.level_cap%!",
+    "warning_minimum_level": "%prefix% Your pokemon must be above level %boss.minimum_level%!",
 
     "warning_cooldown": "%prefix% You're on cooldown!",
     "warning_battle_during_raid": "%prefix% You can't battle wild pokemon during a raid!",

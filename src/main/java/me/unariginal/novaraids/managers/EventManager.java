@@ -84,8 +84,8 @@ public class EventManager {
 
                             for (Pokemon pokemon : Cobblemon.INSTANCE.getStorage().getParty(player)) {
                                 if (pokemon != null) {
-                                    if (pokemon.getLevel() < raid.boss_info().level_cap()) {
-                                        player.sendMessage(TextUtil.format(messages.parse(messages.message("warning_level_cap"), raid)));
+                                    if (pokemon.getLevel() < raid.boss_info().minimum_level()) {
+                                        player.sendMessage(TextUtil.format(messages.parse(messages.message("warning_minimum_level"), raid)));
                                         event.setReason(null);
                                         event.cancel();
                                         return Unit.INSTANCE;
