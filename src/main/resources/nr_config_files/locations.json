@@ -10,7 +10,7 @@
       "y_pos": 100.0,
       "z_pos": 7.0,
       "yaw": 0.0,
-      "pitch": 90.0
+      "pitch": 0.0
     }
   },
   "left_location": {
@@ -24,7 +24,7 @@
       "y_pos": 100.0,
       "z_pos": 7.0,
       "yaw": 0.0,
-      "pitch": 90.0
+      "pitch": 0.0
     }
   },
   "right_location": {
@@ -38,7 +38,7 @@
       "y_pos": 100.0,
       "z_pos": 7.0,
       "yaw": 0.0,
-      "pitch": 90.0
+      "pitch": 0.0
     }
   }
 }
