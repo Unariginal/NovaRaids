@@ -260,9 +260,11 @@ public class Raid {
                 }
             }
         }
+        place_index = 0;
         for (Map.Entry<UUID, Integer> entry : get_damage_leaderboard()) {
             ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(entry.getKey());
             if (player != null) {
+                place_index++;
                 player.sendMessage(TextUtil.format(messages.parse(messages.message("leaderboard_individual"), this, player, entry.getValue(), place_index)));
             }
         }
@@ -628,7 +630,7 @@ public class Raid {
                         num_pokemon++;
                         if (pokemon.getLevel() < boss_info.minimum_level()) {
                             index = -2;
-                            player.sendMessage(TextUtil.format(messages.parse(messages.message("warning_level_cap"), this)));
+                            player.sendMessage(TextUtil.format(messages.parse(messages.message("warning_minimum_level"), this)));
                             break;
                         }
                     }
