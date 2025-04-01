@@ -57,22 +57,26 @@ public class RewardPool {
                 }
             }
 
-            double random_weight = rand.nextDouble(total_weight);
-            total_weight = 0.0;
-            Reward reward = null;
-            for (String reward_name : rewards().keySet()) {
-                if (allow_duplicates() || !applied_rewards.contains(reward_name)) {
-                    total_weight += rewards().get(reward_name);
-                    if (random_weight < total_weight) {
-                        reward = nr.config().getReward(reward_name);
-                        break;
+            if (total_weight > 0.0) {
+                double random_weight = rand.nextDouble(total_weight);
+                total_weight = 0.0;
+                Reward reward = null;
+                for (String reward_name : rewards().keySet()) {
+                    if (allow_duplicates() || !applied_rewards.contains(reward_name)) {
+                        total_weight += rewards().get(reward_name);
+                        if (random_weight < total_weight) {
+                            reward = nr.config().getReward(reward_name);
+                            break;
+                        }
                     }
                 }
-            }
 
-            if (reward != null) {
-                reward.apply_reward(player);
-                applied_rewards.add(reward.name());
+                if (reward != null) {
+                    reward.apply_reward(player);
+                    applied_rewards.add(reward.name());
+                }
+            } else {
+                NovaRaids.INSTANCE.logInfo("[RAIDS] Reward pool total weight was zero. Possibly caused by a reward pool having more rolls than available rewards with duplicates disabled.");
             }
         }
     }
