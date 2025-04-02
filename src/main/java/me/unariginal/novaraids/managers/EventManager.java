@@ -379,19 +379,40 @@ public class EventManager {
                             for (Raid raid : nr.active_raids().values()) {
                                 if (raid.participating_players().contains(player.getUuid())) {
                                     can_throw = true;
+                                    break;
                                 }
                             }
 
                             if (can_throw) {
+                                outer:
                                 for (Raid raid : nr.active_raids().values()) {
                                     if (raid.participating_players().contains(player.getUuid())) {
                                         if (raid.stage() == 4) {
-                                            can_throw = true;
-                                            break;
+                                            if (custom_data.contains("raid_categories")) {
+                                                NbtCompound categories = custom_data.copyNbt().getCompound("raid_categories");
+                                                for (String key : categories.getKeys()) {
+                                                    if (raid.raidBoss_category().name().equalsIgnoreCase(key)) {
+                                                        can_throw = true;
+                                                        break outer;
+                                                    }
+                                                }
+                                            } else if (custom_data.contains("raid_bosses")) {
+                                                NbtCompound bosses = custom_data.copyNbt().getCompound("raid_bosses");
+                                                for (String key : bosses.getKeys()) {
+                                                    if (raid.boss_info().name().equalsIgnoreCase(key)) {
+                                                        can_throw = true;
+                                                        break outer;
+                                                    }
+                                                }
+                                            } else {
+                                                can_throw = true;
+                                                break;
+                                            }
                                         } else {
                                             can_throw = false;
                                         }
                                     }
+
                                 }
                             } else {
                                 player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_raid_pokeball_outside_raid"))));

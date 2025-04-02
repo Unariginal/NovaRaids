@@ -287,7 +287,9 @@ public class Raid {
                     if (placeIndex >= 0 && placeIndex < get_damage_leaderboard().size()) {
                         ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(get_damage_leaderboard().get(placeIndex).getKey());
                         if (player != null) {
-                            players_to_reward.add(player);
+                            if (!nr.config().getSettings().only_reward_if_damage() || damage_by_player.get(player.getUuid()) > 0) {
+                                players_to_reward.add(player);
+                            }
                         }
                     }
                 } else if (place.place().contains("%")) {
@@ -298,7 +300,9 @@ public class Raid {
                         for (int i = 0; i < ((int) positions); i++) {
                             ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(get_damage_leaderboard().get(i).getKey());
                             if (player != null) {
-                                players_to_reward.add(player);
+                                if (!nr.config().getSettings().only_reward_if_damage() || damage_by_player.get(player.getUuid()) > 0) {
+                                    players_to_reward.add(player);
+                                }
                             }
                         }
                     }
@@ -306,7 +310,9 @@ public class Raid {
                     for (Map.Entry<UUID, Integer> entry : get_damage_leaderboard()) {
                         ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(entry.getKey());
                         if (player != null) {
-                            players_to_reward.add(player);
+                            if (!nr.config().getSettings().only_reward_if_damage() || damage_by_player.get(player.getUuid()) > 0) {
+                                players_to_reward.add(player);
+                            }
                         }
                     }
                 }

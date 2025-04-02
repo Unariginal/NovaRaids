@@ -28,6 +28,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtList;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -276,7 +277,7 @@ public class RaidCommands {
         if (player != null) {
             player.sendMessage(Text.literal("--------- Nova Raids ---------"));
             player.sendMessage(Text.literal("Author: Unariginal ").append(Text.literal("(Ariginal)").styled(style -> style.withItalic(true))));
-            player.sendMessage(Text.literal("Version: Beta v0.2.2"));
+            player.sendMessage(Text.literal("Version: Beta v0.2.3"));
             player.sendMessage(Text.literal("Source").styled(style -> style.withUnderline(true).withItalic(true).withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://github.com/Unariginal/NovaRaids"))));
             player.sendMessage(Text.literal("Wiki").styled(style -> style.withItalic(true).withUnderline(true).withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://github.com/Unariginal/NovaRaids/wiki"))));
             player.sendMessage(Text.literal("----------------------------"));
@@ -855,6 +856,20 @@ public class RaidCommands {
                     item_to_give = new ItemStack(raid_pokeball, amount);
                     custom_data.putString("raid_item", "raid_ball");
                     custom_data.putUuid("owner_uuid", target_player.getUuid());
+                    if (!nr.config().getSettings().pokeball_categories().get(key).isEmpty()) {
+                        NbtCompound categories = new NbtCompound();
+                        for (String categoryItem : nr.config().getSettings().pokeball_categories().get(key)) {
+                            categories.putBoolean(categoryItem, true);
+                        }
+                        custom_data.put("raid_categories", categories);
+                    }
+                    if (!nr.config().getSettings().pokeball_bosses().get(key).isEmpty()) {
+                        NbtCompound bosses = new NbtCompound();
+                        for (String bossItem : nr.config().getSettings().pokeball_bosses().get(key)) {
+                            bosses.putBoolean(bossItem, true);
+                        }
+                        custom_data.put("raid_bosses", bosses);
+                    }
                     item_name = Text.literal("Raid Pokeball").styled(style -> style.withItalic(false).withColor(Formatting.RED));
                     lore = lore.with(Text.literal("Use this to try and capture raid bosses!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
                     if (nr.config().getSettings().raid_pokeball_data() != null) {

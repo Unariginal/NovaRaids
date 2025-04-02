@@ -34,6 +34,7 @@ import java.io.*;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static me.unariginal.novaraids.utils.WebhookHandler.*;
 
@@ -217,6 +218,7 @@ public class Config {
         boolean heal_party_on_challenge = getSafe(settingsObject, "heal_party_on_challenge", "Boolean", "config.json/raid_settings").getAsBoolean();
         boolean use_queue_system = getSafe(settingsObject, "use_queue_system", "Boolean", "config.json/raid_settings").getAsBoolean();
         boolean run_raids_with_no_players = getSafe(settingsObject, "run_raids_with_no_players", "Boolean", "config.json/raid_settings").getAsBoolean();
+        boolean only_reward_if_damage = getSafe(settingsObject, "only_reward_if_damage", "Boolean", "config.json/raid_settings").getAsBoolean();
         int setup_phase_time = getSafe(settingsObject, "setup_phase_time", "Boolean", "config.json/raid_settings").getAsInt();
         int fight_phase_time = getSafe(settingsObject, "fight_phase_time", "Integer", "config.json/raid_settings").getAsInt();
         int pre_catch_phase_time = getSafe(settingsObject, "pre_catch_phase_time", "Integer", "config.json/raid_settings").getAsInt();
@@ -287,6 +289,8 @@ public class Config {
 
         boolean use_raid_pokeballs = getSafe(items, "use_raid_pokeballs", "Boolean", "config.json/raid_settings/items").getAsBoolean();
         Map<String, Item> pokeball_items = new HashMap<>();
+        Map<String, List<String>> pokeball_categories = new HashMap<>();
+        Map<String, List<String>> pokeball_bosses = new HashMap<>();
         Map<String, ComponentChanges> pokeball_item_data = new HashMap<>();
         if (use_raid_pokeballs) {
             JsonObject balls = getSafe(items, "raid_pokeballs", "Json Object", "config.json/raid_settings/items").getAsJsonObject();
@@ -298,6 +302,10 @@ public class Config {
                     ball_data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, ball.get("data")).getOrThrow().getFirst();
                 }
                 pokeball_items.put(key, ball_item);
+                List<String> ballCategories = getSafe(ball, "categories", "Json String Array", "config.json/raid_settings/items/raid_pokeballs/" + key).getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList();
+                pokeball_categories.put(key, ballCategories);
+                List<String> ballBosses = getSafe(ball, "bosses", "Json String Array", "config.json/raid_settings/items/raid_pokeballs/" + key).getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList();
+                pokeball_bosses.put(key, ballBosses);
                 pokeball_item_data.put(key, ball_data);
             }
         }
@@ -309,6 +317,7 @@ public class Config {
                 heal_party_on_challenge,
                 use_queue_system,
                 run_raids_with_no_players,
+                only_reward_if_damage,
                 setup_phase_time,
                 fight_phase_time,
                 pre_catch_phase_time,
@@ -325,6 +334,8 @@ public class Config {
                 pass_item_data,
                 use_raid_pokeballs,
                 pokeball_items,
+                pokeball_categories,
+                pokeball_bosses,
                 pokeball_item_data
         );
     }
