@@ -180,13 +180,19 @@ public class TickManager {
                     total = 1F;
                 }
 
-                for (UUID player_uuid : raid.bossbars().keySet()) {
-                    try {
-                        raid.bossbars().get(player_uuid).progress(total);
-                    } catch (IllegalArgumentException | NullPointerException e) {
-                        nr.logError("Error updating bossbar for player uuid: " + player_uuid);
-                        nr.logError("Error Message: " + e.getMessage());
+                try {
+                    for (UUID player_uuid : raid.bossbars().keySet()) {
+                        try {
+                            if (raid.bossbars().containsKey(player_uuid) && raid.bossbars().get(player_uuid) != null) {
+                                raid.bossbars().get(player_uuid).progress(total);
+                            }
+                        } catch (IllegalArgumentException | NullPointerException e) {
+                            nr.logError("Error updating bossbar for player uuid: " + player_uuid);
+                            nr.logError("Error Message: " + e.getMessage());
+                        }
                     }
+                } catch (ConcurrentModificationException e) {
+                    nr.logError("No clue why this happened. Concurrent modification exception...");
                 }
             }
 

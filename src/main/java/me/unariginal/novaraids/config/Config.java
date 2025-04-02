@@ -219,6 +219,7 @@ public class Config {
         boolean use_queue_system = getSafe(settingsObject, "use_queue_system", "Boolean", "config.json/raid_settings").getAsBoolean();
         boolean run_raids_with_no_players = getSafe(settingsObject, "run_raids_with_no_players", "Boolean", "config.json/raid_settings").getAsBoolean();
         boolean only_reward_if_damage = getSafe(settingsObject, "only_reward_if_damage", "Boolean", "config.json/raid_settings").getAsBoolean();
+        boolean only_catch_encounter_if_damage = getSafe(settingsObject, "only_catch_encounter_if_damage", "Boolean", "config.json/raid_settings").getAsBoolean();
         int setup_phase_time = getSafe(settingsObject, "setup_phase_time", "Boolean", "config.json/raid_settings").getAsInt();
         int fight_phase_time = getSafe(settingsObject, "fight_phase_time", "Integer", "config.json/raid_settings").getAsInt();
         int pre_catch_phase_time = getSafe(settingsObject, "pre_catch_phase_time", "Integer", "config.json/raid_settings").getAsInt();
@@ -318,6 +319,7 @@ public class Config {
                 use_queue_system,
                 run_raids_with_no_players,
                 only_reward_if_damage,
+                only_catch_encounter_if_damage,
                 setup_phase_time,
                 fight_phase_time,
                 pre_catch_phase_time,

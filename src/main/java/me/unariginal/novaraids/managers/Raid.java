@@ -227,7 +227,11 @@ public class Raid {
         for (UUID player_uuid : participating_players) {
             ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(player_uuid);
             if (player != null) {
-                BattleManager.invoke_catch_encounter(this, player);
+                if (damage_by_player.containsKey(player_uuid)) {
+                    if (!nr.config().getSettings().only_catch_encounter_if_damage() || damage_by_player.get(player.getUuid()) > 0) {
+                        BattleManager.invoke_catch_encounter(this, player);
+                    }
+                }
             }
         }
 
@@ -287,8 +291,10 @@ public class Raid {
                     if (placeIndex >= 0 && placeIndex < get_damage_leaderboard().size()) {
                         ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(get_damage_leaderboard().get(placeIndex).getKey());
                         if (player != null) {
-                            if (!nr.config().getSettings().only_reward_if_damage() || damage_by_player.get(player.getUuid()) > 0) {
-                                players_to_reward.add(player);
+                            if (damage_by_player.containsKey(player.getUuid())) {
+                                if (!nr.config().getSettings().only_reward_if_damage() || damage_by_player.get(player.getUuid()) > 0) {
+                                    players_to_reward.add(player);
+                                }
                             }
                         }
                     }
@@ -300,8 +306,10 @@ public class Raid {
                         for (int i = 0; i < ((int) positions); i++) {
                             ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(get_damage_leaderboard().get(i).getKey());
                             if (player != null) {
-                                if (!nr.config().getSettings().only_reward_if_damage() || damage_by_player.get(player.getUuid()) > 0) {
-                                    players_to_reward.add(player);
+                                if (damage_by_player.containsKey(player.getUuid())) {
+                                    if (!nr.config().getSettings().only_reward_if_damage() || damage_by_player.get(player.getUuid()) > 0) {
+                                        players_to_reward.add(player);
+                                    }
                                 }
                             }
                         }
@@ -310,8 +318,10 @@ public class Raid {
                     for (Map.Entry<UUID, Integer> entry : get_damage_leaderboard()) {
                         ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(entry.getKey());
                         if (player != null) {
-                            if (!nr.config().getSettings().only_reward_if_damage() || damage_by_player.get(player.getUuid()) > 0) {
-                                players_to_reward.add(player);
+                            if (damage_by_player.containsKey(player.getUuid())) {
+                                if (!nr.config().getSettings().only_reward_if_damage() || damage_by_player.get(player.getUuid()) > 0) {
+                                    players_to_reward.add(player);
+                                }
                             }
                         }
                     }
