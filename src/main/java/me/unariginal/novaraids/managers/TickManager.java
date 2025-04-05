@@ -23,7 +23,7 @@ public class TickManager {
     private static final NovaRaids nr = NovaRaids.INSTANCE;
     private static LocalDateTime set_time_buffer = LocalDateTime.now(TimeZone.getDefault().toZoneId());
 
-    public static void fix_boss_positions() {
+    public static void fix_boss_positions() throws ConcurrentModificationException {
         for (Raid raid : nr.active_raids().values()) {
             raid.fixBossPosition();
             if (raid.stage() == 2 || raid.stage() == 4) {
@@ -51,7 +51,7 @@ public class TickManager {
         }
     }
 
-    public static void fix_player_positions() {
+    public static void fix_player_positions() throws ConcurrentModificationException {
         for (Raid raid : nr.active_raids().values()) {
             for (ServerPlayerEntity player : nr.server().getPlayerManager().getPlayerList()) {
                 if (player != null) {
@@ -108,7 +108,7 @@ public class TickManager {
         }
     }
 
-    public static void handle_defeated_bosses() {
+    public static void handle_defeated_bosses() throws ConcurrentModificationException {
         List<Raid> to_remove = new ArrayList<>();
         for (Raid raid : nr.active_raids().values()) {
             if (raid.stage() == -1) {
@@ -129,7 +129,7 @@ public class TickManager {
         }
     }
 
-    public static void execute_tasks() {
+    public static void execute_tasks() throws ConcurrentModificationException {
         ServerWorld world = nr.server().getOverworld();
         long current_tick = world.getTime();
         for (Raid raid : nr.active_raids().values()) {
@@ -146,7 +146,7 @@ public class TickManager {
         }
     }
 
-    public static void update_bossbars() {
+    public static void update_bossbars() throws ConcurrentModificationException {
         for (Raid raid : nr.active_raids().values()) {
             if (raid.stage() == 2) {
                 float progress = (float) raid.current_health() / raid.max_health();
@@ -180,19 +180,15 @@ public class TickManager {
                     total = 1F;
                 }
 
-                try {
-                    for (UUID player_uuid : raid.bossbars().keySet()) {
-                        try {
-                            if (raid.bossbars().containsKey(player_uuid) && raid.bossbars().get(player_uuid) != null) {
-                                raid.bossbars().get(player_uuid).progress(total);
-                            }
-                        } catch (IllegalArgumentException | NullPointerException e) {
-                            nr.logError("Error updating bossbar for player uuid: " + player_uuid);
-                            nr.logError("Error Message: " + e.getMessage());
+                for (UUID player_uuid : raid.bossbars().keySet()) {
+                    try {
+                        if (raid.bossbars().containsKey(player_uuid) && raid.bossbars().get(player_uuid) != null) {
+                            raid.bossbars().get(player_uuid).progress(total);
                         }
+                    } catch (IllegalArgumentException | NullPointerException e) {
+                        nr.logError("Error updating bossbar for player uuid: " + player_uuid);
+                        nr.logError("Error Message: " + e.getMessage());
                     }
-                } catch (ConcurrentModificationException e) {
-                    nr.logError("No clue why this happened. Concurrent modification exception...");
                 }
             }
 
@@ -200,7 +196,7 @@ public class TickManager {
         }
     }
 
-    public static void fix_player_pokemon() {
+    public static void fix_player_pokemon() throws ConcurrentModificationException {
         for (Raid raid : nr.active_raids().values()) {
             if (raid.stage() == 2) {
                 for (UUID player_uuid : raid.participating_players()) {
@@ -250,7 +246,7 @@ public class TickManager {
         }
     }
 
-    public static void scheduled_raids() {
+    public static void scheduled_raids() throws ConcurrentModificationException {
         LocalDateTime now = LocalDateTime.now(TimeZone.getDefault().toZoneId());
         for (Category category : nr.config().getCategories()) {
             if (!category.set_times().isEmpty()) {
@@ -276,7 +272,7 @@ public class TickManager {
         }
     }
 
-    private static Boss choose_boss(Category category) {
+    private static Boss choose_boss(Category category) throws ConcurrentModificationException {
         List<Boss> possible_bosses = new ArrayList<>();
         for (Boss boss : nr.config().getBosses()) {
             if (boss.category().equalsIgnoreCase(category.name())) {

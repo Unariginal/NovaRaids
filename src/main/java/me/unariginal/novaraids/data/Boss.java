@@ -124,10 +124,9 @@ public record Boss(String name,
             pokemon.setHeldItem$common(held_item_stack());
         }
 
-        pokemon.getMoveSet().setMove(0, moves.get(0).create());
-        pokemon.getMoveSet().setMove(1, moves.get(1).create());
-        pokemon.getMoveSet().setMove(2, moves.get(2).create());
-        pokemon.getMoveSet().setMove(3, moves.get(3).create());
+        for (int i = 0; i < moves.size(); i++) {
+            pokemon.getMoveSet().setMove(i, moves.get(i).create());
+        }
 
         for (Map.Entry<? extends Stat, ? extends Integer> iv : ivs) {
             pokemon.setIV(iv.getKey(), iv.getValue());

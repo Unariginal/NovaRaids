@@ -13,10 +13,7 @@ import net.minecraft.server.MinecraftServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 
 public class NovaRaids implements ModInitializer {
     private static final String MOD_ID = "novaraids";
@@ -55,13 +52,17 @@ public class NovaRaids implements ModInitializer {
         // Server tick loop
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             if (config.loadedProperly()) {
-                TickManager.fix_boss_positions();
-                TickManager.handle_defeated_bosses();
-                TickManager.execute_tasks();
-                TickManager.update_bossbars();
-                TickManager.fix_player_positions();
-                TickManager.fix_player_pokemon();
-                TickManager.scheduled_raids();
+                try {
+                    TickManager.fix_boss_positions();
+                    TickManager.handle_defeated_bosses();
+                    TickManager.execute_tasks();
+                    TickManager.update_bossbars();
+                    TickManager.fix_player_positions();
+                    TickManager.fix_player_pokemon();
+                    TickManager.scheduled_raids();
+                } catch (ConcurrentModificationException e) {
+                    logInfo("[RAIDS] Concurrent modification error!");
+                }
                 for (Raid raid : active_raids.values()) {
                     raid.removePlayers();
                 }
