@@ -50,6 +50,7 @@ public record Messages(String prefix, String raid_start_command, Map<String, Str
         output = parse(output);
         output = output
                 .replaceAll("%boss.species%", boss.species().getName())
+                .replaceAll("%boss.level%", String.valueOf(boss.level()))
                 .replaceAll("%boss%", boss.name())
                 .replaceAll("%boss.minimum_level%", String.valueOf(boss.minimum_level()));
 
