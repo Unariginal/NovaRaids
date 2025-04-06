@@ -12,6 +12,7 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import me.unariginal.novaraids.data.FieldData;
 import me.unariginal.novaraids.managers.Raid;
@@ -118,8 +119,17 @@ public class WebhookHandler {
         }
     }
 
-    public static void sendStartRaidWebhook(Raid raid){
+    public static long sendStartRaidWebhook(Raid raid) throws ExecutionException, InterruptedException {
         WebhookClient webhook = WebhookClient.withUrl(webhook_url);
+        return webhook.send(buildStartRaidWebhook(raid).build()).get().getId();
+    }
+
+    public static void editStartRaidWebhook(long id, Raid raid) {
+        WebhookClient webhook = WebhookClient.withUrl(webhook_url);
+        webhook.edit(id, buildStartRaidWebhook(raid).build());
+    }
+
+    public static WebhookMessageBuilder buildStartRaidWebhook(Raid raid){
         Pokemon pokemon = raid.raidBoss_pokemon();
         int randColor = genTypeColor(pokemon);
         String thumbnailUrl = getThumbnailUrl(pokemon);
@@ -138,14 +148,11 @@ public class WebhookHandler {
         }
         embedBuilder.setThumbnailUrl(thumbnailUrl);
         WebhookEmbed embed = embedBuilder.build();
-
-        WebhookMessageBuilder messageBuilder = new WebhookMessageBuilder()
+        return new WebhookMessageBuilder()
                 .setContent(role_ping)
                 .setUsername(webhook_username)
                 .setAvatarUrl(webhook_avatar_url)
                 .addEmbeds(embed);
-
-        webhook.send(messageBuilder.build());
     }
 
     public static void sendEndRaidWebhook(Raid raid, List<Map.Entry<UUID, Integer>> entries) {

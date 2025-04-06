@@ -1,7 +1,9 @@
 package me.unariginal.novaraids.utils;
 
+import me.unariginal.novaraids.NovaRaids;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.minecraft.text.Text;
 
 public class TextUtil {
     public static String hms(long raw_time) {
@@ -31,5 +33,10 @@ public class TextUtil {
 
     public static Component format(String message) {
         return MiniMessage.miniMessage().deserialize(message);
+    }
+
+    public static Text deserialize(String text) {
+        Component component = format(text);
+        return NovaRaids.INSTANCE.audience().toNative(component);
     }
 }

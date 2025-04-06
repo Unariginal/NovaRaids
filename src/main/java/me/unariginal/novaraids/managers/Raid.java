@@ -30,6 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 
 public class Raid {
     private final NovaRaids nr = NovaRaids.INSTANCE;
@@ -68,6 +69,8 @@ public class Raid {
     private long fight_start_time;
     private long fight_end_time;
     private BossbarData bossbar_data;
+
+    private long webhook = 0;
 
     private int stage;
 
@@ -136,8 +139,12 @@ public class Raid {
         broadcast(TextUtil.format(messages.parse(messages.message("start_pre_phase"), this)));
         nr.config().getMessages().execute_command(this);
 
-        if(WebhookHandler.webhook_toggle) {
-            WebhookHandler.sendStartRaidWebhook(this);
+        if (WebhookHandler.webhook_toggle) {
+            try {
+                webhook = WebhookHandler.sendStartRaidWebhook(this);
+            } catch (ExecutionException | InterruptedException e) {
+                nr.logError("Failed to send start_raid webhook: " + e.getMessage());
+            }
         }
 
         addTask(raidBoss_location.world(), phase_length * 20L, this::fight_phase);
@@ -601,6 +608,9 @@ public class Raid {
                 for (PokemonEntity clone : toRemove) {
                     remove_clone(clone);
                 }
+                if (webhook != 0 && stage == 1) {
+                    WebhookHandler.editStartRaidWebhook(webhook, this);
+                }
             }
         }
     }
@@ -665,6 +675,9 @@ public class Raid {
                 if (participating_players().size() > 1) {
                     max_health += boss_info.health_increase_per_player();
                     current_health += boss_info.health_increase_per_player();
+                }
+                if (webhook != 0) {
+                    WebhookHandler.editStartRaidWebhook(webhook, this);
                 }
                 show_bossbar(bossbar_data);
                 if (raidBoss_location.use_set_join_location()) {

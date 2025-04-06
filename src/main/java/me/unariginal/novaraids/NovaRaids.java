@@ -1,7 +1,7 @@
 package me.unariginal.novaraids;
 
 import me.unariginal.novaraids.commands.RaidCommands;
-import me.unariginal.novaraids.config.Config;
+import me.unariginal.novaraids.config.OldConfig;
 import me.unariginal.novaraids.data.QueueItem;
 import me.unariginal.novaraids.managers.EventManager;
 import me.unariginal.novaraids.managers.Raid;
@@ -9,6 +9,7 @@ import me.unariginal.novaraids.managers.TickManager;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.kyori.adventure.platform.fabric.FabricServerAudiences;
 import net.minecraft.server.MinecraftServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,9 +21,10 @@ public class NovaRaids implements ModInitializer {
     private final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
     public static NovaRaids INSTANCE;
 
-    private Config config;
+    private OldConfig config;
     public boolean debug = true;
     private MinecraftServer server;
+    private FabricServerAudiences audience;
     private RaidCommands raidCommands;
 
     private final Map<Integer, Raid> active_raids = new HashMap<>();
@@ -38,6 +40,7 @@ public class NovaRaids implements ModInitializer {
         // Set up event handlers and configuration at server load
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             this.server = server;
+            this.audience = FabricServerAudiences.of(server);
             reloadConfig();
             if (config.loadedProperly()) {
                 EventManager.battle_events();
@@ -85,16 +88,20 @@ public class NovaRaids implements ModInitializer {
         });
     }
 
-    public Config config() {
+    public OldConfig config() {
         return config;
     }
 
     public void reloadConfig() {
-        config = new Config();
+        config = new OldConfig();
     }
 
     public MinecraftServer server() {
         return server;
+    }
+
+    public FabricServerAudiences audience() {
+        return audience;
     }
 
     public Logger logger() {
