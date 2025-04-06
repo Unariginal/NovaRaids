@@ -17,19 +17,19 @@
       "default_voucher": {
         "voucher_item": "minecraft:feather",
         "voucher_name": "<aqua>Raid Voucher",
-        "voucher_lore": ["<gray>Use to start a raid!"],
+        "voucher_lore": ["<gray>Use this to start a raid!"],
         "voucher_data": {}
       },
       "global_choice_voucher": {
         "voucher_item": "minecraft:feather",
-        "voucher_name": "",
-        "voucher_lore": [],
+        "voucher_name": "<aqua>Global Choice Voucher",
+        "voucher_lore": ["<gray>Use this to start any raid!"],
         "voucher_data": {}
       },
       "global_random_voucher": {
         "voucher_item": "minecraft:feather",
-        "voucher_name": "",
-        "voucher_lore": [],
+        "voucher_name": "<aqua>Global Random Voucher",
+        "voucher_lore": ["<gray>Use this to start a random raid!"],
         "voucher_data": {}
       }
     },
@@ -38,13 +38,13 @@
       "default_pass": {
         "pass_item": "minecraft:paper",
         "pass_name": "<light_purple>Raid Pass",
-        "pass_lore": ["<gray>Use to join a raid!"],
+        "pass_lore": ["<gray>Use this to join a raid!"],
         "pass_data": {}
       },
       "global_pass": {
         "pass_item": "minecraft:paper",
-        "pass_name": "",
-        "pass_lore": [],
+        "pass_name": "<light_purple>Raid Pass",
+        "pass_lore": ["<gray>Use this to join any raid!"],
         "pass_data": {}
       }
     },
