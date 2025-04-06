@@ -1,0 +1,101 @@
+{
+  "timezone": "est",
+  "schedules": [
+    {
+      "type": "random",
+      "bounds": {
+        "min": 1200,
+        "max": 3600
+      },
+      "bosses": [
+        {
+          "type": "category",
+          "category": "common",
+          "weight": 5.0
+        },
+        {
+          "type": "category",
+          "category": "rare",
+          "weight": 5.0
+        },
+        {
+          "type": "boss",
+          "boss_id": "example_eevee",
+          "weight": 5.0
+        }
+      ]
+    },
+    {
+      "type": "cron",
+      "expression": "0 30 * ? * *",
+      "bosses": [
+        {
+          "type": "category",
+          "category": "common",
+          "weight": 5.0
+        },
+        {
+          "type": "category",
+          "category": "rare",
+          "weight": 5.0
+        },
+        {
+          "type": "boss",
+          "boss_id": "example_eevee",
+          "weight": 5.0
+        }
+      ]
+    },
+    {
+      "type": "cron",
+      "expression": "@hourly",
+      "bosses": [
+        {
+          "type": "category",
+          "category": "common",
+          "weight": 5.0
+        },
+        {
+          "type": "category",
+          "category": "rare",
+          "weight": 5.0
+        },
+        {
+          "type": "boss",
+          "boss_id": "example_eevee",
+          "weight": 5.0
+        }
+      ]
+    },
+    {
+      "type": "specific",
+      "times": [
+        "00:00:00",
+        "00:15:00",
+        "00:30:00",
+        "00:45:00",
+        "01:00:00",
+        "01:43:01",
+        "01:54:32",
+        "01:59:59"
+      ],
+      "bosses": [
+        {
+          "type": "category",
+          "category": "common",
+          "weight": 5.0
+        },
+        {
+          "type": "category",
+          "category": "rare",
+          "weight": 5.0
+        },
+        {
+          "type": "boss",
+          "boss_id": "example_eevee",
+          "weight": 5.0
+        }
+      ]
+    }
+  ]
+}

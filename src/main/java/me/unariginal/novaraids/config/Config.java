@@ -416,7 +416,7 @@ public class Config {
         if (section.has(property)) {
             return true;
         }
-        nr.logError("[RAIDS] Missing " + property + " property in config.json. Using default value(s).");
+        nr.logError("[RAIDS] Missing " + property + " property in config.json. Using default value(s) or skipping.");
         return false;
     }
 }
