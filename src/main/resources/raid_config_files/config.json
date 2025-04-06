@@ -1,0 +1,81 @@
+{
+  "debug": false,
+  "raid_settings": {
+    "use_queue_system": false,
+    "run_raids_with_no_players": false,
+    "global_contraband": {
+      "banned_pokemon": ["weedle", "caterpie"],
+      "banned_moves": ["tackle", "bite"],
+      "banned_abilities": ["wonderguard", "healer"],
+      "banned_held_items": ["cobblemon:leftovers"],
+      "banned_bag_items": ["cobblemon:revive"]
+    }
+  },
+  "item_settings": {
+    "voucher_settings": {
+      "vouchers_enabled": true,
+      "default_voucher": {
+        "voucher_item": "minecraft:feather",
+        "voucher_name": "<aqua>Raid Voucher",
+        "voucher_lore": ["<gray>Use to start a raid!"],
+        "voucher_data": {}
+      },
+      "global_choice_voucher": {
+        "voucher_item": "minecraft:feather",
+        "voucher_name": "",
+        "voucher_lore": [],
+        "voucher_data": {}
+      },
+      "global_random_voucher": {
+        "voucher_item": "minecraft:feather",
+        "voucher_name": "",
+        "voucher_lore": [],
+        "voucher_data": {}
+      }
+    },
+    "pass_settings": {
+      "passes_enabled": true,
+      "default_pass": {
+        "pass_item": "minecraft:paper",
+        "pass_name": "<light_purple>Raid Pass",
+        "pass_lore": ["<gray>Use to join a raid!"],
+        "pass_data": {}
+      },
+      "global_pass": {
+        "pass_item": "minecraft:paper",
+        "pass_name": "",
+        "pass_lore": [],
+        "pass_data": {}
+      }
+    },
+    "raid_ball_settings": {
+      "raid_balls_enabled": true,
+      "raid_balls": {
+        "premier": {
+          "pokeball": "cobblemon:premier_ball",
+          "pokeball_name": "<red>Raid Pokeball",
+          "pokeball_lore": ["<gray>Use this to try and capture raid bosses!"],
+          "pokeball_data": {},
+          "categories": [],
+          "bosses": []
+        },
+        "ultra": {
+          "pokeball": "cobblemon:ultra_ball",
+          "pokeball_name": "<red>Raid Pokeball",
+          "pokeball_lore": ["<gray>Use this to try and capture raid bosses!"],
+          "pokeball_data": {},
+          "categories": [],
+          "bosses": []
+        },
+        "master": {
+          "pokeball": "cobblemon:master_ball",
+          "pokeball_name": "<red>Raid Pokeball",
+          "pokeball_lore": ["<gray>Use this to try and capture raid bosses!"],
+          "pokeball_data": {},
+          "categories": [],
+          "bosses": []
+        }
+      }
+    }
+  }
+}
