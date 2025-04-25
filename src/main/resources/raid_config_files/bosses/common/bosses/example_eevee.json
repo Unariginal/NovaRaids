@@ -109,8 +109,8 @@
     "minimum_level": 25,
     "setup_phase_time": 30,
     "fight_phase_time": 600,
-    "pre_catch_phase_time": 30,
     "do_catch_phase": true,
+    "pre_catch_phase_time": 30,
     "catch_phase_time": 180,
     "heal_party_on_challenge": false,
     "contraband": {
@@ -192,6 +192,7 @@
   },
   "catch_settings": {
     "species_override": "",
+    "level_override": 1,
     "form_override": "",
     "features_override": "",
     "keep_scale": false,
@@ -202,7 +203,6 @@
     "randomize_nature": true,
     "randomize_ability": true,
     "reset_moves": true,
-    "level_override": 1,
     "places": [
       {
         "place": "participating",

@@ -1,4 +1,4 @@
-package me.unariginal.novaraids.data;
+package me.unariginal.novaraids.data.BossSettings;
 
 import com.cobblemon.mod.common.pokemon.FormData;
 import com.cobblemon.mod.common.pokemon.Species;

@@ -17,7 +17,7 @@ import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.cobblemon.mod.common.pokemon.properties.UncatchableProperty;
 import kotlin.Unit;
 import me.unariginal.novaraids.NovaRaids;
-import me.unariginal.novaraids.data.CatchSettings;
+import me.unariginal.novaraids.data.BossSettings.CatchSettings;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.nbt.NbtCompound;

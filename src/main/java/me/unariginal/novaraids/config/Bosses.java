@@ -18,13 +18,13 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.JsonOps;
 import me.unariginal.novaraids.NovaRaids;
-import me.unariginal.novaraids.data.CatchPlacement;
+import me.unariginal.novaraids.data.BossSettings.*;
 import me.unariginal.novaraids.data.Category;
 import me.unariginal.novaraids.data.items.Pass;
 import me.unariginal.novaraids.data.items.RaidBall;
 import me.unariginal.novaraids.data.items.Voucher;
 import me.unariginal.novaraids.data.rewards.*;
-import me.unariginal.novaraids.utils.TextUtil;
+import me.unariginal.novaraids.utils.TextUtils;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.component.ComponentChanges;
 import net.minecraft.item.Item;
@@ -41,6 +41,7 @@ import java.util.*;
 public class Bosses {
     private final NovaRaids nr = NovaRaids.INSTANCE;
     public List<Category> categories = new ArrayList<>();
+    public List<Boss> bosses = new ArrayList<>();
 
     public Bosses() {
         try {
@@ -148,14 +149,14 @@ public class Bosses {
                     voucher_item = Registries.ITEM.get(Identifier.of(voucher_item_name));
                 }
                 if (checkProperty(voucher, "voucher_name", category_name + "/settings")) {
-                    voucher_name = TextUtil.deserialize(voucher.get("voucher_name").getAsString());
+                    voucher_name = TextUtils.deserialize(voucher.get("voucher_name").getAsString());
                 }
                 if (checkProperty(voucher, "voucher_lore", category_name + "/settings")) {
                     JsonArray lore_items = voucher.getAsJsonArray("voucher_lore");
                     List<Text> lore = new ArrayList<>();
                     for (JsonElement l : lore_items) {
                         String lore_item = l.getAsString();
-                        lore.add(TextUtil.deserialize(lore_item));
+                        lore.add(TextUtils.deserialize(lore_item));
                     }
                     voucher_lore = lore;
                 }
@@ -181,14 +182,14 @@ public class Bosses {
                     pass_item = Registries.ITEM.get(Identifier.of(pass_item_name));
                 }
                 if (checkProperty(pass, "pass_name", category_name + "/settings")) {
-                    pass_name = TextUtil.deserialize(pass.get("pass_name").getAsString());
+                    pass_name = TextUtils.deserialize(pass.get("pass_name").getAsString());
                 }
                 if (checkProperty(pass, "pass_lore", category_name + "/settings")) {
                     JsonArray lore_items = pass.getAsJsonArray("pass_lore");
                     List<Text> lore = new ArrayList<>();
                     for (JsonElement l : lore_items) {
                         String lore_item = l.getAsString();
-                        lore.add(TextUtil.deserialize(lore_item));
+                        lore.add(TextUtils.deserialize(lore_item));
                     }
                     pass_lore = lore;
                 }
@@ -207,8 +208,8 @@ public class Bosses {
                 for (String id : raidBalls.keySet()) {
                     JsonObject ballObject = raidBalls.getAsJsonObject(id);
                     Item pokeball = CobblemonItems.POKE_BALL;
-                    Text pokeball_name = TextUtil.deserialize("<red> " + category_name + " Raid Ball");
-                    List<Text> pokeball_lore = List.of(TextUtil.deserialize("<gray>Use this to try and catch " + category_name + " bosses!"));
+                    Text pokeball_name = TextUtils.deserialize("<red> " + category_name + " Raid Ball");
+                    List<Text> pokeball_lore = List.of(TextUtils.deserialize("<gray>Use this to try and catch " + category_name + " bosses!"));
                     ComponentChanges pokeball_data = ComponentChanges.EMPTY;
 
                     if (checkProperty(ballObject, "pokeball", category_name + "/settings")) {
@@ -216,14 +217,14 @@ public class Bosses {
                         pokeball = Registries.ITEM.get(Identifier.of(pokeball_item_name));
                     }
                     if (checkProperty(ballObject, "pokeball_name", category_name + "/settings")) {
-                        pokeball_name = TextUtil.deserialize(ballObject.get("pokeball_name").getAsString());
+                        pokeball_name = TextUtils.deserialize(ballObject.get("pokeball_name").getAsString());
                     }
                     if (checkProperty(ballObject, "pokeball_lore", category_name + "/settings")) {
                         JsonArray lore_items = ballObject.getAsJsonArray("pokeball_lore");
                         List<Text> lore = new ArrayList<>();
                         for (JsonElement l : lore_items) {
                             String lore_item = l.getAsString();
-                            lore.add(TextUtil.deserialize(lore_item));
+                            lore.add(TextUtils.deserialize(lore_item));
                         }
                         pokeball_lore = lore;
                     }
@@ -239,315 +240,7 @@ public class Bosses {
             }
         }
 
-        List<DistributionSection> rewards = new ArrayList<>();
-        if (checkProperty(config, "reward_distribution", category_name + "/settings")) {
-            JsonArray reward_distributions = config.getAsJsonArray("reward_distribution");
-            for (JsonElement reward_distribution : reward_distributions) {
-                JsonObject reward_distribution_object = reward_distribution.getAsJsonObject();
-                List<Place> places = new ArrayList<>();
-                if (checkProperty(reward_distribution_object, "places", category_name + "/settings")) {
-                    JsonArray placesArray = reward_distribution_object.getAsJsonArray("places");
-                    for (JsonElement place_element : placesArray) {
-                        JsonObject place_object = place_element.getAsJsonObject();
-                        String place;
-                        if (checkProperty(place_object, "place", category_name + "/settings")) {
-                            place = place_object.get("place").getAsString();
-                        } else {
-                            continue;
-                        }
-                        boolean require_damage;
-                        if (checkProperty(place_object, "require_damage", category_name + "/settings")) {
-                            require_damage = place_object.get("require_damage").getAsBoolean();
-                        } else {
-                            continue;
-                        }
-                        boolean allow_other_rewards;
-                        if (checkProperty(place_object, "allow_other_rewards", category_name + "/settings")) {
-                            allow_other_rewards = place_object.get("allow_other_rewards").getAsBoolean();
-                        } else {
-                            continue;
-                        }
-                        places.add(new Place(place, require_damage, allow_other_rewards, false));
-                    }
-                } else {
-                    continue;
-                }
-                boolean allow_duplicates;
-                int min_rolls;
-                int max_rolls;
-                List<RewardPool> reward_pools = new ArrayList<>();
-                if (checkProperty(reward_distribution_object, "rewards", category_name + "/settings")) {
-                    JsonObject rewards_object = reward_distribution_object.getAsJsonObject("rewards");
-                    if (checkProperty(rewards_object, "allow_duplicates", category_name + "/settings")) {
-                        allow_duplicates = rewards_object.get("allow_duplicates").getAsBoolean();
-                    } else {
-                        continue;
-                    }
-                    if (checkProperty(rewards_object, "rolls", category_name + "/settings")) {
-                        JsonObject rolls_object = rewards_object.getAsJsonObject("rolls");
-                        if (checkProperty(rolls_object, "min", category_name + "/settings")) {
-                            min_rolls = rolls_object.get("min").getAsInt();
-                        } else {
-                            continue;
-                        }
-                        if (checkProperty(rolls_object, "max", category_name + "/settings")) {
-                            max_rolls = rolls_object.get("max").getAsInt();
-                        } else {
-                            continue;
-                        }
-                    } else {
-                        continue;
-                    }
-                    if (checkProperty(rewards_object, "reward_pools", category_name + "/settings")) {
-                        JsonArray reward_pools_array = rewards_object.getAsJsonArray("reward_pools");
-                        for (JsonElement reward_pool_element : reward_pools_array) {
-                            JsonObject reward_pool_object = reward_pool_element.getAsJsonObject();
-                            double weight;
-                            if (checkProperty(reward_pool_object, "weight", category_name + "/settings")) {
-                                weight = reward_pool_object.get("weight").getAsDouble();
-                            } else {
-                                continue;
-                            }
-
-                            RewardPool pool;
-                            if (checkProperty(reward_pool_object, "pool_preset", category_name + "/settings")) {
-                                String pool_preset = reward_pool_object.get("pool_preset").getAsString();
-                                //TODO: GET REWARD POOL BY NAME
-                                continue;
-                            } else if (checkProperty(reward_pool_object, "pool", category_name + "/settings")) {
-                                boolean allow_duplicates_pool;
-                                if (checkProperty(reward_pool_object, "allow_duplicates", category_name + "/settings")) {
-                                    allow_duplicates_pool = reward_pool_object.get("allow_duplicates").getAsBoolean();
-                                } else {
-                                    continue;
-                                }
-                                int min_pool_rolls;
-                                int max_pool_rolls;
-                                if (checkProperty(reward_pool_object, "rolls", category_name + "/settings")) {
-                                    JsonObject rolls_object = reward_pool_object.getAsJsonObject("rolls");
-                                    if (checkProperty(rolls_object, "min", category_name + "/settings")) {
-                                        min_pool_rolls = rolls_object.get("min").getAsInt();
-                                    } else {
-                                        continue;
-                                    }
-                                    if (checkProperty(rolls_object, "max", category_name + "/settings")) {
-                                        max_pool_rolls = rolls_object.get("max").getAsInt();
-                                    } else {
-                                        continue;
-                                    }
-                                } else {
-                                    continue;
-                                }
-                                Map<Reward, Double> rewardList = new HashMap<>();
-                                if (checkProperty(reward_pool_object, "rewards", category_name + "/settings")) {
-                                    JsonArray rewards_array = reward_pool_object.getAsJsonArray("rewards");
-                                    for (JsonElement reward_element : rewards_array) {
-                                        JsonObject reward_object = reward_element.getAsJsonObject();
-                                        double reward_weight = 1;
-                                        if (checkProperty(reward_object, "weight", category_name + "/settings")) {
-                                            reward_weight = reward_object.get("weight").getAsDouble();
-                                        } else {
-                                            continue;
-                                        }
-                                        Reward reward;
-                                        if (checkProperty(reward_object, "reward", category_name + "/settings")) {
-                                            String type;
-                                            if (checkProperty(reward_object, "type", category_name + "/settings")) {
-                                                type = reward_object.get("type").getAsString();
-                                            } else {
-                                                continue;
-                                            }
-                                            if (type.equalsIgnoreCase("item")) {
-                                                Item reward_item;
-                                                if (checkProperty(reward_object, "item", category_name + "/settings")) {
-                                                    reward_item = Registries.ITEM.get(Identifier.of(reward_object.get("item").getAsString()));
-                                                } else {
-                                                    continue;
-                                                }
-                                                ComponentChanges item_data = ComponentChanges.EMPTY;
-                                                if (checkProperty(reward_object, "data", category_name + "/settings")) {
-                                                    JsonElement data = reward_object.getAsJsonObject("data");
-                                                    if (data != null) {
-                                                        item_data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, data).getOrThrow().getFirst();
-                                                    }
-                                                }
-                                                int count_min;
-                                                int count_max;
-                                                if (checkProperty(rewards_object, "count", category_name + "/settings")) {
-                                                    JsonObject count_object = rewards_object.getAsJsonObject("count");
-                                                    if (checkProperty(count_object, "min", category_name + "/settings")) {
-                                                        count_min = count_object.get("min").getAsInt();
-                                                    } else {
-                                                        continue;
-                                                    }
-                                                    if (checkProperty(count_object, "max", category_name + "/settings")) {
-                                                        count_max = count_object.get("max").getAsInt();
-                                                    } else {
-                                                        continue;
-                                                    }
-                                                } else {
-                                                    continue;
-                                                }
-                                                reward = new ItemReward("temp", reward_item, item_data, count_min, count_max);
-                                            } else if (type.equalsIgnoreCase("command")) {
-                                                List<String> commands;
-                                                if (checkProperty(reward_object, "commands", category_name + "/settings")) {
-                                                    commands = reward_object.getAsJsonArray("commands").asList().stream().map(JsonElement::getAsString).toList();
-                                                } else {
-                                                    continue;
-                                                }
-                                                reward = new CommandReward("temp", commands);
-                                            } else if (type.equalsIgnoreCase("pokemon")) {
-                                                String species;
-                                                if (checkProperty(reward_object, "species", category_name + "/settings")) {
-                                                    species = reward_object.get("species").getAsString();
-                                                } else {
-                                                    continue;
-                                                }
-                                                int level;
-                                                if (checkProperty(reward_object, "level", category_name + "/settings")) {
-                                                    level = reward_object.get("level").getAsInt();
-                                                } else {
-                                                    continue;
-                                                }
-                                                String ability;
-                                                if (checkProperty(reward_object, "ability", category_name + "/settings")) {
-                                                    ability = reward_object.get("ability").getAsString();
-                                                } else {
-                                                    continue;
-                                                }
-                                                String nature;
-                                                if (checkProperty(reward_object, "nature", category_name + "/settings")) {
-                                                    nature = reward_object.get("nature").getAsString();
-                                                } else {
-                                                    continue;
-                                                }
-                                                String form;
-                                                if (checkProperty(reward_object, "form", category_name + "/settings")) {
-                                                    form = reward_object.get("form").getAsString();
-                                                } else {
-                                                    continue;
-                                                }
-                                                String features;
-                                                if (checkProperty(reward_object, "features", category_name + "/settings")) {
-                                                    features = reward_object.get("features").getAsString();
-                                                } else {
-                                                    continue;
-                                                }
-                                                String gender;
-                                                if (checkProperty(reward_object, "gender", category_name + "/settings")) {
-                                                    gender = reward_object.get("gender").getAsString();
-                                                } else {
-                                                    continue;
-                                                }
-                                                boolean shiny;
-                                                if (checkProperty(reward_object, "shiny", category_name + "/settings")) {
-                                                    shiny = reward_object.get("shiny").getAsBoolean();
-                                                } else {
-                                                    continue;
-                                                }
-                                                float scale;
-                                                if (checkProperty(reward_object, "scale", category_name + "/settings")) {
-                                                    scale = reward_object.get("scale").getAsFloat();
-                                                } else {
-                                                    continue;
-                                                }
-                                                String held_item;
-                                                if (checkProperty(reward_object, "held_item", category_name + "/settings")) {
-                                                    held_item = reward_object.get("held_item").getAsString();
-                                                } else {
-                                                    continue;
-                                                }
-                                                ComponentChanges held_item_data = ComponentChanges.EMPTY;
-                                                if (checkProperty(reward_object, "data", category_name + "/settings")) {
-                                                    JsonElement data = reward_object.getAsJsonObject("data");
-                                                    if (data != null) {
-                                                        held_item_data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, data).getOrThrow().getFirst();
-                                                    }
-                                                }
-                                                List<String> moves = new ArrayList<>();
-                                                if (checkProperty(reward_object, "moves", category_name + "/settings")) {
-                                                    moves = reward_object.getAsJsonArray("moves").asList().stream().map(JsonElement::getAsString).toList();
-                                                }
-                                                if (moves.isEmpty()) {
-                                                    continue;
-                                                }
-                                                IVs ivs = IVs.createRandomIVs(0);
-                                                if (checkProperty(reward_object, "ivs", category_name + "/settings")) {
-                                                    JsonObject ivs_object = reward_object.getAsJsonObject("ivs");
-                                                    if (checkProperty(ivs_object, "hp", category_name + "/settings")) {
-                                                        ivs.set(Stats.HP, ivs_object.get("hp").getAsInt());
-                                                    }
-                                                    if (checkProperty(ivs_object, "atk", category_name + "/settings")) {
-                                                        ivs.set(Stats.ATTACK, ivs_object.get("atk").getAsInt());
-                                                    }
-                                                    if (checkProperty(ivs_object, "def", category_name + "/settings")) {
-                                                        ivs.set(Stats.DEFENCE, ivs_object.get("def").getAsInt());
-                                                    }
-                                                    if (checkProperty(ivs_object, "sp_atk", category_name + "/settings")) {
-                                                        ivs.set(Stats.SPECIAL_ATTACK, ivs_object.get("sp_atk").getAsInt());
-                                                    }
-                                                    if (checkProperty(ivs_object, "sp_def", category_name + "/settings")) {
-                                                        ivs.set(Stats.SPECIAL_DEFENCE, ivs_object.get("sp_def").getAsInt());
-                                                    }
-                                                    if (checkProperty(ivs_object, "spd", category_name + "/settings")) {
-                                                        ivs.set(Stats.SPEED, ivs_object.get("spd").getAsInt());
-                                                    }
-                                                }
-                                                EVs evs = EVs.createEmpty();
-                                                if (checkProperty(reward_object, "evs", category_name + "/settings")) {
-                                                    JsonObject evs_object = reward_object.getAsJsonObject("evs");
-                                                    if (checkProperty(evs_object, "hp", category_name + "/settings")) {
-                                                        evs.set(Stats.HP, evs_object.get("hp").getAsInt());
-                                                    }
-                                                    if (checkProperty(evs_object, "atk", category_name + "/settings")) {
-                                                        evs.set(Stats.ATTACK, evs_object.get("atk").getAsInt());
-                                                    }
-                                                    if (checkProperty(evs_object, "def", category_name + "/settings")) {
-                                                        evs.set(Stats.DEFENCE, evs_object.get("def").getAsInt());
-                                                    }
-                                                    if (checkProperty(evs_object, "sp_atk", category_name + "/settings")) {
-                                                        evs.set(Stats.SPECIAL_ATTACK, evs_object.get("sp_atk").getAsInt());
-                                                    }
-                                                    if (checkProperty(evs_object, "sp_def", category_name + "/settings")) {
-                                                        evs.set(Stats.SPECIAL_DEFENCE, evs_object.get("sp_def").getAsInt());
-                                                    }
-                                                    if (checkProperty(evs_object, "spd", category_name + "/settings")) {
-                                                        evs.set(Stats.SPEED, evs_object.get("spd").getAsInt());
-                                                    }
-                                                }
-                                                reward = new PokemonReward("temp", species, level, ability, nature, form, features, gender, shiny, scale, held_item, held_item_data, moves, ivs, evs);
-                                            } else {
-                                                continue;
-                                            }
-                                            rewardList.put(reward, weight);
-                                        } else if (checkProperty(reward_object, "reward_preset", category_name + "/settings")) {
-                                            String reward_preset = reward_object.get("reward_preset").getAsString();
-                                            // TODO: Get reward preset
-                                            continue;
-                                        } else {
-                                            continue;
-                                        }
-                                    }
-                                } else {
-                                    continue;
-                                }
-                                pool = new RewardPool("temp", allow_duplicates_pool, min_pool_rolls, max_pool_rolls, rewardList);
-                            } else {
-                                continue;
-                            }
-                            reward_pools.add(pool);
-                        }
-                    } else {
-                        continue;
-                    }
-                } else {
-                    continue;
-                }
-                rewards.add(new DistributionSection(places, allow_duplicates, min_rolls, max_rolls, reward_pools));
-            }
-        }
-
+        List<DistributionSection> rewards = ConfigHelper.getDistributionSections(config, category_name + "/settings");
         categories.add(new Category(category_name, require_pass, min_players, max_players, setup_bossbar, fight_bossbar, pre_catch_bossbar, catch_bossbar, category_voucher, category_pass, category_balls, rewards));
     }
 
@@ -776,6 +469,23 @@ public class Bosses {
             throw new NullPointerException("Boss must have pokemon details!");
         }
 
+        PokemonDetails pokemonDetails = new PokemonDetails(
+                species,
+                level,
+                form,
+                features,
+                abilities,
+                natures,
+                genders,
+                shiny,
+                scale,
+                held_item,
+                held_item_data,
+                moves,
+                ivs,
+                evs
+        );
+
         // Boss Details
         String display_name = boss_id;
         int base_health;
@@ -850,13 +560,13 @@ public class Bosses {
                     voucher_item = Registries.ITEM.get(Identifier.of(item_settings.get("voucher_item").getAsString()));
                 }
                 if (checkProperty(boss_voucher_object, "voucher_name", category_name + "/bosses/" + file_name)) {
-                    voucher_name = TextUtil.deserialize(boss_voucher_object.get("voucher_name").getAsString());
+                    voucher_name = TextUtils.deserialize(boss_voucher_object.get("voucher_name").getAsString());
                 }
                 if (checkProperty(boss_voucher_object, "voucher_lore", category_name + "/bosses/" + file_name)) {
                     JsonArray lore_array = boss_voucher_object.get("voucher_lore").getAsJsonArray();
                     List<Text> lore = new ArrayList<>();
                     for (JsonElement lore_element : lore_array) {
-                        lore.add(TextUtil.deserialize(lore_element.getAsString()));
+                        lore.add(TextUtils.deserialize(lore_element.getAsString()));
                     }
                     voucher_lore = lore;
                 }
@@ -878,13 +588,13 @@ public class Bosses {
                     pass_item = Registries.ITEM.get(Identifier.of(item_settings.get("pass_item").getAsString()));
                 }
                 if (checkProperty(boss_pass_object, "pass_name", category_name + "/bosses/" + file_name)) {
-                    pass_name = TextUtil.deserialize(boss_pass_object.get("pass_name").getAsString());
+                    pass_name = TextUtils.deserialize(boss_pass_object.get("pass_name").getAsString());
                 }
                 if (checkProperty(boss_pass_object, "pass_lore", category_name + "/bosses/" + file_name)) {
                     JsonArray lore_array = boss_pass_object.get("pass_lore").getAsJsonArray();
                     List<Text> lore = new ArrayList<>();
                     for (JsonElement lore_element : lore_array) {
-                        lore.add(TextUtil.deserialize(lore_element.getAsString()));
+                        lore.add(TextUtils.deserialize(lore_element.getAsString()));
                     }
                     pass_lore = lore;
                 }
@@ -901,22 +611,22 @@ public class Bosses {
                 for (String ball_id : raid_balls.keySet()) {
                     JsonObject ball_info = raid_balls.getAsJsonObject(ball_id);
                     Item item = CobblemonItems.POKE_BALL;
-                    Text name = TextUtil.deserialize("<red>Raid Pokeball");
-                    List<Text> lore = new ArrayList<>(List.of(TextUtil.deserialize("<gray>Use this to try and capture raid bosses!")));
+                    Text name = TextUtils.deserialize("<red>Raid Pokeball");
+                    List<Text> lore = new ArrayList<>(List.of(TextUtils.deserialize("<gray>Use this to try and capture raid bosses!")));
                     ComponentChanges data = ComponentChanges.EMPTY;
                     if (checkProperty(ball_info, "pokeball", category_name + "/bosses/" + file_name)) {
                         item = Registries.ITEM.get(Identifier.of(ball_info.get("pokeball").getAsString()));
                     }
                     if (checkProperty(ball_info, "pokeball_name", category_name + "/bosses/" + file_name)) {
                         String ball_name = ball_info.get("pokeball_name").getAsString();
-                        name = TextUtil.deserialize(ball_name);
+                        name = TextUtils.deserialize(ball_name);
                     }
                     if (checkProperty(ball_info, "pokeball_lore", category_name + "/bosses/" + file_name)) {
                         JsonArray lore_items = ball_info.getAsJsonArray("pokeball_lore");
                         List<Text> newLore = new ArrayList<>();
                         for (JsonElement l : lore_items) {
                             String lore_item = l.getAsString();
-                            newLore.add(TextUtil.deserialize(lore_item));
+                            newLore.add(TextUtils.deserialize(lore_item));
                         }
                         lore = newLore;
                     }
@@ -931,39 +641,278 @@ public class Bosses {
             }
         }
 
+        ItemSettings itemSettings = new ItemSettings(
+                allow_global_pokeballs,
+                allow_category_pokeballs,
+                boss_voucher,
+                boss_pass,
+                boss_balls
+        );
+
         // Raid Details
-        int minimum_level;
+        int minimum_level = 1;
         int setup_phase_time;
         int fight_phase_time;
-        int pre_catch_phase_time;
-        boolean do_catch_phase;
-        int catch_phase_time;
-        boolean heal_party_on_challenge;
+        boolean do_catch_phase = true;
+        int pre_catch_phase_time = -1;
+        int catch_phase_time = -1;
+        boolean heal_party_on_challenge = false;
         List<Species> banned_species = new ArrayList<>();
         List<Move> banned_moves = new ArrayList<>();
         List<Ability> banned_abilities = new ArrayList<>();
         List<Item> banned_held_items = new ArrayList<>();
         List<Item> banned_bag_items = new ArrayList<>();
-        String setup_bossbar;
-        String fight_bossbar;
-        String pre_catch_bossbar;
-        String catch_bossbar;
-        List<DistributionSection> rewards;
+        String setup_bossbar = "";
+        String fight_bossbar = "";
+        String pre_catch_bossbar = "";
+        String catch_bossbar = "";
+        List<DistributionSection> rewards = new ArrayList<>();
+        if (checkProperty(config, "raid_details", category_name + "/bosses/" + file_name)) {
+            JsonObject raid_details = config.get("raid_details").getAsJsonObject();
+            if (checkProperty(raid_details, "minimum_level", category_name + "/bosses/" + file_name)) {
+                minimum_level = raid_details.get("minimum_level").getAsInt();
+            }
+            if (checkProperty(raid_details, "setup_phase_time", category_name + "/bosses/" + file_name)) {
+                setup_phase_time = raid_details.get("setup_phase_time").getAsInt();
+            } else {
+                throw new NullPointerException("Raid details must have setup phase time!");
+            }
+            if (checkProperty(raid_details, "fight_phase_time", category_name + "/bosses/" + file_name)) {
+                fight_phase_time = raid_details.get("fight_phase_time").getAsInt();
+            } else {
+                throw new NullPointerException("Raid details must have fight phase time!");
+            }
+            if (checkProperty(raid_details, "do_catch_phase", category_name + "/bosses/" + file_name)) {
+                do_catch_phase = raid_details.get("do_catch_phase").getAsBoolean();
+            }
+            if (do_catch_phase) {
+                if (checkProperty(raid_details, "pre_catch_phase_time", category_name + "/bosses/" + file_name)) {
+                    pre_catch_phase_time = raid_details.get("pre_catch_phase_time").getAsInt();
+                } else {
+                    throw new NullPointerException("Raid details must have pre catch phase time!");
+                }
+                if (checkProperty(raid_details, "catch_phase_time", category_name + "/bosses/" + file_name)) {
+                    catch_phase_time = raid_details.get("catch_phase_time").getAsInt();
+                } else {
+                    throw new NullPointerException("Raid details must have catch phase time!");
+                }
+            }
+            if (checkProperty(raid_details, "heal_party_on_challenge", category_name + "/bosses/" + file_name)) {
+                heal_party_on_challenge = raid_details.get("heal_party_on_challenge").getAsBoolean();
+            }
+            if (checkProperty(raid_details, "contraband", category_name + "/bosses/" + file_name)) {
+                JsonObject contraband = raid_details.get("contraband").getAsJsonObject();
+                if (checkProperty(contraband, "banned_pokemon", category_name + "/bosses/" + file_name)) {
+                    List<String> banned_species_names = contraband.getAsJsonArray("banned_pokemon").asList().stream().map(JsonElement::getAsString).toList();
+                    for (String species_name : banned_species_names) {
+                        Species toAdd = PokemonSpecies.INSTANCE.getByName(species_name);
+                        if (toAdd == null) {
+                            continue;
+                        }
+                        banned_species.add(toAdd);
+                    }
+                }
+                if (checkProperty(contraband, "banned_moves", category_name + "/bosses/" + file_name)) {
+                    List<String> banned_move_names = contraband.getAsJsonArray("banned_moves").asList().stream().map(JsonElement::getAsString).toList();
+                    for (String move_name : banned_move_names) {
+                        MoveTemplate template = Moves.INSTANCE.getByName(move_name);
+                        if (template == null) {
+                            continue;
+                        }
+                        banned_moves.add(template.create());
+                    }
+                }
+                if (checkProperty(contraband, "banned_abilities", category_name + "/bosses/" + file_name)) {
+                    List<String> banned_ability_names = contraband.getAsJsonArray("banned_abilities").asList().stream().map(JsonElement::getAsString).toList();
+                    for (String ability_name : banned_ability_names) {
+                        AbilityTemplate abilityTemplate = Abilities.INSTANCE.get(ability_name);
+                        if (abilityTemplate == null) {
+                            continue;
+                        }
+                        banned_abilities.add(abilityTemplate.create(false, Priority.LOWEST));
+                    }
+                }
+                if (checkProperty(contraband, "banned_held_items", category_name + "/bosses/" + file_name)) {
+                    List<String> banned_held_item_names = contraband.getAsJsonArray("banned_held_items").asList().stream().map(JsonElement::getAsString).toList();
+                    for (String held_item_name : banned_held_item_names) {
+                        Item banned_item = Registries.ITEM.get(Identifier.of(held_item_name));
+                        banned_held_items.add(banned_item);
+                    }
+                }
+                if (checkProperty(contraband, "banned_bag_items", category_name + "/bosses/" + file_name)) {
+                    List<String> banned_bag_item_names = contraband.getAsJsonArray("banned_bag_items").asList().stream().map(JsonElement::getAsString).toList();
+                    for (String bag_item_name : banned_bag_item_names) {
+                        Item bag_item = Registries.ITEM.get(Identifier.of(bag_item_name));
+                        banned_bag_items.add(bag_item);
+                    }
+                }
+            }
+            if (checkProperty(raid_details, "bossbars", category_name + "/bosses/" + file_name)) {
+                JsonObject bossbars = raid_details.get("bossbars").getAsJsonObject();
+                if (checkProperty(bossbars, "setup", category_name + "/bosses/" + file_name)) {
+                    setup_bossbar = bossbars.get("setup").getAsString();
+                }
+                if (checkProperty(bossbars, "fight", category_name + "/bosses/" + file_name)) {
+                    fight_bossbar = bossbars.get("fight").getAsString();
+                }
+                if (checkProperty(bossbars, "pre_catch", category_name + "/bosses/" + file_name)) {
+                    pre_catch_bossbar = bossbars.get("pre_catch").getAsString();
+                }
+                if (checkProperty(bossbars, "catch", category_name + "/bosses/" + file_name)) {
+                    catch_bossbar = bossbars.get("catch").getAsString();
+                }
+            }
+            List<DistributionSection> boss_rewards = ConfigHelper.getDistributionSections(config, category_name + "/bosses/" + file_name);
+        } else {
+            throw new NullPointerException("Boss must have raid details!");
+        }
+
+        RaidDetails raidDetails = new RaidDetails(
+                minimum_level,
+                setup_phase_time,
+                fight_phase_time,
+                do_catch_phase,
+                pre_catch_phase_time,
+                catch_phase_time,
+                heal_party_on_challenge,
+                banned_species,
+                banned_moves,
+                banned_abilities,
+                banned_held_items,
+                banned_bag_items,
+                setup_bossbar,
+                fight_bossbar,
+                pre_catch_bossbar,
+                catch_bossbar,
+                rewards
+        );
 
         // Catch Settings
-        Species species_override;
-        int level_override;
-        FormData form_override;
-        String features_override;
-        boolean keep_scale;
-        boolean keep_held_item;
-        boolean randomize_ivs;
-        boolean keep_evs;
-        boolean randomize_gender;
-        boolean randomize_nature;
-        boolean randomize_ability;
-        boolean reset_moves;
+        Species species_override = species;
+        int level_override = 1;
+        FormData form_override = species.getStandardForm();
+        String features_override = "";
+        boolean keep_scale = false;
+        boolean keep_held_item = false;
+        boolean randomize_ivs = true;
+        boolean keep_evs = false;
+        boolean randomize_gender = true;
+        boolean randomize_nature = true;
+        boolean randomize_ability = true;
+        boolean reset_moves = true;
         List<CatchPlacement> catch_places = new ArrayList<>();
+
+        if (checkProperty(config, "catch_settings", category_name + "/bosses/" + file_name)) {
+            JsonObject catch_settings = config.get("catch_settings").getAsJsonObject();
+            if (checkProperty(catch_settings, "species_override", category_name + "/bosses/" + file_name)) {
+                Species s = PokemonSpecies.INSTANCE.getByName(catch_settings.get("species_override").getAsString());
+                if (s != null) {
+                    species_override = s;
+                } else {
+                    nr.logError("[RAIDS] Skipping unknown species override: " + catch_settings.get("species_override").getAsString());
+                }
+            }
+            if (checkProperty(catch_settings, "level_override", category_name + "/bosses/" + file_name)) {
+                level_override = catch_settings.get("level_override").getAsInt();
+            }
+            if (checkProperty(catch_settings, "form_override", category_name + "/bosses/" + file_name)) {
+                String form_ov = catch_settings.get("form_override").getAsString();
+                form_override = species_override.getFormByName(form_ov);
+            }
+            if (checkProperty(catch_settings, "features_override", category_name + "/bosses/" + file_name)) {
+                features_override = catch_settings.get("features_override").getAsString();
+            }
+            if (checkProperty(catch_settings, "keep_scale", category_name + "/bosses/" + file_name)) {
+                keep_scale = catch_settings.get("keep_scale").getAsBoolean();
+            }
+            if (checkProperty(catch_settings, "keep_held_item", category_name + "/bosses/" + file_name)) {
+                keep_held_item = catch_settings.get("keep_held_item").getAsBoolean();
+            }
+            if (checkProperty(catch_settings, "randomize_ivs", category_name + "/bosses/" + file_name)) {
+                randomize_ivs = catch_settings.get("randomize_ivs").getAsBoolean();
+            }
+            if (checkProperty(catch_settings, "keep_evs", category_name + "/bosses/" + file_name)) {
+                keep_evs = catch_settings.get("keep_evs").getAsBoolean();
+            }
+            if (checkProperty(catch_settings, "randomize_gender", category_name + "/bosses/" + file_name)) {
+                randomize_gender = catch_settings.get("randomize_gender").getAsBoolean();
+            }
+            if (checkProperty(catch_settings, "randomize_nature", category_name + "/bosses/" + file_name)) {
+                randomize_nature = catch_settings.get("randomize_nature").getAsBoolean();
+            }
+            if (checkProperty(catch_settings, "randomize_ability", category_name + "/bosses/" + file_name)) {
+                randomize_ability = catch_settings.get("randomize_ability").getAsBoolean();
+            }
+            if (checkProperty(catch_settings, "reset_moves", category_name + "/bosses/" + file_name)) {
+                reset_moves = catch_settings.get("reset_moves").getAsBoolean();
+            }
+            if (checkProperty(catch_settings, "places", category_name + "/bosses/" + file_name)) {
+                JsonArray places = catch_settings.get("places").getAsJsonArray();
+                for (JsonElement place_element : places) {
+                    JsonObject place_object = place_element.getAsJsonObject();
+                    String place;
+                    if (checkProperty(place_object, "place", category_name + "/bosses/" + file_name)) {
+                        place = place_object.get("place").getAsString();
+                    } else {
+                        continue;
+                    }
+                    boolean require_damage;
+                    if (checkProperty(place_object, "require_damage", category_name + "/bosses/" + file_name)) {
+                        require_damage = place_object.get("require_damage").getAsBoolean();
+                    } else {
+                        continue;
+                    }
+                    double shiny_chance;
+                    if (checkProperty(place_object, "shiny_chance", category_name + "/bosses/" + file_name)) {
+                        shiny_chance = place_object.get("shiny_chance").getAsDouble();
+                    } else {
+                        continue;
+                    }
+                    int min_perfect_ivs;
+                    if (checkProperty(place_object, "min_perfect_ivs", category_name + "/bosses/" + file_name)) {
+                        min_perfect_ivs = place_object.get("min_perfect_ivs").getAsInt();
+                    } else {
+                        continue;
+                    }
+                    catch_places.add(new CatchPlacement(place, require_damage, shiny_chance, min_perfect_ivs));
+                }
+            }
+            if (catch_places.isEmpty()) {
+                catch_places.add(new CatchPlacement("participating", true, 8192, 0));
+            }
+        }
+
+        CatchSettings catch_settings = new CatchSettings(
+                species_override,
+                level_override,
+                form_override,
+                features_override,
+                keep_scale,
+                keep_held_item,
+                randomize_ivs,
+                keep_evs,
+                randomize_gender,
+                randomize_nature,
+                randomize_ability,
+                reset_moves,
+                catch_places
+        );
+
+        bosses.add(new Boss(
+                boss_id,
+                category_name,
+                global_weight,
+                category_weight,
+                pokemonDetails,
+                display_name,
+                base_health,
+                health_increase_per_player,
+                apply_glowing,
+                locations,
+                itemSettings,
+                raidDetails,
+                catch_settings
+        ));
     }
 
     public boolean checkProperty(JsonObject section, String property, String location) {

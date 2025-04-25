@@ -5,7 +5,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.minecraft.text.Text;
 
-public class TextUtil {
+public class TextUtils {
     public static String hms(long raw_time) {
         long hours;
         long minutes;

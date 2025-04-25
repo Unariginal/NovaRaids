@@ -17,10 +17,12 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.*;
+import me.unariginal.novaraids.data.BossSettings.Boss;
+import me.unariginal.novaraids.data.BossSettings.CatchSettings;
 import me.unariginal.novaraids.data.rewards.*;
 import me.unariginal.novaraids.managers.Messages;
 import me.unariginal.novaraids.managers.Raid;
-import me.unariginal.novaraids.utils.TextUtil;
+import me.unariginal.novaraids.utils.TextUtils;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.component.ComponentChanges;
 import net.minecraft.item.Item;
@@ -149,7 +151,7 @@ public class OldConfig {
 
         JsonObject this_raid = new JsonObject();
         this_raid.addProperty("uuid", raid.uuid().toString());
-        this_raid.addProperty("length", TextUtil.hms(raid.raid_completion_time()));
+        this_raid.addProperty("length", TextUtils.hms(raid.raid_completion_time()));
         this_raid.addProperty("had_catch_phase", raid.boss_info().do_catch_phase());
         this_raid.addProperty("total_players", raid.get_damage_leaderboard().size());
 

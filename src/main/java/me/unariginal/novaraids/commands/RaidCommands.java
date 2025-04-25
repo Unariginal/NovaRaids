@@ -17,9 +17,10 @@ import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.commands.suggestions.BossSuggestions;
 import me.unariginal.novaraids.commands.suggestions.CategorySuggestions;
 import me.unariginal.novaraids.data.*;
+import me.unariginal.novaraids.data.BossSettings.Boss;
 import me.unariginal.novaraids.managers.Messages;
 import me.unariginal.novaraids.managers.Raid;
-import me.unariginal.novaraids.utils.TextUtil;
+import me.unariginal.novaraids.utils.TextUtils;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.component.ComponentMap;
@@ -197,10 +198,10 @@ public class RaidCommands {
                                                                         Raid raid = nr.active_raids().get(IntegerArgumentType.getInteger(ctx, "id"));
                                                                         if (raid.participating_players().size() < raid.max_players() || Permissions.check(player, "novaraids.override") || raid.max_players() == -1) {
                                                                             if (raid.addPlayer(player.getUuid(), false)) {
-                                                                                player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("joined_raid"), raid)));
+                                                                                player.sendMessage(TextUtils.format(nr.config().getMessages().parse(nr.config().getMessages().message("joined_raid"), raid)));
                                                                             }
                                                                         } else {
-                                                                            player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_max_players"), raid)));
+                                                                            player.sendMessage(TextUtils.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_max_players"), raid)));
                                                                         }
                                                                     }
                                                                 }
@@ -263,7 +264,7 @@ public class RaidCommands {
         if (nr.config().loadedProperly()) {
             if (ctx.getSource().isExecutedByPlayer()) {
                 if (ctx.getSource().getPlayer() != null) {
-                    ctx.getSource().getPlayer().sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("reload_command"))));
+                    ctx.getSource().getPlayer().sendMessage(TextUtils.format(nr.config().getMessages().parse(nr.config().getMessages().message("reload_command"))));
                 }
             } else {
                 ctx.getSource().sendMessage(Text.literal("[Raids] Config reloaded!"));
@@ -586,7 +587,7 @@ public class RaidCommands {
                                         main_gui.close();
                                         species_guis.getFirst().open();
                                     } else {
-                                        player.sendMessage(TextUtil.format("There are no banned pokemon."));
+                                        player.sendMessage(TextUtils.format("There are no banned pokemon."));
                                     }
                                 })).build();
 
@@ -599,7 +600,7 @@ public class RaidCommands {
                                         main_gui.close();
                                         move_guis.getFirst().open();
                                     } else {
-                                        player.sendMessage(TextUtil.format("There are no banned moves."));
+                                        player.sendMessage(TextUtils.format("There are no banned moves."));
                                     }
                                 }))
                                 .build();
@@ -612,7 +613,7 @@ public class RaidCommands {
                                         main_gui.close();
                                         abilities_guis.getFirst().open();
                                     } else {
-                                        player.sendMessage(TextUtil.format("There are no banned abilities."));
+                                        player.sendMessage(TextUtils.format("There are no banned abilities."));
                                     }
                                 }))
                                 .build();
@@ -625,7 +626,7 @@ public class RaidCommands {
                                         main_gui.close();
                                         held_item_guis.getFirst().open();
                                     } else {
-                                        player.sendMessage(TextUtil.format("There are no banned held items."));
+                                        player.sendMessage(TextUtils.format("There are no banned held items."));
                                     }
                                 }))
                                 .build();
@@ -638,7 +639,7 @@ public class RaidCommands {
                                         main_gui.close();
                                         bag_item_guis.getFirst().open();
                                     } else {
-                                        player.sendMessage(TextUtil.format("There are no banned bag items."));
+                                        player.sendMessage(TextUtils.format("There are no banned bag items."));
                                     }
                                 }))
                                 .build();
@@ -715,7 +716,7 @@ public class RaidCommands {
                     } else {
                         nr.logInfo("[RAIDS] No valid spawn locations found. All possible locations are busy.");
                         if (player != null) {
-                            player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("no_available_locations"), boss_info)));
+                            player.sendMessage(TextUtils.format(nr.config().getMessages().parse(nr.config().getMessages().message("no_available_locations"), boss_info)));
                         }
                         return 0;
                     }
@@ -731,7 +732,7 @@ public class RaidCommands {
                             nr.init_next_raid();
                         } else {
                             if (player != null) {
-                                player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("added_to_queue"), boss_info)));
+                                player.sendMessage(TextUtils.format(nr.config().getMessages().parse(nr.config().getMessages().message("added_to_queue"), boss_info)));
                             }
                         }
                     }
@@ -750,7 +751,7 @@ public class RaidCommands {
             if (nr.active_raids().containsKey(id)) {
                 if (ctx.getSource().isExecutedByPlayer()) {
                     if (ctx.getSource().getPlayer() != null) {
-                        ctx.getSource().getPlayer().sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("raid_stopped"), nr.active_raids().get(id))));
+                        ctx.getSource().getPlayer().sendMessage(TextUtils.format(nr.config().getMessages().parse(nr.config().getMessages().message("raid_stopped"), nr.active_raids().get(id))));
                     }
                 }
                 nr.active_raids().get(id).stop();
@@ -914,7 +915,7 @@ public class RaidCommands {
             Messages messages = nr.config().getMessages();
             if (player != null) {
                 if (nr.active_raids().isEmpty()) {
-                    player.sendMessage(TextUtil.format(messages.parse(messages.message("no_active_raids"))));
+                    player.sendMessage(TextUtils.format(messages.parse(messages.message("no_active_raids"))));
                     return 0;
                 }
 
@@ -948,10 +949,10 @@ public class RaidCommands {
                                 if (clickType.isLeft) {
                                     if (raid.participating_players().size() < raid.max_players() || Permissions.check(player, "novaraids.override") || raid.max_players() == -1) {
                                         if (raid.addPlayer(player.getUuid(), false)) {
-                                            player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("joined_raid"), raid)));
+                                            player.sendMessage(TextUtils.format(nr.config().getMessages().parse(nr.config().getMessages().message("joined_raid"), raid)));
                                         }
                                     } else {
-                                        player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_max_players"), raid)));
+                                        player.sendMessage(TextUtils.format(nr.config().getMessages().parse(nr.config().getMessages().message("warning_max_players"), raid)));
                                     }
                                     gui.close();
                                 }
@@ -974,7 +975,7 @@ public class RaidCommands {
             if (player != null) {
                 Messages messages = nr.config().getMessages();
                 if (nr.queued_raids().isEmpty()) {
-                    player.sendMessage(TextUtil.format(messages.parse(messages.message("no_queued_raids"))));
+                    player.sendMessage(TextUtils.format(messages.parse(messages.message("no_queued_raids"))));
                     return 0;
                 }
 
@@ -996,7 +997,7 @@ public class RaidCommands {
                                     if (Permissions.check(player, "novaraids.cancelqueue")) {
                                         gui.close();
                                         item.cancel_item();
-                                        player.sendMessage(TextUtil.format(nr.config().getMessages().parse(nr.config().getMessages().message("queue_item_cancelled"), item.boss_info())));
+                                        player.sendMessage(TextUtils.format(nr.config().getMessages().parse(nr.config().getMessages().message("queue_item_cancelled"), item.boss_info())));
                                         nr.queued_raids().remove(item);
                                     }
                                 }

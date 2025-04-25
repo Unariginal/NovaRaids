@@ -19,7 +19,7 @@ import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.items.Pass;
 import me.unariginal.novaraids.data.items.RaidBall;
 import me.unariginal.novaraids.data.items.Voucher;
-import me.unariginal.novaraids.utils.TextUtil;
+import me.unariginal.novaraids.utils.TextUtils;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.component.ComponentChanges;
 import net.minecraft.item.Item;
@@ -50,27 +50,27 @@ public class Config {
     public boolean vouchers_enabled = true;
     public Voucher default_voucher = new Voucher(
             Items.FEATHER,
-            TextUtil.deserialize("<aqua>Raid Voucher"),
+            TextUtils.deserialize("<aqua>Raid Voucher"),
             List.of(
-                    TextUtil.deserialize("<gray>Use this to start a raid!")
+                    TextUtils.deserialize("<gray>Use this to start a raid!")
             ),
             ComponentChanges.EMPTY
     );
 
     public Voucher global_choice_voucher = new Voucher(
             Items.FEATHER,
-            TextUtil.deserialize("<aqua>Choice Raid Voucher"),
+            TextUtils.deserialize("<aqua>Choice Raid Voucher"),
             List.of(
-                    TextUtil.deserialize("<gray>Use this to start any raid!")
+                    TextUtils.deserialize("<gray>Use this to start any raid!")
             ),
             ComponentChanges.EMPTY
     );
 
     public Voucher global_random_voucher = new Voucher(
             Items.FEATHER,
-            TextUtil.deserialize("<aqua>Random Raid Voucher"),
+            TextUtils.deserialize("<aqua>Random Raid Voucher"),
             List.of(
-                    TextUtil.deserialize("<gray>Use this to start a random raid!")
+                    TextUtils.deserialize("<gray>Use this to start a random raid!")
             ),
             ComponentChanges.EMPTY
     );
@@ -78,18 +78,18 @@ public class Config {
     public boolean passes_enabled = true;
     public Pass default_pass = new Pass(
             Items.PAPER,
-            TextUtil.deserialize("<light_purple>Raid Pass"),
+            TextUtils.deserialize("<light_purple>Raid Pass"),
             List.of(
-                    TextUtil.deserialize("<gray>Use this to join a raid!")
+                    TextUtils.deserialize("<gray>Use this to join a raid!")
             ),
             ComponentChanges.EMPTY
     );
 
     public Pass global_pass = new Pass(
             Items.PAPER,
-            TextUtil.deserialize("<light_purple>Global Raid Pass"),
+            TextUtils.deserialize("<light_purple>Global Raid Pass"),
             List.of(
-                    TextUtil.deserialize("<gray>Use this to join any raid!")
+                    TextUtils.deserialize("<gray>Use this to join any raid!")
             ),
             ComponentChanges.EMPTY
     );
@@ -221,14 +221,14 @@ public class Config {
                         }
                         if (checkProperty(voucher, "voucher_name")) {
                             String voucher_name = voucher.get("voucher_name").getAsString();
-                            default_voucher_name = TextUtil.deserialize(voucher_name);
+                            default_voucher_name = TextUtils.deserialize(voucher_name);
                         }
                         if (checkProperty(voucher, "voucher_lore")) {
                             JsonArray lore_items = voucher.getAsJsonArray("voucher_lore");
                             List<Text> lore = new ArrayList<>();
                             for (JsonElement l : lore_items) {
                                 String lore_item = l.getAsString();
-                                lore.add(TextUtil.deserialize(lore_item));
+                                lore.add(TextUtils.deserialize(lore_item));
                             }
                             default_voucher_lore = lore;
                         }
@@ -260,14 +260,14 @@ public class Config {
                         }
                         if (checkProperty(voucher, "voucher_name")) {
                             String voucher_name = voucher.get("voucher_name").getAsString();
-                            global_choice_voucher_name = TextUtil.deserialize(voucher_name);
+                            global_choice_voucher_name = TextUtils.deserialize(voucher_name);
                         }
                         if (checkProperty(voucher, "voucher_lore")) {
                             JsonArray lore_items = voucher.getAsJsonArray("voucher_lore");
                             List<Text> lore = new ArrayList<>();
                             for (JsonElement l : lore_items) {
                                 String lore_item = l.getAsString();
-                                lore.add(TextUtil.deserialize(lore_item));
+                                lore.add(TextUtils.deserialize(lore_item));
                             }
                             global_choice_voucher_lore = lore;
                         }
@@ -299,14 +299,14 @@ public class Config {
                         }
                         if (checkProperty(voucher, "voucher_name")) {
                             String voucher_name = voucher.get("voucher_name").getAsString();
-                            global_random_voucher_name = TextUtil.deserialize(voucher_name);
+                            global_random_voucher_name = TextUtils.deserialize(voucher_name);
                         }
                         if (checkProperty(voucher, "voucher_lore")) {
                             JsonArray lore_items = voucher.getAsJsonArray("voucher_lore");
                             List<Text> lore = new ArrayList<>();
                             for (JsonElement l : lore_items) {
                                 String lore_item = l.getAsString();
-                                lore.add(TextUtil.deserialize(lore_item));
+                                lore.add(TextUtils.deserialize(lore_item));
                             }
                             global_random_voucher_lore = lore;
                         }
@@ -346,14 +346,14 @@ public class Config {
                         }
                         if (checkProperty(pass, "pass_name")) {
                             String pass_name = pass.get("pass_name").getAsString();
-                            default_pass_name = TextUtil.deserialize(pass_name);
+                            default_pass_name = TextUtils.deserialize(pass_name);
                         }
                         if (checkProperty(pass, "pass_lore")) {
                             JsonArray lore_items = pass.getAsJsonArray("pass_lore");
                             List<Text> lore = new ArrayList<>();
                             for (JsonElement l : lore_items) {
                                 String lore_item = l.getAsString();
-                                lore.add(TextUtil.deserialize(lore_item));
+                                lore.add(TextUtils.deserialize(lore_item));
                             }
                             default_pass_lore = lore;
                         }
@@ -385,14 +385,14 @@ public class Config {
                         }
                         if (checkProperty(pass, "pass_name")) {
                             String pass_name = pass.get("pass_name").getAsString();
-                            global_pass_name = TextUtil.deserialize(pass_name);
+                            global_pass_name = TextUtils.deserialize(pass_name);
                         }
                         if (checkProperty(pass, "pass_lore")) {
                             JsonArray lore_items = pass.getAsJsonArray("pass_lore");
                             List<Text> lore = new ArrayList<>();
                             for (JsonElement l : lore_items) {
                                 String lore_item = l.getAsString();
-                                lore.add(TextUtil.deserialize(lore_item));
+                                lore.add(TextUtils.deserialize(lore_item));
                             }
                             global_pass_lore = lore;
                         }
@@ -425,8 +425,8 @@ public class Config {
                             JsonObject ball = raid_balls.getAsJsonObject(key);
 
                             Item item = CobblemonItems.POKE_BALL;
-                            Text name = TextUtil.deserialize("<red>Raid Pokeball");
-                            List<Text> lore = new ArrayList<>(List.of(TextUtil.deserialize("<gray>Use this to try and capture raid bosses!")));
+                            Text name = TextUtils.deserialize("<red>Raid Pokeball");
+                            List<Text> lore = new ArrayList<>(List.of(TextUtils.deserialize("<gray>Use this to try and capture raid bosses!")));
                             ComponentChanges data = ComponentChanges.EMPTY;
 
                             if (checkProperty(ball, "pokeball")) {
@@ -435,14 +435,14 @@ public class Config {
                             }
                             if (checkProperty(ball, "pokeball_name")) {
                                 String ball_name = ball.get("pokeball_name").getAsString();
-                                name = TextUtil.deserialize(ball_name);
+                                name = TextUtils.deserialize(ball_name);
                             }
                             if (checkProperty(ball, "pokeball_lore")) {
                                 JsonArray lore_items = ball.getAsJsonArray("pokeball_lore");
                                 List<Text> newLore = new ArrayList<>();
                                 for (JsonElement l : lore_items) {
                                     String lore_item = l.getAsString();
-                                    newLore.add(TextUtil.deserialize(lore_item));
+                                    newLore.add(TextUtils.deserialize(lore_item));
                                 }
                                 lore = newLore;
                             }
