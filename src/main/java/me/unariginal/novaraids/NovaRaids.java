@@ -1,6 +1,7 @@
 package me.unariginal.novaraids;
 
 import me.unariginal.novaraids.commands.RaidCommands;
+import me.unariginal.novaraids.config.Config;
 import me.unariginal.novaraids.config.OldConfig;
 import me.unariginal.novaraids.data.QueueItem;
 import me.unariginal.novaraids.managers.EventManager;
@@ -21,7 +22,7 @@ public class NovaRaids implements ModInitializer {
     private final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
     public static NovaRaids INSTANCE;
 
-    private OldConfig config;
+    private Config config;
     public boolean debug = true;
     private MinecraftServer server;
     private FabricServerAudiences audience;
@@ -42,19 +43,19 @@ public class NovaRaids implements ModInitializer {
             this.server = server;
             this.audience = FabricServerAudiences.of(server);
             reloadConfig();
-            if (config.loadedProperly()) {
+            //if (config.loadedProperly()) {
                 EventManager.battle_events();
                 EventManager.right_click_events();
                 EventManager.player_events();
                 EventManager.cobblemon_events();
-            } else {
-                LOGGER.error("[RAIDS] Config did not load properly! Mod will not be loaded.");
-            }
+            //} else {
+                //LOGGER.error("[RAIDS] Config did not load properly! Mod will not be loaded.");
+            //}
         });
 
         // Server tick loop
         ServerTickEvents.END_SERVER_TICK.register(server -> {
-            if (config.loadedProperly()) {
+            //if (config.loadedProperly()) {
                 try {
                     TickManager.fix_boss_positions();
                     TickManager.handle_defeated_bosses();
@@ -69,12 +70,12 @@ public class NovaRaids implements ModInitializer {
                 for (Raid raid : active_raids.values()) {
                     raid.removePlayers();
                 }
-            }
+            //}
         });
 
         // Clean up at server stop
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
-            if (config.loadedProperly()) {
+            //if (config.loadedProperly()) {
                 for (QueueItem queue : queued_raids) {
                     queue.cancel_item();
                 }
@@ -84,16 +85,16 @@ public class NovaRaids implements ModInitializer {
                     raid.stop();
                 }
                 // TODO: Save current raid, write queue to file
-            }
+            //}
         });
     }
 
-    public OldConfig config() {
+    public Config config() {
         return config;
     }
 
     public void reloadConfig() {
-        config = new OldConfig();
+        config = new Config();
     }
 
     public MinecraftServer server() {
@@ -145,7 +146,7 @@ public class NovaRaids implements ModInitializer {
     }
 
     public void init_next_raid() {
-        if (config.getSettings().use_queue_system()) {
+        if (config.use_queue_system) {
             if (!queued_raids.isEmpty()) {
                 queued_raids.remove().start_raid();
             }

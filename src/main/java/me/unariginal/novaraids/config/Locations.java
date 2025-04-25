@@ -27,7 +27,7 @@ public class Locations {
     }
 
     public void loadLocations() throws IOException, NullPointerException, UnsupportedOperationException {
-        File rootFolder = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids").resolve("config").toFile();
+        File rootFolder = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids").toFile();
         if (!rootFolder.exists()) {
             rootFolder.mkdirs();
         }

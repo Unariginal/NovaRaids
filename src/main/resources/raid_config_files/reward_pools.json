@@ -1,0 +1,54 @@
+{
+  "pool_example_1": {
+    "allow_duplicates": true,
+    "rolls": {
+      "min": 1,
+      "max": 5
+    },
+    "rewards": [
+      {
+        "weight": 25.0,
+        "reward": {
+          "type": "item",
+          "item": "minecraft:dirt",
+          "data": {},
+          "count": {
+            "min": 1,
+            "max": 16
+          }
+        }
+      },
+      {
+        "weight": 50.0,
+        "reward": {
+          "type": "command",
+          "commands": [
+            "say Command 1: %player% won the reward!",
+            "say Command 2: Idk just for fun"
+          ]
+        }
+      },
+      {
+        "weight": 5.0,
+        "reward_preset": "pokemon_reward_example"
+      }
+    ]
+  },
+  "pool_example_2": {
+    "allow_duplicates": false,
+    "rolls": {
+      "min": 1,
+      "max": 1
+    },
+    "rewards": [
+      {
+        "weight": 5.0,
+        "reward_preset": "pokemon_reward_example"
+      },
+      {
+        "weight": 2.0,
+        "reward_preset": "command_reward_example"
+      }
+    ]
+  }
+}

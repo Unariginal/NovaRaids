@@ -1,0 +1,200 @@
+{
+  "boss_id": "example_eevee",
+  "global_weight": 15.0,
+  "category_weight": 10.0,
+  "pokemon_details": {
+    "species": "eevee",
+    "level": 50,
+    "form": "normal",
+    "features": "",
+    "ability": [
+      {
+        "ability": "adaptability",
+        "weight": 4.5
+      },
+      {
+        "ability": "runaway",
+        "weight": 13.0
+      }
+    ],
+    "nature": [
+      {
+        "nature": "jolly",
+        "weight": 1.2
+      },
+      {
+        "nature": "calm",
+        "weight": 5.0
+      }
+    ],
+    "gender": [
+      {
+        "gender": "female",
+        "weight": 12.5
+      },
+      {
+        "gender": "male",
+        "weight": 87.5
+      }
+    ],
+    "shiny": false,
+    "scale": 5.0,
+    "held_item": "cobblemon:leftovers",
+    "held_item_data": {},
+    "moves": ["bite", "tackle", "endure", "doubleedge"],
+    "ivs": {
+      "hp": 31,
+      "atk": 31,
+      "def": 31,
+      "sp_atk": 31,
+      "sp_def": 31,
+      "spd": 31
+    },
+    "evs": {
+      "hp": 0,
+      "atk": 0,
+      "def": 0,
+      "sp_atk": 0,
+      "sp_def": 0,
+      "spd": 0
+    }
+  },
+  "boss_details": {
+    "display_name": "Really Big Eevee",
+    "base_health": 1000,
+    "health_increase_per_player": 500,
+    "apply_glowing": true,
+    "locations": [
+      {
+        "location": "center_location",
+        "weight": 50.0
+      },
+      {
+        "location": "left_location",
+        "weight": 50.0
+      }
+    ]
+  },
+  "item_settings": {
+    "allow_global_pokeballs": true,
+    "boss_voucher": {
+      "voucher_item": "minecraft:feather",
+      "voucher_name": "",
+      "voucher_lore": [],
+      "voucher_data": {}
+    },
+    "boss_pass": {
+      "pass_item": "minecraft:paper",
+      "pass_name": "",
+      "pass_lore": [],
+      "pass_data": {}
+    }
+  },
+  "raid_details": {
+    "minimum_level": 25,
+    "setup_phase_time": 30,
+    "fight_phase_time": 600,
+    "pre_catch_phase_time": 30,
+    "do_catch_phase": true,
+    "catch_phase_time": 180,
+    "heal_party_on_challenge": false,
+    "contraband": {
+      "banned_pokemon": [],
+      "banned_moves": [],
+      "banned_abilities": [],
+      "banned_held_items": [],
+      "banned_bag_items": []
+    },
+    "bossbars": {
+      "setup": "setup_phase_example",
+      "fight": "fight_phase_example",
+      "pre_catch": "pre_catch_phase_example",
+      "catch": "catch_phase_example"
+    },
+    "reward_distribution": [
+      {
+        "places": [
+          {
+            "place": "1",
+            "require_damage": true,
+            "allow_other_rewards": false,
+            "override_category_rewards": true
+          }
+        ],
+        "rewards": {
+          "allow_duplicates": true,
+          "rolls": {
+            "min": 1,
+            "max": 5
+          },
+          "reward_pools": [
+            {
+              "weight": 10.0,
+              "pool_preset": "pool_example_2"
+            },
+            {
+              "weight": 5.0,
+              "pool": {
+                "allow_duplicates": true,
+                "rolls": {
+                  "min": 1,
+                  "max": 5
+                },
+                "rewards": [
+                  {
+                    "weight": 25.0,
+                    "reward": {
+                      "type": "item",
+                      "item": "minecraft:dirt",
+                      "data": {},
+                      "count": {
+                        "min": 1,
+                        "max": 16
+                      }
+                    }
+                  },
+                  {
+                    "weight": 50.0,
+                    "reward": {
+                      "type": "command",
+                      "commands": [
+                        "say Command 1: %player% won the reward!",
+                        "say Command 2: Idk just for fun"
+                      ]
+                    }
+                  },
+                  {
+                    "weight": 5.0,
+                    "reward_preset": "pokemon_reward_example"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "catch_settings": {
+    "species_override": "",
+    "form_override": "",
+    "features_override": "",
+    "keep_scale": false,
+    "keep_held_item": false,
+    "randomize_ivs": true,
+    "keep_evs": false,
+    "randomize_gender": true,
+    "randomize_nature": true,
+    "randomize_ability": true,
+    "reset_moves": true,
+    "level_override": 1,
+    "places": [
+      {
+        "place": "participating",
+        "require_damage": true,
+        "shiny_chance": 8192.0,
+        "min_perfect_ivs": 0
+      }
+    ]
+  }
+}

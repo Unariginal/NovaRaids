@@ -1,0 +1,81 @@
+{
+  "prefix": "<dark_gray>[</dark_gray><color:#ffbf00>RAID<dark_gray>]</dark_gray>",
+  "raid_start_command": "",
+  "messages": {
+    "start_pre_phase": "%prefix% A raid is starting against %boss.form% %boss.species%!",
+    "start_fight_phase": "%prefix% Time to fight %boss.form% %boss.species% (%boss.maxhp% HP)!",
+    "boss_defeated": "%prefix% %boss.form% %boss.species% has been defeated in %raid.defeat_time%!",
+    "catch_phase_warning": "%prefix% Prepare to catch %boss.form% %boss.species%",
+    "start_catch_phase": "%prefix% Time to catch %boss.form% %boss.species%!",
+    "catch_phase_end": "%prefix% Catch phase completed!",
+    "raid_end": "%prefix% The %boss.form% %boss.species% raid has finished.",
+    "out_of_time": "%prefix% %boss.form% %boss.species% was not defeated in time!",
+    "not_enough_players": "%prefix% There wasn't enough players to start the raid!",
+
+    "player_damage_report": "%prefix% %raid.player% did %raid.player.damage% to the boss!",
+
+    "no_active_raids": "%prefix% There are no active raids!",
+    "no_queued_raids": "%prefix% There are no queued raids!",
+    "no_available_locations": "%prefix% Failed to start raid. All possible locations are busy.",
+
+    "joined_raid": "%prefix% You've successfully joined the %boss.form% %boss.species% raid!",
+    "warning_no_pass": "%prefix% This raid requires a pass to join!",
+    "warning_already_joined_raid": "%prefix% You've already joined a raid!",
+    "warning_no_pass_needed": "%prefix% You don't need a pass for this raid!",
+    "warning_not_joinable": "%prefix% This raid is not joinable!",
+    "warning_no_pokemon": "%prefix% You can't enter a raid with no pokemon!",
+    "warning_banned_pokemon": "%prefix% %banned.pokemon% is banned from raids!",
+    "warning_banned_move": "%prefix% %banned.move% is banned from raids!",
+    "warning_banned_ability": "%prefix% %banned.ability% is banned from raids!",
+    "warning_banned_held_item": "%prefix% %banned.held_item% is banned from raids!",
+    "warning_banned_bag_item": "%prefix% %banned.bag_item% is banned from raids!",
+    "warning_max_players": "%prefix% This raid is full!",
+    "warning_minimum_level": "%prefix% Your pokemon must be above level %boss.minimum_level%!",
+
+    "warning_cooldown": "%prefix% You're on cooldown!",
+    "warning_battle_during_raid": "%prefix% You can't battle wild pokemon during a raid!",
+    "warning_not_your_encounter": "%prefix% This isn't your catch encounter!",
+
+    "warning_not_your_raid_pokeball": "%prefix% That isn't your raid pokeball!",
+    "warning_raid_pokeball_outside_raid": "%prefix% You can't use raid pokeballs outside of a raid!",
+    "warning_not_catch_phase": "%prefix% You can only use this during the catch phase!",
+    "warning_deny_normal_pokeball": "%prefix% You can only use raid pokeballs in a raid!",
+
+    "used_voucher": "%prefix% You've successfully started a raid for %boss.form% %boss.species%!",
+    "queue_item_cancelled": "%prefix% You've cancelled the queue for %boss.form% %boss.species%!",
+    "added_to_queue": "%prefix% %boss.form% %boss.species% has been added to the queue!",
+
+    "reload_command": "%prefix% Reloaded!",
+    "raid_stopped": "%prefix% You've stopped the raid against %boss.form% %boss.species%!",
+
+    "raid_list_gui_title": "Active Raids",
+    "raid_queue_gui_title": "Queued Raids",
+    "contraband_gui_title": "Raid Contraband",
+
+    "leaderboard_message_header": "------- Raid Results -------",
+    "leaderboard_message_item": " - [%raid.player.place%] %raid.player% : %raid.player.damage% damage",
+    "leaderboard_individual": "You placed %raid.player.place%%place_suffix% with %raid.player.damage% damage!"
+  },
+  "discord": {
+    "webhook_toggle": false,
+    "webhook_url": "https://discord.com/api/webhooks/your_webhook_url",
+    "webhook_username": "Raid Alert!",
+    "webhook_avatar_url": "https://cdn.modrinth.com/data/MdwFAVRL/e54083a07bcd9436d1f8d2879b0d821a54588b9e.png",
+    "role_ping": "<@&role_id_here>",
+    "raid_start": {
+      "embed_title": "%boss.form% %boss.species% Raid Has Started",
+      "fields": [
+        {
+          "inline": false,
+          "name": "Players: %raid.player_count%/%raid.max_players%",
+          "value": "Join Now Using `%raid.join_method%`!"
+        }
+      ]
+    },
+    "raid_end": {
+      "embed_title": "%boss.form% %boss.species% Raid Has Ended",
+      "fields": [],
+      "show_leaderboard": true
+    }
+  }
+}

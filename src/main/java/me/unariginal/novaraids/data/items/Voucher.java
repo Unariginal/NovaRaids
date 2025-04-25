@@ -6,4 +6,4 @@ import net.minecraft.text.Text;
 
 import java.util.List;
 
-public record RaidBall(String id, Item ball_item, Text ball_name, List<Text> ball_lore, ComponentChanges ball_data) {}
+public record Voucher(Item voucher_item, Text voucher_name, List<Text> voucher_lore, ComponentChanges voucher_data) {}

@@ -1,0 +1,103 @@
+{
+  "require_pass": false,
+  "player_count": {
+    "min": 1,
+    "max": -1
+  },
+  "bossbars": {
+    "setup": "setup_phase_example",
+    "fight": "fight_phase_example",
+    "pre_catch": "pre_catch_phase_example",
+    "catch": "catch_phase_example"
+  },
+  "item_settings": {
+    "category_voucher": {
+      "voucher_item": "minecraft:feather",
+      "voucher_name": "",
+      "voucher_lore": [],
+      "voucher_data": {}
+    },
+    "category_pass": {
+      "pass_item": "minecraft:paper",
+      "pass_name": "",
+      "pass_lore": [],
+      "pass_data": {}
+    },
+    "raid_balls": {
+      "common_premier": {
+        "pokeball": "cobblemon:premier_ball",
+        "pokeball_name": "<red>Common Premier Raid Pokeball",
+        "pokeball_lore": ["<gray>Use this to try and catch common bosses!"],
+        "pokeball_data": {}
+      },
+      "common_ultra": {
+        "pokeball": "cobblemon:ultra_ball",
+        "pokeball_name": "<red>Common Ultra Raid Pokeball",
+        "pokeball_lore": ["<gray>Use this to try and catch common bosses!"],
+        "pokeball_data": {}
+      }
+    }
+  },
+  "reward_distribution": [
+    {
+      "places": [
+        {
+          "place": "1",
+          "require_damage": true,
+          "allow_other_rewards": false
+        }
+      ],
+      "rewards": {
+        "allow_duplicates": true,
+        "rolls": {
+          "min": 1,
+          "max": 5
+        },
+        "reward_pools": [
+          {
+            "weight": 10.0,
+            "pool_preset": "pool_example_2"
+          },
+          {
+            "weight": 5.0,
+            "pool": {
+              "allow_duplicates": true,
+              "rolls": {
+                "min": 1,
+                "max": 5
+              },
+              "rewards": [
+                {
+                  "weight": 25.0,
+                  "reward": {
+                    "type": "item",
+                    "item": "minecraft:dirt",
+                    "data": {},
+                    "count": {
+                      "min": 1,
+                      "max": 16
+                    }
+                  }
+                },
+                {
+                  "weight": 50.0,
+                  "reward": {
+                    "type": "command",
+                    "commands": [
+                      "say Command 1: %player% won the reward!",
+                      "say Command 2: Idk just for fun"
+                    ]
+                  }
+                },
+                {
+                  "weight": 5.0,
+                  "reward_preset": "pokemon_reward_example"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

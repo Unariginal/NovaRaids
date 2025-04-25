@@ -8,75 +8,39 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-public class RewardPool {
-    private final NovaRaids nr = NovaRaids.INSTANCE;
-    private final String name;
-    private final boolean allow_duplicates;
-    private final int min_rolls;
-    private final int max_rolls;
-    private final Map<String, Double> rewards;
-
-    public RewardPool(String name, boolean allow_duplicates, int min_rolls, int max_rolls, Map<String, Double> rewards) {
-        this.name = name;
-        this.allow_duplicates = allow_duplicates;
-        this.min_rolls = min_rolls;
-        this.max_rolls = max_rolls;
-        this.rewards = rewards;
-    }
-
-    public String name() {
-        return name;
-    }
-
-    public boolean allow_duplicates() {
-        return allow_duplicates;
-    }
-
-    public int min_rolls() {
-        return min_rolls;
-    }
-
-    public int max_rolls() {
-        return max_rolls;
-    }
-
-    public Map<String, Double> rewards() {
-        return rewards;
-    }
-
+public record RewardPool(String name, boolean allow_duplicates, int min_rolls, int max_rolls, Map<Reward, Double> rewards) {
     public void distributeRewards(ServerPlayerEntity player) {
         List<String> applied_rewards = new ArrayList<>();
 
-        Random rand = new Random();
-        int rolls = rand.nextInt(min_rolls(), max_rolls() + 1);
+        int rolls = new Random().nextInt(min_rolls(), max_rolls() + 1);
         for (int i = 0; i < rolls; i++) {
             double total_weight = 0.0;
-            for (String reward_name : rewards().keySet()) {
-                if (allow_duplicates() || !applied_rewards.contains(reward_name)) {
-                    total_weight += rewards().get(reward_name);
+            for (Reward reward : rewards().keySet()) {
+                if (allow_duplicates() || !applied_rewards.contains(reward.name)) {
+                    total_weight += rewards().get(reward);
                 }
             }
 
             if (total_weight > 0.0) {
-                double random_weight = rand.nextDouble(total_weight);
+                double random_weight = new Random().nextDouble(total_weight);
                 total_weight = 0.0;
-                Reward reward = null;
-                for (String reward_name : rewards().keySet()) {
-                    if (allow_duplicates() || !applied_rewards.contains(reward_name)) {
-                        total_weight += rewards().get(reward_name);
+                Reward to_give = null;
+                for (Reward reward : rewards().keySet()) {
+                    if (allow_duplicates() || !applied_rewards.contains(reward.name)) {
+                        total_weight += rewards().get(reward);
                         if (random_weight < total_weight) {
-                            reward = nr.config().getReward(reward_name);
+                            to_give = reward;
                             break;
                         }
                     }
                 }
 
-                if (reward != null) {
-                    reward.apply_reward(player);
-                    applied_rewards.add(reward.name());
+                if (to_give != null) {
+                    to_give.apply_reward(player);
+                    applied_rewards.add(to_give.name());
                 }
             } else {
-                NovaRaids.INSTANCE.logInfo("[RAIDS] Reward pool total weight was zero. Possibly caused by a reward pool having more rolls than available rewards with duplicates disabled.");
+                NovaRaids.INSTANCE.logError("[RAIDS] Reward pool total weight was zero. Possibly caused by a reward pool having more rolls than available rewards with duplicates disabled.");
             }
         }
     }

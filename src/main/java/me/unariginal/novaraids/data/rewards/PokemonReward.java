@@ -5,6 +5,7 @@ import com.cobblemon.mod.common.api.Priority;
 import com.cobblemon.mod.common.api.abilities.Abilities;
 import com.cobblemon.mod.common.api.abilities.Ability;
 import com.cobblemon.mod.common.api.abilities.AbilityTemplate;
+import com.cobblemon.mod.common.api.moves.Move;
 import com.cobblemon.mod.common.api.moves.MoveSet;
 import com.cobblemon.mod.common.api.moves.MoveTemplate;
 import com.cobblemon.mod.common.api.moves.Moves;
@@ -35,12 +36,12 @@ public class PokemonReward extends Reward {
     private final boolean shiny;
     private final float scale;
     private final String held_item;
-    private final JsonElement held_item_data;
+    private final ComponentChanges held_item_data;
     private final List<String> move_set;
     private final IVs ivs;
     private final EVs evs;
 
-    public PokemonReward(String name, String species, int level, String ability, String nature, String form, String features, String gender, boolean shiny, float scale, String held_item, JsonElement held_item_data, List<String> move_set, IVs ivs, EVs evs) {
+    public PokemonReward(String name, String species, int level, String ability, String nature, String form, String features, String gender, boolean shiny, float scale, String held_item, ComponentChanges held_item_data, List<String> move_set, IVs ivs, EVs evs) {
         super(name, "pokemon");
         this.species = species;
         this.level = level;
@@ -104,10 +105,7 @@ public class PokemonReward extends Reward {
     }
 
     public ComponentChanges held_item_data() {
-        if (held_item_data != null) {
-            return ComponentChanges.CODEC.decode(JsonOps.INSTANCE, held_item_data).getOrThrow().getFirst();
-        }
-        return null;
+        return held_item_data;
     }
 
     public ItemStack held_item_stack() {
@@ -154,10 +152,10 @@ public class PokemonReward extends Reward {
         if (held_item() != null) {
             pokemon.setHeldItem$common(held_item_stack());
         }
-        pokemon.getMoveSet().setMove(0, moves().get(0));
-        pokemon.getMoveSet().setMove(1, moves().get(1));
-        pokemon.getMoveSet().setMove(2, moves().get(2));
-        pokemon.getMoveSet().setMove(3, moves().get(3));
+        int move_slot = 0;
+        for (Move move : moves()) {
+            pokemon.getMoveSet().setMove(move_slot, move);
+        }
         pokemon.setIvs$common(ivs());
         pokemon.setEvs$common(evs());
 

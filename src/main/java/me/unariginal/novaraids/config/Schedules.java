@@ -30,7 +30,7 @@ public class Schedules {
     }
 
     public void loadSchedules() throws IOException, NullPointerException, UnsupportedOperationException {
-        File rootFolder = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids").resolve("config").toFile();
+        File rootFolder = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids").toFile();
         if (!rootFolder.exists()) {
             rootFolder.mkdirs();
         }

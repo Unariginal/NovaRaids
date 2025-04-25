@@ -16,7 +16,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.JsonOps;
 import me.unariginal.novaraids.NovaRaids;
+import me.unariginal.novaraids.data.items.Pass;
 import me.unariginal.novaraids.data.items.RaidBall;
+import me.unariginal.novaraids.data.items.Voucher;
 import me.unariginal.novaraids.utils.TextUtil;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.component.ComponentChanges;
@@ -33,47 +35,67 @@ import java.util.List;
 public class Config {
     private final NovaRaids nr = NovaRaids.INSTANCE;
 
-    boolean debug = false;
+    public boolean debug = false;
 
     // Raid Settings
-    boolean use_queue_system = false;
-    boolean run_raids_with_no_players = false;
-    List<Species> global_banned_pokemon = new ArrayList<>();
-    List<Move> global_banned_moves = new ArrayList<>();
-    List<Ability> global_banned_abilities = new ArrayList<>();
-    List<Item> global_banned_held_items = new ArrayList<>();
-    List<Item> global_banned_bag_items = new ArrayList<>();
+    public boolean use_queue_system = false;
+    public boolean run_raids_with_no_players = false;
+    public List<Species> global_banned_pokemon = new ArrayList<>();
+    public List<Move> global_banned_moves = new ArrayList<>();
+    public List<Ability> global_banned_abilities = new ArrayList<>();
+    public List<Item> global_banned_held_items = new ArrayList<>();
+    public List<Item> global_banned_bag_items = new ArrayList<>();
 
     // Item Settings
-    boolean vouchers_enabled = true;
-    Item default_voucher_item = Items.FEATHER;
-    Text default_voucher_name = TextUtil.deserialize("<aqua>Raid Voucher");
-    List<Text> default_voucher_lore = new ArrayList<>(List.of(TextUtil.deserialize("<gray>Use to start a raid!")));
-    ComponentChanges default_voucher_data = ComponentChanges.EMPTY;
+    public boolean vouchers_enabled = true;
+    public Voucher default_voucher = new Voucher(
+            Items.FEATHER,
+            TextUtil.deserialize("<aqua>Raid Voucher"),
+            List.of(
+                    TextUtil.deserialize("<gray>Use this to start a raid!")
+            ),
+            ComponentChanges.EMPTY
+    );
 
-    Item global_choice_voucher_item = default_voucher_item;
-    Text global_choice_voucher_name = default_voucher_name;
-    List<Text> global_choice_voucher_lore = default_voucher_lore;
-    ComponentChanges global_choice_voucher_data = default_voucher_data;
+    public Voucher global_choice_voucher = new Voucher(
+            Items.FEATHER,
+            TextUtil.deserialize("<aqua>Choice Raid Voucher"),
+            List.of(
+                    TextUtil.deserialize("<gray>Use this to start any raid!")
+            ),
+            ComponentChanges.EMPTY
+    );
 
-    Item global_random_voucher_item = default_voucher_item;
-    Text global_random_voucher_name = default_voucher_name;
-    List<Text> global_random_voucher_lore = default_voucher_lore;
-    ComponentChanges global_random_voucher_data = default_voucher_data;
+    public Voucher global_random_voucher = new Voucher(
+            Items.FEATHER,
+            TextUtil.deserialize("<aqua>Random Raid Voucher"),
+            List.of(
+                    TextUtil.deserialize("<gray>Use this to start a random raid!")
+            ),
+            ComponentChanges.EMPTY
+    );
 
-    boolean passes_enabled = true;
-    Item default_pass_item = Items.PAPER;
-    Text default_pass_name = TextUtil.deserialize("<light_purple>Raid Pass");
-    List<Text> default_pass_lore = new ArrayList<>(List.of(TextUtil.deserialize("<gray>Use to join a raid!")));
-    ComponentChanges default_pass_data = ComponentChanges.EMPTY;
+    public boolean passes_enabled = true;
+    public Pass default_pass = new Pass(
+            Items.PAPER,
+            TextUtil.deserialize("<light_purple>Raid Pass"),
+            List.of(
+                    TextUtil.deserialize("<gray>Use this to join a raid!")
+            ),
+            ComponentChanges.EMPTY
+    );
 
-    Item global_pass_item = default_pass_item;
-    Text global_pass_name = default_pass_name;
-    List<Text> global_pass_lore = default_pass_lore;
-    ComponentChanges global_pass_data = default_pass_data;
+    public Pass global_pass = new Pass(
+            Items.PAPER,
+            TextUtil.deserialize("<light_purple>Global Raid Pass"),
+            List.of(
+                    TextUtil.deserialize("<gray>Use this to join any raid!")
+            ),
+            ComponentChanges.EMPTY
+    );
 
-    boolean raid_balls_enabled = true;
-    List<RaidBall> raid_balls = new ArrayList<>();
+    public boolean raid_balls_enabled = true;
+    public List<RaidBall> raid_balls = new ArrayList<>();
 
     public Config() {
         try {
@@ -84,7 +106,7 @@ public class Config {
     }
 
     public void loadConfig() throws IOException, NullPointerException, UnsupportedOperationException {
-        File rootFolder = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids").resolve("config").toFile();
+        File rootFolder = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids").toFile();
         if (!rootFolder.exists()) {
             rootFolder.mkdirs();
         }
@@ -188,6 +210,11 @@ public class Config {
                 if (vouchers_enabled) {
                     if (checkProperty(voucher_settings, "default_voucher")) {
                         JsonObject voucher = item_settings.getAsJsonObject("default_voucher");
+                        Item default_voucher_item = default_voucher.voucher_item();
+                        Text default_voucher_name = default_voucher.voucher_name();
+                        List<Text> default_voucher_lore = default_voucher.voucher_lore();
+                        ComponentChanges default_voucher_data = default_voucher.voucher_data();
+
                         if (checkProperty(voucher, "voucher_item")) {
                             String voucher_item_name = voucher.get("voucher_item").getAsString();
                             default_voucher_item = Registries.ITEM.get(Identifier.of(voucher_item_name));
@@ -211,10 +238,22 @@ public class Config {
                                 default_voucher_data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, data).getOrThrow().getFirst();
                             }
                         }
+
+                        default_voucher = new Voucher(
+                                default_voucher_item,
+                                default_voucher_name,
+                                default_voucher_lore,
+                                default_voucher_data
+                        );
                     }
 
                     if (voucher_settings.has("global_choice_voucher")) {
                         JsonObject voucher = item_settings.getAsJsonObject("global_choice_voucher");
+                        Item global_choice_voucher_item = global_choice_voucher.voucher_item();
+                        Text global_choice_voucher_name = global_choice_voucher.voucher_name();
+                        List<Text> global_choice_voucher_lore = global_choice_voucher.voucher_lore();
+                        ComponentChanges global_choice_voucher_data = global_choice_voucher.voucher_data();
+
                         if (checkProperty(voucher, "voucher_item")) {
                             String voucher_item_name = voucher.get("voucher_item").getAsString();
                             global_choice_voucher_item = Registries.ITEM.get(Identifier.of(voucher_item_name));
@@ -238,15 +277,22 @@ public class Config {
                                 global_choice_voucher_data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, data).getOrThrow().getFirst();
                             }
                         }
-                    } else {
-                        global_choice_voucher_item = default_voucher_item;
-                        global_choice_voucher_name = default_voucher_name;
-                        global_choice_voucher_lore = default_voucher_lore;
-                        global_choice_voucher_data = default_voucher_data;
+
+                        global_choice_voucher = new Voucher(
+                                global_choice_voucher_item,
+                                global_choice_voucher_name,
+                                global_choice_voucher_lore,
+                                global_choice_voucher_data
+                        );
                     }
 
                     if (voucher_settings.has("global_random_voucher")) {
                         JsonObject voucher = item_settings.getAsJsonObject("global_random_voucher");
+                        Item global_random_voucher_item = global_random_voucher.voucher_item();
+                        Text global_random_voucher_name = global_random_voucher.voucher_name();
+                        List<Text> global_random_voucher_lore = global_random_voucher.voucher_lore();
+                        ComponentChanges global_random_voucher_data = global_random_voucher.voucher_data();
+
                         if (checkProperty(voucher, "voucher_item")) {
                             String voucher_item_name = voucher.get("voucher_item").getAsString();
                             global_random_voucher_item = Registries.ITEM.get(Identifier.of(voucher_item_name));
@@ -270,11 +316,13 @@ public class Config {
                                 global_random_voucher_data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, data).getOrThrow().getFirst();
                             }
                         }
-                    } else {
-                        global_random_voucher_item = default_voucher_item;
-                        global_random_voucher_name = default_voucher_name;
-                        global_random_voucher_lore = default_voucher_lore;
-                        global_random_voucher_data = default_voucher_data;
+
+                        global_random_voucher = new Voucher(
+                                global_random_voucher_item,
+                                global_random_voucher_name,
+                                global_random_voucher_lore,
+                                global_random_voucher_data
+                        );
                     }
                 }
             }
@@ -287,6 +335,11 @@ public class Config {
                 if (passes_enabled) {
                     if (checkProperty(pass_settings, "default_pass")) {
                         JsonObject pass = item_settings.getAsJsonObject("default_pass");
+                        Item default_pass_item = default_pass.pass_item();
+                        Text default_pass_name = default_pass.pass_name();
+                        List<Text> default_pass_lore = default_pass.pass_lore();
+                        ComponentChanges default_pass_data = default_pass.pass_data();
+
                         if (checkProperty(pass, "pass_item")) {
                             String pass_item_name = pass.get("pass_item").getAsString();
                             default_pass_item = Registries.ITEM.get(Identifier.of(pass_item_name));
@@ -310,10 +363,22 @@ public class Config {
                                 default_pass_data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, data).getOrThrow().getFirst();
                             }
                         }
+
+                        default_pass = new Pass(
+                                default_pass_item,
+                                default_pass_name,
+                                default_pass_lore,
+                                default_pass_data
+                        );
                     }
 
                     if (pass_settings.has("global_pass")) {
                         JsonObject pass = item_settings.getAsJsonObject("global_pass");
+                        Item global_pass_item = global_pass.pass_item();
+                        Text global_pass_name = global_pass.pass_name();
+                        List<Text> global_pass_lore = global_pass.pass_lore();
+                        ComponentChanges global_pass_data = global_pass.pass_data();
+
                         if (checkProperty(pass, "pass_item")) {
                             String pass_item_name = pass.get("pass_item").getAsString();
                             global_pass_item = Registries.ITEM.get(Identifier.of(pass_item_name));
@@ -337,11 +402,13 @@ public class Config {
                                 global_pass_data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, data).getOrThrow().getFirst();
                             }
                         }
-                    } else {
-                        global_pass_item = default_pass_item;
-                        global_pass_name = default_pass_name;
-                        global_pass_lore = default_pass_lore;
-                        global_pass_data = default_pass_data;
+
+                        global_pass = new Pass(
+                                global_pass_item,
+                                global_pass_name,
+                                global_pass_lore,
+                                global_pass_data
+                        );
                     }
                 }
             }
@@ -357,12 +424,10 @@ public class Config {
                         for (String key : raid_balls.keySet()) {
                             JsonObject ball = raid_balls.getAsJsonObject(key);
 
-                            Item item = CobblemonItems.PREMIER_BALL;
+                            Item item = CobblemonItems.POKE_BALL;
                             Text name = TextUtil.deserialize("<red>Raid Pokeball");
                             List<Text> lore = new ArrayList<>(List.of(TextUtil.deserialize("<gray>Use this to try and capture raid bosses!")));
                             ComponentChanges data = ComponentChanges.EMPTY;
-                            List<String> categories = new ArrayList<>();
-                            List<String> bosses = new ArrayList<>();
 
                             if (checkProperty(ball, "pokeball")) {
                                 String ball_item_name = ball.get("pokeball").getAsString();
@@ -387,24 +452,8 @@ public class Config {
                                     data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, dataElement).getOrThrow().getFirst();
                                 }
                             }
-                            if (checkProperty(ball, "categories")) {
-                                JsonArray category_items = ball.getAsJsonArray("categories");
-                                List<String> newCategories = new ArrayList<>();
-                                for (JsonElement c : category_items) {
-                                    newCategories.add(c.getAsString());
-                                }
-                                categories = newCategories;
-                            }
-                            if (checkProperty(ball, "bosses")) {
-                                JsonArray boss_items = ball.getAsJsonArray("bosses");
-                                List<String> newBosses = new ArrayList<>();
-                                for (JsonElement b : boss_items) {
-                                    newBosses.add(b.getAsString());
-                                }
-                                bosses = newBosses;
-                            }
 
-                            this.raid_balls.add(new RaidBall(key, item, name, lore, data, categories, bosses));
+                            this.raid_balls.add(new RaidBall(key, item, name, lore, data));
                         }
                     }
                 }

@@ -38,7 +38,7 @@ import static me.unariginal.novaraids.utils.WebhookHandler.*;
 
 public class OldConfig {
     private final NovaRaids nr = NovaRaids.INSTANCE;
-    private Settings settings;
+    private OldSettings settings;
     private Messages messages;
     private List<Category> categories;
     private List<Boss> bosses;
@@ -53,23 +53,6 @@ public class OldConfig {
         } catch (IOException e) {
             nr.logError("[RAIDS] Failed to generate default configuration files. Error: " + e.getMessage());
         }
-
-//        CronDefinition cronDefinition = CronDefinitionBuilder.defineCron()
-//                .withSeconds().and()
-//                .withMinutes().and()
-//                .withHours().and()
-//                .withDayOfMonth()
-//                    .supportsHash().supportsL().supportsW().and()
-//                .withMonth().and()
-//                .withDayOfWeek()
-//                    .withIntMapping(7, 0)
-//                    .supportsHash().supportsL().supportsW().and()
-//                .instance();
-//        CronParser cronParser = new CronParser(cronDefinition);
-//        Cron cron = cronParser.parse("0 0 * ? * *");
-//        ZonedDateTime now = ZonedDateTime.now(Clock.system(ZoneId.of("EST")));
-//        ExecutionTime executionTime = ExecutionTime.forCron(cron);
-//        Optional<ZonedDateTime> nextExecution = executionTime.nextExecution(now);
 
         try {
             loadConfig();
@@ -326,7 +309,7 @@ public class OldConfig {
             }
         }
 
-        this.settings = new Settings(
+        this.settings = new OldSettings(
                 raid_radius,
                 raid_pushback_radius,
                 bosses_glow,
@@ -837,7 +820,7 @@ public class OldConfig {
         nr.logInfo("[RAIDS] Loaded " + rewardPools.size() + " reward pools.");
     }
 
-    public Settings getSettings() {
+    public OldSettings getSettings() {
         return settings;
     }
 
