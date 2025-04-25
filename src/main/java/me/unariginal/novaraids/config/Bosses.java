@@ -1,15 +1,24 @@
 package me.unariginal.novaraids.config;
 
 import com.cobblemon.mod.common.CobblemonItems;
+import com.cobblemon.mod.common.api.Priority;
+import com.cobblemon.mod.common.api.abilities.Abilities;
+import com.cobblemon.mod.common.api.abilities.Ability;
+import com.cobblemon.mod.common.api.abilities.AbilityTemplate;
+import com.cobblemon.mod.common.api.moves.Move;
+import com.cobblemon.mod.common.api.moves.MoveTemplate;
+import com.cobblemon.mod.common.api.moves.Moves;
+import com.cobblemon.mod.common.api.pokemon.Natures;
+import com.cobblemon.mod.common.api.pokemon.PokemonSpecies;
 import com.cobblemon.mod.common.api.pokemon.stats.Stats;
-import com.cobblemon.mod.common.pokemon.EVs;
-import com.cobblemon.mod.common.pokemon.IVs;
+import com.cobblemon.mod.common.pokemon.*;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.JsonOps;
 import me.unariginal.novaraids.NovaRaids;
+import me.unariginal.novaraids.data.CatchPlacement;
 import me.unariginal.novaraids.data.Category;
 import me.unariginal.novaraids.data.items.Pass;
 import me.unariginal.novaraids.data.items.RaidBall;
@@ -19,6 +28,7 @@ import me.unariginal.novaraids.utils.TextUtil;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.component.ComponentChanges;
 import net.minecraft.item.Item;
+import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -257,7 +267,7 @@ public class Bosses {
                         } else {
                             continue;
                         }
-                        places.add(new Place(place, require_damage, allow_other_rewards));
+                        places.add(new Place(place, require_damage, allow_other_rewards, false));
                     }
                 } else {
                     continue;
@@ -545,6 +555,415 @@ public class Bosses {
         JsonElement root = JsonParser.parseReader(new FileReader(file));
         assert root != null;
         JsonObject config = root.getAsJsonObject();
+        String file_name = file.getName().substring(0, file.getName().indexOf(".json"));
+
+        String boss_id;
+        if (checkProperty(config, "boss_id", category_name + "/bosses/" + file_name)) {
+            boss_id = config.get("boss_id").getAsString();
+        } else {
+            throw new NullPointerException("Boss must have a Boss ID!");
+        }
+
+        double global_weight;
+        if (checkProperty(config, "global_weight", category_name + "/bosses/" + file_name)) {
+            global_weight = config.get("global_weight").getAsDouble();
+        } else {
+            throw new NullPointerException("Boss must have a global weight!");
+        }
+
+        double category_weight;
+        if (checkProperty(config, "category_weight", category_name + "/bosses/" + file_name)) {
+            category_weight = config.get("category_weight").getAsDouble();
+        } else {
+            throw new NullPointerException("Boss must have a category weight!");
+        }
+
+        // Pokemon Details
+        Species species;
+        int level = 50;
+        FormData form;
+        String features = "";
+        Map<Ability, Double> abilities = new HashMap<>();
+        Map<Nature, Double> natures = new HashMap<>();
+        Map<Gender, Double> genders = new HashMap<>();
+        boolean shiny = false;
+        float scale = 1.0f;
+        Item held_item = Items.AIR;
+        ComponentChanges held_item_data = ComponentChanges.EMPTY;
+        List<MoveTemplate> moves = new ArrayList<>();
+        IVs ivs = IVs.createRandomIVs(0);
+        EVs evs = EVs.createEmpty();
+
+        if (checkProperty(config, "pokemon_details", category_name + "/bosses/" + file_name)) {
+            JsonObject pokemon_details = config.getAsJsonObject("pokemon_details");
+            if (checkProperty(pokemon_details, "species", category_name + "/bosses/" + file_name)) {
+                species = PokemonSpecies.INSTANCE.getByName(pokemon_details.get("species").getAsString());
+                if (species == null) {
+                    throw new NullPointerException("Species not found!");
+                }
+            } else {
+                throw new NullPointerException("Pokemon details must have a species!");
+            }
+            if (checkProperty(pokemon_details, "level", category_name + "/bosses/" + file_name)) {
+                level = pokemon_details.get("level").getAsInt();
+            }
+            if (checkProperty(pokemon_details, "form", category_name + "/bosses/" + file_name)) {
+                form = species.getFormByName(pokemon_details.get("form").getAsString());
+            } else {
+                form = species.getStandardForm();
+            }
+            if (checkProperty(pokemon_details, "features", category_name + "/bosses/" + file_name)) {
+                features = pokemon_details.get("features").getAsString();
+            }
+            if (checkProperty(pokemon_details, "ability", category_name + "/bosses/" + file_name)) {
+                JsonArray ability_array = pokemon_details.getAsJsonArray("ability");
+                for (JsonElement ability_element : ability_array) {
+                    JsonObject ability = ability_element.getAsJsonObject();
+                    String ability_id;
+                    if (checkProperty(ability, "ability", category_name + "/bosses/" + file_name)) {
+                        ability_id = ability.get("ability").getAsString();
+                    } else {
+                        continue;
+                    }
+                    double weight;
+                    if (checkProperty(ability, "weight", category_name + "/bosses/" + file_name)) {
+                        weight = ability.get("weight").getAsDouble();
+                    } else {
+                        continue;
+                    }
+                    AbilityTemplate template = Abilities.INSTANCE.get(ability_id);
+                    if (template == null) {
+                        nr.logError("[RAIDS] Skipping unknown ability: " + ability_id + ".");
+                        continue;
+                    }
+                    Ability possible_ability = template.create(false, Priority.LOWEST);
+                    abilities.put(possible_ability, weight);
+                }
+                if (abilities.isEmpty()) {
+                    throw new NullPointerException("No abilities found!");
+                }
+            } else {
+                throw new NullPointerException("Pokemon details must have an ability!");
+            }
+            if (checkProperty(pokemon_details, "nature", category_name + "/bosses/" + file_name)) {
+                JsonArray nature_array = pokemon_details.getAsJsonArray("nature");
+                for (JsonElement nature_element : nature_array) {
+                    JsonObject nature = nature_element.getAsJsonObject();
+                    String nature_id;
+                    if (checkProperty(nature, "nature", category_name + "/bosses/" + file_name)) {
+                        nature_id = nature.get("nature").getAsString();
+                    } else {
+                        continue;
+                    }
+                    double weight;
+                    if (checkProperty(nature, "weight", category_name + "/bosses/" + file_name)) {
+                        weight = nature.get("weight").getAsDouble();
+                    } else {
+                        continue;
+                    }
+                    Nature possible_nature = Natures.INSTANCE.getNature(nature_id);
+                    if (possible_nature == null) {
+                        nr.logError("[RAIDS] Skipping unknown nature: " + nature_id + ".");
+                    }
+                    natures.put(possible_nature, weight);
+                }
+                if (natures.isEmpty()) {
+                    throw new NullPointerException("No natures found!");
+                }
+            } else {
+                throw new NullPointerException("Pokemon details must have a nature!");
+            }
+            if (checkProperty(pokemon_details, "gender", category_name + "/bosses/" + file_name)) {
+                JsonArray gender_array = pokemon_details.getAsJsonArray("gender");
+                for (JsonElement gender_element : gender_array) {
+                    JsonObject gender = gender_element.getAsJsonObject();
+                    String gender_id;
+                    if (checkProperty(gender, "gender", category_name + "/bosses/" + file_name)) {
+                        gender_id = gender.get("gender").getAsString();
+                    } else {
+                        continue;
+                    }
+                    double weight;
+                    if (checkProperty(gender, "weight", category_name + "/bosses/" + file_name)) {
+                        weight = gender.get("weight").getAsDouble();
+                    } else {
+                        continue;
+                    }
+                    Gender possible_gender = Gender.valueOf(gender_id);
+                    genders.put(possible_gender, weight);
+                }
+                if (genders.isEmpty()) {
+                    throw new NullPointerException("No genders found!");
+                }
+            } else {
+                throw new NullPointerException("Pokemon details must have a gender!");
+            }
+            if (checkProperty(pokemon_details, "shiny", category_name + "/bosses/" + file_name)) {
+                shiny = pokemon_details.get("shiny").getAsBoolean();
+            }
+            if (checkProperty(pokemon_details, "scale", category_name + "/bosses/" + file_name)) {
+                scale = pokemon_details.get("scale").getAsFloat();
+            }
+            if (checkProperty(pokemon_details, "held_item", category_name + "/bosses/" + file_name)) {
+                held_item = Registries.ITEM.get(Identifier.of(pokemon_details.get("held_item").getAsString()));
+            }
+            if (checkProperty(pokemon_details, "held_item_data", category_name + "/bosses/" + file_name)) {
+                JsonElement data_element = pokemon_details.getAsJsonObject("held_item_data");
+                if (data_element != null) {
+                    held_item_data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, data_element).getOrThrow().getFirst();
+                }
+            }
+            if (checkProperty(pokemon_details, "moves", category_name + "/bosses/" + file_name)) {
+                List<String> moves_array = pokemon_details.getAsJsonArray("moves").asList().stream().map(JsonElement::getAsString).toList();
+                if (moves_array.isEmpty()) {
+                    throw new NullPointerException("Boss must have at least one move!");
+                }
+                for (String move : moves_array) {
+                    MoveTemplate template = Moves.INSTANCE.getByName(move);
+                    if (template == null) {
+                        nr.logError("[RAIDS] Skipping unknown move " + move + ".");
+                        continue;
+                    }
+                    moves.add(template);
+                }
+                if (moves.isEmpty()) {
+                    throw new NullPointerException("No moves found!");
+                }
+            }
+            if (checkProperty(pokemon_details, "ivs", category_name + "/bosses/" + file_name)) {
+                JsonObject ivs_object = pokemon_details.getAsJsonObject("ivs");
+                if (checkProperty(ivs_object, "hp", category_name + "/bosses/" + file_name)) {
+                    ivs.set(Stats.HP, ivs_object.get("hp").getAsInt());
+                }
+                if (checkProperty(ivs_object, "atk", category_name + "/bosses/" + file_name)) {
+                    ivs.set(Stats.ATTACK, ivs_object.get("atk").getAsInt());
+                }
+                if (checkProperty(ivs_object, "def", category_name + "/bosses/" + file_name)) {
+                    ivs.set(Stats.DEFENCE, ivs_object.get("def").getAsInt());
+                }
+                if (checkProperty(ivs_object, "sp_atk", category_name + "/bosses/" + file_name)) {
+                    ivs.set(Stats.SPECIAL_ATTACK, ivs_object.get("sp_atk").getAsInt());
+                }
+                if (checkProperty(ivs_object, "sp_def", category_name + "/bosses/" + file_name)) {
+                    ivs.set(Stats.SPECIAL_DEFENCE, ivs_object.get("sp_def").getAsInt());
+                }
+                if (checkProperty(ivs_object, "spd", category_name + "/bosses/" + file_name)) {
+                    ivs.set(Stats.SPEED, ivs_object.get("spd").getAsInt());
+                }
+            }
+            if (checkProperty(pokemon_details, "evs", category_name + "/bosses/" + file_name)) {
+                JsonObject evs_object = pokemon_details.getAsJsonObject("ivs");
+                if (checkProperty(evs_object, "hp", category_name + "/bosses/" + file_name)) {
+                    evs.set(Stats.HP, evs_object.get("hp").getAsInt());
+                }
+                if (checkProperty(evs_object, "atk", category_name + "/bosses/" + file_name)) {
+                    evs.set(Stats.ATTACK, evs_object.get("atk").getAsInt());
+                }
+                if (checkProperty(evs_object, "def", category_name + "/bosses/" + file_name)) {
+                    evs.set(Stats.DEFENCE, evs_object.get("def").getAsInt());
+                }
+                if (checkProperty(evs_object, "sp_atk", category_name + "/bosses/" + file_name)) {
+                    evs.set(Stats.SPECIAL_ATTACK, evs_object.get("sp_atk").getAsInt());
+                }
+                if (checkProperty(evs_object, "sp_def", category_name + "/bosses/" + file_name)) {
+                    evs.set(Stats.SPECIAL_DEFENCE, evs_object.get("sp_def").getAsInt());
+                }
+                if (checkProperty(evs_object, "spd", category_name + "/bosses/" + file_name)) {
+                    evs.set(Stats.SPEED, evs_object.get("spd").getAsInt());
+                }
+            }
+        } else {
+            throw new NullPointerException("Boss must have pokemon details!");
+        }
+
+        // Boss Details
+        String display_name = boss_id;
+        int base_health;
+        int health_increase_per_player = 0;
+        boolean apply_glowing = false;
+        Map<String, Double> locations = new HashMap<>();
+        if (checkProperty(config, "boss_details", category_name + "/bosses/" + file_name)) {
+            JsonObject boss_details = config.get("boss_details").getAsJsonObject();
+            if (checkProperty(boss_details, "display_name", category_name + "/bosses/" + file_name)) {
+                display_name = boss_details.get("display_name").getAsString();
+            }
+            if (checkProperty(boss_details, "base_health", category_name + "/bosses/" + file_name)) {
+                base_health = boss_details.get("base_health").getAsInt();
+            } else {
+                throw new NullPointerException("Boss details must have base health!");
+            }
+            if (checkProperty(boss_details, "health_increase_per_player", category_name + "/bosses/" + file_name)) {
+                health_increase_per_player = boss_details.get("health_increase_per_player").getAsInt();
+            }
+            if (checkProperty(boss_details, "apply_glowing", category_name + "/bosses/" + file_name)) {
+                apply_glowing = boss_details.get("apply_glowing").getAsBoolean();
+            }
+            if (checkProperty(boss_details, "locations", category_name + "/bosses/" + file_name)) {
+                JsonArray locations_array = boss_details.get("locations").getAsJsonArray();
+                for (JsonElement location_element : locations_array) {
+                    JsonObject location_object = location_element.getAsJsonObject();
+                    String location_name;
+                    if (checkProperty(location_object, "location", category_name + "/bosses/" + file_name)) {
+                        location_name = location_object.get("location").getAsString();
+                    } else {
+                        continue;
+                    }
+                    double weight;
+                    if (checkProperty(location_object, "weight", category_name + "/bosses/" + file_name)) {
+                        weight = location_object.get("weight").getAsDouble();
+                    } else {
+                        continue;
+                    }
+                    locations.put(location_name, weight);
+                }
+                if (locations.isEmpty()) {
+                    throw new NullPointerException("No locations found!");
+                }
+            } else {
+                throw new NullPointerException("Boss details must have locations!");
+            }
+        } else {
+            throw new NullPointerException("Boss must have boss details!");
+        }
+
+        // Item Settings
+        boolean allow_global_pokeballs = true;
+        boolean allow_category_pokeballs = true;
+        Voucher boss_voucher = nr.config().default_voucher;
+        Pass boss_pass = nr.config().default_pass;
+        List<RaidBall> boss_balls = new ArrayList<>();
+        if (checkProperty(config, "item_settings", category_name + "/bosses/" + file_name)) {
+            JsonObject item_settings = config.get("item_settings").getAsJsonObject();
+            if (checkProperty(item_settings, "allow_global_pokeballs", category_name + "/bosses/" + file_name)) {
+                allow_global_pokeballs = item_settings.get("allow_global_pokeballs").getAsBoolean();
+            }
+            if (checkProperty(item_settings, "allow_category_pokeballs", category_name + "/bosses/" + file_name)) {
+                allow_category_pokeballs = item_settings.get("allow_category_pokeballs").getAsBoolean();
+            }
+            if (checkProperty(item_settings, "boss_voucher", category_name + "/bosses/" + file_name)) {
+                Item voucher_item = nr.config().default_voucher.voucher_item();
+                Text voucher_name = nr.config().default_voucher.voucher_name();
+                List<Text> voucher_lore = nr.config().default_voucher.voucher_lore();
+                ComponentChanges voucher_data = nr.config().default_voucher.voucher_data();
+                JsonObject boss_voucher_object = item_settings.getAsJsonObject("boss_voucher");
+                if (checkProperty(boss_voucher_object, "voucher_item", category_name + "/bosses/" + file_name)) {
+                    voucher_item = Registries.ITEM.get(Identifier.of(item_settings.get("voucher_item").getAsString()));
+                }
+                if (checkProperty(boss_voucher_object, "voucher_name", category_name + "/bosses/" + file_name)) {
+                    voucher_name = TextUtil.deserialize(boss_voucher_object.get("voucher_name").getAsString());
+                }
+                if (checkProperty(boss_voucher_object, "voucher_lore", category_name + "/bosses/" + file_name)) {
+                    JsonArray lore_array = boss_voucher_object.get("voucher_lore").getAsJsonArray();
+                    List<Text> lore = new ArrayList<>();
+                    for (JsonElement lore_element : lore_array) {
+                        lore.add(TextUtil.deserialize(lore_element.getAsString()));
+                    }
+                    voucher_lore = lore;
+                }
+                if (checkProperty(boss_voucher_object, "voucher_data", category_name + "/bosses/" + file_name)) {
+                    JsonElement data_object = boss_voucher_object.get("voucher_data");
+                    if (data_object != null) {
+                        voucher_data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, data_object).getOrThrow().getFirst();
+                    }
+                }
+                boss_voucher = new Voucher(voucher_item, voucher_name, voucher_lore, voucher_data);
+            }
+            if (checkProperty(item_settings, "boss_pass", category_name + "/bosses/" + file_name)) {
+                Item pass_item = nr.config().default_pass.pass_item();
+                Text pass_name = nr.config().default_pass.pass_name();
+                List<Text> pass_lore = nr.config().default_pass.pass_lore();
+                ComponentChanges pass_data = nr.config().default_pass.pass_data();
+                JsonObject boss_pass_object = item_settings.getAsJsonObject("boss_pass");
+                if (checkProperty(boss_pass_object, "pass_item", category_name + "/bosses/" + file_name)) {
+                    pass_item = Registries.ITEM.get(Identifier.of(item_settings.get("pass_item").getAsString()));
+                }
+                if (checkProperty(boss_pass_object, "pass_name", category_name + "/bosses/" + file_name)) {
+                    pass_name = TextUtil.deserialize(boss_pass_object.get("pass_name").getAsString());
+                }
+                if (checkProperty(boss_pass_object, "pass_lore", category_name + "/bosses/" + file_name)) {
+                    JsonArray lore_array = boss_pass_object.get("pass_lore").getAsJsonArray();
+                    List<Text> lore = new ArrayList<>();
+                    for (JsonElement lore_element : lore_array) {
+                        lore.add(TextUtil.deserialize(lore_element.getAsString()));
+                    }
+                    pass_lore = lore;
+                }
+                if (checkProperty(boss_pass_object, "pass_data", category_name + "/bosses/" + file_name)) {
+                    JsonElement data_object = boss_pass_object.get("pass_data");
+                    if (data_object != null) {
+                        pass_data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, data_object).getOrThrow().getFirst();
+                    }
+                }
+                boss_pass = new Pass(pass_item, pass_name, pass_lore, pass_data);
+            }
+            if (checkProperty(item_settings, "raid_balls", category_name + "/bosses/" + file_name)) {
+                JsonObject raid_balls = item_settings.getAsJsonObject("raid_balls");
+                for (String ball_id : raid_balls.keySet()) {
+                    JsonObject ball_info = raid_balls.getAsJsonObject(ball_id);
+                    Item item = CobblemonItems.POKE_BALL;
+                    Text name = TextUtil.deserialize("<red>Raid Pokeball");
+                    List<Text> lore = new ArrayList<>(List.of(TextUtil.deserialize("<gray>Use this to try and capture raid bosses!")));
+                    ComponentChanges data = ComponentChanges.EMPTY;
+                    if (checkProperty(ball_info, "pokeball", category_name + "/bosses/" + file_name)) {
+                        item = Registries.ITEM.get(Identifier.of(ball_info.get("pokeball").getAsString()));
+                    }
+                    if (checkProperty(ball_info, "pokeball_name", category_name + "/bosses/" + file_name)) {
+                        String ball_name = ball_info.get("pokeball_name").getAsString();
+                        name = TextUtil.deserialize(ball_name);
+                    }
+                    if (checkProperty(ball_info, "pokeball_lore", category_name + "/bosses/" + file_name)) {
+                        JsonArray lore_items = ball_info.getAsJsonArray("pokeball_lore");
+                        List<Text> newLore = new ArrayList<>();
+                        for (JsonElement l : lore_items) {
+                            String lore_item = l.getAsString();
+                            newLore.add(TextUtil.deserialize(lore_item));
+                        }
+                        lore = newLore;
+                    }
+                    if (checkProperty(ball_info, "pokeball_data", category_name + "/bosses/" + file_name)) {
+                        JsonElement dataElement = ball_info.get("pokeball_data");
+                        if (dataElement != null) {
+                            data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, dataElement).getOrThrow().getFirst();
+                        }
+                    }
+                    boss_balls.add(new RaidBall(boss_id, item, name, lore, data));
+                }
+            }
+        }
+
+        // Raid Details
+        int minimum_level;
+        int setup_phase_time;
+        int fight_phase_time;
+        int pre_catch_phase_time;
+        boolean do_catch_phase;
+        int catch_phase_time;
+        boolean heal_party_on_challenge;
+        List<Species> banned_species = new ArrayList<>();
+        List<Move> banned_moves = new ArrayList<>();
+        List<Ability> banned_abilities = new ArrayList<>();
+        List<Item> banned_held_items = new ArrayList<>();
+        List<Item> banned_bag_items = new ArrayList<>();
+        String setup_bossbar;
+        String fight_bossbar;
+        String pre_catch_bossbar;
+        String catch_bossbar;
+        List<DistributionSection> rewards;
+
+        // Catch Settings
+        Species species_override;
+        int level_override;
+        FormData form_override;
+        String features_override;
+        boolean keep_scale;
+        boolean keep_held_item;
+        boolean randomize_ivs;
+        boolean keep_evs;
+        boolean randomize_gender;
+        boolean randomize_nature;
+        boolean randomize_ability;
+        boolean reset_moves;
+        List<CatchPlacement> catch_places = new ArrayList<>();
     }
 
     public boolean checkProperty(JsonObject section, String property, String location) {

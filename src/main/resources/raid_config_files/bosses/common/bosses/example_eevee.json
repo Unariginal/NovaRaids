@@ -66,17 +66,18 @@
     "apply_glowing": true,
     "locations": [
       {
-        "location": "center_location",
+        "location": "example_location",
         "weight": 50.0
       },
       {
-        "location": "left_location",
+        "location": "another_example_location",
         "weight": 50.0
       }
     ]
   },
   "item_settings": {
     "allow_global_pokeballs": true,
+    "allow_category_pokeballs": true,
     "boss_voucher": {
       "voucher_item": "minecraft:feather",
       "voucher_name": "",
@@ -88,6 +89,20 @@
       "pass_name": "",
       "pass_lore": [],
       "pass_data": {}
+    },
+    "raid_balls": {
+      "eevee_premier": {
+        "pokeball": "cobblemon:premier_ball",
+        "pokeball_name": "<red>Eevee Premier Raid Pokeball",
+        "pokeball_lore": ["<gray>Use this to try and catch %boss%!"],
+        "pokeball_data": {}
+      },
+      "eevee_ultra": {
+        "pokeball": "cobblemon:ultra_ball",
+        "pokeball_name": "<red>Eevee Ultra Raid Pokeball",
+        "pokeball_lore": ["<gray>Use this to try and catch %boss%!"],
+        "pokeball_data": {}
+      }
     }
   },
   "raid_details": {
