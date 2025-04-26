@@ -420,8 +420,8 @@ public class Config {
                             JsonObject ball = raid_balls.getAsJsonObject(key);
 
                             Item item = CobblemonItems.POKE_BALL;
-                            Text name = TextUtils.deserialize("<red>Raid Pokeball");
-                            List<Text> lore = new ArrayList<>(List.of(TextUtils.deserialize("<gray>Use this to try and capture raid bosses!")));
+                            String name = "<red>Raid Pokeball";
+                            List<String> lore = new ArrayList<>(List.of("<gray>Use this to try and capture raid bosses!"));
                             ComponentChanges data = ComponentChanges.EMPTY;
 
                             if (checkProperty(ball, "pokeball")) {
@@ -429,15 +429,14 @@ public class Config {
                                 item = Registries.ITEM.get(Identifier.of(ball_item_name));
                             }
                             if (checkProperty(ball, "pokeball_name")) {
-                                String ball_name = ball.get("pokeball_name").getAsString();
-                                name = TextUtils.deserialize(ball_name);
+                                name = ball.get("pokeball_name").getAsString();
                             }
                             if (checkProperty(ball, "pokeball_lore")) {
                                 JsonArray lore_items = ball.getAsJsonArray("pokeball_lore");
-                                List<Text> newLore = new ArrayList<>();
+                                List<String> newLore = new ArrayList<>();
                                 for (JsonElement l : lore_items) {
                                     String lore_item = l.getAsString();
-                                    newLore.add(TextUtils.deserialize(lore_item));
+                                    newLore.add(lore_item);
                                 }
                                 lore = newLore;
                             }

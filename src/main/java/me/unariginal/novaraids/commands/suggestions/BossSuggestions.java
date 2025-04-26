@@ -14,8 +14,10 @@ public class BossSuggestions implements SuggestionProvider<ServerCommandSource> 
 
     @Override
     public CompletableFuture<Suggestions> getSuggestions(CommandContext<ServerCommandSource> context, SuggestionsBuilder builder) {
-        for (Boss boss : NovaRaids.INSTANCE.bossesConfig().bosses) {
-            builder.suggest(boss.boss_id());
+        if (NovaRaids.INSTANCE.loaded_properly) {
+            for (Boss boss : NovaRaids.INSTANCE.bossesConfig().bosses) {
+                builder.suggest(boss.boss_id());
+            }
         }
         return builder.buildFuture();
     }

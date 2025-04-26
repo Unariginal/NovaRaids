@@ -168,18 +168,73 @@ public class RaidCommands {
                                                             // TODO: INCLUDE OTHER BALLS FROM THE CATEGORIES AND BOSSEISEASLDsadlkjlds
                                                             CommandManager.literal("pokeball")
                                                                     .then(
-                                                                            CommandManager.argument("pokeball", StringArgumentType.string())
-                                                                                    .suggests((ctx, builder) -> {
-                                                                                        if (nr.loaded_properly) {
-                                                                                            for (RaidBall ball : nr.config().raid_balls) {
-                                                                                                builder.suggest(ball.id());
-                                                                                            }
-                                                                                        }
-                                                                                        return builder.buildFuture();
-                                                                                    })
+                                                                            CommandManager.literal("boss")
                                                                                     .then(
-                                                                                            CommandManager.argument("amount", IntegerArgumentType.integer(1))
-                                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "pokeball", null, null, StringArgumentType.getString(ctx, "pokeball"), IntegerArgumentType.getInteger(ctx, "amount")))
+                                                                                            CommandManager.argument("boss", StringArgumentType.string())
+                                                                                                    .suggests(new BossSuggestions())
+                                                                                                    .then(
+                                                                                                            CommandManager.argument("pokeball", StringArgumentType.string())
+                                                                                                                    .suggests((ctx, builder) -> {
+                                                                                                                        if (nr.loaded_properly) {
+                                                                                                                            // TODO: This might not work, test it :D
+                                                                                                                            Boss boss = nr.bossesConfig().getBoss(StringArgumentType.getString(ctx, "boss"));
+                                                                                                                            if (boss != null) {
+                                                                                                                                for (RaidBall ball : boss.item_settings().raid_balls()) {
+                                                                                                                                    builder.suggest(ball.id());
+                                                                                                                                }
+                                                                                                                            }
+                                                                                                                        }
+                                                                                                                        return builder.buildFuture();
+                                                                                                                    })
+                                                                                                                    .then(
+                                                                                                                            CommandManager.argument("amount", IntegerArgumentType.integer(1))
+                                                                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "pokeball", StringArgumentType.getString(ctx, "boss"), null, StringArgumentType.getString(ctx, "pokeball"), IntegerArgumentType.getInteger(ctx, "amount")))
+                                                                                                                    )
+                                                                                                    )
+                                                                                    )
+                                                                    )
+                                                                    .then(
+                                                                            CommandManager.literal("category")
+                                                                                    .then(
+                                                                                            CommandManager.argument("category", StringArgumentType.string())
+                                                                                                    .suggests(new CategorySuggestions())
+                                                                                                    .then(
+                                                                                                            CommandManager.argument("pokeball", StringArgumentType.string())
+                                                                                                                    .suggests((ctx, builder) -> {
+                                                                                                                        if (nr.loaded_properly) {
+                                                                                                                            // TODO: This might not work, test it :D
+                                                                                                                            Category cat = nr.bossesConfig().getCategory(StringArgumentType.getString(ctx, "category"));
+                                                                                                                            if (cat != null) {
+                                                                                                                                for (RaidBall ball : cat.category_balls()) {
+                                                                                                                                    builder.suggest(ball.id());
+                                                                                                                                }
+                                                                                                                            }
+                                                                                                                        }
+                                                                                                                        return builder.buildFuture();
+                                                                                                                    })
+                                                                                                                    .then(
+                                                                                                                            CommandManager.argument("amount", IntegerArgumentType.integer(1))
+                                                                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "pokeball", null, StringArgumentType.getString(ctx, "category"), StringArgumentType.getString(ctx, "pokeball"), IntegerArgumentType.getInteger(ctx, "amount")))
+                                                                                                                    )
+                                                                                                    )
+                                                                                    )
+                                                                    )
+                                                                    .then(
+                                                                            CommandManager.literal("global")
+                                                                                    .then(
+                                                                                            CommandManager.argument("pokeball", StringArgumentType.string())
+                                                                                                    .suggests((ctx, builder) -> {
+                                                                                                        if (nr.loaded_properly) {
+                                                                                                            for (RaidBall ball : nr.config().raid_balls) {
+                                                                                                                builder.suggest(ball.id());
+                                                                                                            }
+                                                                                                        }
+                                                                                                        return builder.buildFuture();
+                                                                                                    })
+                                                                                                    .then(
+                                                                                                            CommandManager.argument("amount", IntegerArgumentType.integer(1))
+                                                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "pokeball", "*", null, StringArgumentType.getString(ctx, "pokeball"), IntegerArgumentType.getInteger(ctx, "amount")))
+                                                                                                    )
                                                                                     )
                                                                     )
 
@@ -755,7 +810,6 @@ public class RaidCommands {
         return 0;
     }
 
-    // TODO: include them other vouchers and passes and such too
     public int give(ServerPlayerEntity source_player, ServerPlayerEntity target_player, String item_type, String boss_name, String category, String key, int amount) {
         if (nr.loaded_properly) {
             ItemStack item_to_give;
@@ -782,7 +836,7 @@ public class RaidCommands {
                         }
                         pass = cat.category_pass();
                     }
-                    item_name = TextUtils.deserialize(TextUtils.parse(pass.pass_name()));
+                    item_name = TextUtils.deserialize(TextUtils.parse(pass.pass_name(), source_player, target_player, amount, item_type));
                     List<Text> lore_text = new ArrayList<>();
                     for (String lore_line : pass.pass_lore()) {
                         lore_text.add(TextUtils.deserialize(TextUtils.parse(lore_line, source_player, target_player, amount, item_type)));
@@ -804,7 +858,7 @@ public class RaidCommands {
                     }
                     boss_id = boss.boss_id();
                     pass = boss.item_settings().pass();
-                    item_name = TextUtils.deserialize(TextUtils.parse(pass.pass_name(), boss));
+                    item_name = TextUtils.deserialize(TextUtils.parse(TextUtils.parse(pass.pass_name(), boss), source_player, target_player, amount, item_type));
                     List<Text> lore_text = new ArrayList<>();
                     for (String lore_line : pass.pass_lore()) {
                         lore_text.add(TextUtils.deserialize(TextUtils.parse(TextUtils.parse(lore_line, boss), source_player, target_player, amount, item_type)));
@@ -819,7 +873,7 @@ public class RaidCommands {
                         return 0;
                     }
                     pass = boss.item_settings().pass();
-                    item_name = TextUtils.deserialize(TextUtils.parse(pass.pass_name(), boss));
+                    item_name = TextUtils.deserialize(TextUtils.parse(TextUtils.parse(pass.pass_name(), boss), source_player, target_player, amount, item_type));
                     List<Text> lore_text = new ArrayList<>();
                     for (String lore_line : pass.pass_lore()) {
                         lore_text.add(TextUtils.deserialize(TextUtils.parse(TextUtils.parse(lore_line, boss), source_player, target_player, amount, item_type)));
@@ -853,7 +907,7 @@ public class RaidCommands {
                         }
                         voucher = cat.category_choice_voucher();
                     }
-                    item_name = TextUtils.deserialize(TextUtils.parse(voucher.voucher_name()));
+                    item_name = TextUtils.deserialize(TextUtils.parse(voucher.voucher_name(), source_player, target_player, amount, item_type));
                     List<Text> lore_text = new ArrayList<>();
                     for (String lore_line : voucher.voucher_lore()) {
                         lore_text.add(TextUtils.deserialize(TextUtils.parse(lore_line, source_player, target_player, amount, item_type)));
@@ -873,7 +927,7 @@ public class RaidCommands {
                         }
                         voucher = cat.category_random_voucher();
                     }
-                    item_name = TextUtils.deserialize(TextUtils.parse(voucher.voucher_name()));
+                    item_name = TextUtils.deserialize(TextUtils.parse(voucher.voucher_name(), source_player, target_player, amount, item_type));
                     List<Text> lore_text = new ArrayList<>();
                     for (String lore_line : voucher.voucher_lore()) {
                         lore_text.add(TextUtils.deserialize(TextUtils.parse(lore_line, source_player, target_player, amount, item_type)));
@@ -888,7 +942,7 @@ public class RaidCommands {
                         return 0;
                     }
                     voucher = boss.item_settings().voucher();
-                    item_name = TextUtils.deserialize(TextUtils.parse(voucher.voucher_name(), boss));
+                    item_name = TextUtils.deserialize(TextUtils.parse(TextUtils.parse(voucher.voucher_name(), boss), source_player, target_player, amount, item_type));
                     List<Text> lore_text = new ArrayList<>();
                     for (String lore_line : voucher.voucher_lore()) {
                         lore_text.add(TextUtils.deserialize(TextUtils.parse(TextUtils.parse(lore_line, boss), source_player, target_player, amount, item_type)));
@@ -905,37 +959,70 @@ public class RaidCommands {
                 custom_data.putString("raid_boss", boss_id);
                 custom_data.putString("raid_category", category_id);
             } else {
-                // TODO: The other pokeballs
                 RaidBall raid_pokeball = nr.config().getRaidBall(key);
                 if (raid_pokeball != null) {
-                    /*item_to_give = new ItemStack(raid_pokeball.ball_item(), amount);
+                    String category_id;
+                    String boss_id;
+                    if (boss_name != null) {
+                        if (boss_name.equalsIgnoreCase("*")) {
+                            category_id = "*";
+                            boss_id = "*";
+                            item_name = TextUtils.deserialize(TextUtils.parse(raid_pokeball.ball_name(), source_player, target_player, amount, item_type));
+                            List<Text> lore_text = new ArrayList<>();
+                            for (String lore_line : raid_pokeball.ball_lore()) {
+                                lore_text.add(TextUtils.deserialize(TextUtils.parse(lore_line, source_player, target_player, amount, item_type)));
+                            }
+                            lore = new LoreComponent(lore_text);
+                        } else {
+                            category_id = "null";
+                            Boss boss = nr.bossesConfig().getBoss(boss_name);
+                            if (boss == null) {
+                                source_player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("give_command_invalid_boss").replaceAll("%boss%", boss_name), source_player, target_player, amount, item_type)));
+                                return 0;
+                            }
+                            boss_id = boss_name;
+                            item_name = TextUtils.deserialize(TextUtils.parse(TextUtils.parse(raid_pokeball.ball_name(), boss), source_player, target_player, amount, item_type));
+                            List<Text> lore_text = new ArrayList<>();
+                            for (String lore_line : raid_pokeball.ball_lore()) {
+                                lore_text.add(TextUtils.deserialize(TextUtils.parse(lore_line, source_player, target_player, amount, item_type)));
+                            }
+                            lore = new LoreComponent(lore_text);
+                        }
+                    } else {
+                        if (category != null) {
+                            boss_id = "*";
+                            Category cat = nr.bossesConfig().getCategory(category);
+                            if (cat == null) {
+                                source_player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("give_command_invalid_category").replaceAll("%category%", category), source_player, target_player, amount, item_type)));
+                                return 0;
+                            }
+                            category_id = category;
+                            item_name = TextUtils.deserialize(TextUtils.parse(raid_pokeball.ball_name(), source_player, target_player, amount, item_type));
+                            List<Text> lore_text = new ArrayList<>();
+                            for (String lore_line : raid_pokeball.ball_lore()) {
+                                lore_text.add(TextUtils.deserialize(TextUtils.parse(lore_line, source_player, target_player, amount, item_type)));
+                            }
+                            lore = new LoreComponent(lore_text);
+                        } else {
+                            source_player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("give_command_invalid_category").replaceAll("%category%", "null"), source_player, target_player, amount, item_type)));
+                            return 0;
+                        }
+                    }
+
+                    item_to_give = new ItemStack(raid_pokeball.ball_item(), amount);
                     custom_data.putString("raid_item", "raid_ball");
                     custom_data.putUuid("owner_uuid", target_player.getUuid());
-                    if (!nr.config().getSettings().pokeball_categories().get(key).isEmpty()) {
-                        NbtCompound categories = new NbtCompound();
-                        for (String categoryItem : nr.config().getSettings().pokeball_categories().get(key)) {
-                            categories.putBoolean(categoryItem, true);
-                        }
-                        custom_data.put("raid_categories", categories);
+                    custom_data.putString("raid_boss", boss_id);
+                    custom_data.putString("raid_category", category_id);
+                    if (raid_pokeball.ball_data() != null) {
+                        item_to_give.applyChanges(raid_pokeball.ball_data());
                     }
-                    if (!nr.config().getSettings().pokeball_bosses().get(key).isEmpty()) {
-                        NbtCompound bosses = new NbtCompound();
-                        for (String bossItem : nr.config().getSettings().pokeball_bosses().get(key)) {
-                            bosses.putBoolean(bossItem, true);
-                        }
-                        custom_data.put("raid_bosses", bosses);
-                    }
-                    item_name = Text.literal("Raid Pokeball").styled(style -> style.withItalic(false).withColor(Formatting.RED));
-                    lore = lore.with(Text.literal("Use this to try and capture raid bosses!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
-                    if (nr.config().getSettings().raid_pokeball_data() != null) {
-                        item_to_give.applyChanges(nr.config().getSettings().raid_pokeball_data().get(key));
-                    }*/
                 } else {
                     if (source_player != null) {
-                        source_player.sendMessage(Text.literal("Raid Pokeball not found!"));
+                        source_player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("give_command_invalid_pokeball").replaceAll("%pokeball%", key), source_player, target_player, amount, item_type)));
                     }
+                    return 0;
                 }
-                return 0;
             }
 
             item_to_give.applyComponentsFrom(component_builder

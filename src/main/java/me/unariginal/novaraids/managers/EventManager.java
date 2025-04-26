@@ -357,7 +357,6 @@ public class EventManager {
                                 }
                             }
                         } else if (custom_data.copyNbt().getString("raid_item").equals("raid_ball") && nr.config().raid_balls_enabled) {
-                            // TODO: The other balls
                             boolean can_throw = false;
 
                             if (custom_data.contains("owner_uuid")) {
@@ -375,10 +374,12 @@ public class EventManager {
                             }
 
                             if (can_throw) {
+                                can_throw = false;
                                 outer:
                                 for (Raid raid : nr.active_raids().values()) {
                                     if (raid.participating_players().contains(player.getUuid())) {
                                         if (raid.stage() == 4) {
+                                            // Old Data
                                             if (custom_data.contains("raid_categories")) {
                                                 NbtCompound categories = custom_data.copyNbt().getCompound("raid_categories");
                                                 for (String key : categories.getKeys()) {
@@ -396,14 +397,30 @@ public class EventManager {
                                                     }
                                                 }
                                             } else {
-                                                can_throw = true;
-                                                break;
+                                                if (custom_data.contains("raid_boss") && custom_data.contains("raid_category")) {
+                                                    String boss = custom_data.copyNbt().getString("raid_boss");
+                                                    String category = custom_data.copyNbt().getString("raid_category");
+                                                    if (boss.equalsIgnoreCase("*") && category.equalsIgnoreCase("*")) {
+                                                        can_throw = true;
+                                                        break;
+                                                    } else if (boss.equalsIgnoreCase("*")) {
+                                                        if (raid.boss_info().category_id().equalsIgnoreCase(category)) {
+                                                            can_throw = true;
+                                                            break;
+                                                        }
+                                                    } else {
+                                                        if (raid.boss_info().boss_id().equalsIgnoreCase(boss)) {
+                                                            can_throw = true;
+                                                            break;
+                                                        }
+                                                    }
+                                                } else {
+                                                    can_throw = true;
+                                                    break;
+                                                }
                                             }
-                                        } else {
-                                            can_throw = false;
                                         }
                                     }
-
                                 }
                             } else {
                                 player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("warning_raid_pokeball_outside_raid"))));

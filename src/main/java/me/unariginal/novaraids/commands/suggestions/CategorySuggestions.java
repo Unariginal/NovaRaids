@@ -14,8 +14,10 @@ public class CategorySuggestions implements SuggestionProvider<ServerCommandSour
 
     @Override
     public CompletableFuture<Suggestions> getSuggestions(CommandContext<ServerCommandSource> context, SuggestionsBuilder builder) {
-        for (Category category : NovaRaids.INSTANCE.bossesConfig().categories) {
-            builder.suggest(category.name());
+        if (NovaRaids.INSTANCE.loaded_properly) {
+            for (Category category : NovaRaids.INSTANCE.bossesConfig().categories) {
+                builder.suggest(category.name());
+            }
         }
         return builder.buildFuture();
     }
