@@ -47,6 +47,12 @@
 
     "reload_command": "%prefix% Reloaded!",
     "raid_stopped": "%prefix% You've stopped the raid against %boss.form% %boss.species%!",
+    "give_command_invalid_category": "%prefix% Category %category% does not exist!",
+    "give_command_invalid_pokeball": "%prefix% Pokeball %pokeball% does not exist!",
+    "give_command_invalid_boss": "%prefix% Boss %boss% does not exist!",
+    "give_command_failed_to_give": "%prefix% Failed to give the item!",
+    "give_command_received_item": "%prefix% You received a %raid_item%!",
+    "give_command_feedback": "%prefix% Successfully gave %target% a %raid_item%",
 
     "raid_list_gui_title": "Active Raids",
     "raid_queue_gui_title": "Queued Raids",

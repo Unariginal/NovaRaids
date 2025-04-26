@@ -21,6 +21,7 @@ import kotlin.Unit;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.config.MessagesConfig;
+import me.unariginal.novaraids.data.Category;
 import me.unariginal.novaraids.data.bosssettings.Boss;
 import me.unariginal.novaraids.utils.BanHandler;
 import me.unariginal.novaraids.utils.TextUtils;
@@ -333,19 +334,11 @@ public class EventManager {
                                 }
                                 gui.open();
                             } else if (boss_name.equalsIgnoreCase("random")) {
-                                Random rand = new Random();
                                 Boss boss_info;
                                 if (category.equalsIgnoreCase("null")) {
-                                    // TODO: Utilize weight system
-                                    boss_info = nr.bossesConfig().bosses.get(rand.nextInt(nr.bossesConfig().bosses.size()));
+                                    boss_info = nr.bossesConfig().getRandomBoss();
                                 } else {
-                                    List<Boss> available_raids = new ArrayList<>();
-                                    for (Boss boss : nr.bossesConfig().bosses) {
-                                        if (boss.category_id().equalsIgnoreCase(category)) {
-                                            available_raids.add(boss);
-                                        }
-                                    }
-                                    boss_info = available_raids.get(rand.nextInt(available_raids.size()));
+                                    boss_info = nr.bossesConfig().getRandomBoss(category);
                                 }
 
                                 if (nr.raidCommands().start(boss_info, player, held_item) != 0) {
@@ -355,17 +348,12 @@ public class EventManager {
                                     player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("used_voucher"), boss_info)));
                                 }
                             } else {
-                                for (Boss boss : nr.bossesConfig().bosses) {
-                                    if (boss.boss_id().equalsIgnoreCase(boss_name)) {
-                                        if (nr.raidCommands().start(boss, player, held_item) != 0) {
+                                Boss boss = nr.bossesConfig().getBoss(boss_name);
+                                if (nr.raidCommands().start(boss, player, held_item) != 0) {
+                                    held_item.decrement(1);
+                                    player.setStackInHand(hand, held_item);
 
-                                            held_item.decrement(1);
-                                            player.setStackInHand(hand, held_item);
-
-                                            player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("used_voucher"), boss)));
-                                        }
-                                        break;
-                                    }
+                                    player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("used_voucher"), boss)));
                                 }
                             }
                         } else if (custom_data.copyNbt().getString("raid_item").equals("raid_ball") && nr.config().raid_balls_enabled) {

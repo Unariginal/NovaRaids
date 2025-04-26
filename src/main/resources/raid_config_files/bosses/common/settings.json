@@ -11,7 +11,13 @@
     "catch": "catch_phase_example"
   },
   "item_settings": {
-    "category_voucher": {
+    "category_choice_voucher": {
+      "voucher_item": "minecraft:feather",
+      "voucher_name": "",
+      "voucher_lore": [],
+      "voucher_data": {}
+    },
+    "category_random_voucher": {
       "voucher_item": "minecraft:feather",
       "voucher_name": "",
       "voucher_lore": [],

@@ -23,6 +23,7 @@ import me.unariginal.novaraids.data.items.Pass;
 import me.unariginal.novaraids.data.items.RaidBall;
 import me.unariginal.novaraids.data.items.Voucher;
 import me.unariginal.novaraids.managers.Raid;
+import me.unariginal.novaraids.utils.RandomUtils;
 import me.unariginal.novaraids.utils.TextUtils;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.argument.EntityArgumentType;
@@ -72,25 +73,23 @@ public class RaidCommands {
                                                     })
                                     )
                                     .then(
-                                            // TODO: USE BOSS WEIGHTS AND SHIT AHDSASD
                                             CommandManager.literal("random")
-                                                    .executes(ctx -> start(nr.bossesConfig().bosses.get(new Random().nextInt(nr.bossesConfig().bosses.size())), ctx.getSource().getPlayer(), null))
+                                                    .executes(ctx -> {
+                                                        if (nr.loaded_properly) {
+                                                            return start(nr.bossesConfig().getRandomBoss(), ctx.getSource().getPlayer(), null);
+                                                        } else {
+                                                            return 0;
+                                                        }
+                                                    })
                                                     .then(
                                                             CommandManager.argument("category", StringArgumentType.string())
                                                                     .suggests(new CategorySuggestions())
                                                                     .executes(ctx -> {
                                                                         if (nr.loaded_properly) {
                                                                             String categoryStr = StringArgumentType.getString(ctx, "category");
-                                                                            Category category = nr.bossesConfig().getCategory(categoryStr);
-                                                                            Random rand = new Random();
+                                                                            Boss boss = nr.bossesConfig().getRandomBoss(categoryStr);
 
-                                                                            List<Boss> possible_bosses = new ArrayList<>();
-                                                                            for (Boss boss : nr.bossesConfig().bosses) {
-                                                                                if (boss.category_id().equalsIgnoreCase(category.name())) {
-                                                                                    possible_bosses.add(boss);
-                                                                                }
-                                                                            }
-                                                                            return start(possible_bosses.get(rand.nextInt(possible_bosses.size())), ctx.getSource().getPlayer(), null);
+                                                                            return start(boss, ctx.getSource().getPlayer(), null);
                                                                         } else {
                                                                             return 0;
                                                                         }
@@ -698,27 +697,12 @@ public class RaidCommands {
                         }
                     }
 
-                    Location spawn_location = null;
-
+                    Location spawn_location;
                     if (!valid_locations.isEmpty()) {
-                        Random rand = new Random();
-                        double total_weight = 0.0;
-                        for (String location : valid_locations.keySet()) {
-                            total_weight += valid_locations.get(location);
-                        }
-
-                        double random_weight = rand.nextDouble(total_weight);
-                        total_weight = 0.0;
-
-                        for (String location : valid_locations.keySet()) {
-                            total_weight += valid_locations.get(location);
-                            if (random_weight < total_weight) {
-                                spawn_location = nr.locationsConfig().getLocation(location);
-                                break;
-                            }
-                        }
-
-                        if (spawn_location == null) {
+                        Map.Entry<?, Double> spawn_location_entry = RandomUtils.getRandomEntry(valid_locations);
+                        if (spawn_location_entry != null) {
+                            spawn_location = (Location) spawn_location_entry.getKey();
+                        } else {
                             nr.logError("[RAIDS] Location could not be found.");
                             return 0;
                         }
@@ -774,97 +758,152 @@ public class RaidCommands {
     // TODO: include them other vouchers and passes and such too
     public int give(ServerPlayerEntity source_player, ServerPlayerEntity target_player, String item_type, String boss_name, String category, String key, int amount) {
         if (nr.loaded_properly) {
-            Voucher voucher = nr.config().default_voucher;
-            Item voucher_item = voucher.voucher_item();
-            Pass pass = nr.config().default_pass;
-            Item pass_item = pass.pass_item();
-
-            ItemStack item_to_give = null;
+            ItemStack item_to_give;
             NbtCompound custom_data = new NbtCompound();
             ComponentMap.Builder component_builder = ComponentMap.builder();
-            Text item_name = null;
-            LoreComponent lore = LoreComponent.DEFAULT;
-
-            Random rand = new Random();
+            Text item_name;
+            LoreComponent lore;
 
             if (item_type.equalsIgnoreCase("pass")) {
-                item_to_give = new ItemStack(pass_item, 1);
+                String boss_id;
+                String category_id;
+                Pass pass;
+                if (boss_name.equalsIgnoreCase("*")) {
+                    boss_id = "*";
+                    if (category == null) {
+                        category_id = "*";
+                        pass = nr.config().global_pass;
+                    } else {
+                        category_id = category;
+                        Category cat = nr.bossesConfig().getCategory(category_id);
+                        if (cat == null) {
+                            source_player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("give_command_invalid_category").replaceAll("%category%", category), source_player, target_player, amount, item_type)));
+                            return 0;
+                        }
+                        pass = cat.category_pass();
+                    }
+                    item_name = TextUtils.deserialize(TextUtils.parse(pass.pass_name()));
+                    List<Text> lore_text = new ArrayList<>();
+                    for (String lore_line : pass.pass_lore()) {
+                        lore_text.add(TextUtils.deserialize(TextUtils.parse(lore_line, source_player, target_player, amount, item_type)));
+                    }
+                    lore = new LoreComponent(lore_text);
+                } else if (boss_name.equalsIgnoreCase("random")) {
+                    Boss boss;
+                    if (category == null) {
+                        category_id = "null";
+                        boss = nr.bossesConfig().getRandomBoss();
+                    } else {
+                        category_id = category;
+                        Category cat = nr.bossesConfig().getCategory(category_id);
+                        if (cat == null) {
+                            source_player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("give_command_invalid_category").replaceAll("%category%", category), source_player, target_player, amount, item_type)));
+                            return 0;
+                        }
+                        boss = nr.bossesConfig().getRandomBoss(category_id);
+                    }
+                    boss_id = boss.boss_id();
+                    pass = boss.item_settings().pass();
+                    item_name = TextUtils.deserialize(TextUtils.parse(pass.pass_name(), boss));
+                    List<Text> lore_text = new ArrayList<>();
+                    for (String lore_line : pass.pass_lore()) {
+                        lore_text.add(TextUtils.deserialize(TextUtils.parse(TextUtils.parse(lore_line, boss), source_player, target_player, amount, item_type)));
+                    }
+                    lore = new LoreComponent(lore_text);
+                } else {
+                    category_id = "null";
+                    boss_id = boss_name;
+                    Boss boss = nr.bossesConfig().getBoss(boss_name);
+                    if (boss == null) {
+                        source_player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("give_command_invalid_boss").replaceAll("%boss%", boss_name), source_player, target_player, amount, item_type)));
+                        return 0;
+                    }
+                    pass = boss.item_settings().pass();
+                    item_name = TextUtils.deserialize(TextUtils.parse(pass.pass_name(), boss));
+                    List<Text> lore_text = new ArrayList<>();
+                    for (String lore_line : pass.pass_lore()) {
+                        lore_text.add(TextUtils.deserialize(TextUtils.parse(TextUtils.parse(lore_line, boss), source_player, target_player, amount, item_type)));
+                    }
+                    lore = new LoreComponent(lore_text);
+                }
+
+                item_to_give = new ItemStack(pass.pass_item(), 1);
                 if (pass.pass_data() != null) {
                     item_to_give.applyChanges(pass.pass_data());
                 }
                 item_to_give.applyComponentsFrom(ComponentMap.builder().add(DataComponentTypes.MAX_STACK_SIZE, 1).build());
                 custom_data.putString("raid_item", "raid_pass");
-                item_name = Text.literal("Raid Pass").styled(style -> style.withColor(Formatting.LIGHT_PURPLE).withItalic(false));
-                if (boss_name.equalsIgnoreCase("*")) {
-                    custom_data.putString("raid_boss", "*");
-                    if (category == null) {
-                        custom_data.putString("raid_category", "*");
-
-                        lore = lore.with(Text.literal("Raid pass for any raid!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
-                    } else {
-                        custom_data.putString("raid_category", category);
-
-                        lore = lore.with(Text.literal("Raid pass for any " + category + " raid!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
-                    }
-                } else if (boss_name.equalsIgnoreCase("random")) {
-                    if (category == null) {
-                        // TODO: the random thing again
-                        String random_boss = nr.bossesConfig().bosses.get(rand.nextInt(nr.bossesConfig().bosses.size())).boss_id();
-                        custom_data.putString("raid_boss", random_boss);
-                        custom_data.putString("raid_category", "null");
-
-                        lore = lore.with(Text.literal("Raid pass for " + random_boss + "!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
-                    } else {
-                        List<Boss> possible_bosses = new ArrayList<>();
-                        for (Boss boss : nr.bossesConfig().bosses) {
-                            if (boss.category_id().equalsIgnoreCase(category)) {
-                                possible_bosses.add(boss);
-                            }
-                        }
-                        String random_boss = possible_bosses.get(rand.nextInt(possible_bosses.size())).boss_id();
-                        custom_data.putString("raid_boss", random_boss);
-                        custom_data.putString("raid_category", "null");
-
-                        lore = lore.with(Text.literal("Raid pass for " + random_boss + "!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
-                    }
-                } else {
-                    custom_data.putString("raid_boss", boss_name);
-                    custom_data.putString("raid_category", "null");
-
-                    lore = lore.with(Text.literal("Raid pass for " + boss_name + "!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
-                }
+                custom_data.putString("raid_boss", boss_id);
+                custom_data.putString("raid_category", category_id);
             } else if (item_type.equalsIgnoreCase("voucher")) {
-                item_to_give = new ItemStack(voucher_item, 1);
+                String boss_id;
+                String category_id;
+                Voucher voucher;
+                if (boss_name.equalsIgnoreCase("*")) {
+                    boss_id = "*";
+                    if (category == null) {
+                        category_id = "*";
+                        voucher = nr.config().global_choice_voucher;
+                    } else {
+                        category_id = category;
+                        Category cat = nr.bossesConfig().getCategory(category_id);
+                        if (cat == null) {
+                            source_player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("give_command_invalid_category").replaceAll("%category%", category), source_player, target_player, amount, item_type)));
+                            return 0;
+                        }
+                        voucher = cat.category_choice_voucher();
+                    }
+                    item_name = TextUtils.deserialize(TextUtils.parse(voucher.voucher_name()));
+                    List<Text> lore_text = new ArrayList<>();
+                    for (String lore_line : voucher.voucher_lore()) {
+                        lore_text.add(TextUtils.deserialize(TextUtils.parse(lore_line, source_player, target_player, amount, item_type)));
+                    }
+                    lore = new LoreComponent(lore_text);
+                } else if (boss_name.equalsIgnoreCase("random")) {
+                    boss_id = "random";
+                    if (category == null) {
+                        category_id = "null";
+                        voucher = nr.config().global_random_voucher;
+                    } else {
+                        category_id = category;
+                        Category cat = nr.bossesConfig().getCategory(category_id);
+                        if (cat == null) {
+                            source_player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("give_command_invalid_category").replaceAll("%category%", category), source_player, target_player, amount, item_type)));
+                            return 0;
+                        }
+                        voucher = cat.category_random_voucher();
+                    }
+                    item_name = TextUtils.deserialize(TextUtils.parse(voucher.voucher_name()));
+                    List<Text> lore_text = new ArrayList<>();
+                    for (String lore_line : voucher.voucher_lore()) {
+                        lore_text.add(TextUtils.deserialize(TextUtils.parse(lore_line, source_player, target_player, amount, item_type)));
+                    }
+                    lore = new LoreComponent(lore_text);
+                } else {
+                    category_id = "null";
+                    boss_id = boss_name;
+                    Boss boss = nr.bossesConfig().getBoss(boss_name);
+                    if (boss == null) {
+                        source_player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("give_command_invalid_boss").replaceAll("%boss%", boss_name), source_player, target_player, amount, item_type)));
+                        return 0;
+                    }
+                    voucher = boss.item_settings().voucher();
+                    item_name = TextUtils.deserialize(TextUtils.parse(voucher.voucher_name(), boss));
+                    List<Text> lore_text = new ArrayList<>();
+                    for (String lore_line : voucher.voucher_lore()) {
+                        lore_text.add(TextUtils.deserialize(TextUtils.parse(TextUtils.parse(lore_line, boss), source_player, target_player, amount, item_type)));
+                    }
+                    lore = new LoreComponent(lore_text);
+                }
+
+                item_to_give = new ItemStack(voucher.voucher_item(), 1);
                 if (voucher.voucher_data() != null) {
                     item_to_give.applyChanges(voucher.voucher_data());
                 }
                 item_to_give.applyComponentsFrom(ComponentMap.builder().add(DataComponentTypes.MAX_STACK_SIZE, 1).build());
                 custom_data.putString("raid_item", "raid_voucher");
-                item_name = Text.literal("Raid Voucher").styled(style -> style.withItalic(false).withColor(Formatting.AQUA));
-                if (boss_name.equalsIgnoreCase("*")) {
-                    custom_data.putString("raid_boss", "*");
-                    if (category == null) {
-                        custom_data.putString("raid_category", "*");
-                        lore = lore.with(Text.literal("Use to start any raid!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
-                    } else {
-                        custom_data.putString("raid_category", category);
-                        lore = lore.with(Text.literal("Use to start any " + category + " raid!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
-                    }
-                } else if (boss_name.equalsIgnoreCase("random")) {
-                    custom_data.putString("raid_boss", "random");
-                    if (category == null) {
-                        custom_data.putString("raid_category", "null");
-                        lore = lore.with(Text.literal("Use to start a random raid!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
-                    } else {
-                        custom_data.putString("raid_category", category);
-                        lore = lore.with(Text.literal("Use to start a random " + category + " raid!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
-                    }
-                } else {
-                    custom_data.putString("raid_boss", boss_name);
-                    custom_data.putString("raid_category", "null");
-
-                    lore = lore.with(Text.literal("Use to start a " + boss_name + " raid!").styled(style -> style.withItalic(true).withColor(Formatting.GRAY)));
-                }
+                custom_data.putString("raid_boss", boss_id);
+                custom_data.putString("raid_category", category_id);
             } else {
                 // TODO: The other pokeballs
                 RaidBall raid_pokeball = nr.config().getRaidBall(key);
@@ -896,27 +935,35 @@ public class RaidCommands {
                         source_player.sendMessage(Text.literal("Raid Pokeball not found!"));
                     }
                 }
+                return 0;
             }
 
-            if (item_to_give != null && item_name != null) {
-                item_to_give.applyComponentsFrom(component_builder
-                        .add(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(custom_data))
-                        .add(DataComponentTypes.ITEM_NAME, item_name)
-                        .add(DataComponentTypes.LORE, lore)
-                        .build());
-                if (!target_player.giveItemStack(item_to_give)) {
-                    if (source_player != null) {
-                        source_player.sendMessage(Text.of("Failed to give the item!"));
-                    }
-                } else {
-                    target_player.sendMessage(Text.of("You received a raid " + item_type + "!"));
-                    if (source_player != null) {
-                        source_player.sendMessage(Text.of("Successfully gave the item!"));
-                    }
+            item_to_give.applyComponentsFrom(component_builder
+                    .add(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(custom_data))
+                    .add(DataComponentTypes.CUSTOM_NAME, item_name)
+                    .add(DataComponentTypes.LORE, lore)
+                    .build());
+            if (!target_player.giveItemStack(item_to_give)) {
+                if (source_player != null) {
+                    source_player.sendMessage(
+                            TextUtils.deserialize(
+                                    TextUtils.parse(messages.getMessage("give_command_failed_to_give"), source_player, target_player, amount, item_type)
+                            )
+                    );
+                    return 0;
                 }
             } else {
+                target_player.sendMessage(
+                        TextUtils.deserialize(
+                            TextUtils.parse(messages.getMessage("give_command_received_item"), source_player, target_player, amount, item_type)
+                        )
+                );
                 if (source_player != null) {
-                    source_player.sendMessage(Text.literal("Failed to give item"));
+                    source_player.sendMessage(
+                            TextUtils.deserialize(
+                                    TextUtils.parse(messages.getMessage("give_command_feedback"), source_player, target_player, amount, item_type)
+                            )
+                    );
                 }
             }
         }

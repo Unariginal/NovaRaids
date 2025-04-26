@@ -49,27 +49,27 @@ public class Config {
     public boolean vouchers_enabled = true;
     public Voucher default_voucher = new Voucher(
             Items.FEATHER,
-            TextUtils.deserialize("<aqua>Raid Voucher"),
+            "<aqua>Raid Voucher",
             List.of(
-                    TextUtils.deserialize("<gray>Use this to start a raid!")
+                    "<gray>Use this to start a raid!"
             ),
             ComponentChanges.EMPTY
     );
 
     public Voucher global_choice_voucher = new Voucher(
             Items.FEATHER,
-            TextUtils.deserialize("<aqua>Choice Raid Voucher"),
+            "<aqua>Choice Raid Voucher",
             List.of(
-                    TextUtils.deserialize("<gray>Use this to start any raid!")
+                    "<gray>Use this to start any raid!"
             ),
             ComponentChanges.EMPTY
     );
 
     public Voucher global_random_voucher = new Voucher(
             Items.FEATHER,
-            TextUtils.deserialize("<aqua>Random Raid Voucher"),
+            "<aqua>Random Raid Voucher",
             List.of(
-                    TextUtils.deserialize("<gray>Use this to start a random raid!")
+                    "<gray>Use this to start a random raid!"
             ),
             ComponentChanges.EMPTY
     );
@@ -77,18 +77,18 @@ public class Config {
     public boolean passes_enabled = true;
     public Pass default_pass = new Pass(
             Items.PAPER,
-            TextUtils.deserialize("<light_purple>Raid Pass"),
+            "<light_purple>Raid Pass",
             List.of(
-                    TextUtils.deserialize("<gray>Use this to join a raid!")
+                    "<gray>Use this to join a raid!"
             ),
             ComponentChanges.EMPTY
     );
 
     public Pass global_pass = new Pass(
             Items.PAPER,
-            TextUtils.deserialize("<light_purple>Global Raid Pass"),
+            "<light_purple>Global Raid Pass",
             List.of(
-                    TextUtils.deserialize("<gray>Use this to join any raid!")
+                    "<gray>Use this to join any raid!"
             ),
             ComponentChanges.EMPTY
     );
@@ -211,8 +211,8 @@ public class Config {
                     if (checkProperty(voucher_settings, "default_voucher")) {
                         JsonObject voucher = item_settings.getAsJsonObject("default_voucher");
                         Item default_voucher_item = default_voucher.voucher_item();
-                        Text default_voucher_name = default_voucher.voucher_name();
-                        List<Text> default_voucher_lore = default_voucher.voucher_lore();
+                        String default_voucher_name = default_voucher.voucher_name();
+                        List<String> default_voucher_lore = default_voucher.voucher_lore();
                         ComponentChanges default_voucher_data = default_voucher.voucher_data();
 
                         if (checkProperty(voucher, "voucher_item")) {
@@ -220,15 +220,14 @@ public class Config {
                             default_voucher_item = Registries.ITEM.get(Identifier.of(voucher_item_name));
                         }
                         if (checkProperty(voucher, "voucher_name")) {
-                            String voucher_name = voucher.get("voucher_name").getAsString();
-                            default_voucher_name = TextUtils.deserialize(voucher_name);
+                            default_voucher_name = voucher.get("voucher_name").getAsString();
                         }
                         if (checkProperty(voucher, "voucher_lore")) {
                             JsonArray lore_items = voucher.getAsJsonArray("voucher_lore");
-                            List<Text> lore = new ArrayList<>();
+                            List<String> lore = new ArrayList<>();
                             for (JsonElement l : lore_items) {
                                 String lore_item = l.getAsString();
-                                lore.add(TextUtils.deserialize(lore_item));
+                                lore.add(lore_item);
                             }
                             default_voucher_lore = lore;
                         }
@@ -250,8 +249,8 @@ public class Config {
                     if (voucher_settings.has("global_choice_voucher")) {
                         JsonObject voucher = item_settings.getAsJsonObject("global_choice_voucher");
                         Item global_choice_voucher_item = global_choice_voucher.voucher_item();
-                        Text global_choice_voucher_name = global_choice_voucher.voucher_name();
-                        List<Text> global_choice_voucher_lore = global_choice_voucher.voucher_lore();
+                        String global_choice_voucher_name = global_choice_voucher.voucher_name();
+                        List<String> global_choice_voucher_lore = global_choice_voucher.voucher_lore();
                         ComponentChanges global_choice_voucher_data = global_choice_voucher.voucher_data();
 
                         if (checkProperty(voucher, "voucher_item")) {
@@ -259,15 +258,14 @@ public class Config {
                             global_choice_voucher_item = Registries.ITEM.get(Identifier.of(voucher_item_name));
                         }
                         if (checkProperty(voucher, "voucher_name")) {
-                            String voucher_name = voucher.get("voucher_name").getAsString();
-                            global_choice_voucher_name = TextUtils.deserialize(voucher_name);
+                            global_choice_voucher_name = voucher.get("voucher_name").getAsString();
                         }
                         if (checkProperty(voucher, "voucher_lore")) {
                             JsonArray lore_items = voucher.getAsJsonArray("voucher_lore");
-                            List<Text> lore = new ArrayList<>();
+                            List<String> lore = new ArrayList<>();
                             for (JsonElement l : lore_items) {
                                 String lore_item = l.getAsString();
-                                lore.add(TextUtils.deserialize(lore_item));
+                                lore.add(lore_item);
                             }
                             global_choice_voucher_lore = lore;
                         }
@@ -289,8 +287,8 @@ public class Config {
                     if (voucher_settings.has("global_random_voucher")) {
                         JsonObject voucher = item_settings.getAsJsonObject("global_random_voucher");
                         Item global_random_voucher_item = global_random_voucher.voucher_item();
-                        Text global_random_voucher_name = global_random_voucher.voucher_name();
-                        List<Text> global_random_voucher_lore = global_random_voucher.voucher_lore();
+                        String global_random_voucher_name = global_random_voucher.voucher_name();
+                        List<String> global_random_voucher_lore = global_random_voucher.voucher_lore();
                         ComponentChanges global_random_voucher_data = global_random_voucher.voucher_data();
 
                         if (checkProperty(voucher, "voucher_item")) {
@@ -298,15 +296,14 @@ public class Config {
                             global_random_voucher_item = Registries.ITEM.get(Identifier.of(voucher_item_name));
                         }
                         if (checkProperty(voucher, "voucher_name")) {
-                            String voucher_name = voucher.get("voucher_name").getAsString();
-                            global_random_voucher_name = TextUtils.deserialize(voucher_name);
+                            global_random_voucher_name = voucher.get("voucher_name").getAsString();
                         }
                         if (checkProperty(voucher, "voucher_lore")) {
                             JsonArray lore_items = voucher.getAsJsonArray("voucher_lore");
-                            List<Text> lore = new ArrayList<>();
+                            List<String> lore = new ArrayList<>();
                             for (JsonElement l : lore_items) {
                                 String lore_item = l.getAsString();
-                                lore.add(TextUtils.deserialize(lore_item));
+                                lore.add(lore_item);
                             }
                             global_random_voucher_lore = lore;
                         }
@@ -336,8 +333,8 @@ public class Config {
                     if (checkProperty(pass_settings, "default_pass")) {
                         JsonObject pass = item_settings.getAsJsonObject("default_pass");
                         Item default_pass_item = default_pass.pass_item();
-                        Text default_pass_name = default_pass.pass_name();
-                        List<Text> default_pass_lore = default_pass.pass_lore();
+                        String default_pass_name = default_pass.pass_name();
+                        List<String> default_pass_lore = default_pass.pass_lore();
                         ComponentChanges default_pass_data = default_pass.pass_data();
 
                         if (checkProperty(pass, "pass_item")) {
@@ -345,15 +342,14 @@ public class Config {
                             default_pass_item = Registries.ITEM.get(Identifier.of(pass_item_name));
                         }
                         if (checkProperty(pass, "pass_name")) {
-                            String pass_name = pass.get("pass_name").getAsString();
-                            default_pass_name = TextUtils.deserialize(pass_name);
+                            default_pass_name = pass.get("pass_name").getAsString();
                         }
                         if (checkProperty(pass, "pass_lore")) {
                             JsonArray lore_items = pass.getAsJsonArray("pass_lore");
-                            List<Text> lore = new ArrayList<>();
+                            List<String> lore = new ArrayList<>();
                             for (JsonElement l : lore_items) {
                                 String lore_item = l.getAsString();
-                                lore.add(TextUtils.deserialize(lore_item));
+                                lore.add(lore_item);
                             }
                             default_pass_lore = lore;
                         }
@@ -375,8 +371,8 @@ public class Config {
                     if (pass_settings.has("global_pass")) {
                         JsonObject pass = item_settings.getAsJsonObject("global_pass");
                         Item global_pass_item = global_pass.pass_item();
-                        Text global_pass_name = global_pass.pass_name();
-                        List<Text> global_pass_lore = global_pass.pass_lore();
+                        String global_pass_name = global_pass.pass_name();
+                        List<String> global_pass_lore = global_pass.pass_lore();
                         ComponentChanges global_pass_data = global_pass.pass_data();
 
                         if (checkProperty(pass, "pass_item")) {
@@ -384,15 +380,14 @@ public class Config {
                             global_pass_item = Registries.ITEM.get(Identifier.of(pass_item_name));
                         }
                         if (checkProperty(pass, "pass_name")) {
-                            String pass_name = pass.get("pass_name").getAsString();
-                            global_pass_name = TextUtils.deserialize(pass_name);
+                            global_pass_name = pass.get("pass_name").getAsString();
                         }
                         if (checkProperty(pass, "pass_lore")) {
                             JsonArray lore_items = pass.getAsJsonArray("pass_lore");
-                            List<Text> lore = new ArrayList<>();
+                            List<String> lore = new ArrayList<>();
                             for (JsonElement l : lore_items) {
                                 String lore_item = l.getAsString();
-                                lore.add(TextUtils.deserialize(lore_item));
+                                lore.add(lore_item);
                             }
                             global_pass_lore = lore;
                         }

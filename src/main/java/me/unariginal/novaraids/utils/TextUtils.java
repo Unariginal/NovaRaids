@@ -24,6 +24,14 @@ public class TextUtils {
         return text.replaceAll("%prefix%", nr.messagesConfig().prefix);
     }
 
+    public static String parse(String text, ServerPlayerEntity source_player, ServerPlayerEntity target_player, int amount, String item_type) {
+        text = parse(text);
+        return text.replaceAll("%target%", target_player.getNameForScoreboard())
+                .replaceAll("%raid_item%", item_type)
+                .replaceAll("%amount%", amount == 0 ? "a" : String.valueOf(amount))
+                .replaceAll("%source%", source_player != null ? source_player.getNameForScoreboard() : "Server");
+    }
+
     public static String parse(String message, Raid raid) {
         message = parse(message);
         message = parse(message, raid.boss_info());

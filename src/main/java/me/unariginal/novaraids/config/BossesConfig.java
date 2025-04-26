@@ -133,31 +133,32 @@ public class BossesConfig {
             }
         }
 
-        Voucher category_voucher = nr.config().default_voucher;
-        Pass category_pass = nr.config().default_pass;
+        Voucher category_choice_voucher = nr.config().global_choice_voucher;
+        Voucher category_random_voucher = nr.config().global_random_voucher;
+        Pass category_pass = nr.config().global_pass;
         List<RaidBall> category_balls = new ArrayList<>();
         if (checkProperty(config, "item_settings", category_name + "/settings")) {
             JsonObject item_settings = config.getAsJsonObject("item_settings");
-            if (checkProperty(item_settings, "category_voucher", category_name + "/settings")) {
-                JsonObject voucher = item_settings.getAsJsonObject("category_voucher");
-                Item voucher_item = category_voucher.voucher_item();
-                Text voucher_name = category_voucher.voucher_name();
-                List<Text> voucher_lore = category_voucher.voucher_lore();
-                ComponentChanges voucher_data = category_voucher.voucher_data();
+            if (checkProperty(item_settings, "category_choice_voucher", category_name + "/settings")) {
+                JsonObject voucher = item_settings.getAsJsonObject("category_choice_voucher");
+                Item voucher_item = category_choice_voucher.voucher_item();
+                String voucher_name = category_choice_voucher.voucher_name();
+                List<String> voucher_lore = category_choice_voucher.voucher_lore();
+                ComponentChanges voucher_data = category_choice_voucher.voucher_data();
 
-                if (checkProperty(voucher, "pass_item", category_name + "/settings")) {
-                    String voucher_item_name = voucher.get("pass_item").getAsString();
+                if (checkProperty(voucher, "voucher_item", category_name + "/settings")) {
+                    String voucher_item_name = voucher.get("voucher_item").getAsString();
                     voucher_item = Registries.ITEM.get(Identifier.of(voucher_item_name));
                 }
                 if (checkProperty(voucher, "voucher_name", category_name + "/settings")) {
-                    voucher_name = TextUtils.deserialize(voucher.get("voucher_name").getAsString());
+                    voucher_name = voucher.get("voucher_name").getAsString();
                 }
                 if (checkProperty(voucher, "voucher_lore", category_name + "/settings")) {
                     JsonArray lore_items = voucher.getAsJsonArray("voucher_lore");
-                    List<Text> lore = new ArrayList<>();
+                    List<String> lore = new ArrayList<>();
                     for (JsonElement l : lore_items) {
                         String lore_item = l.getAsString();
-                        lore.add(TextUtils.deserialize(lore_item));
+                        lore.add(lore_item);
                     }
                     voucher_lore = lore;
                 }
@@ -168,14 +169,47 @@ public class BossesConfig {
                     }
                 }
 
-                category_voucher = new Voucher(voucher_item, voucher_name, voucher_lore, voucher_data);
+                category_choice_voucher = new Voucher(voucher_item, voucher_name, voucher_lore, voucher_data);
+            }
+
+            if (checkProperty(item_settings, "category_random_voucher", category_name + "/settings")) {
+                JsonObject voucher = item_settings.getAsJsonObject("category_random_voucher");
+                Item voucher_item = category_random_voucher.voucher_item();
+                String voucher_name = category_random_voucher.voucher_name();
+                List<String> voucher_lore = category_random_voucher.voucher_lore();
+                ComponentChanges voucher_data = category_random_voucher.voucher_data();
+
+                if (checkProperty(voucher, "voucher_item", category_name + "/settings")) {
+                    String voucher_item_name = voucher.get("voucher_item").getAsString();
+                    voucher_item = Registries.ITEM.get(Identifier.of(voucher_item_name));
+                }
+                if (checkProperty(voucher, "voucher_name", category_name + "/settings")) {
+                    voucher_name = voucher.get("voucher_name").getAsString();
+                }
+                if (checkProperty(voucher, "voucher_lore", category_name + "/settings")) {
+                    JsonArray lore_items = voucher.getAsJsonArray("voucher_lore");
+                    List<String> lore = new ArrayList<>();
+                    for (JsonElement l : lore_items) {
+                        String lore_item = l.getAsString();
+                        lore.add(lore_item);
+                    }
+                    voucher_lore = lore;
+                }
+                if (checkProperty(voucher, "voucher_data", category_name + "/settings")) {
+                    JsonElement data = voucher.getAsJsonObject("voucher_data");
+                    if (data != null) {
+                        voucher_data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, data).getOrThrow().getFirst();
+                    }
+                }
+
+                category_random_voucher = new Voucher(voucher_item, voucher_name, voucher_lore, voucher_data);
             }
 
             if (checkProperty(item_settings, "category_pass", category_name + "/settings")) {
                 JsonObject pass = item_settings.getAsJsonObject("category_pass");
                 Item pass_item = category_pass.pass_item();
-                Text pass_name = category_pass.pass_name();
-                List<Text> pass_lore = category_pass.pass_lore();
+                String pass_name = category_pass.pass_name();
+                List<String> pass_lore = category_pass.pass_lore();
                 ComponentChanges pass_data = category_pass.pass_data();
 
                 if (checkProperty(pass, "pass_item", category_name + "/settings")) {
@@ -183,14 +217,14 @@ public class BossesConfig {
                     pass_item = Registries.ITEM.get(Identifier.of(pass_item_name));
                 }
                 if (checkProperty(pass, "pass_name", category_name + "/settings")) {
-                    pass_name = TextUtils.deserialize(pass.get("pass_name").getAsString());
+                    pass_name = pass.get("pass_name").getAsString();
                 }
                 if (checkProperty(pass, "pass_lore", category_name + "/settings")) {
                     JsonArray lore_items = pass.getAsJsonArray("pass_lore");
-                    List<Text> lore = new ArrayList<>();
+                    List<String> lore = new ArrayList<>();
                     for (JsonElement l : lore_items) {
                         String lore_item = l.getAsString();
-                        lore.add(TextUtils.deserialize(lore_item));
+                        lore.add(lore_item);
                     }
                     pass_lore = lore;
                 }
@@ -242,7 +276,7 @@ public class BossesConfig {
         }
 
         List<DistributionSection> rewards = ConfigHelper.getDistributionSections(config, category_name + "/settings");
-        categories.add(new Category(category_name, require_pass, min_players, max_players, setup_bossbar, fight_bossbar, pre_catch_bossbar, catch_bossbar, category_voucher, category_pass, category_balls, rewards));
+        categories.add(new Category(category_name, require_pass, min_players, max_players, setup_bossbar, fight_bossbar, pre_catch_bossbar, catch_bossbar, category_choice_voucher, category_random_voucher, category_pass, category_balls, rewards));
     }
 
     public void loadBoss(String category_name, File file) throws IOException, NullPointerException, UnsupportedOperationException {
@@ -553,21 +587,21 @@ public class BossesConfig {
             }
             if (checkProperty(item_settings, "boss_voucher", category_name + "/bosses/" + file_name)) {
                 Item voucher_item = nr.config().default_voucher.voucher_item();
-                Text voucher_name = nr.config().default_voucher.voucher_name();
-                List<Text> voucher_lore = nr.config().default_voucher.voucher_lore();
+                String voucher_name = nr.config().default_voucher.voucher_name();
+                List<String> voucher_lore = nr.config().default_voucher.voucher_lore();
                 ComponentChanges voucher_data = nr.config().default_voucher.voucher_data();
                 JsonObject boss_voucher_object = item_settings.getAsJsonObject("boss_voucher");
                 if (checkProperty(boss_voucher_object, "voucher_item", category_name + "/bosses/" + file_name)) {
                     voucher_item = Registries.ITEM.get(Identifier.of(item_settings.get("voucher_item").getAsString()));
                 }
                 if (checkProperty(boss_voucher_object, "voucher_name", category_name + "/bosses/" + file_name)) {
-                    voucher_name = TextUtils.deserialize(boss_voucher_object.get("voucher_name").getAsString());
+                    voucher_name = boss_voucher_object.get("voucher_name").getAsString();
                 }
                 if (checkProperty(boss_voucher_object, "voucher_lore", category_name + "/bosses/" + file_name)) {
                     JsonArray lore_array = boss_voucher_object.get("voucher_lore").getAsJsonArray();
-                    List<Text> lore = new ArrayList<>();
+                    List<String> lore = new ArrayList<>();
                     for (JsonElement lore_element : lore_array) {
-                        lore.add(TextUtils.deserialize(lore_element.getAsString()));
+                        lore.add(lore_element.getAsString());
                     }
                     voucher_lore = lore;
                 }
@@ -581,21 +615,21 @@ public class BossesConfig {
             }
             if (checkProperty(item_settings, "boss_pass", category_name + "/bosses/" + file_name)) {
                 Item pass_item = nr.config().default_pass.pass_item();
-                Text pass_name = nr.config().default_pass.pass_name();
-                List<Text> pass_lore = nr.config().default_pass.pass_lore();
+                String pass_name = nr.config().default_pass.pass_name();
+                List<String> pass_lore = nr.config().default_pass.pass_lore();
                 ComponentChanges pass_data = nr.config().default_pass.pass_data();
                 JsonObject boss_pass_object = item_settings.getAsJsonObject("boss_pass");
                 if (checkProperty(boss_pass_object, "pass_item", category_name + "/bosses/" + file_name)) {
                     pass_item = Registries.ITEM.get(Identifier.of(item_settings.get("pass_item").getAsString()));
                 }
                 if (checkProperty(boss_pass_object, "pass_name", category_name + "/bosses/" + file_name)) {
-                    pass_name = TextUtils.deserialize(boss_pass_object.get("pass_name").getAsString());
+                    pass_name = boss_pass_object.get("pass_name").getAsString();
                 }
                 if (checkProperty(boss_pass_object, "pass_lore", category_name + "/bosses/" + file_name)) {
                     JsonArray lore_array = boss_pass_object.get("pass_lore").getAsJsonArray();
-                    List<Text> lore = new ArrayList<>();
+                    List<String> lore = new ArrayList<>();
                     for (JsonElement lore_element : lore_array) {
-                        lore.add(TextUtils.deserialize(lore_element.getAsString()));
+                        lore.add(lore_element.getAsString());
                     }
                     pass_lore = lore;
                 }
@@ -922,6 +956,48 @@ public class BossesConfig {
         }
         nr.logError("[RAIDS] Missing " + property + " property in " + location + ".json. Using default value(s) or skipping.");
         return false;
+    }
+
+    public Boss getRandomBoss(String category) {
+        double total_weight = 0;
+        for (Boss boss : bosses) {
+            if (boss.category_id().equalsIgnoreCase(category)) {
+                total_weight += boss.category_weight();
+            }
+        }
+
+        if (total_weight > 0) {
+            double random_weight = new Random().nextDouble(total_weight);
+            total_weight = 0;
+            for (Boss boss : bosses) {
+                if (boss.category_id().equalsIgnoreCase(category)) {
+                    total_weight += boss.category_weight();
+                    if (random_weight < total_weight) {
+                        return boss;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    public Boss getRandomBoss() {
+        double total_weight = 0;
+        for (Boss boss : bosses) {
+            total_weight += boss.global_weight();
+        }
+
+        if (total_weight > 0) {
+            double random_weight = new Random().nextDouble(total_weight);
+            total_weight = 0;
+            for (Boss boss : bosses) {
+                total_weight += boss.global_weight();
+                if (random_weight < total_weight) {
+                    return boss;
+                }
+            }
+        }
+        return null;
     }
 
     public Boss getBoss(String id) {

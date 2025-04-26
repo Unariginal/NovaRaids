@@ -60,6 +60,12 @@ public class MessagesConfig {
         messages.put("added_to_queue", "%prefix% %boss.form% %boss.species% has been added to the queue!");
         messages.put("reload_command", "%prefix% Reloaded!");
         messages.put("raid_stopped", "%prefix% You've stopped the raid against %boss.form% %boss.species%!");
+        messages.put("give_command_invalid_category", "%prefix% Category %category% does not exist!");
+        messages.put("give_command_invalid_pokeball", "%prefix% Pokeball %pokeball% does not exist!");
+        messages.put("give_command_invalid_boss", "%prefix% Boss %boss% does not exist!");
+        messages.put("give_command_failed_to_give", "%prefix% Failed to give the item!");
+        messages.put("give_command_received_item", "%prefix% You received a %raid_item%!");
+        messages.put("give_command_feedback", "%prefix% Successfully gave %target% a %raid_item%");
         messages.put("raid_list_gui_title", "Active Raids");
         messages.put("raid_queue_gui_title", "Queued Raids");
         messages.put("contraband_gui_title", "Raid Contraband");
@@ -121,7 +127,7 @@ public class MessagesConfig {
         if (messages.containsKey(key)) {
             return messages.get(key);
         }
-        return null;
+        return "null";
     }
 
     public void execute_command(Raid raid) {
