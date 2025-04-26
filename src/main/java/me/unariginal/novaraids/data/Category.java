@@ -19,4 +19,13 @@ public record Category(String name,
                       Voucher category_random_voucher,
                       Pass category_pass,
                       List<RaidBall> category_balls,
-                      List<DistributionSection> rewards) {}
+                      List<DistributionSection> rewards) {
+    public RaidBall getRaidBall(String key) {
+        for (RaidBall ball : category_balls) {
+            if (ball.id().equals(key)) {
+                return ball;
+            }
+        }
+        return null;
+    }
+}

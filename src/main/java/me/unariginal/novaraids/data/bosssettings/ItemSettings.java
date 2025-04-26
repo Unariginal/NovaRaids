@@ -11,4 +11,12 @@ public record ItemSettings(boolean allow_global_pokeballs,
                            Voucher voucher,
                            Pass pass,
                            List<RaidBall> raid_balls) {
+    public RaidBall getRaidBall(String key) {
+        for (RaidBall ball : raid_balls) {
+            if (ball.id().equals(key)) {
+                return ball;
+            }
+        }
+        return null;
+    }
 }

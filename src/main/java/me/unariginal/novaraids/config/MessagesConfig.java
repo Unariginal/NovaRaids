@@ -127,10 +127,17 @@ public class MessagesConfig {
     }
 
     public String getMessage(String key) {
-        if (messages.containsKey(key)) {
-            return messages.get(key);
+        try {
+            if (messages != null) {
+                if (messages.containsKey(key)) {
+                    return messages.get(key);
+                }
+                return "<red>Message \"" + key + "\" not found!";
+            }
+            return "<red>Null!";
+        } catch (NullPointerException e) {
+            return "<red>Null!";
         }
-        return "null";
     }
 
     public void execute_command(Raid raid) {
