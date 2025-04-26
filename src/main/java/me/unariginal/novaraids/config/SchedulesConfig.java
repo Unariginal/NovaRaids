@@ -15,13 +15,13 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Schedules {
+public class SchedulesConfig {
     private final NovaRaids nr = NovaRaids.INSTANCE;
 
     ZoneId zone = ZoneId.systemDefault();
     List<Schedule> schedules = new ArrayList<>();
 
-    public Schedules() {
+    public SchedulesConfig() {
         try {
             loadSchedules();
         } catch (IOException | NullPointerException | UnsupportedOperationException e) {
@@ -134,5 +134,16 @@ public class Schedules {
         }
         nr.logError("[RAIDS] Missing " + property + " property in schedules.json. Using default value(s) or skipping.");
         return false;
+    }
+
+    public Schedule getSchedule(String boss) {
+        for (Schedule schedule : this.schedules) {
+            for (ScheduleBoss scheduleBoss : schedule.bosses) {
+                if (scheduleBoss.id().equalsIgnoreCase(boss)) {
+                    return schedule;
+                }
+            }
+        }
+        return null;
     }
 }

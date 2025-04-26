@@ -1,8 +1,7 @@
 package me.unariginal.novaraids;
 
 import me.unariginal.novaraids.commands.RaidCommands;
-import me.unariginal.novaraids.config.Config;
-import me.unariginal.novaraids.config.OldConfig;
+import me.unariginal.novaraids.config.*;
 import me.unariginal.novaraids.data.QueueItem;
 import me.unariginal.novaraids.managers.EventManager;
 import me.unariginal.novaraids.managers.Raid;
@@ -23,6 +22,14 @@ public class NovaRaids implements ModInitializer {
     public static NovaRaids INSTANCE;
 
     private Config config;
+    private LocationsConfig locationsConfig;
+    private BossbarsConfig bossbarsConfig;
+    private MessagesConfig messagesConfig;
+    private SchedulesConfig schedulesConfig;
+    private RewardPresetsConfig rewardPresetsConfig;
+    private RewardPoolsConfig rewardPoolsConfig;
+    private BossesConfig bossesConfig;
+
     public boolean debug = true;
     private MinecraftServer server;
     private FabricServerAudiences audience;
@@ -42,6 +49,10 @@ public class NovaRaids implements ModInitializer {
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             this.server = server;
             this.audience = FabricServerAudiences.of(server);
+            // Ignore my bullshit method of error handling for these configs, I'll ask someone
+            // what the best practice for configs is eventually...
+            // But for now, I settle for what works.
+            // Amo, you're the someone
             reloadConfig();
             //if (config.loadedProperly()) {
                 EventManager.battle_events();
@@ -92,9 +103,37 @@ public class NovaRaids implements ModInitializer {
     public Config config() {
         return config;
     }
+    public LocationsConfig locationsConfig() {
+        return locationsConfig;
+    }
+    public BossbarsConfig bossbarsConfig() {
+        return bossbarsConfig;
+    }
+    public MessagesConfig messagesConfig() {
+        return messagesConfig;
+    }
+    public SchedulesConfig schedulesConfig() {
+        return schedulesConfig;
+    }
+    public RewardPresetsConfig rewardPresetsConfig() {
+        return rewardPresetsConfig;
+    }
+    public RewardPoolsConfig rewardPoolsConfig() {
+        return rewardPoolsConfig;
+    }
+    public BossesConfig bossesConfig() {
+        return bossesConfig;
+    }
 
     public void reloadConfig() {
         config = new Config();
+        locationsConfig = new LocationsConfig();
+        bossbarsConfig = new BossbarsConfig();
+        messagesConfig = new MessagesConfig();
+        schedulesConfig = new SchedulesConfig();
+        rewardPresetsConfig = new RewardPresetsConfig();
+        rewardPoolsConfig = new RewardPoolsConfig();
+        bossesConfig = new BossesConfig();
     }
 
     public MinecraftServer server() {

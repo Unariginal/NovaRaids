@@ -1,11 +1,10 @@
-package me.unariginal.novaraids.data.BossSettings;
+package me.unariginal.novaraids.data.bosssettings;
 
 import com.cobblemon.mod.common.api.abilities.Ability;
 import com.cobblemon.mod.common.api.moves.MoveTemplate;
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
 import com.cobblemon.mod.common.api.pokemon.stats.Stat;
 import com.cobblemon.mod.common.pokemon.*;
-import com.mojang.serialization.JsonOps;
 import me.unariginal.novaraids.utils.RandomUtils;
 import net.minecraft.component.ComponentChanges;
 import net.minecraft.item.Item;

@@ -5,7 +5,7 @@ import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import me.unariginal.novaraids.NovaRaids;
-import me.unariginal.novaraids.data.BossSettings.Boss;
+import me.unariginal.novaraids.data.bosssettings.Boss;
 import net.minecraft.server.command.ServerCommandSource;
 
 import java.util.concurrent.CompletableFuture;

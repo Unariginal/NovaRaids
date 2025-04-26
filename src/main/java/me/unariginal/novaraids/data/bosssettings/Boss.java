@@ -1,6 +1,5 @@
-package me.unariginal.novaraids.data.BossSettings;
+package me.unariginal.novaraids.data.bosssettings;
 
-import me.unariginal.novaraids.data.Category;
 import me.unariginal.novaraids.utils.RandomUtils;
 
 import java.util.Map;

@@ -1,4 +1,4 @@
-package me.unariginal.novaraids.data.BossSettings;
+package me.unariginal.novaraids.data.bosssettings;
 
 import me.unariginal.novaraids.data.items.Pass;
 import me.unariginal.novaraids.data.items.RaidBall;

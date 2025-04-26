@@ -20,7 +20,7 @@ import eu.pb4.sgui.api.gui.SimpleGui;
 import kotlin.Unit;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import me.unariginal.novaraids.NovaRaids;
-import me.unariginal.novaraids.data.BossSettings.Boss;
+import me.unariginal.novaraids.data.bosssettings.Boss;
 import me.unariginal.novaraids.utils.BanHandler;
 import me.unariginal.novaraids.utils.TextUtils;
 import net.fabricmc.fabric.api.event.player.AttackEntityCallback;

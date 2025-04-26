@@ -1,7 +1,7 @@
 package me.unariginal.novaraids.managers;
 
 import me.unariginal.novaraids.NovaRaids;
-import me.unariginal.novaraids.data.BossSettings.Boss;
+import me.unariginal.novaraids.data.bosssettings.Boss;
 import me.unariginal.novaraids.utils.TextUtils;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -49,10 +49,10 @@ public record Messages(String prefix, String raid_start_command, Map<String, Str
         String output = message;
         output = parse(output);
         output = output
-                .replaceAll("%boss.species%", boss.species().getName())
-                .replaceAll("%boss.level%", String.valueOf(boss.level()))
-                .replaceAll("%boss%", boss.name())
-                .replaceAll("%boss.minimum_level%", String.valueOf(boss.minimum_level()));
+                .replaceAll("%boss%", boss.boss_id())
+                .replaceAll("%boss.species%", boss.pokemonDetails().species().getName())
+                .replaceAll("%boss.level%", String.valueOf(boss.pokemonDetails().level()))
+                .replaceAll("%boss.minimum_level%", String.valueOf(boss.raid_details().minimum_level()));
 
         boolean normal = boss.display_form().isEmpty() || boss.display_form().equalsIgnoreCase("normal");
         if (output.contains(" %boss.form%")) {

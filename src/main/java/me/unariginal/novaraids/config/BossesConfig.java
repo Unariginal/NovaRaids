@@ -18,7 +18,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.JsonOps;
 import me.unariginal.novaraids.NovaRaids;
-import me.unariginal.novaraids.data.BossSettings.*;
+import me.unariginal.novaraids.data.bosssettings.*;
 import me.unariginal.novaraids.data.Category;
 import me.unariginal.novaraids.data.items.Pass;
 import me.unariginal.novaraids.data.items.RaidBall;
@@ -38,12 +38,12 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 
-public class Bosses {
+public class BossesConfig {
     private final NovaRaids nr = NovaRaids.INSTANCE;
     public List<Category> categories = new ArrayList<>();
     public List<Boss> bosses = new ArrayList<>();
 
-    public Bosses() {
+    public BossesConfig() {
         try {
             loadBosses();
         } catch (IOException | NullPointerException | UnsupportedOperationException e) {
@@ -921,5 +921,23 @@ public class Bosses {
         }
         nr.logError("[RAIDS] Missing " + property + " property in " + location + ".json. Using default value(s) or skipping.");
         return false;
+    }
+
+    public Boss getBoss(String id) {
+        for (Boss boss : bosses) {
+            if (boss.boss_id().equalsIgnoreCase(id)) {
+                return boss;
+            }
+        }
+        return null;
+    }
+
+    public Category getCategory(String id) {
+        for (Category category : categories) {
+            if (category.name().equalsIgnoreCase(id)) {
+                return category;
+            }
+        }
+        return null;
     }
 }

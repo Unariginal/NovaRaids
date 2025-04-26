@@ -13,12 +13,12 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Locations {
+public class LocationsConfig {
     private final NovaRaids nr = NovaRaids.INSTANCE;
 
     List<Location> locations = new ArrayList<>();
 
-    public Locations() {
+    public LocationsConfig() {
         try {
             loadLocations();
         } catch (IOException | NullPointerException | UnsupportedOperationException e) {
@@ -55,28 +55,34 @@ public class Locations {
         List<Location> locations = new ArrayList<>();
         for (String key : config.keySet()) {
             JsonObject location_object = config.getAsJsonObject(key);
-            double x = 0;
-            double y = 100;
-            double z = 0;
+            double x;
+            double y;
+            double z;
             ServerWorld world = nr.server().getOverworld();
-            int border_radius = 30;
-            int boss_pushback_radius = 5;
-            float boss_facing_direction = 0;
+            int border_radius;
+            int boss_pushback_radius;
+            float boss_facing_direction;
             boolean use_join_location = false;
             double join_x = 0;
-            double join_y = 100;
-            double join_z = 7;
+            double join_y = 0;
+            double join_z = 0;
             float yaw = 0;
             float pitch = 0;
 
             if (checkProperty(location_object, "x_pos")) {
                 x = location_object.get("x_pos").getAsDouble();
+            } else {
+                continue;
             }
             if (checkProperty(location_object, "y_pos")) {
                 y = location_object.get("y_pos").getAsDouble();
+            } else {
+                continue;
             }
             if (checkProperty(location_object, "z_pos")) {
                 z = location_object.get("z_pos").getAsDouble();
+            } else {
+                continue;
             }
             Vec3d pos = new Vec3d(x, y, z);
 
@@ -92,12 +98,18 @@ public class Locations {
 
             if (checkProperty(location_object, "border_radius")) {
                 border_radius = location_object.get("border_radius").getAsInt();
+            } else {
+                continue;
             }
             if (checkProperty(location_object, "boss_pushback_radius")) {
                 boss_pushback_radius = location_object.get("boss_pushback_radius").getAsInt();
+            } else {
+                continue;
             }
             if (checkProperty(location_object, "boss_facing_direction")) {
                 boss_facing_direction = location_object.get("boss_facing_direction").getAsFloat();
+            } else {
+                continue;
             }
             if (checkProperty(location_object, "use_join_location")) {
                 use_join_location = location_object.get("use_join_location").getAsBoolean();
@@ -107,18 +119,28 @@ public class Locations {
                     JsonObject join_location_object = location_object.get("join_location").getAsJsonObject();
                     if (checkProperty(join_location_object, "x_pos")) {
                         join_x = join_location_object.get("x_pos").getAsDouble();
+                    } else {
+                        continue;
                     }
                     if (checkProperty(join_location_object, "y_pos")) {
                         join_y = join_location_object.get("y_pos").getAsDouble();
+                    } else {
+                        continue;
                     }
                     if (checkProperty(join_location_object, "z_pos")) {
                         join_z = join_location_object.get("z_pos").getAsDouble();
+                    } else {
+                        continue;
                     }
                     if (checkProperty(join_location_object, "yaw")) {
                         yaw = join_location_object.get("yaw").getAsFloat();
+                    } else {
+                        continue;
                     }
                     if (checkProperty(join_location_object, "pitch")) {
                         pitch = join_location_object.get("pitch").getAsFloat();
+                    } else {
+                        continue;
                     }
                 }
             }
@@ -134,5 +156,14 @@ public class Locations {
         }
         nr.logError("[RAIDS] Missing " + property + " property in locations.json. Using default value(s) or skipping.");
         return false;
+    }
+
+    public Location getLocation(String key) {
+        for (Location loc : locations) {
+            if (loc.name().equalsIgnoreCase(key)) {
+                return loc;
+            }
+        }
+        return null;
     }
 }
