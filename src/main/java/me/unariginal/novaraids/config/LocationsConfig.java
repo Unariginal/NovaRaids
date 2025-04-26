@@ -22,6 +22,7 @@ public class LocationsConfig {
         try {
             loadLocations();
         } catch (IOException | NullPointerException | UnsupportedOperationException e) {
+            NovaRaids.INSTANCE.loaded_properly = false;
             nr.logError("[RAIDS] Failed to load locations file.");
         }
     }

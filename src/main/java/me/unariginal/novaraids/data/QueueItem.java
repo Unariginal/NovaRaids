@@ -16,7 +16,7 @@ public record QueueItem(UUID uuid, Boss boss_info, Location raidBoss_location, U
     }
 
     public void cancel_item() {
-        if (nr.config().getCategory(boss_info.category()).require_pass()) {
+        if (nr.bossesConfig().getCategory(boss_info.category_id()).require_pass()) {
             if (starting_item != null) {
                 ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(started_by);
                 if (player != null) {

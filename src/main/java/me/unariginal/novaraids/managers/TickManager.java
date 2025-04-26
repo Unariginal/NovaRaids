@@ -15,8 +15,6 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 public class TickManager {
@@ -55,8 +53,8 @@ public class TickManager {
         for (Raid raid : nr.active_raids().values()) {
             for (ServerPlayerEntity player : nr.server().getPlayerManager().getPlayerList()) {
                 if (player != null) {
-                    int raid_radius = nr.config().getSettings().raid_radius();
-                    int raid_pushback = nr.config().getSettings().raid_pushback_radius();
+                    int raid_radius = raid.raidBoss_location().border_radius();
+                    int raid_pushback = raid.raidBoss_location().boss_pushback_radius();
                     ServerWorld world = raid.raidBoss_location().world();
                     if (player.getServerWorld() == world) {
                         double x = player.getPos().getX();
@@ -228,7 +226,7 @@ public class TickManager {
                                                     angle += 360;
                                                 }
 
-                                                double distance = nr.config().getSettings().raid_radius() + 2;
+                                                double distance = raid.raidBoss_location().border_radius() + 2;
 
                                                 double new_x = cx + distance * Math.cos(Math.toRadians(angle));
                                                 double new_z = cz + distance * Math.sin(Math.toRadians(angle));
@@ -246,9 +244,10 @@ public class TickManager {
         }
     }
 
+    // TODO: Use schedules!
     public static void scheduled_raids() throws ConcurrentModificationException {
         LocalDateTime now = LocalDateTime.now(TimeZone.getDefault().toZoneId());
-        for (Category category : nr.config().getCategories()) {
+        /*for (Category category : nr.bossesConfig().categories) {
             if (!category.set_times().isEmpty()) {
                 for (LocalTime time : category.set_times()) {
                     if (set_time_buffer.until(now, ChronoUnit.SECONDS) >= 1 && time.getHour() == now.getHour() && time.getMinute() == now.getMinute() && time.getSecond() == now.getSecond()) {
@@ -269,10 +268,12 @@ public class TickManager {
             } else {
                 category.new_next_time(now);
             }
-        }
+        }*/
     }
 
+    // TODO: Use Weights! Also move this to a global file to allow use with vouchers and the give command and other stuff!
     private static Boss choose_boss(Category category) throws ConcurrentModificationException {
+        /*
         List<Boss> possible_bosses = new ArrayList<>();
         for (Boss boss : nr.config().getBosses()) {
             if (boss.category().equalsIgnoreCase(category.name())) {
@@ -299,6 +300,8 @@ public class TickManager {
             return chosen_boss;
         }
 
+        return null;
+        */
         return null;
     }
 }

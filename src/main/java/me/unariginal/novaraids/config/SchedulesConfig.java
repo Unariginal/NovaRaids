@@ -25,6 +25,7 @@ public class SchedulesConfig {
         try {
             loadSchedules();
         } catch (IOException | NullPointerException | UnsupportedOperationException e) {
+            NovaRaids.INSTANCE.loaded_properly = false;
             nr.logError("[RAIDS] Failed to load schedules file.");
         }
     }

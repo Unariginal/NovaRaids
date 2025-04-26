@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.BossbarData;
+import me.unariginal.novaraids.data.bosssettings.Boss;
 import net.fabricmc.loader.api.FabricLoader;
 import net.kyori.adventure.bossbar.BossBar;
 
@@ -19,6 +20,7 @@ public class BossbarsConfig {
         try {
             loadConfig();
         } catch (IOException | NullPointerException | UnsupportedOperationException e) {
+            NovaRaids.INSTANCE.loaded_properly = false;
             NovaRaids.INSTANCE.logError("[RAIDS] Failed to load bossbars file.");
         }
     }
@@ -96,5 +98,40 @@ public class BossbarsConfig {
             }
         }
         return null;
+    }
+
+    public BossbarData getBossbar(Boss boss, String phase) {
+        String bossbar_id = "";
+        switch (phase) {
+            case "setup":
+                if (boss.raid_details().setup_bossbar().isEmpty()) {
+                    bossbar_id = NovaRaids.INSTANCE.bossesConfig().getCategory(boss.category_id()).setup_bossbar();
+                } else {
+                    bossbar_id = boss.raid_details().setup_bossbar();
+                }
+                break;
+            case "fight":
+                if (boss.raid_details().fight_bossbar().isEmpty()) {
+                    bossbar_id = NovaRaids.INSTANCE.bossesConfig().getCategory(boss.category_id()).fight_bossbar();
+                } else {
+                    bossbar_id = boss.raid_details().fight_bossbar();
+                }
+                break;
+            case "pre_catch":
+                if (boss.raid_details().pre_catch_bossbar().isEmpty()) {
+                    bossbar_id = NovaRaids.INSTANCE.bossesConfig().getCategory(boss.category_id()).pre_catch_bossbar();
+                } else {
+                    bossbar_id = boss.raid_details().pre_catch_bossbar();
+                }
+                break;
+            case "catch":
+                if (boss.raid_details().catch_bossbar().isEmpty()) {
+                    bossbar_id = NovaRaids.INSTANCE.bossesConfig().getCategory(boss.category_id()).catch_bossbar();
+                } else {
+                    bossbar_id = boss.raid_details().catch_bossbar();
+                }
+                break;
+        }
+        return getBossbar(bossbar_id);
     }
 }

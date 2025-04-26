@@ -10,15 +10,13 @@ import com.cobblemon.mod.common.api.moves.MoveTemplate;
 import com.cobblemon.mod.common.api.moves.Moves;
 import com.cobblemon.mod.common.api.pokemon.PokemonSpecies;
 import com.cobblemon.mod.common.pokemon.Species;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import com.mojang.serialization.JsonOps;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.items.Pass;
 import me.unariginal.novaraids.data.items.RaidBall;
 import me.unariginal.novaraids.data.items.Voucher;
+import me.unariginal.novaraids.managers.Raid;
 import me.unariginal.novaraids.utils.TextUtils;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.component.ComponentChanges;
@@ -27,10 +25,11 @@ import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.UserCache;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.*;
 
 public class Config {
     private final NovaRaids nr = NovaRaids.INSTANCE;
@@ -101,6 +100,7 @@ public class Config {
         try {
             loadConfig();
         } catch (IOException | NullPointerException | UnsupportedOperationException e) {
+            NovaRaids.INSTANCE.loaded_properly = false;
             nr.logError("[RAIDS] Failed to load config file.");
         }
     }
@@ -467,5 +467,58 @@ public class Config {
         }
         nr.logError("[RAIDS] Missing " + property + " property in config.json. Using default value(s) or skipping.");
         return false;
+    }
+
+    public void writeResults(Raid raid) throws IOException, NoSuchElementException {
+        File history_file = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/history/" + raid.raidBoss_category().name() + "/" + raid.boss_info().boss_id() + ".json").toFile();
+        if (!history_file.exists()) {
+            history_file.mkdirs();
+        }
+
+        JsonObject root;
+        if (history_file.createNewFile()) {
+            root = new JsonObject();
+        } else {
+            root = JsonParser.parseReader(new FileReader(history_file)).getAsJsonObject();
+        }
+
+        JsonObject this_raid = new JsonObject();
+        this_raid.addProperty("uuid", raid.uuid().toString());
+        this_raid.addProperty("length", TextUtils.hms(raid.raid_completion_time()));
+        this_raid.addProperty("had_catch_phase", raid.boss_info().raid_details().do_catch_phase());
+        this_raid.addProperty("total_players", raid.get_damage_leaderboard().size());
+
+        JsonArray this_raid_leaderboard = new JsonArray();
+        int place = 1;
+        for (Map.Entry<UUID, Integer> entry : raid.get_damage_leaderboard()) {
+            JsonObject leaderboard_entry = new JsonObject();
+            leaderboard_entry.addProperty("player_uuid", entry.getKey().toString());
+            UserCache cache =  nr.server().getUserCache();
+            if (cache != null) {
+                leaderboard_entry.addProperty("player_name", cache.getByUuid(entry.getKey()).orElseThrow().getName());
+            } else {
+                leaderboard_entry.addProperty("player_name", entry.getKey().toString());
+            }
+            leaderboard_entry.addProperty("damage", entry.getValue());
+            leaderboard_entry.addProperty("place", place++);
+            this_raid_leaderboard.add(leaderboard_entry);
+        }
+        this_raid.add("leaderboard", this_raid_leaderboard);
+
+        root.add(LocalDateTime.now(TimeZone.getDefault().toZoneId()).toString(), this_raid);
+
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        Writer writer = new FileWriter(history_file);
+        gson.toJson(root, writer);
+        writer.close();
+    }
+
+    public RaidBall getRaidBall(String id) {
+        for (RaidBall ball : raid_balls) {
+            if (ball.id().equals(id)) {
+                return ball;
+            }
+        }
+        return null;
     }
 }

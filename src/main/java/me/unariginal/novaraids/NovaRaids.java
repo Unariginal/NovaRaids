@@ -29,6 +29,7 @@ public class NovaRaids implements ModInitializer {
     private RewardPresetsConfig rewardPresetsConfig;
     private RewardPoolsConfig rewardPoolsConfig;
     private BossesConfig bossesConfig;
+    public boolean loaded_properly = true;
 
     public boolean debug = true;
     private MinecraftServer server;
@@ -54,19 +55,19 @@ public class NovaRaids implements ModInitializer {
             // But for now, I settle for what works.
             // Amo, you're the someone
             reloadConfig();
-            //if (config.loadedProperly()) {
+            if (loaded_properly) {
                 EventManager.battle_events();
                 EventManager.right_click_events();
                 EventManager.player_events();
                 EventManager.cobblemon_events();
-            //} else {
-                //LOGGER.error("[RAIDS] Config did not load properly! Mod will not be loaded.");
-            //}
+            } else {
+                LOGGER.error("[RAIDS] Config did not load properly! Mod will not be loaded.");
+            }
         });
 
         // Server tick loop
         ServerTickEvents.END_SERVER_TICK.register(server -> {
-            //if (config.loadedProperly()) {
+            if (loaded_properly) {
                 try {
                     TickManager.fix_boss_positions();
                     TickManager.handle_defeated_bosses();
@@ -81,12 +82,12 @@ public class NovaRaids implements ModInitializer {
                 for (Raid raid : active_raids.values()) {
                     raid.removePlayers();
                 }
-            //}
+            }
         });
 
         // Clean up at server stop
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
-            //if (config.loadedProperly()) {
+            if (loaded_properly) {
                 for (QueueItem queue : queued_raids) {
                     queue.cancel_item();
                 }
@@ -96,7 +97,7 @@ public class NovaRaids implements ModInitializer {
                     raid.stop();
                 }
                 // TODO: Save current raid, write queue to file
-            //}
+            }
         });
     }
 

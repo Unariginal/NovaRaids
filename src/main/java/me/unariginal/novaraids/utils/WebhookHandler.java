@@ -138,13 +138,13 @@ public class WebhookHandler {
                 .setColor(randColor)
                 .setAuthor(
                         new WebhookEmbed.EmbedAuthor(
-                                nr.config().getMessages().parse(start_embed_title, raid),
+                                TextUtils.parse(start_embed_title, raid),
                                 "",
                                 thumbnailUrl
                         )
                 );
         for (FieldData field : start_embed_fields) {
-            embedBuilder.addField(new WebhookEmbed.EmbedField(field.inline(), nr.config().getMessages().parse(field.name(), raid), nr.config().getMessages().parse(field.value(), raid)));
+            embedBuilder.addField(new WebhookEmbed.EmbedField(field.inline(), TextUtils.parse(field.name(), raid), TextUtils.parse(field.value(), raid)));
         }
         embedBuilder.setThumbnailUrl(thumbnailUrl);
         WebhookEmbed embed = embedBuilder.build();
@@ -165,14 +165,14 @@ public class WebhookHandler {
                 .setColor(randColor)
                 .setAuthor(
                         new WebhookEmbed.EmbedAuthor(
-                                nr.config().getMessages().parse(end_embed_title, raid),
+                                TextUtils.parse(end_embed_title, raid),
                                 "",
                                 thumbnailUrl
                         )
                 );
 
         for (FieldData field : end_embed_fields) {
-            embedBuilder.addField(new WebhookEmbed.EmbedField(field.inline(), nr.config().getMessages().parse(field.name(), raid), nr.config().getMessages().parse(field.value(), raid)));
+            embedBuilder.addField(new WebhookEmbed.EmbedField(field.inline(), TextUtils.parse(field.name(), raid), TextUtils.parse(field.value(), raid)));
         }
 
         if (show_leaderboard) {

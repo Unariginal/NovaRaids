@@ -4,11 +4,16 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import me.unariginal.novaraids.NovaRaids;
+import me.unariginal.novaraids.managers.Raid;
+import me.unariginal.novaraids.utils.TextUtils;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.server.command.CommandManager;
+import net.minecraft.server.command.ServerCommandSource;
 
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class MessagesConfig {
     public String prefix = "<dark_gray>[</dark_gray><color:#ffbf00>RAID<dark_gray>]</dark_gray>";
@@ -65,6 +70,7 @@ public class MessagesConfig {
         try {
             loadConfig();
         } catch (IOException | NullPointerException | UnsupportedOperationException e) {
+            NovaRaids.INSTANCE.loaded_properly = false;
             NovaRaids.INSTANCE.logError("[RAIDS] Failed to load messages file.");
         }
     }
@@ -108,6 +114,7 @@ public class MessagesConfig {
                 }
             }
         }
+        // TODO: Webhook
     }
 
     public String getMessage(String key) {
@@ -115,5 +122,13 @@ public class MessagesConfig {
             return messages.get(key);
         }
         return null;
+    }
+
+    public void execute_command(Raid raid) {
+        if (!raid_start_command.isEmpty()) {
+            CommandManager cmdManager = Objects.requireNonNull(NovaRaids.INSTANCE.server()).getCommandManager();
+            ServerCommandSource source = NovaRaids.INSTANCE.server().getCommandSource();
+            cmdManager.executeWithPrefix(source, TextUtils.parse(raid_start_command, raid));
+        }
     }
 }

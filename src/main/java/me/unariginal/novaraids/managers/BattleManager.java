@@ -40,8 +40,8 @@ public class BattleManager {
         return leading_pokemon;
     }
 
-    public static void invoke_catch_encounter(Raid raid, ServerPlayerEntity player) {
-        Pokemon pokemon = raid.boss_info().createPokemon();
+    public static void invoke_catch_encounter(Raid raid, ServerPlayerEntity player, double shiny_chance, int min_perfect_ivs) {
+        Pokemon pokemon = raid.boss_info().pokemonDetails().createPokemon();
         NbtCompound data = new NbtCompound();
         data.putBoolean("raid_entity", true);
         data.putBoolean("boss_clone", true);
@@ -50,7 +50,11 @@ public class BattleManager {
 
         CatchSettings settings = raid.boss_info().catch_settings();
 
-        pokemon.setShiny(new Random().nextInt(settings.shiny_chance()) == 0);
+        if (shiny_chance > 0) {
+            pokemon.setShiny(new Random().nextInt((int) shiny_chance) == 0);
+        } else {
+            pokemon.setShiny(false);
+        }
 
         if (!settings.keep_scale()) {
             pokemon.setScaleModifier(1.0f);
@@ -83,7 +87,7 @@ public class BattleManager {
         }
 
         if (settings.randomize_ivs()) {
-            IVs new_ivs = IVs.createRandomIVs(settings.min_perfect_ivs());
+            IVs new_ivs = IVs.createRandomIVs(min_perfect_ivs);
             for (Map.Entry<? extends Stat, ? extends Integer> iv : new_ivs) {
                 pokemon.setIV(iv.getKey(), iv.getValue());
             }
@@ -140,12 +144,12 @@ public class BattleManager {
 
         if (boss_clone != null && leading_pokemon != null) {
             raid.add_clone(boss_clone, player);
-            BattleBuilder.INSTANCE.pve(player, boss_clone, leading_pokemon, BattleFormat.Companion.getGEN_9_SINGLES(), false, NovaRaids.INSTANCE.config().getSettings().heal_party_on_challenge(), Cobblemon.config.getDefaultFleeDistance(), party);
+            BattleBuilder.INSTANCE.pve(player, boss_clone, leading_pokemon, BattleFormat.Companion.getGEN_9_SINGLES(), false, raid.boss_info().raid_details().heal_party_on_challenge(), Cobblemon.config.getDefaultFleeDistance(), party);
         }
     }
 
     public static void invoke_battle(Raid raid, ServerPlayerEntity player) {
-        Pokemon pokemon = raid.boss_info().createPokemon();
+        Pokemon pokemon = raid.boss_info().pokemonDetails().createPokemon();
         pokemon.getCustomProperties().add(UncatchableProperty.INSTANCE.uncatchable());
         pokemon.setAbility$common(raid.raidBoss_pokemon_uncatchable().getAbility());
         pokemon.setGender(raid.raidBoss_pokemon_uncatchable().getGender());
@@ -175,7 +179,7 @@ public class BattleManager {
 
         if (boss_clone != null && leading_pokemon != null) {
             raid.add_clone(boss_clone, player);
-            BattleBuilder.INSTANCE.pve(player, boss_clone, leading_pokemon, BattleFormat.Companion.getGEN_9_SINGLES(), false, NovaRaids.INSTANCE.config().getSettings().heal_party_on_challenge(), Cobblemon.config.getDefaultFleeDistance(), party);
+            BattleBuilder.INSTANCE.pve(player, boss_clone, leading_pokemon, BattleFormat.Companion.getGEN_9_SINGLES(), false, raid.boss_info().raid_details().heal_party_on_challenge(), Cobblemon.config.getDefaultFleeDistance(), party);
         }
     }
 }

@@ -47,6 +47,7 @@ public class BossesConfig {
         try {
             loadBosses();
         } catch (IOException | NullPointerException | UnsupportedOperationException e) {
+            NovaRaids.INSTANCE.loaded_properly = false;
             nr.logError("[RAIDS] Failed to load bosses folder. " + e.getMessage());
         }
     }
