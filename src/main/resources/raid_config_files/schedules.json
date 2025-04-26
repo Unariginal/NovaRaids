@@ -1,5 +1,5 @@
 {
-  "timezone": "est",
+  "timezone": "EST",
   "schedules": [
     {
       "type": "random",

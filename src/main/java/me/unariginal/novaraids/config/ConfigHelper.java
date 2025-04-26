@@ -100,7 +100,7 @@ public class ConfigHelper {
                                 String pool_preset = reward_pool_object.get("pool_preset").getAsString();
                                 pool = NovaRaids.INSTANCE.rewardPoolsConfig().getRewardPool(pool_preset);
                             } else if (checkProperty(reward_pool_object, "pool", location, false)) {
-                                pool = getRewardPool(reward_pool_object, "temp", location);
+                                pool = getRewardPool(reward_pool_object.getAsJsonObject("pool"), "temp", location);
                             } else {
                                 NovaRaids.INSTANCE.logError("[RAIDS] Invalid reward pool declaration at: " + location);
                                 continue;
@@ -183,31 +183,30 @@ public class ConfigHelper {
     }
 
     public static Reward getReward(JsonObject reward_object, String name, String location) {
-        JsonObject unset_reward_object = reward_object.getAsJsonObject("reward");
         String type;
-        if (checkProperty(unset_reward_object, "type", location)) {
-            type = unset_reward_object.get("type").getAsString();
+        if (checkProperty(reward_object, "type", location)) {
+            type = reward_object.get("type").getAsString();
         } else {
             return null;
         }
         if (type.equalsIgnoreCase("item")) {
             Item reward_item;
-            if (checkProperty(unset_reward_object, "item", location)) {
-                reward_item = Registries.ITEM.get(Identifier.of(unset_reward_object.get("item").getAsString()));
+            if (checkProperty(reward_object, "item", location)) {
+                reward_item = Registries.ITEM.get(Identifier.of(reward_object.get("item").getAsString()));
             } else {
                 return null;
             }
             ComponentChanges item_data = ComponentChanges.EMPTY;
-            if (checkProperty(unset_reward_object, "data", location)) {
-                JsonElement data = unset_reward_object.getAsJsonObject("data");
+            if (checkProperty(reward_object, "data", location)) {
+                JsonElement data = reward_object.getAsJsonObject("data");
                 if (data != null) {
                     item_data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, data).getOrThrow().getFirst();
                 }
             }
             int count_min;
             int count_max;
-            if (checkProperty(unset_reward_object, "count", location)) {
-                JsonObject count_object = unset_reward_object.getAsJsonObject("count");
+            if (checkProperty(reward_object, "count", location)) {
+                JsonObject count_object = reward_object.getAsJsonObject("count");
                 if (checkProperty(count_object, "min", location)) {
                     count_min = count_object.get("min").getAsInt();
                 } else {
@@ -224,15 +223,15 @@ public class ConfigHelper {
             return new ItemReward(name, reward_item, item_data, count_min, count_max);
         } else if (type.equalsIgnoreCase("command")) {
             List<String> commands;
-            if (checkProperty(unset_reward_object, "commands", location)) {
-                commands = unset_reward_object.getAsJsonArray("commands").asList().stream().map(JsonElement::getAsString).toList();
+            if (checkProperty(reward_object, "commands", location)) {
+                commands = reward_object.getAsJsonArray("commands").asList().stream().map(JsonElement::getAsString).toList();
             } else {
                 return null;
             }
             return new CommandReward(name, commands);
         } else if (type.equalsIgnoreCase("pokemon")) {
-            if (checkProperty(unset_reward_object, "pokemon", location)) {
-                JsonObject pokemon_object = unset_reward_object.getAsJsonObject("pokemon");
+            if (checkProperty(reward_object, "pokemon", location)) {
+                JsonObject pokemon_object = reward_object.getAsJsonObject("pokemon");
                 String species;
                 if (checkProperty(pokemon_object, "species", location)) {
                     species = pokemon_object.get("species").getAsString();

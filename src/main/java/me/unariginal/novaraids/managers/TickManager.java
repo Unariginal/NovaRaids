@@ -270,38 +270,4 @@ public class TickManager {
             }
         }*/
     }
-
-    // TODO: Use Weights! Also move this to a global file to allow use with vouchers and the give command and other stuff!
-    private static Boss choose_boss(Category category) throws ConcurrentModificationException {
-        /*
-        List<Boss> possible_bosses = new ArrayList<>();
-        for (Boss boss : nr.config().getBosses()) {
-            if (boss.category().equalsIgnoreCase(category.name())) {
-                possible_bosses.add(boss);
-            }
-        }
-
-        double total_weight = 0.0;
-        for (Boss boss : possible_bosses) {
-            total_weight += boss.random_weight();
-        }
-
-        if (total_weight > 0.0) {
-            double random_weight = new Random().nextDouble(total_weight);
-            total_weight = 0.0;
-            Boss chosen_boss = possible_bosses.getFirst();
-            for (Boss boss : possible_bosses) {
-                total_weight += boss.random_weight();
-                if (random_weight < total_weight) {
-                    chosen_boss = boss;
-                    break;
-                }
-            }
-            return chosen_boss;
-        }
-
-        return null;
-        */
-        return null;
-    }
 }

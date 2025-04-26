@@ -21,7 +21,10 @@ public class BossbarsConfig {
             loadConfig();
         } catch (IOException | NullPointerException | UnsupportedOperationException e) {
             NovaRaids.INSTANCE.loaded_properly = false;
-            NovaRaids.INSTANCE.logError("[RAIDS] Failed to load bossbars file.");
+            NovaRaids.INSTANCE.logError("[RAIDS] Failed to load bossbars file. " + e.getMessage());
+            for (StackTraceElement element : e.getStackTrace()) {
+                NovaRaids.INSTANCE.logError("  " + element.toString());
+            }
         }
     }
 
@@ -58,7 +61,7 @@ public class BossbarsConfig {
             }
             BossBar.Color bar_color = BossBar.Color.BLUE;
             try {
-                bar_color = BossBar.Color.valueOf(color.toLowerCase());
+                bar_color = BossBar.Color.valueOf(color.toUpperCase());
             } catch (IllegalArgumentException e) {
                 NovaRaids.INSTANCE.logError("[RAIDS] Invalid bossbar color: " + color);
             }
@@ -68,7 +71,7 @@ public class BossbarsConfig {
             }
             BossBar.Overlay bar_style = BossBar.Overlay.PROGRESS;
             try {
-                bar_style = BossBar.Overlay.valueOf(style);
+                bar_style = BossBar.Overlay.valueOf(style.toUpperCase());
             } catch (IllegalArgumentException e) {
                 NovaRaids.INSTANCE.logError("[RAIDS] Invalid bossbar style: " + style);
             }

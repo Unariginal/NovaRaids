@@ -26,6 +26,7 @@ import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.Text;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import org.apache.commons.lang3.StringUtils;
@@ -138,7 +139,7 @@ public class Raid {
         phase_length = boss_info.raid_details().setup_phase_time();
         phase_start_time = nr.server().getOverworld().getTime();
 
-        broadcast(TextUtils.format(TextUtils.parse(messages.getMessage("start_pre_phase"), this)));
+        broadcast(TextUtils.deserialize(TextUtils.parse(messages.getMessage("start_pre_phase"), this)));
         nr.messagesConfig().execute_command(this);
 
         if (WebhookHandler.webhook_toggle) {
@@ -163,12 +164,12 @@ public class Raid {
             phase_start_time = nr.server().getOverworld().getTime();
             fight_start_time = phase_start_time;
 
-            participating_broadcast(TextUtils.format(TextUtils.parse(messages.getMessage("start_fight_phase"), this)));
+            participating_broadcast(TextUtils.deserialize(TextUtils.parse(messages.getMessage("start_fight_phase"), this)));
 
             addTask(raidBoss_location.world(), phase_length * 20L, this::raid_lost);
         } else {
             stage = -1;
-            participating_broadcast(TextUtils.format(TextUtils.parse(messages.getMessage("not_enough_players"), this)));
+            participating_broadcast(TextUtils.deserialize(TextUtils.parse(messages.getMessage("not_enough_players"), this)));
             if (raidBoss_category.require_pass()) {
                 if (starting_item != null) {
                     ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(started_by);
@@ -184,7 +185,7 @@ public class Raid {
         stage = -1;
         tasks.clear();
         raid_end_time = nr.server().getOverworld().getTime();
-        participating_broadcast(TextUtils.format(TextUtils.parse(messages.getMessage("out_of_time"), this)));
+        participating_broadcast(TextUtils.deserialize(TextUtils.parse(messages.getMessage("out_of_time"), this)));
     }
 
     public void pre_catch_phase() {
@@ -217,7 +218,7 @@ public class Raid {
         }
 
         if (boss_info.raid_details().do_catch_phase()) {
-            participating_broadcast(TextUtils.format(TextUtils.parse(messages.getMessage("catch_phase_warning"), this)));
+            participating_broadcast(TextUtils.deserialize(TextUtils.parse(messages.getMessage("catch_phase_warning"), this)));
             addTask(raidBoss_location.world(), phase_length * 20L, this::catch_phase);
         } else {
             raid_won();
@@ -245,7 +246,7 @@ public class Raid {
             }
         }
 
-        participating_broadcast(TextUtils.format(TextUtils.parse(messages.getMessage("start_catch_phase"), this)));
+        participating_broadcast(TextUtils.deserialize(TextUtils.parse(messages.getMessage("start_catch_phase"), this)));
 
         addTask(raidBoss_location.world(), phase_length * 20L, this::raid_won);
     }
@@ -256,19 +257,19 @@ public class Raid {
 
         raid_end_time = nr.server().getOverworld().getTime();
         if (boss_info.raid_details().do_catch_phase()) {
-            participating_broadcast(TextUtils.format(TextUtils.parse(messages.getMessage("catch_phase_end"), this)));
+            participating_broadcast(TextUtils.deserialize(TextUtils.parse(messages.getMessage("catch_phase_end"), this)));
         }
-        participating_broadcast(TextUtils.format(TextUtils.parse(messages.getMessage("raid_end"), this)));
+        participating_broadcast(TextUtils.deserialize(TextUtils.parse(messages.getMessage("raid_end"), this)));
     }
 
     public void handle_rewards() {
-        participating_broadcast(TextUtils.format(TextUtils.parse(messages.getMessage("leaderboard_message_header"), this)));
+        participating_broadcast(TextUtils.deserialize(TextUtils.parse(messages.getMessage("leaderboard_message_header"), this)));
         int place_index = 0;
         for (Map.Entry<UUID, Integer> entry : get_damage_leaderboard()) {
             ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(entry.getKey());
             if (player != null) {
                 place_index++;
-                participating_broadcast(TextUtils.format(TextUtils.parse(messages.getMessage("leaderboard_message_item"), this, player, entry.getValue(), place_index)));
+                participating_broadcast(TextUtils.deserialize(TextUtils.parse(messages.getMessage("leaderboard_message_item"), this, player, entry.getValue(), place_index)));
                 if (place_index == 10) {
                     break;
                 }
@@ -279,7 +280,7 @@ public class Raid {
             ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(entry.getKey());
             if (player != null) {
                 place_index++;
-                player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("leaderboard_individual"), this, player, entry.getValue(), place_index)));
+                player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("leaderboard_individual"), this, player, entry.getValue(), place_index)));
             }
         }
 
@@ -527,15 +528,15 @@ public class Raid {
         return max_health;
     }
 
-    public void broadcast(Component component) {
-        nr.server().getPlayerManager().getPlayerList().forEach(p -> p.sendMessage(component));
+    public void broadcast(Text text) {
+        nr.server().getPlayerManager().getPlayerList().forEach(p -> p.sendMessage(text));
     }
 
-    public void participating_broadcast(Component component) {
+    public void participating_broadcast(Text text) {
         for (UUID player_uuid : participating_players) {
             ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(player_uuid);
             if (player != null) {
-                player.sendMessage(component);
+                player.sendMessage(text);
             }
         }
     }
@@ -636,19 +637,19 @@ public class Raid {
                 for (Raid raid : nr.active_raids().values()) {
                     index = raid.get_player_index(player_uuid);
                     if (index != -1) {
-                        player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("warning_already_joined_raid"), this)));
+                        player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_already_joined_raid"), this)));
                         return false;
                     }
                 }
 
                 if (raidBoss_category().require_pass() && !usedPass) {
                     index = -2;
-                    player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("warning_no_pass"), this)));
+                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_no_pass"), this)));
                 }
 
                 if (stage != 1) {
                     index = -2;
-                    player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("warning_not_joinable"), this)));
+                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_not_joinable"), this)));
                 }
 
                 if (BanHandler.hasContraband(player)) {
@@ -661,7 +662,7 @@ public class Raid {
                         num_pokemon++;
                         if (pokemon.getLevel() < boss_info.raid_details().minimum_level()) {
                             index = -2;
-                            player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("warning_minimum_level"), this)));
+                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_minimum_level"), this)));
                             break;
                         }
                     }
@@ -669,7 +670,7 @@ public class Raid {
 
                 if (num_pokemon == 0) {
                     index = -2;
-                    player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("warning_no_pokemon"), this)));
+                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_no_pokemon"), this)));
                 }
             } else {
                 nr.logInfo("Player has permission override!");
@@ -689,7 +690,7 @@ public class Raid {
                     player.teleport(raidBoss_location.world(), raidBoss_location.join_location().x, raidBoss_location.join_location().y, raidBoss_location.join_location().z, raidBoss_location.yaw(), raidBoss_location().pitch());
                 }
             } else if (index != -2) {
-                player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("warning_already_joined_raid"), this)));
+                player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_already_joined_raid"), this)));
             }
             return index == -1;
         }
@@ -749,7 +750,7 @@ public class Raid {
                     clearToDelete = false;
                     ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(player_uuid);
                     if (player != null) {
-                        player.sendActionBar(TextUtils.format(TextUtils.parse(bossbar.actionbar_text(), this)));
+                        player.sendActionBar(TextUtils.deserialize(TextUtils.parse(bossbar.actionbar_text(), this)));
                     }
                 }
                 clearToDelete = true;

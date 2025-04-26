@@ -35,6 +35,8 @@ public class CronSchedule extends Schedule {
                 .withSupportedNicknameMidnight()
                 .withSupportedNicknameMonthly()
                 .withSupportedNicknameWeekly()
+                .withSupportedNicknameAnnually()
+                .withSupportedNicknameYearly()
                 .instance();
         CronParser cronParser = new CronParser(cronDefinition);
         Cron cron = cronParser.parse(expression);

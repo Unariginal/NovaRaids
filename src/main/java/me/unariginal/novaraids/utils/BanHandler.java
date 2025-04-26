@@ -31,7 +31,7 @@ public class BanHandler {
             for (Species species : banned_pokemon) {
                 if (pokemon.getSpecies().getName().equals(species.getName())) {
                     nr.logInfo("Not allowed pokemon");
-                    player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("warning_banned_pokemon").replaceAll("%banned.pokemon%", species.getName()))));
+                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_banned_pokemon").replaceAll("%banned.pokemon%", species.getName()))));
                     return true;
                 }
             }
@@ -39,7 +39,7 @@ public class BanHandler {
             for (Ability ability : banned_abilities) {
                 if (pokemon.getAbility().getName().equals(ability.getName())) {
                     nr.logInfo("Not allowed ability");
-                    player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("warning_banned_ability").replaceAll("%banned.ability%", ability.getName()))));
+                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_banned_ability").replaceAll("%banned.ability%", ability.getName()))));
                     return true;
                 }
             }
@@ -48,7 +48,7 @@ public class BanHandler {
                 for (Move set : pokemon.getMoveSet()) {
                     if (set.getName().equals(move.getName())) {
                         nr.logInfo("Not allowed move");
-                        player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("warning_banned_move").replaceAll("%banned.move%", move.getName()))));
+                        player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_banned_move").replaceAll("%banned.move%", move.getName()))));
                         return true;
                     }
                 }
@@ -57,7 +57,7 @@ public class BanHandler {
             for (Item item : banned_held_items) {
                 if (pokemon.getHeldItem$common().getItem().equals(item)) {
                     nr.logInfo("Not allowed held item");
-                    player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("warning_banned_held_item").replaceAll("%banned.held_item%", item.getName().getString()))));
+                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_banned_held_item").replaceAll("%banned.held_item%", item.getName().getString()))));
                     return true;
                 }
             }
@@ -70,7 +70,7 @@ public class BanHandler {
             for (int i = 0; i < inventory.size(); i++) {
                 if (inventory.getStack(i).getItem().equals(item)) {
                     nr.logInfo("Not allowed bag item");
-                    player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("warning_banned_bag_item").replaceAll("%banned.bag_item%", item.getName().getString()))));
+                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_banned_bag_item").replaceAll("%banned.bag_item%", item.getName().getString()))));
                     return true;
                 }
             }

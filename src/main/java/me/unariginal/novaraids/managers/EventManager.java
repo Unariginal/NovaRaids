@@ -69,7 +69,7 @@ public class EventManager {
                         for (PokemonEntity clone : raid.get_clones().keySet()) {
                             if (clone.getUuid().equals(entity_uuid)) {
                                 if (!raid.get_clones().get(clone).equals(player.getUuid())) {
-                                    player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("warning_not_your_encounter"), raid)));
+                                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_not_your_encounter"), raid)));
                                     event.setReason(null);
                                     event.cancel();
                                 }
@@ -87,7 +87,7 @@ public class EventManager {
                             for (Pokemon pokemon : Cobblemon.INSTANCE.getStorage().getParty(player)) {
                                 if (pokemon != null) {
                                     if (pokemon.getLevel() < raid.boss_info().raid_details().minimum_level()) {
-                                        player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("warning_minimum_level"), raid)));
+                                        player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_minimum_level"), raid)));
                                         event.setReason(null);
                                         event.cancel();
                                         return Unit.INSTANCE;
@@ -110,7 +110,7 @@ public class EventManager {
 
                 for (Raid raid : nr.active_raids().values()) {
                     if (raid.participating_players().contains(player.getUuid())) {
-                        player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("warning_battle_during_raid"), raid)));
+                        player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_battle_during_raid"), raid)));
                         event.setReason(null);
                         event.cancel();
                         return Unit.INSTANCE;
@@ -182,7 +182,7 @@ public class EventManager {
 
                         raid.apply_damage(damage);
                         raid.update_player_damage(player.getUuid(), damage);
-                        raid.participating_broadcast(TextUtils.format(TextUtils.parse(messages.getMessage("player_damage_report"), raid, player, damage, -1)));
+                        raid.participating_broadcast(TextUtils.deserialize(TextUtils.parse(messages.getMessage("player_damage_report"), raid, player, damage, -1)));
                         break;
                     }
                 }
@@ -255,18 +255,18 @@ public class EventManager {
                                                         held_item.decrement(1);
                                                         player.setStackInHand(hand, held_item);
 
-                                                        player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("joined_raid"), raid)));
+                                                        player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("joined_raid"), raid)));
 
                                                         gui.close();
                                                     }
                                                 } else {
-                                                    player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("warning_max_players"), raid)));
+                                                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_max_players"), raid)));
                                                 }
                                             } else {
-                                                player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("warning_not_joinable"), raid)));
+                                                player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_not_joinable"), raid)));
                                             }
                                         } else {
-                                            player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("warning_no_pass_needed"), raid)));
+                                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_no_pass_needed"), raid)));
                                         }
                                     }).build();
                                     gui.setSlot(i, element);
@@ -286,16 +286,16 @@ public class EventManager {
                                                         held_item.decrement(1);
                                                         player.setStackInHand(hand, held_item);
 
-                                                        player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("joined_raid"), raid)));
+                                                        player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("joined_raid"), raid)));
                                                     }
                                                 } else {
-                                                    player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("warning_max_players"), raid)));
+                                                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_max_players"), raid)));
                                                 }
                                             } else {
-                                                player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("warning_not_joinable"), raid)));
+                                                player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_not_joinable"), raid)));
                                             }
                                         } else {
-                                            player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("warning_no_pass_needed"), raid)));
+                                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_no_pass_needed"), raid)));
                                         }
                                     }
                                 }
@@ -325,7 +325,7 @@ public class EventManager {
                                             held_item.decrement(1);
                                             player.setStackInHand(hand, held_item);
 
-                                            player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("used_voucher"), available_raids.get(index))));
+                                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("used_voucher"), available_raids.get(index))));
 
                                             gui.close();
                                         }
@@ -345,7 +345,7 @@ public class EventManager {
                                     held_item.decrement(1);
                                     player.setStackInHand(hand, held_item);
 
-                                    player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("used_voucher"), boss_info)));
+                                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("used_voucher"), boss_info)));
                                 }
                             } else {
                                 Boss boss = nr.bossesConfig().getBoss(boss_name);
@@ -353,7 +353,7 @@ public class EventManager {
                                     held_item.decrement(1);
                                     player.setStackInHand(hand, held_item);
 
-                                    player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("used_voucher"), boss)));
+                                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("used_voucher"), boss)));
                                 }
                             }
                         } else if (custom_data.copyNbt().getString("raid_item").equals("raid_ball") && nr.config().raid_balls_enabled) {
@@ -361,7 +361,7 @@ public class EventManager {
 
                             if (custom_data.contains("owner_uuid")) {
                                 if (!custom_data.copyNbt().getUuid("owner_uuid").equals(player.getUuid())) {
-                                    player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("warning_not_your_raid_pokeball"))));
+                                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_not_your_raid_pokeball"))));
                                     return TypedActionResult.fail(held_item);
                                 }
                             }
@@ -423,12 +423,12 @@ public class EventManager {
                                     }
                                 }
                             } else {
-                                player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("warning_raid_pokeball_outside_raid"))));
+                                player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_raid_pokeball_outside_raid"))));
                                 return TypedActionResult.fail(held_item);
                             }
 
                             if (!can_throw) {
-                                player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("warning_not_catch_phase"))));
+                                player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_not_catch_phase"))));
                                 return TypedActionResult.fail(held_item);
                             } else {
                                 return TypedActionResult.pass(held_item);
@@ -440,7 +440,7 @@ public class EventManager {
                 if (isPokeball(held_item) && nr.config().raid_balls_enabled) {
                     for (Raid raid : nr.active_raids().values()) {
                         if (raid.participating_players().contains(player.getUuid())) {
-                            player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("warning_deny_normal_pokeball"))));
+                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_deny_normal_pokeball"))));
                             return TypedActionResult.fail(held_item);
                         }
                     }
@@ -450,7 +450,7 @@ public class EventManager {
                 if (nr.config().global_banned_bag_items.contains(held_item.getItem())) {
                     for (Raid raid : nr.active_raids().values()) {
                         if (raid.participating_players().contains(player.getUuid())) {
-                            player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("warning_banned_bag_item").replaceAll("%banned.bag_item%", held_item.getItem().getName().getString()))));
+                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_banned_bag_item").replaceAll("%banned.bag_item%", held_item.getItem().getName().getString()))));
                             return TypedActionResult.fail(held_item);
                         }
                     }

@@ -23,7 +23,6 @@ import net.minecraft.component.ComponentChanges;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
-import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.UserCache;
 
@@ -100,8 +99,11 @@ public class Config {
         try {
             loadConfig();
         } catch (IOException | NullPointerException | UnsupportedOperationException e) {
-            NovaRaids.INSTANCE.loaded_properly = false;
-            nr.logError("[RAIDS] Failed to load config file.");
+            nr.loaded_properly = false;
+            nr.logError("[RAIDS] Failed to load config file. " + e.getMessage());
+            for (StackTraceElement element : e.getStackTrace()) {
+                nr.logError("  " + element.toString());
+            }
         }
     }
 
@@ -144,7 +146,7 @@ public class Config {
                 run_raids_with_no_players = raid_settings.get("run_raids_with_no_players").getAsBoolean();
             }
             if (checkProperty(raid_settings, "global_contraband")) {
-                JsonObject global_contraband = config.getAsJsonObject("global_contraband");
+                JsonObject global_contraband = raid_settings.getAsJsonObject("global_contraband");
                 if (checkProperty(global_contraband, "banned_pokemon")) {
                     JsonArray banned_pokemon = global_contraband.getAsJsonArray("banned_pokemon");
                     for (JsonElement p : banned_pokemon) {
@@ -209,7 +211,7 @@ public class Config {
                 }
                 if (vouchers_enabled) {
                     if (checkProperty(voucher_settings, "default_voucher")) {
-                        JsonObject voucher = item_settings.getAsJsonObject("default_voucher");
+                        JsonObject voucher = voucher_settings.getAsJsonObject("default_voucher");
                         Item default_voucher_item = default_voucher.voucher_item();
                         String default_voucher_name = default_voucher.voucher_name();
                         List<String> default_voucher_lore = default_voucher.voucher_lore();
@@ -247,7 +249,7 @@ public class Config {
                     }
 
                     if (voucher_settings.has("global_choice_voucher")) {
-                        JsonObject voucher = item_settings.getAsJsonObject("global_choice_voucher");
+                        JsonObject voucher = voucher_settings.getAsJsonObject("global_choice_voucher");
                         Item global_choice_voucher_item = global_choice_voucher.voucher_item();
                         String global_choice_voucher_name = global_choice_voucher.voucher_name();
                         List<String> global_choice_voucher_lore = global_choice_voucher.voucher_lore();
@@ -285,7 +287,7 @@ public class Config {
                     }
 
                     if (voucher_settings.has("global_random_voucher")) {
-                        JsonObject voucher = item_settings.getAsJsonObject("global_random_voucher");
+                        JsonObject voucher = voucher_settings.getAsJsonObject("global_random_voucher");
                         Item global_random_voucher_item = global_random_voucher.voucher_item();
                         String global_random_voucher_name = global_random_voucher.voucher_name();
                         List<String> global_random_voucher_lore = global_random_voucher.voucher_lore();
@@ -331,7 +333,7 @@ public class Config {
                 }
                 if (passes_enabled) {
                     if (checkProperty(pass_settings, "default_pass")) {
-                        JsonObject pass = item_settings.getAsJsonObject("default_pass");
+                        JsonObject pass = pass_settings.getAsJsonObject("default_pass");
                         Item default_pass_item = default_pass.pass_item();
                         String default_pass_name = default_pass.pass_name();
                         List<String> default_pass_lore = default_pass.pass_lore();
@@ -369,7 +371,7 @@ public class Config {
                     }
 
                     if (pass_settings.has("global_pass")) {
-                        JsonObject pass = item_settings.getAsJsonObject("global_pass");
+                        JsonObject pass = pass_settings.getAsJsonObject("global_pass");
                         Item global_pass_item = global_pass.pass_item();
                         String global_pass_name = global_pass.pass_name();
                         List<String> global_pass_lore = global_pass.pass_lore();
@@ -464,10 +466,12 @@ public class Config {
     }
 
     public void writeResults(Raid raid) throws IOException, NoSuchElementException {
-        File history_file = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/history/" + raid.raidBoss_category().name() + "/" + raid.boss_info().boss_id() + ".json").toFile();
-        if (!history_file.exists()) {
-            history_file.mkdirs();
+        File history_folder = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/history/" + raid.raidBoss_category().name()).toFile();
+        if (!history_folder.exists()) {
+            history_folder.mkdirs();
         }
+
+        File history_file = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/history/" + raid.raidBoss_category().name() + "/" + raid.boss_info().boss_id() + ".json").toFile();
 
         JsonObject root;
         if (history_file.createNewFile()) {

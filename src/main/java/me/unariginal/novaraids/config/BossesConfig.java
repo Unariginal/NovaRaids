@@ -33,9 +33,7 @@ import net.minecraft.registry.Registries;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 public class BossesConfig {
@@ -47,8 +45,11 @@ public class BossesConfig {
         try {
             loadBosses();
         } catch (IOException | NullPointerException | UnsupportedOperationException e) {
-            NovaRaids.INSTANCE.loaded_properly = false;
+            nr.loaded_properly = false;
             nr.logError("[RAIDS] Failed to load bosses folder. " + e.getMessage());
+            for (StackTraceElement element : e.getStackTrace()) {
+                nr.logError("  " + element.toString());
+            }
         }
     }
 
@@ -62,6 +63,47 @@ public class BossesConfig {
         if (!bossesFolder.exists()) {
             bossesFolder.mkdirs();
         }
+
+        File[] files = bossesFolder.listFiles();
+        if (files == null || files.length == 0) {
+            File exampleCategoryFolder = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/bosses/common/bosses").toFile();
+            if (!exampleCategoryFolder.exists()) {
+                exampleCategoryFolder.mkdirs();
+            }
+
+            File settingsFile = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/bosses/common/settings.json").toFile();
+            if (settingsFile.createNewFile()) {
+                InputStream stream = NovaRaids.class.getResourceAsStream("/raid_config_files/bosses/common/settings.json");
+                assert stream != null;
+                OutputStream out = new FileOutputStream(settingsFile);
+
+                byte[] buffer = new byte[1024];
+                int length;
+                while ((length = stream.read(buffer)) > 0) {
+                    out.write(buffer, 0, length);
+                }
+
+                stream.close();
+                out.close();
+            }
+
+            File exampleBoss = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/bosses/common/bosses/example_eevee.json").toFile();
+            if (exampleBoss.createNewFile()) {
+                InputStream stream = NovaRaids.class.getResourceAsStream("/raid_config_files/bosses/common/bosses/example_eevee.json");
+                assert stream != null;
+                OutputStream out = new FileOutputStream(exampleBoss);
+
+                byte[] buffer = new byte[1024];
+                int length;
+                while ((length = stream.read(buffer)) > 0) {
+                    out.write(buffer, 0, length);
+                }
+
+                stream.close();
+                out.close();
+            }
+        }
+
 
         for (File file : Objects.requireNonNull(bossesFolder.listFiles())) {
             if (file.isDirectory()) {
@@ -417,7 +459,7 @@ public class BossesConfig {
                     } else {
                         continue;
                     }
-                    Gender possible_gender = Gender.valueOf(gender_id);
+                    Gender possible_gender = Gender.valueOf(gender_id.toUpperCase());
                     genders.put(possible_gender, weight);
                 }
                 if (genders.isEmpty()) {
@@ -592,7 +634,7 @@ public class BossesConfig {
                 ComponentChanges voucher_data = nr.config().default_voucher.voucher_data();
                 JsonObject boss_voucher_object = item_settings.getAsJsonObject("boss_voucher");
                 if (checkProperty(boss_voucher_object, "voucher_item", category_name + "/bosses/" + file_name)) {
-                    voucher_item = Registries.ITEM.get(Identifier.of(item_settings.get("voucher_item").getAsString()));
+                    voucher_item = Registries.ITEM.get(Identifier.of(boss_voucher_object.get("voucher_item").getAsString()));
                 }
                 if (checkProperty(boss_voucher_object, "voucher_name", category_name + "/bosses/" + file_name)) {
                     voucher_name = boss_voucher_object.get("voucher_name").getAsString();
@@ -620,7 +662,7 @@ public class BossesConfig {
                 ComponentChanges pass_data = nr.config().default_pass.pass_data();
                 JsonObject boss_pass_object = item_settings.getAsJsonObject("boss_pass");
                 if (checkProperty(boss_pass_object, "pass_item", category_name + "/bosses/" + file_name)) {
-                    pass_item = Registries.ITEM.get(Identifier.of(item_settings.get("pass_item").getAsString()));
+                    pass_item = Registries.ITEM.get(Identifier.of(boss_pass_object.get("pass_item").getAsString()));
                 }
                 if (checkProperty(boss_pass_object, "pass_name", category_name + "/bosses/" + file_name)) {
                     pass_name = boss_pass_object.get("pass_name").getAsString();
@@ -670,7 +712,7 @@ public class BossesConfig {
                             data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, dataElement).getOrThrow().getFirst();
                         }
                     }
-                    boss_balls.add(new RaidBall(boss_id, item, name, lore, data));
+                    boss_balls.add(new RaidBall(ball_id, item, name, lore, data));
                 }
             }
         }
@@ -700,7 +742,7 @@ public class BossesConfig {
         String fight_bossbar = "";
         String pre_catch_bossbar = "";
         String catch_bossbar = "";
-        List<DistributionSection> rewards = new ArrayList<>();
+        List<DistributionSection> rewards;
         if (checkProperty(config, "raid_details", category_name + "/bosses/" + file_name)) {
             JsonObject raid_details = config.get("raid_details").getAsJsonObject();
             if (checkProperty(raid_details, "minimum_level", category_name + "/bosses/" + file_name)) {
@@ -796,7 +838,7 @@ public class BossesConfig {
                     catch_bossbar = bossbars.get("catch").getAsString();
                 }
             }
-            List<DistributionSection> boss_rewards = ConfigHelper.getDistributionSections(config, category_name + "/bosses/" + file_name);
+            rewards = ConfigHelper.getDistributionSections(raid_details, category_name + "/bosses/" + file_name);
         } else {
             throw new NullPointerException("Boss must have raid details!");
         }
@@ -839,11 +881,14 @@ public class BossesConfig {
         if (checkProperty(config, "catch_settings", category_name + "/bosses/" + file_name)) {
             JsonObject catch_settings = config.get("catch_settings").getAsJsonObject();
             if (checkProperty(catch_settings, "species_override", category_name + "/bosses/" + file_name)) {
-                Species s = PokemonSpecies.INSTANCE.getByName(catch_settings.get("species_override").getAsString());
-                if (s != null) {
-                    species_override = s;
-                } else {
-                    nr.logError("[RAIDS] Skipping unknown species override: " + catch_settings.get("species_override").getAsString());
+                String species_string = catch_settings.get("species_override").getAsString();
+                if (!species_string.isEmpty()) {
+                    Species s = PokemonSpecies.INSTANCE.getByName(species_string);
+                    if (s != null) {
+                        species_override = s;
+                    } else {
+                        nr.logError("[RAIDS] Skipping unknown species override: " + catch_settings.get("species_override").getAsString());
+                    }
                 }
             }
             if (checkProperty(catch_settings, "level_override", category_name + "/bosses/" + file_name)) {

@@ -1,5 +1,7 @@
 package me.unariginal.novaraids.config;
 
+import com.cronutils.model.definition.CronDefinition;
+import com.cronutils.model.definition.CronDefinitionBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -12,6 +14,7 @@ import org.apache.logging.log4j.core.util.CronExpression;
 import java.io.*;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.zone.ZoneRulesException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,8 +28,11 @@ public class SchedulesConfig {
         try {
             loadSchedules();
         } catch (IOException | NullPointerException | UnsupportedOperationException e) {
-            NovaRaids.INSTANCE.loaded_properly = false;
-            nr.logError("[RAIDS] Failed to load schedules file.");
+            nr.loaded_properly = false;
+            nr.logError("[RAIDS] Failed to load schedules file. " + e.getMessage());
+            for (StackTraceElement element : e.getStackTrace()) {
+                nr.logError("  " + element.toString());
+            }
         }
     }
 
@@ -58,7 +64,11 @@ public class SchedulesConfig {
 
         if (checkProperty(config, "timezone")) {
             String timezone = config.get("timezone").getAsString();
-            zone = ZoneId.of(timezone);
+            try {
+                zone = ZoneId.of(ZoneId.SHORT_IDS.getOrDefault(timezone, timezone));
+            } catch (ZoneRulesException e) {
+                nr.logError("[RAIDS] Failed to parse timezone " + timezone + ". Using default timezone.");
+            }
         }
         if (checkProperty(config, "schedules")) {
             JsonArray schedules = config.getAsJsonArray("schedules");
@@ -105,7 +115,14 @@ public class SchedulesConfig {
                     } else if (type.equalsIgnoreCase("cron")) {
                         if (checkProperty(schedule, "expression")) {
                             String expression = schedule.get("expression").getAsString();
-                            if (CronExpression.isValidExpression(expression)) {
+                            if (CronExpression.isValidExpression(expression)
+                                    || expression.equals("@hourly")
+                                    || expression.equals("@weekly")
+                                    || expression.equals("@monthly")
+                                    || expression.equals("@yearly")
+                                    || expression.equals("@daily")
+                                    || expression.equals("@midnight")
+                                    || expression.equals("@annually")) {
                                 this.schedules.add(new CronSchedule(type, bosses, expression));
                             } else {
                                 nr.logError("[RAIDS] Invalid expression " + expression + " in schedules.json");

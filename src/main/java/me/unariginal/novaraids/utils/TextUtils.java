@@ -11,13 +11,18 @@ import net.minecraft.text.Text;
 public class TextUtils {
     private static final NovaRaids nr = NovaRaids.INSTANCE;
 
-    public static Component format(String message) {
-        return MiniMessage.miniMessage().deserialize(message);
-    }
-
     public static Text deserialize(String text) {
-        Component component = format(text);
-        return NovaRaids.INSTANCE.audience().toNative(component);
+        Text toReturn = Text.empty();
+        try {
+            Component component = MiniMessage.miniMessage().deserialize("<!i>" + text);
+            toReturn = NovaRaids.INSTANCE.audience().toNative(component);
+        } catch (Exception e) {
+            nr.logError("[RAIDS] Error deserializing string: " + e.getMessage());
+            for (StackTraceElement ste : e.getStackTrace()) {
+                nr.logError("  " + ste.toString());
+            }
+        }
+        return toReturn;
     }
 
     public static String parse(String text) {

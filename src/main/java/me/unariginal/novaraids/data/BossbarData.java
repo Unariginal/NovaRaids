@@ -11,6 +11,6 @@ public record BossbarData(String name,
                           boolean use_actionbar,
                           String actionbar_text) {
     public BossBar createBossBar(Raid raid) {
-        return BossBar.bossBar(TextUtils.deserialize(bar_text), 1f, bar_color, bar_style);
+        return BossBar.bossBar(TextUtils.deserialize(TextUtils.parse(bar_text, raid)), 1f, bar_color, bar_style);
     }
 }

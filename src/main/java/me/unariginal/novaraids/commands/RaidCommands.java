@@ -111,7 +111,6 @@ public class RaidCommands {
                                     .then(
                                             CommandManager.argument("player", EntityArgumentType.player())
                                                     .then(
-                                                            // TODO: Include the other passes
                                                             CommandManager.literal("pass")
                                                                     .then(
                                                                             CommandManager.argument("boss", StringArgumentType.string())
@@ -138,7 +137,6 @@ public class RaidCommands {
                                                                     )
                                                     )
                                                     .then(
-                                                            // TODO: include the other vouchers
                                                             CommandManager.literal("voucher")
                                                                     .then(
                                                                             CommandManager.argument("boss", StringArgumentType.string())
@@ -165,7 +163,6 @@ public class RaidCommands {
                                                                     )
                                                     )
                                                     .then(
-                                                            // TODO: INCLUDE OTHER BALLS FROM THE CATEGORIES AND BOSSEISEASLDsadlkjlds
                                                             CommandManager.literal("pokeball")
                                                                     .then(
                                                                             CommandManager.literal("boss")
@@ -176,7 +173,6 @@ public class RaidCommands {
                                                                                                             CommandManager.argument("pokeball", StringArgumentType.string())
                                                                                                                     .suggests((ctx, builder) -> {
                                                                                                                         if (nr.loaded_properly) {
-                                                                                                                            // TODO: This might not work, test it :D
                                                                                                                             Boss boss = nr.bossesConfig().getBoss(StringArgumentType.getString(ctx, "boss"));
                                                                                                                             if (boss != null) {
                                                                                                                                 for (RaidBall ball : boss.item_settings().raid_balls()) {
@@ -202,7 +198,6 @@ public class RaidCommands {
                                                                                                             CommandManager.argument("pokeball", StringArgumentType.string())
                                                                                                                     .suggests((ctx, builder) -> {
                                                                                                                         if (nr.loaded_properly) {
-                                                                                                                            // TODO: This might not work, test it :D
                                                                                                                             Category cat = nr.bossesConfig().getCategory(StringArgumentType.getString(ctx, "category"));
                                                                                                                             if (cat != null) {
                                                                                                                                 for (RaidBall ball : cat.category_balls()) {
@@ -260,10 +255,10 @@ public class RaidCommands {
                                                                         Raid raid = nr.active_raids().get(IntegerArgumentType.getInteger(ctx, "id"));
                                                                         if (raid.participating_players().size() < raid.max_players() || Permissions.check(player, "novaraids.override") || raid.max_players() == -1) {
                                                                             if (raid.addPlayer(player.getUuid(), false)) {
-                                                                                player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("joined_raid"), raid)));
+                                                                                player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("joined_raid"), raid)));
                                                                             }
                                                                         } else {
-                                                                            player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("warning_max_players"), raid)));
+                                                                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_max_players"), raid)));
                                                                         }
                                                                     }
                                                                 }
@@ -326,7 +321,7 @@ public class RaidCommands {
         if (nr.loaded_properly) {
             if (ctx.getSource().isExecutedByPlayer()) {
                 if (ctx.getSource().getPlayer() != null) {
-                    ctx.getSource().getPlayer().sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("reload_command"))));
+                    ctx.getSource().getPlayer().sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("reload_command"))));
                 }
             } else {
                 ctx.getSource().sendMessage(Text.literal("[Raids] Config reloaded!"));
@@ -650,7 +645,7 @@ public class RaidCommands {
                                         main_gui.close();
                                         species_guis.getFirst().open();
                                     } else {
-                                        player.sendMessage(TextUtils.format("There are no banned pokemon."));
+                                        player.sendMessage(TextUtils.deserialize("There are no banned pokemon."));
                                     }
                                 })).build();
 
@@ -663,7 +658,7 @@ public class RaidCommands {
                                         main_gui.close();
                                         move_guis.getFirst().open();
                                     } else {
-                                        player.sendMessage(TextUtils.format("There are no banned moves."));
+                                        player.sendMessage(TextUtils.deserialize("There are no banned moves."));
                                     }
                                 }))
                                 .build();
@@ -676,7 +671,7 @@ public class RaidCommands {
                                         main_gui.close();
                                         abilities_guis.getFirst().open();
                                     } else {
-                                        player.sendMessage(TextUtils.format("There are no banned abilities."));
+                                        player.sendMessage(TextUtils.deserialize("There are no banned abilities."));
                                     }
                                 }))
                                 .build();
@@ -689,7 +684,7 @@ public class RaidCommands {
                                         main_gui.close();
                                         held_item_guis.getFirst().open();
                                     } else {
-                                        player.sendMessage(TextUtils.format("There are no banned held items."));
+                                        player.sendMessage(TextUtils.deserialize("There are no banned held items."));
                                     }
                                 }))
                                 .build();
@@ -702,7 +697,7 @@ public class RaidCommands {
                                         main_gui.close();
                                         bag_item_guis.getFirst().open();
                                     } else {
-                                        player.sendMessage(TextUtils.format("There are no banned bag items."));
+                                        player.sendMessage(TextUtils.deserialize("There are no banned bag items."));
                                     }
                                 }))
                                 .build();
@@ -752,11 +747,13 @@ public class RaidCommands {
                         }
                     }
 
+                    String spawn_location_string;
                     Location spawn_location;
                     if (!valid_locations.isEmpty()) {
                         Map.Entry<?, Double> spawn_location_entry = RandomUtils.getRandomEntry(valid_locations);
                         if (spawn_location_entry != null) {
-                            spawn_location = (Location) spawn_location_entry.getKey();
+                            spawn_location_string = (String) spawn_location_entry.getKey();
+                            spawn_location = nr.locationsConfig().getLocation(spawn_location_string);
                         } else {
                             nr.logError("[RAIDS] Location could not be found.");
                             return 0;
@@ -764,25 +761,30 @@ public class RaidCommands {
                     } else {
                         nr.logInfo("[RAIDS] No valid spawn locations found. All possible locations are busy.");
                         if (player != null) {
-                            player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("no_available_locations"), boss_info)));
+                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("no_available_locations"), boss_info)));
                         }
                         return 0;
                     }
 
-                    if (!nr.config().use_queue_system) {
-                        nr.logInfo("[RAIDS] Starting raid.");
-                        nr.add_raid(new Raid(boss_info, spawn_location, (player != null) ? player.getUuid() : null, starting_item));
-                    } else {
-                        nr.logInfo("[RAIDS] Adding queue raid.");
-                        nr.add_queue_item(new QueueItem(UUID.randomUUID(), boss_info, spawn_location, (player != null) ? player.getUuid() : null, starting_item));
-
-                        if (nr.active_raids().isEmpty()) {
-                            nr.init_next_raid();
+                    if (spawn_location != null) {
+                        if (!nr.config().use_queue_system) {
+                            nr.logInfo("[RAIDS] Starting raid.");
+                            nr.add_raid(new Raid(boss_info, spawn_location, (player != null) ? player.getUuid() : null, starting_item));
                         } else {
-                            if (player != null) {
-                                player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("added_to_queue"), boss_info)));
+                            nr.logInfo("[RAIDS] Adding queue raid.");
+                            nr.add_queue_item(new QueueItem(UUID.randomUUID(), boss_info, spawn_location, (player != null) ? player.getUuid() : null, starting_item));
+
+                            if (nr.active_raids().isEmpty()) {
+                                nr.init_next_raid();
+                            } else {
+                                if (player != null) {
+                                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("added_to_queue"), boss_info)));
+                                }
                             }
                         }
+                    } else {
+                        nr.logError("[RAIDS] Location was null!");
+                        return 0;
                     }
                     return 1;
                 }
@@ -799,7 +801,7 @@ public class RaidCommands {
             if (nr.active_raids().containsKey(id)) {
                 if (ctx.getSource().isExecutedByPlayer()) {
                     if (ctx.getSource().getPlayer() != null) {
-                        ctx.getSource().getPlayer().sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("raid_stopped"), nr.active_raids().get(id))));
+                        ctx.getSource().getPlayer().sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("raid_stopped"), nr.active_raids().get(id))));
                     }
                 }
                 nr.active_raids().get(id).stop();
@@ -965,6 +967,7 @@ public class RaidCommands {
                     String boss_id;
                     if (boss_name != null) {
                         if (boss_name.equalsIgnoreCase("*")) {
+                            nr.logInfo("[Raids] this should be a global ball");
                             category_id = "*";
                             boss_id = "*";
                             item_name = TextUtils.deserialize(TextUtils.parse(raid_pokeball.ball_name(), source_player, target_player, amount, item_type));
@@ -974,9 +977,11 @@ public class RaidCommands {
                             }
                             lore = new LoreComponent(lore_text);
                         } else {
+                            nr.logInfo("[Raids] this should be a specific boss ball for " + boss_name);
                             category_id = "null";
                             Boss boss = nr.bossesConfig().getBoss(boss_name);
                             if (boss == null) {
+                                nr.logInfo("[Raids] the boss was null");
                                 source_player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("give_command_invalid_boss").replaceAll("%boss%", boss_name), source_player, target_player, amount, item_type)));
                                 return 0;
                             }
@@ -990,9 +995,11 @@ public class RaidCommands {
                         }
                     } else {
                         if (category != null) {
+                            nr.logInfo("[Raids] this should be a specific category ball. " + category);
                             boss_id = "*";
                             Category cat = nr.bossesConfig().getCategory(category);
                             if (cat == null) {
+                                nr.logInfo("[Raids] category was null");
                                 source_player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("give_command_invalid_category").replaceAll("%category%", category), source_player, target_player, amount, item_type)));
                                 return 0;
                             }
@@ -1062,7 +1069,7 @@ public class RaidCommands {
             ServerPlayerEntity player = ctx.getSource().getPlayer();
             if (player != null) {
                 if (nr.active_raids().isEmpty()) {
-                    player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("no_active_raids"))));
+                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("no_active_raids"))));
                     return 0;
                 }
 
@@ -1096,10 +1103,10 @@ public class RaidCommands {
                                 if (clickType.isLeft) {
                                     if (raid.participating_players().size() < raid.max_players() || Permissions.check(player, "novaraids.override") || raid.max_players() == -1) {
                                         if (raid.addPlayer(player.getUuid(), false)) {
-                                            player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("joined_raid"), raid)));
+                                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("joined_raid"), raid)));
                                         }
                                     } else {
-                                        player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("warning_max_players"), raid)));
+                                        player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_max_players"), raid)));
                                     }
                                     gui.close();
                                 }
@@ -1121,7 +1128,7 @@ public class RaidCommands {
             ServerPlayerEntity player = ctx.getSource().getPlayer();
             if (player != null) {
                 if (nr.queued_raids().isEmpty()) {
-                    player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("no_queued_raids"))));
+                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("no_queued_raids"))));
                     return 0;
                 }
 
@@ -1143,7 +1150,7 @@ public class RaidCommands {
                                     if (Permissions.check(player, "novaraids.cancelqueue")) {
                                         gui.close();
                                         item.cancel_item();
-                                        player.sendMessage(TextUtils.format(TextUtils.parse(messages.getMessage("queue_item_cancelled"), item.boss_info())));
+                                        player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("queue_item_cancelled"), item.boss_info())));
                                         nr.queued_raids().remove(item);
                                     }
                                 }

@@ -77,7 +77,10 @@ public class MessagesConfig {
             loadConfig();
         } catch (IOException | NullPointerException | UnsupportedOperationException e) {
             NovaRaids.INSTANCE.loaded_properly = false;
-            NovaRaids.INSTANCE.logError("[RAIDS] Failed to load messages file.");
+            NovaRaids.INSTANCE.logError("[RAIDS] Failed to load messages file. " + e.getMessage());
+            for (StackTraceElement element : e.getStackTrace()) {
+                NovaRaids.INSTANCE.logError("  " + element.toString());
+            }
         }
     }
 
@@ -87,9 +90,9 @@ public class MessagesConfig {
             rootFolder.mkdirs();
         }
 
-        File file = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/bossbars.json").toFile();
+        File file = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/messages.json").toFile();
         if (file.createNewFile()) {
-            InputStream stream = NovaRaids.class.getResourceAsStream("/raid_config_files/bossbars.json");
+            InputStream stream = NovaRaids.class.getResourceAsStream("/raid_config_files/messages.json");
             assert stream != null;
             OutputStream out = new FileOutputStream(file);
 
