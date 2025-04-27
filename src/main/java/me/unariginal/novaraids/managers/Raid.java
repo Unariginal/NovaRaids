@@ -20,7 +20,6 @@ import me.unariginal.novaraids.utils.BanHandler;
 import me.unariginal.novaraids.utils.TextUtils;
 import me.unariginal.novaraids.utils.WebhookHandler;
 import net.kyori.adventure.bossbar.BossBar;
-import net.kyori.adventure.text.Component;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.item.ItemStack;
@@ -142,11 +141,11 @@ public class Raid {
         broadcast(TextUtils.deserialize(TextUtils.parse(messages.getMessage("start_pre_phase"), this)));
         nr.messagesConfig().execute_command(this);
 
-        if (WebhookHandler.webhook_toggle) {
+        if (WebhookHandler.webhook_toggle && WebhookHandler.start_embed_enabled) {
             try {
                 webhook = WebhookHandler.sendStartRaidWebhook(this);
             } catch (ExecutionException | InterruptedException e) {
-                nr.logError("Failed to send start_raid webhook: " + e.getMessage());
+                nr.logError("Failed to send raid_start webhook: " + e.getMessage());
             }
         }
 
@@ -165,6 +164,14 @@ public class Raid {
             fight_start_time = phase_start_time;
 
             participating_broadcast(TextUtils.deserialize(TextUtils.parse(messages.getMessage("start_fight_phase"), this)));
+
+            if (WebhookHandler.webhook_toggle && webhook != 0 && WebhookHandler.running_embed_enabled) {
+                try {
+                    webhook = WebhookHandler.sendRunningWebhook(webhook, this);
+                } catch (ExecutionException | InterruptedException e) {
+                    nr.logError("Failed to send raid_running webhook: " + e.getMessage());
+                }
+            }
 
             addTask(raidBoss_location.world(), phase_length * 20L, this::raid_lost);
         } else {
@@ -213,8 +220,12 @@ public class Raid {
             nr.logError("[RAIDS] Failed to write raid information to history file.");
         }
 
-        if (WebhookHandler.webhook_toggle){
-            WebhookHandler.sendEndRaidWebhook(this, get_damage_leaderboard());
+        if (WebhookHandler.webhook_toggle && WebhookHandler.end_embed_enabled && webhook != 0) {
+            try {
+                WebhookHandler.sendEndRaidWebhook(webhook, this);
+            } catch (ExecutionException | InterruptedException e) {
+                nr.logError("Failed to send start_raid webhook: " + e.getMessage());
+            }
         }
 
         if (boss_info.raid_details().do_catch_phase()) {
@@ -614,9 +625,6 @@ public class Raid {
                 for (PokemonEntity clone : toRemove) {
                     remove_clone(clone);
                 }
-                if (webhook != 0 && stage == 1) {
-                    WebhookHandler.editStartRaidWebhook(webhook, this);
-                }
             }
         }
     }
@@ -626,6 +634,14 @@ public class Raid {
             participating_players().removeAll(markForDeletion);
             markForDeletion.clear();
         }
+    }
+
+    public long getCurrentWebhookID() {
+        return webhook;
+    }
+
+    public void editWebhookID(long webhookID) {
+        this.webhook = webhookID;
     }
 
     public boolean addPlayer(UUID player_uuid, boolean usedPass) {
@@ -652,7 +668,7 @@ public class Raid {
                     player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_not_joinable"), this)));
                 }
 
-                if (BanHandler.hasContraband(player)) {
+                if (BanHandler.hasContraband(player, boss_info)) {
                     index = -2;
                 }
 
@@ -682,9 +698,7 @@ public class Raid {
                     max_health += boss_info.health_increase_per_player();
                     current_health += boss_info.health_increase_per_player();
                 }
-                if (webhook != 0) {
-                    WebhookHandler.editStartRaidWebhook(webhook, this);
-                }
+
                 show_bossbar(bossbar_data);
                 if (raidBoss_location.use_set_join_location()) {
                     player.teleport(raidBoss_location.world(), raidBoss_location.join_location().x, raidBoss_location.join_location().y, raidBoss_location.join_location().z, raidBoss_location.yaw(), raidBoss_location().pitch());

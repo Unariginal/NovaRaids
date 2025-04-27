@@ -51,8 +51,8 @@
     "give_command_invalid_pokeball": "%prefix% Pokeball %pokeball% does not exist!",
     "give_command_invalid_boss": "%prefix% Boss %boss% does not exist!",
     "give_command_failed_to_give": "%prefix% Failed to give the item!",
-    "give_command_received_item": "%prefix% You received a %raid_item%!",
-    "give_command_feedback": "%prefix% Successfully gave %target% a %raid_item%",
+    "give_command_received_item": "%prefix% You received %amount% raid %raid_item%!",
+    "give_command_feedback": "%prefix% Successfully gave %target% %amount% raid %raid_item%",
 
     "raid_list_gui_title": "Active Raids",
     "raid_queue_gui_title": "Queued Raids",
@@ -69,6 +69,7 @@
     "webhook_avatar_url": "https://cdn.modrinth.com/data/MdwFAVRL/e54083a07bcd9436d1f8d2879b0d821a54588b9e.png",
     "role_ping": "<@&role_id_here>",
     "raid_start": {
+      "enabled": true,
       "embed_title": "%boss.form% %boss.species% Raid Has Started",
       "fields": [
         {
@@ -78,10 +79,44 @@
         }
       ]
     },
+    "raid_running": {
+      "enabled": true,
+      "embed_title": "%boss.form% %boss.species% Raid In Progress!",
+      "fields": [
+        {
+          "inline": false,
+          "name": "Current Health",
+          "value": "%boss.currenthp%/%boss.maxhp% HP"
+        },
+        {
+          "inline": false,
+          "name": "Current Leaderboard",
+          "value": "",
+          "insert_leaderboard_after": true
+        }
+      ],
+      "leaderboard_field_layout": {
+        "inline": false,
+        "name": "%raid.player.place%. %raid.player%:",
+        "value": "%raid.player.damage% damage"
+      }
+    },
     "raid_end": {
+      "enabled": true,
       "embed_title": "%boss.form% %boss.species% Raid Has Ended",
-      "fields": [],
-      "show_leaderboard": true
+      "fields": [
+        {
+          "inline": false,
+          "name": "------- Raid Results -------",
+          "value": "",
+          "insert_leaderboard_after": true
+        }
+      ],
+      "leaderboard_field_layout": {
+        "inline": false,
+        "name": "%raid.player.place%. %raid.player%:",
+        "value": "%raid.player.damage% damage"
+      }
     }
   }
 }

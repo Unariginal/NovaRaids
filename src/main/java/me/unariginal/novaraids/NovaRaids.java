@@ -69,6 +69,7 @@ public class NovaRaids implements ModInitializer {
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             if (loaded_properly) {
                 try {
+                    TickManager.update_webhooks();
                     TickManager.fix_boss_positions();
                     TickManager.handle_defeated_bosses();
                     TickManager.execute_tasks();

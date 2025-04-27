@@ -1,5 +1,6 @@
 package me.unariginal.novaraids.utils;
 
+import com.mojang.authlib.GameProfile;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.bosssettings.Boss;
 import me.unariginal.novaraids.managers.Raid;
@@ -74,6 +75,17 @@ public class TextUtils {
                 .replaceAll("%raid.player.place%", String.valueOf(place))
                 .replaceAll("%place_suffix%", (String.valueOf(place).endsWith("1") ? "st" : (String.valueOf(place).endsWith("2") ? "nd" : (String.valueOf(place).endsWith("3") ? "rd" : "th"))))
                 .replaceAll("%raid.player%", player.getName().getString())
+                .replaceAll("%raid.player.damage%", String.valueOf(damage));
+
+        return message;
+    }
+
+    public static String parse(String message, Raid raid, GameProfile player, int damage, int place) {
+        message = parse(message, raid);
+        message = message
+                .replaceAll("%raid.player.place%", String.valueOf(place))
+                .replaceAll("%place_suffix%", (String.valueOf(place).endsWith("1") ? "st" : (String.valueOf(place).endsWith("2") ? "nd" : (String.valueOf(place).endsWith("3") ? "rd" : "th"))))
+                .replaceAll("%raid.player%", player.getName())
                 .replaceAll("%raid.player.damage%", String.valueOf(damage));
 
         return message;

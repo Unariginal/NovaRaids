@@ -5,6 +5,7 @@ import club.minnced.discord.webhook.send.WebhookEmbed;
 import club.minnced.discord.webhook.send.WebhookEmbedBuilder;
 import club.minnced.discord.webhook.send.WebhookMessageBuilder;
 import com.cobblemon.mod.common.pokemon.Pokemon;
+import com.mojang.authlib.GameProfile;
 import me.unariginal.novaraids.NovaRaids;
 
 import java.awt.*;
@@ -28,10 +29,17 @@ public class WebhookHandler {
     public static String webhook_username =  "Raid Alert!";
     public static String webhook_avatar_url = "https://cdn.modrinth.com/data/MdwFAVRL/e54083a07bcd9436d1f8d2879b0d821a54588b9e.png";
     public static String role_ping = "<@&roldidhere>";
+    public static boolean start_embed_enabled = false;
     public static String start_embed_title = "%boss.form% %boss.species% Raid Has Started";
     public static List<FieldData> start_embed_fields = new ArrayList<>();
+    public static boolean running_embed_enabled = false;
+    public static String running_embed_title = "%boss.form% %boss.species% Raid In Progress!";
+    public static List<FieldData> running_embed_fields = new ArrayList<>();
+    public static FieldData running_embed_leaderboard_field = null;
+    public static boolean end_embed_enabled = false;
     public static String end_embed_title = "%boss.form% %boss.species% Raid Has Ended";
     public static List<FieldData> end_embed_fields = new ArrayList<>();
+    public static FieldData end_embed_leaderboard_field = null;
     public static boolean show_leaderboard = true;
 
     private static int hexToRGB(String hex) {
@@ -124,9 +132,9 @@ public class WebhookHandler {
         return webhook.send(buildStartRaidWebhook(raid).build()).get().getId();
     }
 
-    public static void editStartRaidWebhook(long id, Raid raid) {
+    public static long editStartRaidWebhook(long id, Raid raid) throws ExecutionException, InterruptedException {
         WebhookClient webhook = WebhookClient.withUrl(webhook_url);
-        webhook.edit(id, buildStartRaidWebhook(raid).build());
+        return webhook.edit(id, buildStartRaidWebhook(raid).build()).get().getId();
     }
 
     public static WebhookMessageBuilder buildStartRaidWebhook(Raid raid){
@@ -155,8 +163,21 @@ public class WebhookHandler {
                 .addEmbeds(embed);
     }
 
-    public static void sendEndRaidWebhook(Raid raid, List<Map.Entry<UUID, Integer>> entries) {
+    public static long sendEndRaidWebhook(long id, Raid raid) throws ExecutionException, InterruptedException {
         WebhookClient webhook = WebhookClient.withUrl(webhook_url);
+        if (id == -1) {
+            return webhook.send(buildEndRaidWebhook(raid).build()).get().getId();
+        } else {
+            return editEndRaidWebhook(id, raid);
+        }
+    }
+
+    public static long editEndRaidWebhook(long id, Raid raid) throws ExecutionException, InterruptedException {
+        WebhookClient webhook = WebhookClient.withUrl(webhook_url);
+        return webhook.edit(id, buildEndRaidWebhook(raid).build()).get().getId();
+    }
+
+    public static WebhookMessageBuilder buildEndRaidWebhook(Raid raid) {
         Pokemon pokemon = raid.raidBoss_pokemon();
         int randColor = genTypeColor(pokemon);
         String thumbnailUrl = getThumbnailUrl(pokemon);
@@ -173,15 +194,17 @@ public class WebhookHandler {
 
         for (FieldData field : end_embed_fields) {
             embedBuilder.addField(new WebhookEmbed.EmbedField(field.inline(), TextUtils.parse(field.name(), raid), TextUtils.parse(field.value(), raid)));
-        }
+            if (field.insert_leaderboard_after()) {
+                List<Map.Entry<UUID, Integer>> entries = raid.get_damage_leaderboard();
 
-        if (show_leaderboard) {
-            embedBuilder.addField(new WebhookEmbed.EmbedField(false, "Leaderboard:", ""));
-
-            for (int i = 0; i < Math.min(entries.size(), 10); i++) {
-                Map.Entry<UUID, Integer> entry = entries.get(i);
-                if (cache != null) {
-                    embedBuilder.addField(new WebhookEmbed.EmbedField(false, (i + 1) + ". " + cache.getByUuid(entry.getKey()).orElseThrow().getName() + ":", entry.getValue().toString()));
+                for (int i = 0; i < Math.min(entries.size(), 10); i++) {
+                    Map.Entry<UUID, Integer> entry = entries.get(i);
+                    if (cache != null) {
+                        GameProfile user = cache.getByUuid(entry.getKey()).orElseThrow();
+                        String name = TextUtils.parse(end_embed_leaderboard_field.name(), raid, user, entry.getValue(), i + 1);
+                        String value = TextUtils.parse(end_embed_leaderboard_field.value(), raid, user, entry.getValue(), i + 1);
+                        embedBuilder.addField(new WebhookEmbed.EmbedField(end_embed_leaderboard_field.inline(), name, value));
+                    }
                 }
             }
         }
@@ -189,11 +212,64 @@ public class WebhookHandler {
         embedBuilder.setThumbnailUrl(thumbnailUrl);
         WebhookEmbed embed = embedBuilder.build();
 
-        WebhookMessageBuilder messageBuilder = new WebhookMessageBuilder()
+        return new WebhookMessageBuilder()
                 .setUsername(webhook_username)
                 .setAvatarUrl(webhook_avatar_url)
                 .addEmbeds(embed);
+    }
 
-        webhook.send(messageBuilder.build());
+    public static long sendRunningWebhook(long id, Raid raid) throws ExecutionException, InterruptedException {
+        WebhookClient webhook = WebhookClient.withUrl(webhook_url);
+        if (id == -1) {
+            return webhook.send(buildRunningWebhook(raid).build()).get().getId();
+        } else {
+            return editRunningWebhook(id, raid);
+        }
+    }
+
+    public static long editRunningWebhook(long id, Raid raid) throws ExecutionException, InterruptedException {
+        WebhookClient webhook = WebhookClient.withUrl(webhook_url);
+        return webhook.edit(id, buildRunningWebhook(raid).build()).get().getId();
+    }
+
+    public static WebhookMessageBuilder buildRunningWebhook(Raid raid) {
+        Pokemon pokemon = raid.raidBoss_pokemon();
+        int randColor = genTypeColor(pokemon);
+        String thumbnailUrl = getThumbnailUrl(pokemon);
+
+        WebhookEmbedBuilder embedBuilder = new WebhookEmbedBuilder()
+                .setColor(randColor)
+                .setAuthor(
+                        new WebhookEmbed.EmbedAuthor(
+                                TextUtils.parse(running_embed_title, raid),
+                                "",
+                                thumbnailUrl
+                        )
+                );
+
+        for (FieldData field : running_embed_fields) {
+            embedBuilder.addField(new WebhookEmbed.EmbedField(field.inline(), TextUtils.parse(field.name(), raid), TextUtils.parse(field.value(), raid)));
+            if (field.insert_leaderboard_after()) {
+                List<Map.Entry<UUID, Integer>> entries = raid.get_damage_leaderboard();
+
+                for (int i = 0; i < Math.min(entries.size(), 10); i++) {
+                    Map.Entry<UUID, Integer> entry = entries.get(i);
+                    if (cache != null) {
+                        GameProfile user = cache.getByUuid(entry.getKey()).orElseThrow();
+                        String name = TextUtils.parse(running_embed_leaderboard_field.name(), raid, user, entry.getValue(), i + 1);
+                        String value = TextUtils.parse(running_embed_leaderboard_field.value(), raid, user, entry.getValue(), i + 1);
+                        embedBuilder.addField(new WebhookEmbed.EmbedField(running_embed_leaderboard_field.inline(), name, value));
+                    }
+                }
+            }
+        }
+
+        embedBuilder.setThumbnailUrl(thumbnailUrl);
+        WebhookEmbed embed = embedBuilder.build();
+
+        return new WebhookMessageBuilder()
+                .setUsername(webhook_username)
+                .setAvatarUrl(webhook_avatar_url)
+                .addEmbeds(embed);
     }
 }

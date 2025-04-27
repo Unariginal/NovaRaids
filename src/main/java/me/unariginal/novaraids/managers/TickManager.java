@@ -7,19 +7,46 @@ import com.cobblemon.mod.common.battles.BattleRegistry;
 import com.cobblemon.mod.common.battles.pokemon.BattlePokemon;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import me.unariginal.novaraids.NovaRaids;
-import me.unariginal.novaraids.data.bosssettings.Boss;
-import me.unariginal.novaraids.data.Category;
 import me.unariginal.novaraids.data.Task;
+import me.unariginal.novaraids.utils.WebhookHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 
 public class TickManager {
     private static final NovaRaids nr = NovaRaids.INSTANCE;
     private static LocalDateTime set_time_buffer = LocalDateTime.now(TimeZone.getDefault().toZoneId());
+    private static int webhook_update_timer = 20 * 5;
+
+    public static void update_webhooks() {
+        webhook_update_timer--;
+        if (webhook_update_timer <= 0) {
+            webhook_update_timer = 300;
+            for (Raid raid : nr.active_raids().values()) {
+                long id = raid.getCurrentWebhookID();
+                if (id == 0) {
+                    continue;
+                }
+                if (raid.stage() == 1) {
+                    try {
+                        raid.editWebhookID(WebhookHandler.editStartRaidWebhook(id, raid));
+                    } catch (ExecutionException | InterruptedException e) {
+                        nr.logError("Failed to edit raid_start webhook: " + e.getMessage());
+                    }
+                } else if (raid.stage() == 2) {
+                    try {
+                        raid.editWebhookID(WebhookHandler.editRunningWebhook(id, raid));
+                    } catch (ExecutionException | InterruptedException e) {
+                        nr.logError("Failed to edit raid_running webhook: " + e.getMessage());
+                    }
+                }
+            }
+        }
+    }
 
     public static void fix_boss_positions() throws ConcurrentModificationException {
         for (Raid raid : nr.active_raids().values()) {

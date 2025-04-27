@@ -31,6 +31,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.screen.ScreenHandlerType;
@@ -96,7 +97,7 @@ public class EventManager {
                             }
 
                             if (raid.stage() == 2) {
-                                if (!BanHandler.hasContraband(player)) {
+                                if (!BanHandler.hasContraband(player, raid.boss_info())) {
                                     BattleManager.invoke_battle(raid, player);
                                 }
                             }
@@ -446,11 +447,13 @@ public class EventManager {
                     }
                 }
 
-                // TODO: Other banned shit
-                if (nr.config().global_banned_bag_items.contains(held_item.getItem())) {
-                    for (Raid raid : nr.active_raids().values()) {
-                        if (raid.participating_players().contains(player.getUuid())) {
-                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_banned_bag_item").replaceAll("%banned.bag_item%", held_item.getItem().getName().getString()))));
+                // TODO: <!>TEST<!> Other banned shit
+                for (Raid raid : nr.active_raids().values()) {
+                    if (raid.participating_players().contains(player.getUuid())) {
+                        List<Item> banned_bag_items = nr.config().global_banned_bag_items;
+                        banned_bag_items.addAll(raid.boss_info().raid_details().banned_bag_items());
+                        if (banned_bag_items.contains(held_item.getItem())) {
+                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_banned_bag_item").replaceAll("%banned.bag_item%", held_item.getItem().getName().getString()), raid)));
                             return TypedActionResult.fail(held_item);
                         }
                     }
