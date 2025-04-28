@@ -5,21 +5,24 @@ import com.cronutils.model.definition.CronDefinition;
 import com.cronutils.model.definition.CronDefinitionBuilder;
 import com.cronutils.model.time.ExecutionTime;
 import com.cronutils.parser.CronParser;
+import me.unariginal.novaraids.NovaRaids;
 
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
 public class CronSchedule extends Schedule {
     String expression;
+    ZonedDateTime nextExecution;
 
     public CronSchedule(String type, List<ScheduleBoss> bosses, String expression) {
         super(type, bosses);
         this.expression = expression;
     }
 
-    public ZonedDateTime nextExecution(ZonedDateTime date) throws NoSuchElementException, IllegalArgumentException {
+    public void setNextExecution(ZonedDateTime date) throws NoSuchElementException, IllegalArgumentException {
         CronDefinition cronDefinition = CronDefinitionBuilder.defineCron()
                 .withSeconds().and()
                 .withMinutes().and()
@@ -42,6 +45,15 @@ public class CronSchedule extends Schedule {
         Cron cron = cronParser.parse(expression);
         ExecutionTime executionTime = ExecutionTime.forCron(cron);
         Optional<ZonedDateTime> nextExecution = executionTime.nextExecution(date);
-        return nextExecution.orElseThrow();
+        try {
+            nextExecution = Optional.of(nextExecution.orElseThrow());
+        } catch (NullPointerException e) {
+            NovaRaids.INSTANCE.logError("[RAIDS] Cron Schedule's next execution time is null!");
+        }
+    }
+
+    public boolean isNextTime() {
+        ZonedDateTime now = ZonedDateTime.now(NovaRaids.INSTANCE.schedulesConfig().zone);
+        return now.until(nextExecution, ChronoUnit.SECONDS) <= 0;
     }
 }

@@ -1,7 +1,8 @@
 package me.unariginal.novaraids.data.schedule;
 
+import me.unariginal.novaraids.NovaRaids;
+
 import java.time.LocalTime;
-import java.time.ZoneId;
 import java.util.List;
 
 public class SpecificSchedule extends Schedule {
@@ -13,8 +14,7 @@ public class SpecificSchedule extends Schedule {
     }
 
     public boolean isNextTime() {
-        // TODO: Change Zone ID To Schedules.java zone id.
-        LocalTime now = LocalTime.now(ZoneId.systemDefault());
+        LocalTime now = LocalTime.now(NovaRaids.INSTANCE.schedulesConfig().zone);
         for (LocalTime time : set_times) {
             if (time.getHour() == now.getHour() && time.getMinute() == now.getMinute() && time.getSecond() == now.getSecond()) {
                 return true;

@@ -7,19 +7,24 @@ import com.cobblemon.mod.common.battles.BattleRegistry;
 import com.cobblemon.mod.common.battles.pokemon.BattlePokemon;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import me.unariginal.novaraids.NovaRaids;
+import me.unariginal.novaraids.data.Category;
 import me.unariginal.novaraids.data.Task;
+import me.unariginal.novaraids.data.bosssettings.Boss;
+import me.unariginal.novaraids.data.schedule.*;
 import me.unariginal.novaraids.utils.WebhookHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 public class TickManager {
     private static final NovaRaids nr = NovaRaids.INSTANCE;
-    private static LocalDateTime set_time_buffer = LocalDateTime.now(TimeZone.getDefault().toZoneId());
+    private static ZonedDateTime set_time_buffer = ZonedDateTime.now(nr.schedulesConfig().zone);
     private static int webhook_update_timer = 20 * 5;
 
     public static void update_webhooks() {
@@ -271,30 +276,77 @@ public class TickManager {
         }
     }
 
-    // TODO: Use schedules!
     public static void scheduled_raids() throws ConcurrentModificationException {
-        LocalDateTime now = LocalDateTime.now(TimeZone.getDefault().toZoneId());
-        /*for (Category category : nr.bossesConfig().categories) {
-            if (!category.set_times().isEmpty()) {
-                for (LocalTime time : category.set_times()) {
-                    if (set_time_buffer.until(now, ChronoUnit.SECONDS) >= 1 && time.getHour() == now.getHour() && time.getMinute() == now.getMinute() && time.getSecond() == now.getSecond()) {
-                        set_time_buffer = now;
+        ZonedDateTime now = ZonedDateTime.now(nr.schedulesConfig().zone);
+        for (Schedule schedule : nr.schedulesConfig().schedules) {
+            boolean shouldExecute = false;
+            if (schedule instanceof SpecificSchedule specificSchedule) {
+                if (set_time_buffer.until(now, ChronoUnit.SECONDS) >= 1 && specificSchedule.isNextTime()) {
+                    set_time_buffer = now;
+                    shouldExecute = true;
+                }
+            } else if (schedule instanceof RandomSchedule randomSchedule) {
+                if (set_time_buffer.until(now, ChronoUnit.SECONDS) >= 1 && randomSchedule.isNextTime()) {
+                    set_time_buffer = now;
+                    randomSchedule.setNextRandom(now);
+                    shouldExecute = true;
+                }
+            } else if (schedule instanceof CronSchedule cronSchedule) {
+                if (set_time_buffer.until(now, ChronoUnit.SECONDS) >= 1 && cronSchedule.isNextTime()) {
+                    set_time_buffer = now;
+                    cronSchedule.setNextExecution(now);
+                    shouldExecute = true;
+                }
+            }
 
-                        nr.raidCommands().start(choose_boss(category), null, null);
+            if (shouldExecute) {
+                double total_weight = 0.0;
+                for (ScheduleBoss scheduleBoss : schedule.bosses) {
+                    if (scheduleBoss.type().equalsIgnoreCase("category")) {
+                        if (nr.bossesConfig().getCategory(scheduleBoss.id()) != null) {
+                            total_weight += scheduleBoss.weight();
+                        } else {
+                            nr.logError("[RAIDS] Category " + scheduleBoss.id() + " does not exist. Skipping.");
+                        }
+                    } else if (scheduleBoss.type().equalsIgnoreCase("boss")) {
+                        if (nr.bossesConfig().getBoss(scheduleBoss.id()) != null) {
+                            total_weight += scheduleBoss.weight();
+                        } else {
+                            nr.logError("[RAIDS] Boss " + scheduleBoss.id() + " does not exist. Skipping.");
+                        }
+                    }
+                }
+                if (total_weight > 0.0) {
+                    double random_weight = new Random().nextDouble(total_weight);
+                    total_weight = 0.0;
+                    for (ScheduleBoss scheduleBoss : schedule.bosses) {
+                        if (scheduleBoss.type().equalsIgnoreCase("category")) {
+                            Category category = nr.bossesConfig().getCategory(scheduleBoss.id());
+                            if (category != null) {
+                                total_weight += scheduleBoss.weight();
+                                if (random_weight < total_weight) {
+                                    Boss boss = nr.bossesConfig().getRandomBoss(category.name());
+                                    if (boss != null) {
+                                        nr.raidCommands().start(boss, null, null);
+                                        break;
+                                    } else {
+                                        nr.logError("[RAIDS] Failed to start scheduled raid. Boss was null!");
+                                    }
+                                }
+                            }
+                        } else if (scheduleBoss.type().equalsIgnoreCase("boss")) {
+                            Boss boss = nr.bossesConfig().getBoss(scheduleBoss.id());
+                            if (boss != null) {
+                                total_weight += scheduleBoss.weight();
+                                if (random_weight < total_weight) {
+                                    nr.raidCommands().start(boss, null, null);
+                                    break;
+                                }
+                            }
+                        }
                     }
                 }
             }
-
-            if (category.next_time() != null) {
-                if (now.isAfter(category.next_time())) {
-                    category.new_next_time(now);
-                    set_time_buffer = now;
-                    nr.logInfo("[RAIDS] Starting new random raid.");
-                    nr.raidCommands().start(choose_boss(category), null, null);
-                }
-            } else {
-                category.new_next_time(now);
-            }
-        }*/
+        }
     }
 }

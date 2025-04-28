@@ -21,8 +21,8 @@ import java.util.List;
 public class SchedulesConfig {
     private final NovaRaids nr = NovaRaids.INSTANCE;
 
-    ZoneId zone = ZoneId.systemDefault();
-    List<Schedule> schedules = new ArrayList<>();
+    public ZoneId zone = ZoneId.systemDefault();
+    public List<Schedule> schedules = new ArrayList<>();
 
     public SchedulesConfig() {
         try {
