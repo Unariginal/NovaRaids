@@ -3,6 +3,8 @@
   "raid_settings": {
     "use_queue_system": false,
     "run_raids_with_no_players": false,
+    "hide_other_players_in_raid": false,
+    "hide_other_pokemon_in_raid": false,
     "global_contraband": {
       "banned_pokemon": ["weedle", "caterpie"],
       "banned_moves": ["tackle", "bite"],

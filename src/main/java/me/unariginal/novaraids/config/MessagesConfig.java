@@ -228,7 +228,7 @@ public class MessagesConfig {
         if (ConfigHelper.checkProperty(field_object, "value", "messages")) {
             value = field_object.get("value").getAsString();
         }
-        if (ConfigHelper.checkProperty(field_object, "insert_leaderboard_after", "messages")) {
+        if (ConfigHelper.checkProperty(field_object, "insert_leaderboard_after", "messages", false)) {
             insert_leaderboard_after = field_object.get("insert_leaderboard_after").getAsBoolean();
         }
         return new FieldData(inline, name, value, insert_leaderboard_after);
