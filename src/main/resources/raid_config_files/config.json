@@ -3,6 +3,7 @@
   "raid_settings": {
     "use_queue_system": false,
     "run_raids_with_no_players": false,
+    "hide_other_catch_encounters": true,
     "hide_other_players_in_raid": false,
     "hide_other_pokemon_in_raid": false,
     "global_contraband": {

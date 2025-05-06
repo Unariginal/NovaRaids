@@ -39,6 +39,7 @@ public class Config {
     // Raid Settings
     public boolean use_queue_system = false;
     public boolean run_raids_with_no_players = false;
+    public boolean hide_other_catch_encounters = true;
     public boolean hide_other_players_in_raid = false;
     public boolean hide_other_pokemon_in_raid = false;
     public List<Species> global_banned_pokemon = new ArrayList<>();
@@ -147,6 +148,9 @@ public class Config {
             }
             if (checkProperty(raid_settings, "run_raids_with_no_players")) {
                 run_raids_with_no_players = raid_settings.get("run_raids_with_no_players").getAsBoolean();
+            }
+            if (checkProperty(raid_settings, "hide_other_catch_encounters")) {
+                hide_other_catch_encounters = raid_settings.get("hide_other_catch_encounters").getAsBoolean();
             }
             if (checkProperty(raid_settings, "hide_other_players_in_raid")) {
                 hide_other_players_in_raid = raid_settings.get("hide_other_players_in_raid").getAsBoolean();
