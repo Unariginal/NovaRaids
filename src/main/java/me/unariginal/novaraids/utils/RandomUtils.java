@@ -1,7 +1,5 @@
 package me.unariginal.novaraids.utils;
 
-import me.unariginal.novaraids.NovaRaids;
-
 import java.util.Map;
 import java.util.Random;
 

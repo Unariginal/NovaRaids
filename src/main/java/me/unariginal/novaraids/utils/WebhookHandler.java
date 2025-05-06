@@ -21,7 +21,6 @@ import net.minecraft.util.UserCache;
 
 
 public class WebhookHandler {
-
     private static final NovaRaids nr = NovaRaids.INSTANCE;
     private static final UserCache cache =  nr.server().getUserCache();
     public static boolean webhook_toggle = false;
@@ -40,7 +39,6 @@ public class WebhookHandler {
     public static String end_embed_title = "%boss.form% %boss.species% Raid Has Ended";
     public static List<FieldData> end_embed_fields = new ArrayList<>();
     public static FieldData end_embed_leaderboard_field = null;
-    public static boolean show_leaderboard = true;
 
     private static int hexToRGB(String hex) {
         if (hex.startsWith("#")) {
@@ -83,7 +81,6 @@ public class WebhookHandler {
             String url = baseUrl.replace("%rute%", pokemon.getShiny() ? "ani-shiny" : "ani")
                     .replace("%pokemon%", pokemon.getSpecies().getName().toLowerCase())
                     .replace("%form%", "-" + pokemon.getForm().formOnlyShowdownId());
-            nr.logInfo("Pokemon URL: " + url);
 
             if (isUrlAccessible(url)) {
                 return url;

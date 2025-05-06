@@ -16,7 +16,6 @@ import me.lucko.fabric.api.permissions.v0.Permissions;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.commands.suggestions.BossSuggestions;
 import me.unariginal.novaraids.commands.suggestions.CategorySuggestions;
-import me.unariginal.novaraids.config.MessagesConfig;
 import me.unariginal.novaraids.data.*;
 import me.unariginal.novaraids.data.bosssettings.Boss;
 import me.unariginal.novaraids.data.items.Pass;
