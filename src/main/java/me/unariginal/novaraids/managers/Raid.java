@@ -14,6 +14,7 @@ import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.config.MessagesConfig;
 import me.unariginal.novaraids.data.*;
 import me.unariginal.novaraids.data.bosssettings.Boss;
+import me.unariginal.novaraids.data.bosssettings.CatchPlacement;
 import me.unariginal.novaraids.data.rewards.DistributionSection;
 import me.unariginal.novaraids.data.rewards.Place;
 import me.unariginal.novaraids.data.rewards.RewardPool;
@@ -250,14 +251,55 @@ public class Raid {
         phase_length = boss_info.raid_details().catch_phase_time();
         phase_start_time = nr.server().getOverworld().getTime();
 
-        for (UUID player_uuid : participating_players) {
-            ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(player_uuid);
-            if (player != null) {
-                if (damage_by_player.containsKey(player_uuid)) {
-                    // TODO: Invoke catch encounters based on placement
-                    if (/*!nr.config().getSettings().only_catch_encounter_if_damage() ||*/damage_by_player.get(player.getUuid()) > 0) {
-                        BattleManager.invoke_catch_encounter(this, player, 8192.0, 0);
+        List<ServerPlayerEntity> already_catching = new ArrayList<>();
+        for (CatchPlacement placement : boss_info.catch_settings().catch_placements()) {
+            List<ServerPlayerEntity> players_to_reward = new ArrayList<>();
+            if (StringUtils.isNumeric(placement.place())) {
+                int placeIndex = Integer.parseInt(placement.place());
+                placeIndex--;
+                if (placeIndex >= 0 && placeIndex < get_damage_leaderboard().size()) {
+                    ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(get_damage_leaderboard().get(placeIndex).getKey());
+                    if (player != null) {
+                        if (!already_catching.contains(player)) {
+                            if (!placement.require_damage() || (damage_by_player.containsKey(player.getUuid()) && damage_by_player.get(player.getUuid()) > 0)) {
+                                players_to_reward.add(player);
+                            }
+                        }
                     }
+                }
+            } else if (placement.place().contains("%")) {
+                String percentStr = placement.place().replace("%", "");
+                if (StringUtils.isNumeric(percentStr)) {
+                    int percent = Integer.parseInt(percentStr);
+                    double positions = get_damage_leaderboard().size() * ((double) percent / 100);
+                    for (int i = 0; i < ((int) positions); i++) {
+                        ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(get_damage_leaderboard().get(i).getKey());
+                        if (player != null) {
+                            if (!already_catching.contains(player)) {
+                                if (!placement.require_damage() || (damage_by_player.containsKey(player.getUuid()) && damage_by_player.get(player.getUuid()) > 0)) {
+                                    players_to_reward.add(player);
+                                }
+                            }
+                        }
+                    }
+                }
+            } else if (placement.place().equalsIgnoreCase("participating")) {
+                for (Map.Entry<String, Integer> entry : get_damage_leaderboard()) {
+                    ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(entry.getKey());
+                    if (player != null) {
+                        if (!already_catching.contains(player)) {
+                            if (!placement.require_damage() || (damage_by_player.containsKey(player.getUuid()) && damage_by_player.get(player.getUuid()) > 0)) {
+                                players_to_reward.add(player);
+                            }
+                        }
+                    }
+                }
+            }
+
+            for (ServerPlayerEntity player : players_to_reward) {
+                if (player != null) {
+                    already_catching.add(player);
+                    BattleManager.invoke_catch_encounter(this, player, placement.shiny_chance(), placement.min_perfect_ivs());
                 }
             }
         }
