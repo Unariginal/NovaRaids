@@ -402,12 +402,16 @@ public class EventManager {
                                                     String boss = custom_data.copyNbt().getString("raid_boss");
                                                     String category = custom_data.copyNbt().getString("raid_category");
                                                     if (boss.equalsIgnoreCase("*") && category.equalsIgnoreCase("*")) {
-                                                        can_throw = true;
-                                                        break;
-                                                    } else if (boss.equalsIgnoreCase("*")) {
-                                                        if (raid.boss_info().category_id().equalsIgnoreCase(category)) {
+                                                        if (raid.boss_info().item_settings().allow_global_pokeballs()) {
                                                             can_throw = true;
                                                             break;
+                                                        }
+                                                    } else if (boss.equalsIgnoreCase("*")) {
+                                                        if (raid.boss_info().category_id().equalsIgnoreCase(category)) {
+                                                            if (raid.boss_info().item_settings().allow_category_pokeballs()) {
+                                                                can_throw = true;
+                                                                break;
+                                                            }
                                                         }
                                                     } else {
                                                         if (raid.boss_info().boss_id().equalsIgnoreCase(boss)) {
