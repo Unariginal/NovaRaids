@@ -293,8 +293,8 @@ public class ConfigHelper {
                     return null;
                 }
                 ComponentChanges held_item_data = ComponentChanges.EMPTY;
-                if (checkProperty(pokemon_object, "data", location)) {
-                    JsonElement data = pokemon_object.getAsJsonObject("data");
+                if (checkProperty(pokemon_object, "held_item_data", location)) {
+                    JsonElement data = pokemon_object.getAsJsonObject("held_item_data");
                     if (data != null) {
                         held_item_data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, data).getOrThrow().getFirst();
                     }

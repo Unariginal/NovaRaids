@@ -342,12 +342,36 @@ public class Raid {
             }
         }
 
-        // TODO: Use BOTH reward distribution sections!
-        List<DistributionSection> rewards;
-        if (boss_info.raid_details().rewards().isEmpty()) {
-            rewards = raidBoss_category.rewards();
-        } else {
-            rewards = boss_info.raid_details().rewards();
+        // TODO: <!>TESTING<!> Use BOTH reward distribution sections!
+        List<DistributionSection> category_rewards = raidBoss_category.rewards();
+        List<DistributionSection> boss_rewards = boss_info.raid_details().rewards();
+
+        List<Place> overridden_placements = new ArrayList<>();
+
+        for (DistributionSection boss_reward : boss_rewards) {
+            List<Place> places = boss_reward.places();
+            for (Place place : places) {
+                if (place.override_category_reward()) {
+                    overridden_placements.add(place);
+                }
+            }
+        }
+
+        List<DistributionSection> rewards = new ArrayList<>(boss_rewards);
+
+        for (DistributionSection category_reward : category_rewards) {
+            boolean overridden = false;
+            List<Place> places = category_reward.places();
+            for (Place place : places) {
+                for (Place overridden_placement : overridden_placements) {
+                    if (overridden_placement.place().equalsIgnoreCase(place.place())) {
+                        overridden = true;
+                    }
+                }
+            }
+            if (!overridden) {
+                rewards.add(category_reward);
+            }
         }
 
         List<ServerPlayerEntity> no_more_rewards = new ArrayList<>();
@@ -399,7 +423,19 @@ public class Raid {
 
                 for (ServerPlayerEntity player : players_to_reward) {
                     if (player != null) {
-                        if (!no_more_rewards.contains(player)) {
+                        boolean duplicate_placement_exists = false;
+                        outer:
+                        for (DistributionSection rewardSection : rewards) {
+                            List<Place> rewardPlaces = rewardSection.places();
+                            for (Place rewardPlace : rewardPlaces) {
+                                if (rewardPlace.place().equalsIgnoreCase(place.place())) {
+                                    duplicate_placement_exists = true;
+                                    break outer;
+                                }
+                            }
+                        }
+
+                        if (!no_more_rewards.contains(player) || duplicate_placement_exists) {
                             int rolls = new Random().nextInt(reward.min_rolls(), reward.max_rolls());
                             List<RewardPool> distributed_pools = new ArrayList<>();
                             for (int i = 0; i < rolls; i++) {
