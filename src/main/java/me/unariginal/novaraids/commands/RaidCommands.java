@@ -21,6 +21,9 @@ import me.unariginal.novaraids.data.bosssettings.Boss;
 import me.unariginal.novaraids.data.items.Pass;
 import me.unariginal.novaraids.data.items.RaidBall;
 import me.unariginal.novaraids.data.items.Voucher;
+import me.unariginal.novaraids.data.rewards.DistributionSection;
+import me.unariginal.novaraids.data.rewards.Place;
+import me.unariginal.novaraids.data.rewards.RewardPool;
 import me.unariginal.novaraids.managers.Raid;
 import me.unariginal.novaraids.utils.RandomUtils;
 import me.unariginal.novaraids.utils.TextUtils;
@@ -41,6 +44,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 
@@ -309,6 +313,21 @@ public class RaidCommands {
                                     .then(
                                             CommandManager.argument("id", IntegerArgumentType.integer(1))
                                                     .executes(this::skipphase)
+                                    )
+                    )
+                    .then(
+                            CommandManager.literal("test")
+                                    .requires(Permissions.require("novaraids.test", 4))
+                                    .then(
+                                            CommandManager.argument("boss", StringArgumentType.string())
+                                                    .suggests(new BossSuggestions())
+                                                    .then(
+                                                            CommandManager.argument("placement", IntegerArgumentType.integer(1))
+                                                                    .then(
+                                                                            CommandManager.argument("total-players", IntegerArgumentType.integer(1))
+                                                                                    .executes(this::testRewards)
+                                                                    )
+                                                    )
                                     )
                     )
         ));
@@ -707,6 +726,121 @@ public class RaidCommands {
                 }
             }
         }
+        return 1;
+    }
+
+    private int testRewards(CommandContext<ServerCommandSource> ctx) {
+        String boss = StringArgumentType.getString(ctx, "boss");
+        int placement = IntegerArgumentType.getInteger(ctx, "placement");
+        int total_players = IntegerArgumentType.getInteger(ctx, "total-players");
+
+        Boss boss_info = nr.bossesConfig().getBoss(boss);
+        Category raidBoss_category = nr.bossesConfig().getCategory(boss_info.category_id());
+
+        List<DistributionSection> category_rewards = raidBoss_category.rewards();
+        List<DistributionSection> boss_rewards = boss_info.raid_details().rewards();
+
+        List<Place> overridden_placements = new ArrayList<>();
+
+        for (DistributionSection boss_reward : boss_rewards) {
+            List<Place> places = boss_reward.places();
+            for (Place place : places) {
+                if (place.override_category_reward()) {
+                    overridden_placements.add(place);
+                }
+            }
+        }
+
+        List<DistributionSection> rewards = new ArrayList<>(boss_rewards);
+
+        for (DistributionSection category_reward : category_rewards) {
+            boolean overridden = false;
+            List<Place> places = category_reward.places();
+            for (Place place : places) {
+                for (Place overridden_placement : overridden_placements) {
+                    if (overridden_placement.place().equalsIgnoreCase(place.place())) {
+                        overridden = true;
+                    }
+                }
+            }
+            if (!overridden) {
+                rewards.add(category_reward);
+            }
+        }
+
+        List<ServerPlayerEntity> no_more_rewards = new ArrayList<>();
+        for (DistributionSection reward : rewards) {
+            List<Place> places = reward.places();
+            for (Place place : places) {
+                List<ServerPlayerEntity> players_to_reward = new ArrayList<>();
+                if (StringUtils.isNumeric(place.place())) {
+                    int placeInt = Integer.parseInt(place.place());
+                    if (placement == placeInt) {
+                        ServerPlayerEntity player = ctx.getSource().getPlayer();
+                        if (player != null) {
+                            players_to_reward.add(player);
+                        }
+                    }
+                } else if (place.place().contains("%")) {
+                    String percentStr = place.place().replace("%", "");
+                    if (StringUtils.isNumeric(percentStr)) {
+                        int percent = Integer.parseInt(percentStr);
+                        double positions = total_players * ((double) percent / 100);
+                        for (int i = 1; i <= ((int) positions); i++) {
+                            if (placement == i) {
+                                ServerPlayerEntity player = ctx.getSource().getPlayer();
+                                if (player != null) {
+                                    players_to_reward.add(player);
+                                }
+                            }
+                        }
+                    }
+                } else if (place.place().equalsIgnoreCase("participating")) {
+                    ServerPlayerEntity player = ctx.getSource().getPlayer();
+                    if (player != null) {
+                        players_to_reward.add(player);
+                    }
+                }
+
+                for (ServerPlayerEntity player : players_to_reward) {
+                    if (player != null) {
+                        boolean duplicate_placement_exists = false;
+                        outer:
+                        for (DistributionSection rewardSection : rewards) {
+                            List<Place> rewardPlaces = rewardSection.places();
+                            for (Place rewardPlace : rewardPlaces) {
+                                if (rewardPlace.place().equalsIgnoreCase(place.place())) {
+                                    duplicate_placement_exists = true;
+                                    break outer;
+                                }
+                            }
+                        }
+
+                        if (!no_more_rewards.contains(player) || duplicate_placement_exists) {
+                            int rolls = new Random().nextInt(reward.min_rolls(), reward.max_rolls());
+                            List<RewardPool> distributed_pools = new ArrayList<>();
+                            for (int i = 0; i < rolls; i++) {
+                                Map.Entry<?, Double> pool_entry = RandomUtils.getRandomEntry(reward.pools());
+                                if (pool_entry != null) {
+                                    RewardPool pool = (RewardPool) pool_entry.getKey();
+                                    if (reward.allow_duplicates() || !distributed_pools.contains(pool)) {
+                                        pool.distributeRewards(player);
+                                        distributed_pools.add(pool);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                for (ServerPlayerEntity player : players_to_reward) {
+                    if (!place.allow_other_rewards()) {
+                        no_more_rewards.add(player);
+                    }
+                }
+            }
+        }
+
         return 1;
     }
 
