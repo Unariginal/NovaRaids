@@ -18,6 +18,7 @@ import me.unariginal.novaraids.data.rewards.DistributionSection;
 import me.unariginal.novaraids.data.rewards.Place;
 import me.unariginal.novaraids.data.rewards.RewardPool;
 import me.unariginal.novaraids.utils.BanHandler;
+import me.unariginal.novaraids.utils.RandomUtils;
 import me.unariginal.novaraids.utils.TextUtils;
 import me.unariginal.novaraids.utils.WebhookHandler;
 import net.kyori.adventure.bossbar.BossBar;
@@ -354,12 +355,20 @@ public class Raid {
                     }
                 }
 
-                // TODO: Use weight system for reward pools!
-                for (RewardPool pool : reward.pools().keySet()) {
-                    for (ServerPlayerEntity player : players_to_reward) {
-                        if (player != null) {
-                            if (!no_more_rewards.contains(player)) {
-                                pool.distributeRewards(player);
+                for (ServerPlayerEntity player : players_to_reward) {
+                    if (player != null) {
+                        if (!no_more_rewards.contains(player)) {
+                            int rolls = new Random().nextInt(reward.min_rolls(), reward.max_rolls());
+                            List<RewardPool> distributed_pools = new ArrayList<>();
+                            for (int i = 0; i < rolls; i++) {
+                                Map.Entry<?, Double> pool_entry = RandomUtils.getRandomEntry(reward.pools());
+                                if (pool_entry != null) {
+                                    RewardPool pool = (RewardPool) pool_entry.getKey();
+                                    if (reward.allow_duplicates() || !distributed_pools.contains(pool)) {
+                                        pool.distributeRewards(player);
+                                        distributed_pools.add(pool);
+                                    }
+                                }
                             }
                         }
                     }
