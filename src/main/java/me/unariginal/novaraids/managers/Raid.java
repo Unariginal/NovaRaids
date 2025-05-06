@@ -823,7 +823,7 @@ public class Raid {
         Map<Integer, Long> damage_frequencies = leaderboard.values().stream().collect(Collectors.groupingBy(value -> value, Collectors.counting()));
         List<Integer> duplicates = damage_frequencies.entrySet().stream().filter(entry -> entry.getValue() > 1).map(Map.Entry::getKey).toList();
 
-        return leaderboard.entrySet().stream().sorted((e1, e2) -> {
+        List<Map.Entry<String, Integer>> backwards_again = leaderboard.entrySet().stream().sorted((e1, e2) -> {
             if (duplicates.contains(e1.getValue()) && duplicates.contains(e2.getValue())) {
                 for (UUID uuid1 : latest_damage) {
                     UserCache userCache = nr.server().getUserCache();
@@ -845,6 +845,11 @@ public class Raid {
             }
             return 0;
         }).toList();
+        List<Map.Entry<String, Integer>> sorted_leaderboard = new ArrayList<>();
+        for (Map.Entry<String, Integer> stringIntegerEntry : backwards_again) {
+            sorted_leaderboard.addFirst(stringIntegerEntry);
+        }
+        return sorted_leaderboard;
     }
 
     public Map<UUID, BossBar> bossbars() {
