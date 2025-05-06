@@ -194,12 +194,12 @@ public class WebhookHandler {
         for (FieldData field : end_embed_fields) {
             embedBuilder.addField(new WebhookEmbed.EmbedField(field.inline(), TextUtils.parse(field.name(), raid), TextUtils.parse(field.value(), raid)));
             if (field.insert_leaderboard_after()) {
-                List<Map.Entry<UUID, Integer>> entries = raid.get_damage_leaderboard();
+                List<Map.Entry<String, Integer>> entries = raid.get_damage_leaderboard();
 
                 for (int i = 0; i < Math.min(entries.size(), 10); i++) {
-                    Map.Entry<UUID, Integer> entry = entries.get(i);
+                    Map.Entry<String, Integer> entry = entries.get(i);
                     if (cache != null) {
-                        GameProfile user = cache.getByUuid(entry.getKey()).orElseThrow();
+                        GameProfile user = cache.findByName(entry.getKey()).orElseThrow();
                         String name = TextUtils.parse(end_embed_leaderboard_field.name(), raid, user, entry.getValue(), i + 1);
                         String value = TextUtils.parse(end_embed_leaderboard_field.value(), raid, user, entry.getValue(), i + 1);
                         embedBuilder.addField(new WebhookEmbed.EmbedField(end_embed_leaderboard_field.inline(), name, value));
@@ -249,12 +249,12 @@ public class WebhookHandler {
         for (FieldData field : running_embed_fields) {
             embedBuilder.addField(new WebhookEmbed.EmbedField(field.inline(), TextUtils.parse(field.name(), raid), TextUtils.parse(field.value(), raid)));
             if (field.insert_leaderboard_after()) {
-                List<Map.Entry<UUID, Integer>> entries = raid.get_damage_leaderboard();
+                List<Map.Entry<String, Integer>> entries = raid.get_damage_leaderboard();
 
                 for (int i = 0; i < Math.min(entries.size(), 10); i++) {
-                    Map.Entry<UUID, Integer> entry = entries.get(i);
+                    Map.Entry<String, Integer> entry = entries.get(i);
                     if (cache != null) {
-                        GameProfile user = cache.getByUuid(entry.getKey()).orElseThrow();
+                        GameProfile user = cache.findByName(entry.getKey()).orElseThrow();
                         String name = TextUtils.parse(running_embed_leaderboard_field.name(), raid, user, entry.getValue(), i + 1);
                         String value = TextUtils.parse(running_embed_leaderboard_field.value(), raid, user, entry.getValue(), i + 1);
                         embedBuilder.addField(new WebhookEmbed.EmbedField(running_embed_leaderboard_field.inline(), name, value));

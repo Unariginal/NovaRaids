@@ -11,6 +11,7 @@ import com.cobblemon.mod.common.api.moves.Moves;
 import com.cobblemon.mod.common.api.pokemon.PokemonSpecies;
 import com.cobblemon.mod.common.pokemon.Species;
 import com.google.gson.*;
+import com.mojang.authlib.GameProfile;
 import com.mojang.serialization.JsonOps;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.items.Pass;
@@ -488,14 +489,17 @@ public class Config {
 
         JsonArray this_raid_leaderboard = new JsonArray();
         int place = 1;
-        for (Map.Entry<UUID, Integer> entry : raid.get_damage_leaderboard()) {
+        for (Map.Entry<String, Integer> entry : raid.get_damage_leaderboard()) {
             JsonObject leaderboard_entry = new JsonObject();
-            leaderboard_entry.addProperty("player_uuid", entry.getKey().toString());
             UserCache cache =  nr.server().getUserCache();
             if (cache != null) {
-                leaderboard_entry.addProperty("player_name", cache.getByUuid(entry.getKey()).orElseThrow().getName());
+                Optional<GameProfile> profile = cache.findByName(entry.getKey());
+                if (profile.isPresent()) {
+                    leaderboard_entry.addProperty("player_uuid", profile.get().getId().toString());
+                    leaderboard_entry.addProperty("player_name", entry.getKey());
+                }
             } else {
-                leaderboard_entry.addProperty("player_name", entry.getKey().toString());
+                leaderboard_entry.addProperty("player_name", entry.getKey());
             }
             leaderboard_entry.addProperty("damage", entry.getValue());
             leaderboard_entry.addProperty("place", place++);
@@ -503,7 +507,7 @@ public class Config {
         }
         this_raid.add("leaderboard", this_raid_leaderboard);
 
-        root.add(LocalDateTime.now(TimeZone.getDefault().toZoneId()).toString(), this_raid);
+        root.add(LocalDateTime.now(nr.schedulesConfig().zone).toString(), this_raid);
 
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         Writer writer = new FileWriter(history_file);

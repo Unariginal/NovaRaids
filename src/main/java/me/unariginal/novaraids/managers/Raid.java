@@ -7,6 +7,7 @@ import com.cobblemon.mod.common.battles.BattleRegistry;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.cobblemon.mod.common.pokemon.properties.UncatchableProperty;
+import com.mojang.authlib.GameProfile;
 import kotlin.Unit;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import me.unariginal.novaraids.NovaRaids;
@@ -26,6 +27,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
+import net.minecraft.util.UserCache;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import org.apache.commons.lang3.StringUtils;
@@ -33,6 +35,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 public class Raid {
     private final NovaRaids nr = NovaRaids.INSTANCE;
@@ -58,6 +61,7 @@ public class Raid {
     private final List<UUID> markForDeletion = new ArrayList<>();
     private boolean clearToDelete = true;
     private final Map<UUID, Integer> damage_by_player = new HashMap<>();
+    private final List<UUID> latest_damage = new ArrayList<>();
 
     private final Map<Long, List<Task>> tasks = new HashMap<>();
     private final Map<UUID, BossBar> player_bossbars = new HashMap<>();
@@ -276,7 +280,7 @@ public class Raid {
     public void handle_rewards() {
         participating_broadcast(TextUtils.deserialize(TextUtils.parse(messages.getMessage("leaderboard_message_header"), this)));
         int place_index = 0;
-        for (Map.Entry<UUID, Integer> entry : get_damage_leaderboard()) {
+        for (Map.Entry<String, Integer> entry : get_damage_leaderboard()) {
             ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(entry.getKey());
             if (player != null) {
                 place_index++;
@@ -287,7 +291,7 @@ public class Raid {
             }
         }
         place_index = 0;
-        for (Map.Entry<UUID, Integer> entry : get_damage_leaderboard()) {
+        for (Map.Entry<String, Integer> entry : get_damage_leaderboard()) {
             ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(entry.getKey());
             if (player != null) {
                 place_index++;
@@ -338,7 +342,7 @@ public class Raid {
                         }
                     }
                 } else if (place.place().equalsIgnoreCase("participating")) {
-                    for (Map.Entry<UUID, Integer> entry : get_damage_leaderboard()) {
+                    for (Map.Entry<String, Integer> entry : get_damage_leaderboard()) {
                         ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(entry.getKey());
                         if (player != null) {
                             if (damage_by_player.containsKey(player.getUuid())) {
@@ -716,15 +720,44 @@ public class Raid {
             damage += damage_by_player.get(player_uuid);
         }
         damage_by_player.put(player_uuid, damage);
+        latest_damage.remove(player_uuid);
+        latest_damage.add(player_uuid);
     }
 
-    public List<Map.Entry<UUID, Integer>> get_damage_leaderboard() {
+    public List<Map.Entry<String, Integer>> get_damage_leaderboard() {
         List<Map.Entry<UUID, Integer>> leaderboard_backwards = damage_by_player.entrySet().stream().sorted(Map.Entry.comparingByValue()).toList();
-        List<Map.Entry<UUID, Integer>> leaderboard = new ArrayList<>();
+        Map<String, Integer> leaderboard = new HashMap<>();
         for (int i = leaderboard_backwards.size() - 1; i >= 0; i--) {
-            leaderboard.add(leaderboard_backwards.get(i));
+            Optional<GameProfile> player = Objects.requireNonNull(nr.server().getUserCache()).getByUuid(leaderboard_backwards.get(i).getKey());
+            int finalI = i;
+            player.ifPresent(gameProfile -> leaderboard.put(gameProfile.getName(), leaderboard_backwards.get(finalI).getValue()));
         }
-        return leaderboard;
+
+        Map<Integer, Long> damage_frequencies = leaderboard.values().stream().collect(Collectors.groupingBy(value -> value, Collectors.counting()));
+        List<Integer> duplicates = damage_frequencies.entrySet().stream().filter(entry -> entry.getValue() > 1).map(Map.Entry::getKey).toList();
+
+        return leaderboard.entrySet().stream().sorted((e1, e2) -> {
+            if (duplicates.contains(e1.getValue()) && duplicates.contains(e2.getValue())) {
+                for (UUID uuid1 : latest_damage) {
+                    UserCache userCache = nr.server().getUserCache();
+                    if (userCache != null) {
+                        Optional<GameProfile> profile = userCache.getByUuid(uuid1);
+                        if (profile.isPresent()) {
+                            if (e1.getKey().equals(profile.get().getName())) {
+                                return -1;
+                            } else if (e2.getKey().equals(profile.get().getName())) {
+                                return 1;
+                            }
+                        }
+                    }
+                }
+            } else if (duplicates.contains(e1.getValue())) {
+                return -1;
+            } else if (duplicates.contains(e2.getValue())) {
+                return 1;
+            }
+            return 0;
+        }).toList();
     }
 
     public Map<UUID, BossBar> bossbars() {
