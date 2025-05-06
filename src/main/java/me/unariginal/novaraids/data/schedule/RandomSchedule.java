@@ -2,6 +2,9 @@ package me.unariginal.novaraids.data.schedule;
 
 import me.unariginal.novaraids.NovaRaids;
 
+import java.time.Clock;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -25,6 +28,9 @@ public class RandomSchedule extends Schedule {
 
     public boolean isNextTime() {
         ZonedDateTime now = ZonedDateTime.now(NovaRaids.INSTANCE.schedulesConfig().zone);
+        if (next_random == null) {
+            setNextRandom(now);
+        }
         return now.until(next_random, ChronoUnit.SECONDS) <= 0;
     }
 }

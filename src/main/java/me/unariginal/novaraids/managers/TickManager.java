@@ -282,17 +282,20 @@ public class TickManager {
             boolean shouldExecute = false;
             if (schedule instanceof SpecificSchedule specificSchedule) {
                 if (set_time_buffer.until(now, ChronoUnit.SECONDS) >= 1 && specificSchedule.isNextTime()) {
+                    nr.logInfo("[RAIDS] Attempting scheduled raid");
                     set_time_buffer = now;
                     shouldExecute = true;
                 }
             } else if (schedule instanceof RandomSchedule randomSchedule) {
                 if (set_time_buffer.until(now, ChronoUnit.SECONDS) >= 1 && randomSchedule.isNextTime()) {
+                    nr.logInfo("[RAIDS] Attempting random raid");
                     set_time_buffer = now;
                     randomSchedule.setNextRandom(now);
                     shouldExecute = true;
                 }
             } else if (schedule instanceof CronSchedule cronSchedule) {
                 if (set_time_buffer.until(now, ChronoUnit.SECONDS) >= 1 && cronSchedule.isNextTime()) {
+                    nr.logInfo("[RAIDS] Attempting cron raid");
                     set_time_buffer = now;
                     cronSchedule.setNextExecution(now);
                     shouldExecute = true;

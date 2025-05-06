@@ -53,7 +53,7 @@ dependencies {
 
     modImplementation include("eu.pb4:sgui:1.6.1+1.21.1")
 
-    implementation("com.cronutils:cron-utils:9.2.1")
+    implementation include("com.cronutils:cron-utils:9.2.1")
 
     modImplementation "com.cobblemon:fabric:${project.cobblemon_version}"
 }

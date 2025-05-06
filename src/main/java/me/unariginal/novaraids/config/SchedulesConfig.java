@@ -1,7 +1,5 @@
 package me.unariginal.novaraids.config;
 
-import com.cronutils.model.definition.CronDefinition;
-import com.cronutils.model.definition.CronDefinitionBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -65,8 +63,9 @@ public class SchedulesConfig {
         if (checkProperty(config, "timezone")) {
             String timezone = config.get("timezone").getAsString();
             try {
-                zone = ZoneId.of(ZoneId.SHORT_IDS.getOrDefault(timezone, timezone));
+                zone = ZoneId.of(ZoneId.SHORT_IDS.getOrDefault(timezone.toUpperCase(), ZoneId.systemDefault().getId()));
             } catch (ZoneRulesException e) {
+                zone = ZoneId.systemDefault();
                 nr.logError("[RAIDS] Failed to parse timezone " + timezone + ". Using default timezone.");
             }
         }

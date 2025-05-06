@@ -7,6 +7,8 @@ import com.cronutils.model.time.ExecutionTime;
 import com.cronutils.parser.CronParser;
 import me.unariginal.novaraids.NovaRaids;
 
+import java.time.Clock;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -28,11 +30,11 @@ public class CronSchedule extends Schedule {
                 .withMinutes().and()
                 .withHours().and()
                 .withDayOfMonth()
-                    .supportsHash().supportsL().supportsW().and()
+                    .supportsHash().supportsL().supportsW().supportsQuestionMark().and()
                 .withMonth().and()
                 .withDayOfWeek()
                     .withIntMapping(7, 0)
-                    .supportsHash().supportsL().supportsW().and()
+                    .supportsHash().supportsL().supportsW().supportsQuestionMark().and()
                 .withSupportedNicknameDaily()
                 .withSupportedNicknameHourly()
                 .withSupportedNicknameMidnight()
@@ -42,18 +44,28 @@ public class CronSchedule extends Schedule {
                 .withSupportedNicknameYearly()
                 .instance();
         CronParser cronParser = new CronParser(cronDefinition);
-        Cron cron = cronParser.parse(expression);
-        ExecutionTime executionTime = ExecutionTime.forCron(cron);
-        Optional<ZonedDateTime> nextExecution = executionTime.nextExecution(date);
         try {
-            nextExecution = Optional.of(nextExecution.orElseThrow());
-        } catch (NullPointerException e) {
-            NovaRaids.INSTANCE.logError("[RAIDS] Cron Schedule's next execution time is null!");
+            Cron cron = cronParser.parse(expression);
+            ExecutionTime executionTime = ExecutionTime.forCron(cron);
+            Optional<ZonedDateTime> nextExecution = executionTime.nextExecution(date);
+            try {
+                this.nextExecution = nextExecution.orElseThrow();
+            } catch (NullPointerException e) {
+                NovaRaids.INSTANCE.logError("[RAIDS] Cron Schedule's next execution time is null!");
+            }
+        } catch (IllegalArgumentException e) {
+            NovaRaids.INSTANCE.logError("[RAIDS] Cron Schedule's expression is invalid! " + e.getMessage());
+            for (StackTraceElement el : e.getStackTrace()) {
+                NovaRaids.INSTANCE.logError("  " + el.toString());
+            }
         }
     }
 
     public boolean isNextTime() {
         ZonedDateTime now = ZonedDateTime.now(NovaRaids.INSTANCE.schedulesConfig().zone);
+        if (nextExecution == null) {
+            setNextExecution(now);
+        }
         return now.until(nextExecution, ChronoUnit.SECONDS) <= 0;
     }
 }

@@ -93,7 +93,6 @@ public class WebhookHandler {
         String url = baseUrl.replace("%rute%", pokemon.getShiny() ? "ani-shiny" : "ani")
                 .replace("%pokemon%", pokemon.getSpecies().getName().toLowerCase())
                 .replace("%form%", "");
-        nr.logInfo("Pokemon URL: " + url);
 
         if (isUrlAccessible(url)) {
             return url;
