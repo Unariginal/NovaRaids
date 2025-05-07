@@ -397,7 +397,7 @@ public class Raid {
                     if (StringUtils.isNumeric(percentStr)) {
                         int percent = Integer.parseInt(percentStr);
                         double positions = get_damage_leaderboard().size() * ((double) percent / 100);
-                        for (int i = 0; i < ((int) positions); i++) {
+                        for (int i = 0; i < ((int) Math.ceil(positions)); i++) {
                             ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(get_damage_leaderboard().get(i).getKey());
                             if (player != null) {
                                 if (damage_by_player.containsKey(player.getUuid())) {
@@ -705,7 +705,7 @@ public class Raid {
                 markForDeletion.add(player_uuid);
                 player.hideBossBar(bossbars().get(player_uuid));
                 player_bossbars.remove(player_uuid);
-                damage_by_player.remove(player_uuid);
+                //damage_by_player.remove(player_uuid);
 
                 List<PokemonEntity> toRemove = new ArrayList<>();
                 for (PokemonEntity clone : clones.keySet()) {

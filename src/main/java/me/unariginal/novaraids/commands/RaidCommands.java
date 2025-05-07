@@ -25,6 +25,7 @@ import me.unariginal.novaraids.data.rewards.DistributionSection;
 import me.unariginal.novaraids.data.rewards.Place;
 import me.unariginal.novaraids.data.rewards.RewardPool;
 import me.unariginal.novaraids.managers.Raid;
+import me.unariginal.novaraids.utils.GuiUtils;
 import me.unariginal.novaraids.utils.RandomUtils;
 import me.unariginal.novaraids.utils.TextUtils;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -37,6 +38,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.Registries;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -44,6 +46,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.Identifier;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
@@ -786,7 +789,7 @@ public class RaidCommands {
                     if (StringUtils.isNumeric(percentStr)) {
                         int percent = Integer.parseInt(percentStr);
                         double positions = total_players * ((double) percent / 100);
-                        for (int i = 1; i <= ((int) positions); i++) {
+                        for (int i = 1; i <= ((int) Math.ceil(positions)); i++) {
                             if (placement == i) {
                                 ServerPlayerEntity player = ctx.getSource().getPlayer();
                                 if (player != null) {
@@ -1219,51 +1222,73 @@ public class RaidCommands {
                     return 0;
                 }
 
-                SimpleGui gui = new SimpleGui(ScreenHandlerType.GENERIC_9X6, player, false);
-                gui.setTitle(Text.literal(TextUtils.parse(nr.messagesConfig().getMessage("raid_list_gui_title"))));
-                int slot = 0;
-                for (Map.Entry<Integer, Raid> entry : nr.active_raids().entrySet()) {
-                    Raid raid = entry.getValue();
-                    List<Text> lore = new ArrayList<>();
-                    lore.add(Text.literal(TextUtils.parse("HP: %boss.currenthp%/%boss.maxhp%", raid)).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)));
-                    lore.add(Text.literal(TextUtils.parse("Category: %raid.category%", raid)).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)));
-                    lore.add(Text.literal(TextUtils.parse("Phase: %raid.phase%", raid)).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)));
-                    lore.add(Text.literal(TextUtils.parse("Players: %raid.player_count%/%raid.max_players%", raid)).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)));
-                    lore.add(Text.literal(TextUtils.parse("Raid Timer: %raid.timer%", raid)).styled(style -> style.withColor(Formatting.GRAY).withItalic(false)));
+                Map<Integer, SimpleGui> pages = new HashMap<>();
+                int page_total = GuiUtils.getPageTotal(nr.active_raids().size(), nr.guisConfig().raid_list_gui.displaySlotTotal());
+                for (int i = 1; i <= page_total; i++) {
+                    SimpleGui gui = new SimpleGui(GuiUtils.getScreenSize(nr.guisConfig().raid_list_gui.rows), player, false);
+                    gui.setTitle(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().raid_list_gui.title)));
+                    pages.put(i, gui);
+                }
 
-                    if (!raid.raidBoss_category().require_pass() && raid.stage() == 1) {
-                        lore.add(Text.empty());
-                        lore.add(Text.literal("Click to join this raid!").styled(style -> style.withColor(Formatting.GREEN).withItalic(false)));
-                    } else if (raid.stage() != 1) {
-                        lore.add(Text.empty());
-                        lore.add(Text.literal("This raid has already begun!").styled(style -> style.withColor(Formatting.RED).withItalic(false)));
-                    } else {
-                        lore.add(Text.empty());
-                        lore.add(Text.literal("This raid requires a pass!").styled(style -> style.withColor(Formatting.RED).withItalic(false)));
-                    }
+                int index = 0;
+                for (Map.Entry<Integer, SimpleGui> page_entry : pages.entrySet()) {
+                    for (Integer slot : nr.guisConfig().raid_list_gui.displaySlots()) {
+                        Raid raid = nr.active_raids().get(index + 1);
+                        List<Text> lore = new ArrayList<>();
 
-                    GuiElement element = new GuiElementBuilder(PokemonItem.from(raid.raidBoss_pokemon()))
-                            .setName(Text.literal(TextUtils.parse("[ID: %raid.id%] %boss.form% %boss.species%", raid)).styled(style -> style.withColor(Formatting.LIGHT_PURPLE).withItalic(false)))
-                            .setLore(lore)
-                            .setCallback((i, clickType, slotActionType) -> {
-                                if (clickType.isLeft) {
-                                    if (raid.participating_players().size() < raid.max_players() || Permissions.check(player, "novaraids.override") || raid.max_players() == -1) {
-                                        if (raid.addPlayer(player.getUuid(), false)) {
-                                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("joined_raid"), raid)));
+                        if (!raid.raidBoss_category().require_pass() && raid.stage() == 1) {
+                            for (String line : nr.guisConfig().raid_list_gui.joinable_lore) {
+                                lore.add(TextUtils.deserialize(TextUtils.parse(line, raid)));
+                            }
+                        } else if (raid.stage() != 1) {
+                            for (String line : nr.guisConfig().raid_list_gui.in_progress_lore) {
+                                lore.add(TextUtils.deserialize(TextUtils.parse(line, raid)));
+                            }
+                        } else {
+                            for (String line : nr.guisConfig().raid_list_gui.requires_pass_lore) {
+                                lore.add(TextUtils.deserialize(TextUtils.parse(line, raid)));
+                            }
+                        }
+
+                        ItemStack item = PokemonItem.from(raid.raidBoss_pokemon());
+                        item.applyChanges(nr.guisConfig().raid_list_gui.display_data);
+                        GuiElement element = new GuiElementBuilder(item)
+                                .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().raid_list_gui.display_name, raid)))
+                                .setLore(lore)
+                                .setCallback((num, clickType, slotActionType) -> {
+                                    if (clickType.isLeft) {
+                                        if (raid.participating_players().size() < raid.max_players() || Permissions.check(player, "novaraids.override") || raid.max_players() == -1) {
+                                            if (raid.addPlayer(player.getUuid(), false)) {
+                                                player.sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("joined_raid"), raid)));
+                                            }
+                                        } else {
+                                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("warning_max_players"), raid)));
                                         }
-                                    } else {
-                                        player.sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("warning_max_players"), raid)));
+                                        page_entry.getValue().close();
                                     }
-                                    gui.close();
-                                }
-                            }).build();
-                    gui.setSlot(slot, element);
-                    slot++;
-                    if (slot > 53) {
-                        break;
+                                }).build();
+                        page_entry.getValue().setSlot(slot, element);
+                    }
+                    if (pages.containsKey(page_entry.getKey() + 1)) {
+                        for (Integer slot : nr.guisConfig().raid_list_gui.nextButtonSlots()) {
+                            ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().raid_list_gui.next_button.item())));
+                            item.applyChanges(nr.guisConfig().raid_list_gui.next_button.item_data());
+                            List<Text> lore = new ArrayList<>();
+                            for (String line : nr.guisConfig().raid_list_gui.next_button.item_lore()) {
+                                lore.add(TextUtils.deserialize(TextUtils.parse(line)));
+                            }
+                            GuiElement element = new GuiElementBuilder(item)
+                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().raid_list_gui.next_button.item_name())))
+                                    .setLore(lore)
+                                    .setCallback(clickType -> {
+
+                                    })
+                                    .build();
+                            page_entry.getValue().setSlot(slot, element);
+                        }
                     }
                 }
-                gui.open();
+                pages.get(1).open();
             }
         }
         return 1;

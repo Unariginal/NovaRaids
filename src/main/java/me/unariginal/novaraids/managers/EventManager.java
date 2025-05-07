@@ -376,54 +376,54 @@ public class EventManager {
 
                             if (can_throw) {
                                 can_throw = false;
-                                outer:
+//                                outer:
                                 for (Raid raid : nr.active_raids().values()) {
                                     if (raid.participating_players().contains(player.getUuid())) {
                                         if (raid.stage() == 4) {
-                                            // Old Data
-                                            if (custom_data.contains("raid_categories")) {
-                                                NbtCompound categories = custom_data.copyNbt().getCompound("raid_categories");
-                                                for (String key : categories.getKeys()) {
-                                                    if (raid.raidBoss_category().name().equalsIgnoreCase(key)) {
+//                                            // Old Data
+//                                            if (custom_data.contains("raid_categories")) {
+//                                                NbtCompound categories = custom_data.copyNbt().getCompound("raid_categories");
+//                                                for (String key : categories.getKeys()) {
+//                                                    if (raid.raidBoss_category().name().equalsIgnoreCase(key)) {
+//                                                        can_throw = true;
+//                                                        break outer;
+//                                                    }
+//                                                }
+//                                            } else if (custom_data.contains("raid_bosses")) {
+//                                                NbtCompound bosses = custom_data.copyNbt().getCompound("raid_bosses");
+//                                                for (String key : bosses.getKeys()) {
+//                                                    if (raid.boss_info().boss_id().equalsIgnoreCase(key)) {
+//                                                        can_throw = true;
+//                                                        break outer;
+//                                                    }
+//                                                }
+//                                            } else {
+                                            if (custom_data.contains("raid_boss") && custom_data.contains("raid_category")) {
+                                                String boss = custom_data.copyNbt().getString("raid_boss");
+                                                String category = custom_data.copyNbt().getString("raid_category");
+                                                if (boss.equalsIgnoreCase("*") && category.equalsIgnoreCase("*")) {
+                                                    if (raid.boss_info().item_settings().allow_global_pokeballs()) {
                                                         can_throw = true;
-                                                        break outer;
+                                                        break;
                                                     }
-                                                }
-                                            } else if (custom_data.contains("raid_bosses")) {
-                                                NbtCompound bosses = custom_data.copyNbt().getCompound("raid_bosses");
-                                                for (String key : bosses.getKeys()) {
-                                                    if (raid.boss_info().boss_id().equalsIgnoreCase(key)) {
-                                                        can_throw = true;
-                                                        break outer;
-                                                    }
-                                                }
-                                            } else {
-                                                if (custom_data.contains("raid_boss") && custom_data.contains("raid_category")) {
-                                                    String boss = custom_data.copyNbt().getString("raid_boss");
-                                                    String category = custom_data.copyNbt().getString("raid_category");
-                                                    if (boss.equalsIgnoreCase("*") && category.equalsIgnoreCase("*")) {
-                                                        if (raid.boss_info().item_settings().allow_global_pokeballs()) {
-                                                            can_throw = true;
-                                                            break;
-                                                        }
-                                                    } else if (boss.equalsIgnoreCase("*")) {
-                                                        if (raid.boss_info().category_id().equalsIgnoreCase(category)) {
-                                                            if (raid.boss_info().item_settings().allow_category_pokeballs()) {
-                                                                can_throw = true;
-                                                                break;
-                                                            }
-                                                        }
-                                                    } else {
-                                                        if (raid.boss_info().boss_id().equalsIgnoreCase(boss)) {
+                                                } else if (boss.equalsIgnoreCase("*")) {
+                                                    if (raid.boss_info().category_id().equalsIgnoreCase(category)) {
+                                                        if (raid.boss_info().item_settings().allow_category_pokeballs()) {
                                                             can_throw = true;
                                                             break;
                                                         }
                                                     }
                                                 } else {
-                                                    can_throw = true;
-                                                    break;
+                                                    if (raid.boss_info().boss_id().equalsIgnoreCase(boss)) {
+                                                        can_throw = true;
+                                                        break;
+                                                    }
                                                 }
+                                            } else {
+                                                can_throw = true;
+                                                break;
                                             }
+//                                            }
                                         }
                                     }
                                 }

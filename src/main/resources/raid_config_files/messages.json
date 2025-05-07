@@ -54,8 +54,6 @@
     "give_command_received_item": "%prefix% You received %amount% raid %raid_item%!",
     "give_command_feedback": "%prefix% Successfully gave %target% %amount% raid %raid_item%",
 
-    "raid_list_gui_title": "Active Raids",
-    "raid_queue_gui_title": "Queued Raids",
     "contraband_gui_title": "Raid Contraband",
 
     "leaderboard_message_header": "------- Raid Results -------",

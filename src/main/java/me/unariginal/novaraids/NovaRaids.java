@@ -29,6 +29,7 @@ public class NovaRaids implements ModInitializer {
     private RewardPresetsConfig rewardPresetsConfig;
     private RewardPoolsConfig rewardPoolsConfig;
     private BossesConfig bossesConfig;
+    private GuisConfig guisConfig;
     public boolean loaded_properly = true;
 
     public boolean debug = true;
@@ -126,6 +127,9 @@ public class NovaRaids implements ModInitializer {
     public BossesConfig bossesConfig() {
         return bossesConfig;
     }
+    public GuisConfig guisConfig() {
+        return guisConfig;
+    }
 
     public void reloadConfig() {
         config = new Config();
@@ -136,6 +140,7 @@ public class NovaRaids implements ModInitializer {
         rewardPresetsConfig = new RewardPresetsConfig();
         rewardPoolsConfig = new RewardPoolsConfig();
         bossesConfig = new BossesConfig();
+        guisConfig = new GuisConfig();
     }
 
     public MinecraftServer server() {

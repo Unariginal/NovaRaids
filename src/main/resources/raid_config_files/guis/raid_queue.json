@@ -1,0 +1,51 @@
+{
+  "gui_title": "Queued Raids",
+  "rows": 6,
+  "gui_layout": [
+    "#########",
+    "#########",
+    "#########",
+    "#########",
+    "#########",
+    "P___C___N"
+  ],
+  "raid_display_item": {
+    "symbol": "#",
+    "item_name": "<light_purple>%boss.name%",
+    "item_lore": {
+      "default": [],
+      "cancelable": [
+        "<red>Right click to cancel this raid!"
+      ]
+    },
+    "item_data": {}
+  },
+  "background_item": {
+    "symbol": "_",
+    "item": "minecraft:air",
+    "item_name": "",
+    "item_lore": [],
+    "item_data": {}
+  },
+  "previous_item": {
+    "symbol": "P",
+    "item": "minecraft:arrow",
+    "item_name": "Previous",
+    "item_lore": [],
+    "item_data": {}
+  },
+  "close_item": {
+    "symbol": "C",
+    "item": "minecraft:barrier",
+    "item_name": "Close",
+    "item_lore": [],
+    "item_data": {}
+  },
+  "next_item": {
+    "symbol": "N",
+    "item": "minecraft:arrow",
+    "item_name": "Next",
+    "item_lore": [],
+    "item_data": {}
+  }
+}

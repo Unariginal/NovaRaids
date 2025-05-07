@@ -1,0 +1,71 @@
+{
+  "gui_title": "Active Raids",
+  "rows": 6,
+  "gui_layout": [
+    "#########",
+    "#########",
+    "#########",
+    "#########",
+    "#########",
+    "P___C___N"
+  ],
+  "raid_display_item": {
+    "symbol": "#",
+    "item_name": "<light_purple>[ID: %raid.id%] %boss.name%",
+    "item_lore": {
+      "joinable": [
+        "<gray>HP: %boss.currenthp%/%boss.maxhp%",
+        "<gray>Category: %raid.category%",
+        "<gray>Phase: %raid.phase%",
+        "<gray>Players: %raid.player_count%/%raid.max_players%",
+        "<gray>Raid Timer: %raid.timer%",
+        "<green>Click to join this raid!"
+      ],
+      "requires_pass": [
+        "<gray>HP: %boss.currenthp%/%boss.maxhp%",
+        "<gray>Category: %raid.category%",
+        "<gray>Phase: %raid.phase%",
+        "<gray>Players: %raid.player_count%/%raid.max_players%",
+        "<gray>Raid Timer: %raid.timer%",
+        "<red>This raid requires a pass!"
+      ],
+      "in_progress": [
+        "<gray>HP: %boss.currenthp%/%boss.maxhp%",
+        "<gray>Category: %raid.category%",
+        "<gray>Phase: %raid.phase%",
+        "<gray>Players: %raid.player_count%/%raid.max_players%",
+        "<gray>Raid Timer: %raid.timer%",
+        "<red>This raid has already begun!"
+      ]
+    },
+    "item_data": {}
+  },
+  "background_item": {
+    "symbol": "_",
+    "item": "minecraft:air",
+    "item_name": "",
+    "item_lore": [],
+    "item_data": {}
+  },
+  "previous_item": {
+    "symbol": "P",
+    "item": "minecraft:arrow",
+    "item_name": "Previous",
+    "item_lore": [],
+    "item_data": {}
+  },
+  "close_item": {
+    "symbol": "C",
+    "item": "minecraft:barrier",
+    "item_name": "Close",
+    "item_lore": [],
+    "item_data": {}
+  },
+  "next_item": {
+    "symbol": "N",
+    "item": "minecraft:arrow",
+    "item_name": "Next",
+    "item_lore": [],
+    "item_data": {}
+  }
+}
