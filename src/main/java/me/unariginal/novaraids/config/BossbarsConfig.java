@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.BossbarData;
+import me.unariginal.novaraids.data.Location;
 import me.unariginal.novaraids.data.bosssettings.Boss;
 import net.fabricmc.loader.api.FabricLoader;
 import net.kyori.adventure.bossbar.BossBar;
@@ -53,10 +54,13 @@ public class BossbarsConfig {
         JsonElement root = JsonParser.parseReader(new FileReader(file));
         assert root != null;
         JsonObject config = root.getAsJsonObject();
+
+        String location = "bossbars";
+
         for (String key : config.keySet()) {
             JsonObject bossbar_object = config.getAsJsonObject(key);
             String color = "blue";
-            if (ConfigHelper.checkProperty(bossbar_object, "bar_color", "bossbars")) {
+            if (ConfigHelper.checkProperty(bossbar_object, "bar_color", location)) {
                 color = bossbar_object.get("bar_color").getAsString();
             }
             BossBar.Color bar_color = BossBar.Color.BLUE;
@@ -66,7 +70,7 @@ public class BossbarsConfig {
                 NovaRaids.INSTANCE.logError("[RAIDS] Invalid bossbar color: " + color);
             }
             String style = "progress";
-            if (ConfigHelper.checkProperty(bossbar_object, "bar_style", "bossbars")) {
+            if (ConfigHelper.checkProperty(bossbar_object, "bar_style", location)) {
                 style = bossbar_object.get("bar_style").getAsString();
             }
             BossBar.Overlay bar_style = BossBar.Overlay.PROGRESS;
@@ -76,16 +80,16 @@ public class BossbarsConfig {
                 NovaRaids.INSTANCE.logError("[RAIDS] Invalid bossbar style: " + style);
             }
             String text = "<red>If you're seeing this message your config is wrong!";
-            if (ConfigHelper.checkProperty(bossbar_object, "bar_text", "bossbars")) {
+            if (ConfigHelper.checkProperty(bossbar_object, "bar_text", location)) {
                 text = bossbar_object.get("bar_text").getAsString();
             }
             boolean use_actionbar = true;
-            if (ConfigHelper.checkProperty(bossbar_object, "use_actionbar", "bossbars")) {
+            if (ConfigHelper.checkProperty(bossbar_object, "use_actionbar", location)) {
                 use_actionbar = bossbar_object.get("use_actionbar").getAsBoolean();
             }
             String actionbar_text = "<red>If you're seeing this your config is wrong!";
             if (use_actionbar) {
-                if (ConfigHelper.checkProperty(bossbar_object, "actionbar_text", "bossbars")) {
+                if (ConfigHelper.checkProperty(bossbar_object, "actionbar_text", location)) {
                     actionbar_text = bossbar_object.get("actionbar_text").getAsString();
                 }
             }

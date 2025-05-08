@@ -67,7 +67,6 @@ public class MessagesConfig {
         messages.put("give_command_failed_to_give", "%prefix% Failed to give the item!");
         messages.put("give_command_received_item", "%prefix% You received a %raid_item%!");
         messages.put("give_command_feedback", "%prefix% Successfully gave %target% a %raid_item%");
-        messages.put("raid_queue_gui_title", "Queued Raids");
         messages.put("contraband_gui_title", "Raid Contraband");
         messages.put("leaderboard_message_header", "------- Raid Results -------");
         messages.put("leaderboard_message_item", " - [%raid.player.place%] %raid.player% : %raid.player.damage% damage");

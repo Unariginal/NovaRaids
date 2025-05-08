@@ -56,6 +56,8 @@ public class LocationsConfig {
         assert root != null;
         JsonObject config = root.getAsJsonObject();
 
+        String location = "locations";
+
         List<Location> locations = new ArrayList<>();
         for (String key : config.keySet()) {
             JsonObject location_object = config.getAsJsonObject(key);
@@ -73,24 +75,24 @@ public class LocationsConfig {
             float yaw = 0;
             float pitch = 0;
 
-            if (checkProperty(location_object, "x_pos")) {
+            if (ConfigHelper.checkProperty(location_object, "x_pos", location)) {
                 x = location_object.get("x_pos").getAsDouble();
             } else {
                 continue;
             }
-            if (checkProperty(location_object, "y_pos")) {
+            if (ConfigHelper.checkProperty(location_object, "y_pos", location)) {
                 y = location_object.get("y_pos").getAsDouble();
             } else {
                 continue;
             }
-            if (checkProperty(location_object, "z_pos")) {
+            if (ConfigHelper.checkProperty(location_object, "z_pos", location)) {
                 z = location_object.get("z_pos").getAsDouble();
             } else {
                 continue;
             }
             Vec3d pos = new Vec3d(x, y, z);
 
-            if (checkProperty(location_object, "world")) {
+            if (ConfigHelper.checkProperty(location_object, "world", location)) {
                 String world_path = location_object.get("world").getAsString();
                 for (ServerWorld w : nr.server().getWorlds()) {
                     if (w.getRegistryKey().toString().equals(world_path)) {
@@ -100,48 +102,48 @@ public class LocationsConfig {
                 }
             }
 
-            if (checkProperty(location_object, "border_radius")) {
+            if (ConfigHelper.checkProperty(location_object, "border_radius", location)) {
                 border_radius = location_object.get("border_radius").getAsInt();
             } else {
                 continue;
             }
-            if (checkProperty(location_object, "boss_pushback_radius")) {
+            if (ConfigHelper.checkProperty(location_object, "boss_pushback_radius", location)) {
                 boss_pushback_radius = location_object.get("boss_pushback_radius").getAsInt();
             } else {
                 continue;
             }
-            if (checkProperty(location_object, "boss_facing_direction")) {
+            if (ConfigHelper.checkProperty(location_object, "boss_facing_direction", location)) {
                 boss_facing_direction = location_object.get("boss_facing_direction").getAsFloat();
             } else {
                 continue;
             }
-            if (checkProperty(location_object, "use_join_location")) {
+            if (ConfigHelper.checkProperty(location_object, "use_join_location", location)) {
                 use_join_location = location_object.get("use_join_location").getAsBoolean();
             }
             if (use_join_location) {
-                if (checkProperty(location_object, "join_location")) {
+                if (ConfigHelper.checkProperty(location_object, "join_location", location)) {
                     JsonObject join_location_object = location_object.get("join_location").getAsJsonObject();
-                    if (checkProperty(join_location_object, "x_pos")) {
+                    if (ConfigHelper.checkProperty(join_location_object, "x_pos", location)) {
                         join_x = join_location_object.get("x_pos").getAsDouble();
                     } else {
                         continue;
                     }
-                    if (checkProperty(join_location_object, "y_pos")) {
+                    if (ConfigHelper.checkProperty(join_location_object, "y_pos", location)) {
                         join_y = join_location_object.get("y_pos").getAsDouble();
                     } else {
                         continue;
                     }
-                    if (checkProperty(join_location_object, "z_pos")) {
+                    if (ConfigHelper.checkProperty(join_location_object, "z_pos", location)) {
                         join_z = join_location_object.get("z_pos").getAsDouble();
                     } else {
                         continue;
                     }
-                    if (checkProperty(join_location_object, "yaw")) {
+                    if (ConfigHelper.checkProperty(join_location_object, "yaw", location)) {
                         yaw = join_location_object.get("yaw").getAsFloat();
                     } else {
                         continue;
                     }
-                    if (checkProperty(join_location_object, "pitch")) {
+                    if (ConfigHelper.checkProperty(join_location_object, "pitch", location)) {
                         pitch = join_location_object.get("pitch").getAsFloat();
                     } else {
                         continue;
@@ -152,14 +154,6 @@ public class LocationsConfig {
             locations.add(new Location(key, pos, world, border_radius, boss_pushback_radius, boss_facing_direction, use_join_location, join_pos, yaw, pitch));
         }
         this.locations = locations;
-    }
-
-    public boolean checkProperty(JsonObject section, String property) {
-        if (section.has(property)) {
-            return true;
-        }
-        nr.logError("[RAIDS] Missing " + property + " property in locations.json. Using default value(s) or skipping.");
-        return false;
     }
 
     public Location getLocation(String key) {

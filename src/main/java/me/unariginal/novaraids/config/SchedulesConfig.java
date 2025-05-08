@@ -60,7 +60,9 @@ public class SchedulesConfig {
         assert root != null;
         JsonObject config = root.getAsJsonObject();
 
-        if (checkProperty(config, "timezone")) {
+        String location = "schedules";
+
+        if (ConfigHelper.checkProperty(config, "timezone", location)) {
             String timezone = config.get("timezone").getAsString();
             try {
                 zone = ZoneId.of(ZoneId.SHORT_IDS.getOrDefault(timezone.toUpperCase(), ZoneId.systemDefault().getId()));
@@ -69,28 +71,28 @@ public class SchedulesConfig {
                 nr.logError("[RAIDS] Failed to parse timezone " + timezone + ". Using default timezone.");
             }
         }
-        if (checkProperty(config, "schedules")) {
+        if (ConfigHelper.checkProperty(config, "schedules", location)) {
             JsonArray schedules = config.getAsJsonArray("schedules");
             for (JsonElement s : schedules) {
                 JsonObject schedule = s.getAsJsonObject();
-                if (checkProperty(schedule, "type")) {
+                if (ConfigHelper.checkProperty(schedule, "type", location)) {
                     String type = schedule.get("type").getAsString();
                     List<ScheduleBoss> bosses = new ArrayList<>();
-                    if (checkProperty(schedule, "bosses")) {
+                    if (ConfigHelper.checkProperty(schedule, "bosses", location)) {
                         JsonArray boss_array = schedule.getAsJsonArray("bosses");
                         for (JsonElement b : boss_array) {
                             JsonObject boss = b.getAsJsonObject();
-                            if (checkProperty(boss, "type")) {
+                            if (ConfigHelper.checkProperty(boss, "type", location)) {
                                 String boss_type = boss.get("type").getAsString();
-                                if (checkProperty(boss, "weight")) {
+                                if (ConfigHelper.checkProperty(boss, "weight", location)) {
                                     double weight = boss.get("weight").getAsDouble();
                                     if (boss_type.equalsIgnoreCase("category")) {
-                                        if (checkProperty(boss, "category")) {
+                                        if (ConfigHelper.checkProperty(boss, "category", location)) {
                                             String category = boss.get("category").getAsString();
                                             bosses.add(new ScheduleBoss(boss_type, category, weight));
                                         }
                                     } else if (boss_type.equalsIgnoreCase("boss")) {
-                                        if (checkProperty(boss, "boss_id")) {
+                                        if (ConfigHelper.checkProperty(boss, "boss_id", location)) {
                                             String boss_id = boss.get("boss_id").getAsString();
                                             bosses.add(new ScheduleBoss(boss_type, boss_id, weight));
                                         }
@@ -103,16 +105,16 @@ public class SchedulesConfig {
                     }
 
                     if (type.equalsIgnoreCase("random")) {
-                        if (checkProperty(schedule, "bounds")) {
+                        if (ConfigHelper.checkProperty(schedule, "bounds", location)) {
                             JsonObject bounds = schedule.getAsJsonObject("bounds");
-                            if (checkProperty(bounds, "min") && checkProperty(bounds, "max")) {
+                            if (ConfigHelper.checkProperty(bounds, "min", location) && ConfigHelper.checkProperty(bounds, "max", location)) {
                                 int min = bounds.get("min").getAsInt();
                                 int max = bounds.get("max").getAsInt();
                                 this.schedules.add(new RandomSchedule(type, bosses, min, max));
                             }
                         }
                     } else if (type.equalsIgnoreCase("cron")) {
-                        if (checkProperty(schedule, "expression")) {
+                        if (ConfigHelper.checkProperty(schedule, "expression", location)) {
                             String expression = schedule.get("expression").getAsString();
                             if (CronExpression.isValidExpression(expression)
                                     || expression.equals("@hourly")
@@ -128,7 +130,7 @@ public class SchedulesConfig {
                             }
                         }
                     } else if (type.equalsIgnoreCase("specific")) {
-                        if (checkProperty(schedule, "times")) {
+                        if (ConfigHelper.checkProperty(schedule, "times", location)) {
                             JsonArray times = schedule.getAsJsonArray("times");
                             List<LocalTime> timesList = new ArrayList<>();
                             for (JsonElement t : times) {
@@ -143,14 +145,6 @@ public class SchedulesConfig {
                 }
             }
         }
-    }
-
-    public boolean checkProperty(JsonObject section, String property) {
-        if (section.has(property)) {
-            return true;
-        }
-        nr.logError("[RAIDS] Missing " + property + " property in schedules.json. Using default value(s) or skipping.");
-        return false;
     }
 
     public Schedule getSchedule(String boss) {

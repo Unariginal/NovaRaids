@@ -136,31 +136,33 @@ public class Config {
         JsonElement root = JsonParser.parseReader(new FileReader(file));
         assert root != null;
         JsonObject config = root.getAsJsonObject();
+        
+        String location = "config";
 
-        if (checkProperty(config, "debug")) {
+        if (ConfigHelper.checkProperty(config, "debug", location)) {
             debug = config.get("debug").getAsBoolean();
         }
 
-        if (checkProperty(config, "raid_settings")) {
+        if (ConfigHelper.checkProperty(config, "raid_settings", location)) {
             JsonObject raid_settings = config.getAsJsonObject("raid_settings");
-            if (checkProperty(raid_settings, "use_queue_system")) {
+            if (ConfigHelper.checkProperty(raid_settings, "use_queue_system", location)) {
                 use_queue_system = raid_settings.get("use_queue_system").getAsBoolean();
             }
-            if (checkProperty(raid_settings, "run_raids_with_no_players")) {
+            if (ConfigHelper.checkProperty(raid_settings, "run_raids_with_no_players", location)) {
                 run_raids_with_no_players = raid_settings.get("run_raids_with_no_players").getAsBoolean();
             }
-            if (checkProperty(raid_settings, "hide_other_catch_encounters")) {
+            if (ConfigHelper.checkProperty(raid_settings, "hide_other_catch_encounters", location)) {
                 hide_other_catch_encounters = raid_settings.get("hide_other_catch_encounters").getAsBoolean();
             }
-            if (checkProperty(raid_settings, "hide_other_players_in_raid")) {
+            if (ConfigHelper.checkProperty(raid_settings, "hide_other_players_in_raid", location)) {
                 hide_other_players_in_raid = raid_settings.get("hide_other_players_in_raid").getAsBoolean();
             }
-            if (checkProperty(raid_settings, "hide_other_pokemon_in_raid")) {
+            if (ConfigHelper.checkProperty(raid_settings, "hide_other_pokemon_in_raid", location)) {
                 hide_other_pokemon_in_raid = raid_settings.get("hide_other_pokemon_in_raid").getAsBoolean();
             }
-            if (checkProperty(raid_settings, "global_contraband")) {
+            if (ConfigHelper.checkProperty(raid_settings, "global_contraband", location)) {
                 JsonObject global_contraband = raid_settings.getAsJsonObject("global_contraband");
-                if (checkProperty(global_contraband, "banned_pokemon")) {
+                if (ConfigHelper.checkProperty(global_contraband, "banned_pokemon", location)) {
                     JsonArray banned_pokemon = global_contraband.getAsJsonArray("banned_pokemon");
                     for (JsonElement p : banned_pokemon) {
                         String species_name = p.getAsString();
@@ -172,7 +174,7 @@ public class Config {
                         }
                     }
                 }
-                if (checkProperty(global_contraband, "banned_moves")) {
+                if (ConfigHelper.checkProperty(global_contraband, "banned_moves", location)) {
                     JsonArray banned_moves = global_contraband.getAsJsonArray("banned_moves");
                     for (JsonElement m : banned_moves) {
                         String move_name = m.getAsString();
@@ -184,7 +186,7 @@ public class Config {
                         }
                     }
                 }
-                if (checkProperty(global_contraband, "banned_abilities")) {
+                if (ConfigHelper.checkProperty(global_contraband, "banned_abilities", location)) {
                     JsonArray banned_abilities = global_contraband.getAsJsonArray("banned_abilities");
                     for (JsonElement a : banned_abilities) {
                         String ability_name = a.getAsString();
@@ -196,7 +198,7 @@ public class Config {
                         }
                     }
                 }
-                if (checkProperty(global_contraband, "banned_held_items")) {
+                if (ConfigHelper.checkProperty(global_contraband, "banned_held_items", location)) {
                     JsonArray banned_held_items = global_contraband.getAsJsonArray("banned_held_items");
                     for (JsonElement h : banned_held_items) {
                         String held_item_name = h.getAsString();
@@ -204,7 +206,7 @@ public class Config {
                         global_banned_held_items.add(held_item);
                     }
                 }
-                if (checkProperty(global_contraband, "banned_bag_items")) {
+                if (ConfigHelper.checkProperty(global_contraband, "banned_bag_items", location)) {
                     JsonArray banned_bag_items = global_contraband.getAsJsonArray("banned_bag_items");
                     for (JsonElement h : banned_bag_items) {
                         String bag_item_name = h.getAsString();
@@ -215,29 +217,29 @@ public class Config {
             }
         }
 
-        if (checkProperty(config, "item_settings")) {
+        if (ConfigHelper.checkProperty(config, "item_settings", location)) {
             JsonObject item_settings = config.getAsJsonObject("item_settings");
-            if (checkProperty(item_settings, "voucher_settings")) {
+            if (ConfigHelper.checkProperty(item_settings, "voucher_settings", location)) {
                 JsonObject voucher_settings = item_settings.getAsJsonObject("voucher_settings");
-                if (checkProperty(voucher_settings, "vouchers_enabled")) {
+                if (ConfigHelper.checkProperty(voucher_settings, "vouchers_enabled", location)) {
                     vouchers_enabled = voucher_settings.get("vouchers_enabled").getAsBoolean();
                 }
                 if (vouchers_enabled) {
-                    if (checkProperty(voucher_settings, "default_voucher")) {
+                    if (ConfigHelper.checkProperty(voucher_settings, "default_voucher", location)) {
                         JsonObject voucher = voucher_settings.getAsJsonObject("default_voucher");
                         Item default_voucher_item = default_voucher.voucher_item();
                         String default_voucher_name = default_voucher.voucher_name();
                         List<String> default_voucher_lore = default_voucher.voucher_lore();
                         ComponentChanges default_voucher_data = default_voucher.voucher_data();
 
-                        if (checkProperty(voucher, "voucher_item")) {
+                        if (ConfigHelper.checkProperty(voucher, "voucher_item", location)) {
                             String voucher_item_name = voucher.get("voucher_item").getAsString();
                             default_voucher_item = Registries.ITEM.get(Identifier.of(voucher_item_name));
                         }
-                        if (checkProperty(voucher, "voucher_name")) {
+                        if (ConfigHelper.checkProperty(voucher, "voucher_name", location)) {
                             default_voucher_name = voucher.get("voucher_name").getAsString();
                         }
-                        if (checkProperty(voucher, "voucher_lore")) {
+                        if (ConfigHelper.checkProperty(voucher, "voucher_lore", location)) {
                             JsonArray lore_items = voucher.getAsJsonArray("voucher_lore");
                             List<String> lore = new ArrayList<>();
                             for (JsonElement l : lore_items) {
@@ -246,7 +248,7 @@ public class Config {
                             }
                             default_voucher_lore = lore;
                         }
-                        if (checkProperty(voucher, "voucher_data")) {
+                        if (ConfigHelper.checkProperty(voucher, "voucher_data", location, false)) {
                             JsonElement data = voucher.getAsJsonObject("voucher_data");
                             if (data != null) {
                                 default_voucher_data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, data).getOrThrow().getFirst();
@@ -261,21 +263,21 @@ public class Config {
                         );
                     }
 
-                    if (voucher_settings.has("global_choice_voucher")) {
+                    if (ConfigHelper.checkProperty(voucher_settings, "global_choice_voucher", location, false)) {
                         JsonObject voucher = voucher_settings.getAsJsonObject("global_choice_voucher");
                         Item global_choice_voucher_item = global_choice_voucher.voucher_item();
                         String global_choice_voucher_name = global_choice_voucher.voucher_name();
                         List<String> global_choice_voucher_lore = global_choice_voucher.voucher_lore();
                         ComponentChanges global_choice_voucher_data = global_choice_voucher.voucher_data();
 
-                        if (checkProperty(voucher, "voucher_item")) {
+                        if (ConfigHelper.checkProperty(voucher, "voucher_item", location)) {
                             String voucher_item_name = voucher.get("voucher_item").getAsString();
                             global_choice_voucher_item = Registries.ITEM.get(Identifier.of(voucher_item_name));
                         }
-                        if (checkProperty(voucher, "voucher_name")) {
+                        if (ConfigHelper.checkProperty(voucher, "voucher_name", location)) {
                             global_choice_voucher_name = voucher.get("voucher_name").getAsString();
                         }
-                        if (checkProperty(voucher, "voucher_lore")) {
+                        if (ConfigHelper.checkProperty(voucher, "voucher_lore", location)) {
                             JsonArray lore_items = voucher.getAsJsonArray("voucher_lore");
                             List<String> lore = new ArrayList<>();
                             for (JsonElement l : lore_items) {
@@ -284,7 +286,7 @@ public class Config {
                             }
                             global_choice_voucher_lore = lore;
                         }
-                        if (checkProperty(voucher, "voucher_data")) {
+                        if (ConfigHelper.checkProperty(voucher, "voucher_data", location, false)) {
                             JsonElement data = voucher.getAsJsonObject("voucher_data");
                             if (data != null) {
                                 global_choice_voucher_data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, data).getOrThrow().getFirst();
@@ -299,21 +301,21 @@ public class Config {
                         );
                     }
 
-                    if (voucher_settings.has("global_random_voucher")) {
+                    if (ConfigHelper.checkProperty(voucher_settings, "global_random_voucher", location, false)) {
                         JsonObject voucher = voucher_settings.getAsJsonObject("global_random_voucher");
                         Item global_random_voucher_item = global_random_voucher.voucher_item();
                         String global_random_voucher_name = global_random_voucher.voucher_name();
                         List<String> global_random_voucher_lore = global_random_voucher.voucher_lore();
                         ComponentChanges global_random_voucher_data = global_random_voucher.voucher_data();
 
-                        if (checkProperty(voucher, "voucher_item")) {
+                        if (ConfigHelper.checkProperty(voucher, "voucher_item", location)) {
                             String voucher_item_name = voucher.get("voucher_item").getAsString();
                             global_random_voucher_item = Registries.ITEM.get(Identifier.of(voucher_item_name));
                         }
-                        if (checkProperty(voucher, "voucher_name")) {
+                        if (ConfigHelper.checkProperty(voucher, "voucher_name", location)) {
                             global_random_voucher_name = voucher.get("voucher_name").getAsString();
                         }
-                        if (checkProperty(voucher, "voucher_lore")) {
+                        if (ConfigHelper.checkProperty(voucher, "voucher_lore", location)) {
                             JsonArray lore_items = voucher.getAsJsonArray("voucher_lore");
                             List<String> lore = new ArrayList<>();
                             for (JsonElement l : lore_items) {
@@ -322,7 +324,7 @@ public class Config {
                             }
                             global_random_voucher_lore = lore;
                         }
-                        if (checkProperty(voucher, "voucher_data")) {
+                        if (ConfigHelper.checkProperty(voucher, "voucher_data", location, false)) {
                             JsonElement data = voucher.getAsJsonObject("voucher_data");
                             if (data != null) {
                                 global_random_voucher_data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, data).getOrThrow().getFirst();
@@ -339,27 +341,27 @@ public class Config {
                 }
             }
 
-            if (checkProperty(item_settings, "pass_settings")) {
+            if (ConfigHelper.checkProperty(item_settings, "pass_settings", location)) {
                 JsonObject pass_settings = item_settings.getAsJsonObject("pass_settings");
-                if (checkProperty(pass_settings, "passes_enabled")) {
+                if (ConfigHelper.checkProperty(pass_settings, "passes_enabled", location)) {
                     passes_enabled = pass_settings.get("passes_enabled").getAsBoolean();
                 }
                 if (passes_enabled) {
-                    if (checkProperty(pass_settings, "default_pass")) {
+                    if (ConfigHelper.checkProperty(pass_settings, "default_pass", location)) {
                         JsonObject pass = pass_settings.getAsJsonObject("default_pass");
                         Item default_pass_item = default_pass.pass_item();
                         String default_pass_name = default_pass.pass_name();
                         List<String> default_pass_lore = default_pass.pass_lore();
                         ComponentChanges default_pass_data = default_pass.pass_data();
 
-                        if (checkProperty(pass, "pass_item")) {
+                        if (ConfigHelper.checkProperty(pass, "pass_item", location)) {
                             String pass_item_name = pass.get("pass_item").getAsString();
                             default_pass_item = Registries.ITEM.get(Identifier.of(pass_item_name));
                         }
-                        if (checkProperty(pass, "pass_name")) {
+                        if (ConfigHelper.checkProperty(pass, "pass_name", location)) {
                             default_pass_name = pass.get("pass_name").getAsString();
                         }
-                        if (checkProperty(pass, "pass_lore")) {
+                        if (ConfigHelper.checkProperty(pass, "pass_lore", location)) {
                             JsonArray lore_items = pass.getAsJsonArray("pass_lore");
                             List<String> lore = new ArrayList<>();
                             for (JsonElement l : lore_items) {
@@ -368,7 +370,7 @@ public class Config {
                             }
                             default_pass_lore = lore;
                         }
-                        if (checkProperty(pass, "pass_data")) {
+                        if (ConfigHelper.checkProperty(pass, "pass_data", location, false)) {
                             JsonElement data = pass.getAsJsonObject("pass_data");
                             if (data != null) {
                                 default_pass_data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, data).getOrThrow().getFirst();
@@ -383,21 +385,21 @@ public class Config {
                         );
                     }
 
-                    if (pass_settings.has("global_pass")) {
+                    if (ConfigHelper.checkProperty(pass_settings, "global_pass", location, false)) {
                         JsonObject pass = pass_settings.getAsJsonObject("global_pass");
                         Item global_pass_item = global_pass.pass_item();
                         String global_pass_name = global_pass.pass_name();
                         List<String> global_pass_lore = global_pass.pass_lore();
                         ComponentChanges global_pass_data = global_pass.pass_data();
 
-                        if (checkProperty(pass, "pass_item")) {
+                        if (ConfigHelper.checkProperty(pass, "pass_item", location)) {
                             String pass_item_name = pass.get("pass_item").getAsString();
                             global_pass_item = Registries.ITEM.get(Identifier.of(pass_item_name));
                         }
-                        if (checkProperty(pass, "pass_name")) {
+                        if (ConfigHelper.checkProperty(pass, "pass_name", location)) {
                             global_pass_name = pass.get("pass_name").getAsString();
                         }
-                        if (checkProperty(pass, "pass_lore")) {
+                        if (ConfigHelper.checkProperty(pass, "pass_lore", location)) {
                             JsonArray lore_items = pass.getAsJsonArray("pass_lore");
                             List<String> lore = new ArrayList<>();
                             for (JsonElement l : lore_items) {
@@ -406,7 +408,7 @@ public class Config {
                             }
                             global_pass_lore = lore;
                         }
-                        if (checkProperty(pass, "pass_data")) {
+                        if (ConfigHelper.checkProperty(pass, "pass_data", location, false)) {
                             JsonElement data = pass.getAsJsonObject("pass_data");
                             if (data != null) {
                                 global_pass_data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, data).getOrThrow().getFirst();
@@ -423,13 +425,13 @@ public class Config {
                 }
             }
 
-            if (checkProperty(item_settings, "raid_ball_settings")) {
+            if (ConfigHelper.checkProperty(item_settings, "raid_ball_settings", location)) {
                 JsonObject raid_ball_settings = item_settings.getAsJsonObject("raid_ball_settings");
-                if (checkProperty(raid_ball_settings, "raid_balls_enabled")) {
+                if (ConfigHelper.checkProperty(raid_ball_settings, "raid_balls_enabled", location)) {
                     raid_balls_enabled = raid_ball_settings.get("raid_balls_enabled").getAsBoolean();
                 }
                 if (raid_balls_enabled) {
-                    if (checkProperty(raid_ball_settings, "raid_balls")) {
+                    if (ConfigHelper.checkProperty(raid_ball_settings, "raid_balls", location)) {
                         JsonObject raid_balls = raid_ball_settings.getAsJsonObject("raid_balls");
                         for (String key : raid_balls.keySet()) {
                             JsonObject ball = raid_balls.getAsJsonObject(key);
@@ -439,14 +441,14 @@ public class Config {
                             List<String> lore = new ArrayList<>(List.of("<gray>Use this to try and capture raid bosses!"));
                             ComponentChanges data = ComponentChanges.EMPTY;
 
-                            if (checkProperty(ball, "pokeball")) {
+                            if (ConfigHelper.checkProperty(ball, "pokeball", location)) {
                                 String ball_item_name = ball.get("pokeball").getAsString();
                                 item = Registries.ITEM.get(Identifier.of(ball_item_name));
                             }
-                            if (checkProperty(ball, "pokeball_name")) {
+                            if (ConfigHelper.checkProperty(ball, "pokeball_name", location)) {
                                 name = ball.get("pokeball_name").getAsString();
                             }
-                            if (checkProperty(ball, "pokeball_lore")) {
+                            if (ConfigHelper.checkProperty(ball, "pokeball_lore", location)) {
                                 JsonArray lore_items = ball.getAsJsonArray("pokeball_lore");
                                 List<String> newLore = new ArrayList<>();
                                 for (JsonElement l : lore_items) {
@@ -455,7 +457,7 @@ public class Config {
                                 }
                                 lore = newLore;
                             }
-                            if (checkProperty(ball, "pokeball_data")) {
+                            if (ConfigHelper.checkProperty(ball, "pokeball_data", location, false)) {
                                 JsonElement dataElement = ball.get("pokeball_data");
                                 if (dataElement != null) {
                                     data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, dataElement).getOrThrow().getFirst();
@@ -468,14 +470,6 @@ public class Config {
                 }
             }
         }
-    }
-
-    public boolean checkProperty(JsonObject section, String property) {
-        if (section.has(property)) {
-            return true;
-        }
-        nr.logError("[RAIDS] Missing " + property + " property in config.json. Using default value(s) or skipping.");
-        return false;
     }
 
     public void writeResults(Raid raid) throws IOException, NoSuchElementException {
