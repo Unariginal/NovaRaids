@@ -1,0 +1,289 @@
+{
+  "gui_title": "%category% Category Contraband",
+  "use_hopper_gui": true,
+  "rows": 0,
+  "gui_layout": [
+    "PMAHB"
+  ],
+  "banned_pokemon": {
+    "symbol": "P",
+    "item": "cobblemon:poke_ball",
+    "item_name": "<red>Banned Pokemon",
+    "item_lore": [],
+    "item_data": {},
+    "gui_settings": {
+      "gui_title": "%category% Banned Pokemon",
+      "rows": 6,
+      "gui_layout": [
+        "#########",
+        "#########",
+        "#########",
+        "#########",
+        "#########",
+        "P___C___N"
+      ],
+      "pokemon_display_item": {
+        "symbol": "#",
+        "item_name": "%form% %species%",
+        "item_lore": [],
+        "item_data": {}
+      },
+      "background_item": {
+        "symbol": "_",
+        "item": "minecraft:air",
+        "item_name": "",
+        "item_lore": [],
+        "item_data": {}
+      },
+      "previous_item": {
+        "symbol": "P",
+        "item": "minecraft:arrow",
+        "item_name": "Previous",
+        "item_lore": [],
+        "item_data": {}
+      },
+      "close_item": {
+        "symbol": "C",
+        "item": "minecraft:barrier",
+        "item_name": "Close",
+        "item_lore": [],
+        "item_data": {}
+      },
+      "next_item": {
+        "symbol": "N",
+        "item": "minecraft:arrow",
+        "item_name": "Next",
+        "item_lore": [],
+        "item_data": {}
+      }
+    }
+  },
+  "banned_moves": {
+    "symbol": "M",
+    "item": "cobblemon:razor_claw",
+    "item_name": "<red>Banned Moves",
+    "item_lore": [],
+    "item_data": {},
+    "gui_settings": {
+      "gui_title": "%category% Banned Moves",
+      "rows": 6,
+      "gui_layout": [
+        "#########",
+        "#########",
+        "#########",
+        "#########",
+        "#########",
+        "P___C___N"
+      ],
+      "move_display_item": {
+        "symbol": "#",
+        "item": "minecraft:paper",
+        "item_name": "%move%",
+        "item_lore": [],
+        "item_data": {}
+      },
+      "background_item": {
+        "symbol": "_",
+        "item": "minecraft:air",
+        "item_name": "",
+        "item_lore": [],
+        "item_data": {}
+      },
+      "previous_item": {
+        "symbol": "P",
+        "item": "minecraft:arrow",
+        "item_name": "Previous",
+        "item_lore": [],
+        "item_data": {}
+      },
+      "close_item": {
+        "symbol": "C",
+        "item": "minecraft:barrier",
+        "item_name": "Close",
+        "item_lore": [],
+        "item_data": {}
+      },
+      "next_item": {
+        "symbol": "N",
+        "item": "minecraft:arrow",
+        "item_name": "Next",
+        "item_lore": [],
+        "item_data": {}
+      }
+    }
+  },
+  "banned_abilities": {
+    "symbol": "A",
+    "item": "cobblemon:ability_patch",
+    "item_name": "<red>Banned Abilities",
+    "item_lore": [],
+    "item_data": {},
+    "gui_settings": {
+      "gui_title": "%category% Banned Abilities",
+      "rows": 6,
+      "gui_layout": [
+        "#########",
+        "#########",
+        "#########",
+        "#########",
+        "#########",
+        "P___C___N"
+      ],
+      "ability_display_item": {
+        "symbol": "#",
+        "item": "minecraft:nether_star",
+        "item_name": "%ability%",
+        "item_lore": [],
+        "item_data": {}
+      },
+      "background_item": {
+        "symbol": "_",
+        "item": "minecraft:air",
+        "item_name": "",
+        "item_lore": [],
+        "item_data": {}
+      },
+      "previous_item": {
+        "symbol": "P",
+        "item": "minecraft:arrow",
+        "item_name": "Previous",
+        "item_lore": [],
+        "item_data": {}
+      },
+      "close_item": {
+        "symbol": "C",
+        "item": "minecraft:barrier",
+        "item_name": "Close",
+        "item_lore": [],
+        "item_data": {}
+      },
+      "next_item": {
+        "symbol": "N",
+        "item": "minecraft:arrow",
+        "item_name": "Next",
+        "item_lore": [],
+        "item_data": {}
+      }
+    }
+  },
+  "banned_held_items": {
+    "symbol": "H",
+    "item": "cobblemon:leftovers",
+    "item_name": "<red>Banned Held Items",
+    "item_lore": [],
+    "item_data": {},
+    "gui_settings": {
+      "gui_title": "%category% Banned Held Items",
+      "rows": 6,
+      "gui_layout": [
+        "#########",
+        "#########",
+        "#########",
+        "#########",
+        "#########",
+        "P___C___N"
+      ],
+      "held_item_display_item": {
+        "symbol": "#",
+        "item_name": "%item%",
+        "item_lore": [],
+        "item_data": {}
+      },
+      "background_item": {
+        "symbol": "_",
+        "item": "minecraft:air",
+        "item_name": "",
+        "item_lore": [],
+        "item_data": {}
+      },
+      "previous_item": {
+        "symbol": "P",
+        "item": "minecraft:arrow",
+        "item_name": "Previous",
+        "item_lore": [],
+        "item_data": {}
+      },
+      "close_item": {
+        "symbol": "C",
+        "item": "minecraft:barrier",
+        "item_name": "Close",
+        "item_lore": [],
+        "item_data": {}
+      },
+      "next_item": {
+        "symbol": "N",
+        "item": "minecraft:arrow",
+        "item_name": "Next",
+        "item_lore": [],
+        "item_data": {}
+      }
+    }
+  },
+  "banned_bag_items": {
+    "symbol": "B",
+    "item": "cobblemon:potion",
+    "item_name": "<red>Banned Bag Items",
+    "item_lore": [],
+    "item_data": {},
+    "gui_settings": {
+      "gui_title": "%category% Banned Bag Items",
+      "rows": 6,
+      "gui_layout": [
+        "#########",
+        "#########",
+        "#########",
+        "#########",
+        "#########",
+        "P___C___N"
+      ],
+      "bag_item_display_item": {
+        "symbol": "#",
+        "item_name": "%item%",
+        "item_lore": [],
+        "item_data": {}
+      },
+      "background_item": {
+        "symbol": "_",
+        "item": "minecraft:air",
+        "item_name": "",
+        "item_lore": [],
+        "item_data": {}
+      },
+      "previous_item": {
+        "symbol": "P",
+        "item": "minecraft:arrow",
+        "item_name": "Previous",
+        "item_lore": [],
+        "item_data": {}
+      },
+      "close_item": {
+        "symbol": "C",
+        "item": "minecraft:barrier",
+        "item_name": "Close",
+        "item_lore": [],
+        "item_data": {}
+      },
+      "next_item": {
+        "symbol": "N",
+        "item": "minecraft:arrow",
+        "item_name": "Next",
+        "item_lore": [],
+        "item_data": {}
+      }
+    }
+  },
+  "background_item": {
+    "symbol": "_",
+    "item": "minecraft:air",
+    "item_name": "",
+    "item_lore": [],
+    "item_data": {}
+  },
+  "close_item": {
+    "symbol": "C",
+    "item": "minecraft:barrier",
+    "item_name": "Close",
+    "item_lore": [],
+    "item_data": {}
+  }
+}

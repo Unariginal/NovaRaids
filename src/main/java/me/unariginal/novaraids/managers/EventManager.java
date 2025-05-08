@@ -259,14 +259,14 @@ public class EventManager {
                                             Raid raid = joinable_raids.get(index);
 
                                             List<Text> lore = new ArrayList<>();
-                                            for (String line : nr.guisConfig().pass_gui.display_lore) {
+                                            for (String line : nr.guisConfig().pass_gui.display_button.item_lore()) {
                                                 lore.add(TextUtils.deserialize(TextUtils.parse(line, raid)));
                                             }
 
                                             ItemStack item = PokemonItem.from(raid.raidBoss_pokemon());
-                                            item.applyChanges(nr.guisConfig().pass_gui.display_data);
+                                            item.applyChanges(nr.guisConfig().pass_gui.display_button.item_data());
                                             GuiElement element = new GuiElementBuilder(item)
-                                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().pass_gui.display_name, raid)))
+                                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().pass_gui.display_button.item_name(), raid)))
                                                     .setLore(lore)
                                                     .setCallback((num, clickType, slotActionType) -> {
                                                         if (clickType.isLeft) {
@@ -437,14 +437,14 @@ public class EventManager {
                                             Boss boss = available_raids.get(index);
 
                                             List<Text> lore = new ArrayList<>();
-                                            for (String line : nr.guisConfig().voucher_gui.display_lore) {
+                                            for (String line : nr.guisConfig().voucher_gui.display_button.item_lore()) {
                                                 lore.add(TextUtils.deserialize(TextUtils.parse(line, boss)));
                                             }
 
                                             ItemStack item = PokemonItem.from(boss.pokemonDetails().createPokemon());
-                                            item.applyChanges(nr.guisConfig().voucher_gui.display_data);
+                                            item.applyChanges(nr.guisConfig().voucher_gui.display_button.item_data());
                                             GuiElement element = new GuiElementBuilder(item)
-                                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().voucher_gui.display_name, boss)))
+                                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().voucher_gui.display_button.item_name(), boss)))
                                                     .setLore(lore)
                                                     .setCallback((num, clickType, slotActionType) -> {
                                                         if (clickType.isLeft) {
@@ -667,6 +667,7 @@ public class EventManager {
                     if (raid.participating_players().contains(player.getUuid())) {
                         List<Item> banned_bag_items = nr.config().global_banned_bag_items;
                         banned_bag_items.addAll(raid.boss_info().raid_details().banned_bag_items());
+                        banned_bag_items.addAll(raid.raidBoss_category().banned_bag_items());
                         if (banned_bag_items.contains(held_item.getItem())) {
                             player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_banned_bag_item").replaceAll("%banned.bag_item%", held_item.getItem().getName().getString()), raid)));
                             return TypedActionResult.fail(held_item);

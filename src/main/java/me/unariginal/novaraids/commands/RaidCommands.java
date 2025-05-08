@@ -300,6 +300,9 @@ public class RaidCommands {
                                     })
                     )
                     .then(
+                            // /raid checkbanned global
+                            // /raid checkbanned category <category>
+                            // /raid checkbanned boss <boss>
                             CommandManager.literal("checkbanned")
                                     .requires(Permissions.require("novaraids.checkbanned", 4))
                                     .executes(this::checkbanned)
