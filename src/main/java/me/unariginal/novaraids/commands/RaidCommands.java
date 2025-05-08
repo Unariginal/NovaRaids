@@ -1268,7 +1268,12 @@ public class RaidCommands {
                                     }
                                 }).build();
                         page_entry.getValue().setSlot(slot, element);
+                        index++;
+                        if (!nr.active_raids().containsKey(index + 1)) {
+                            break;
+                        }
                     }
+
                     if (pages.containsKey(page_entry.getKey() + 1)) {
                         for (Integer slot : nr.guisConfig().raid_list_gui.nextButtonSlots()) {
                             ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().raid_list_gui.next_button.item())));
@@ -1281,11 +1286,49 @@ public class RaidCommands {
                                     .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().raid_list_gui.next_button.item_name())))
                                     .setLore(lore)
                                     .setCallback(clickType -> {
-
+                                        page_entry.getValue().close();
+                                        pages.get(page_entry.getKey() + 1).open();
                                     })
                                     .build();
                             page_entry.getValue().setSlot(slot, element);
                         }
+                    }
+
+                    if (pages.containsKey(page_entry.getKey() - 1)) {
+                        for (Integer slot : nr.guisConfig().raid_list_gui.previousButtonSlots()) {
+                            ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().raid_list_gui.previous_button.item())));
+                            item.applyChanges(nr.guisConfig().raid_list_gui.previous_button.item_data());
+                            List<Text> lore = new ArrayList<>();
+                            for (String line : nr.guisConfig().raid_list_gui.previous_button.item_lore()) {
+                                lore.add(TextUtils.deserialize(TextUtils.parse(line)));
+                            }
+                            GuiElement element = new GuiElementBuilder(item)
+                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().raid_list_gui.previous_button.item_name())))
+                                    .setLore(lore)
+                                    .setCallback(clickType -> {
+                                        page_entry.getValue().close();
+                                        pages.get(page_entry.getKey() - 1).open();
+                                    })
+                                    .build();
+                            page_entry.getValue().setSlot(slot, element);
+                        }
+                    }
+
+                    for (Integer slot : nr.guisConfig().raid_list_gui.closeButtonSlots()) {
+                        ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().raid_list_gui.close_button.item())));
+                        item.applyChanges(nr.guisConfig().raid_list_gui.close_button.item_data());
+                        List<Text> lore = new ArrayList<>();
+                        for (String line : nr.guisConfig().raid_list_gui.close_button.item_lore()) {
+                            lore.add(TextUtils.deserialize(TextUtils.parse(line)));
+                        }
+                        GuiElement element = new GuiElementBuilder(item)
+                                .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().raid_list_gui.close_button.item_name())))
+                                .setLore(lore)
+                                .setCallback(clickType -> {
+                                    page_entry.getValue().close();
+                                })
+                                .build();
+                        page_entry.getValue().setSlot(slot, element);
                     }
                 }
                 pages.get(1).open();
