@@ -66,6 +66,9 @@ public class TextUtils {
                 .replaceAll("%boss.minimum_level%", String.valueOf(boss.raid_details().minimum_level()));
         message = spaceReplace(message, "%boss.form%", !boss.pokemonDetails().form().getName().equalsIgnoreCase("normal"), boss.pokemonDetails().form().getName());
         message = spaceReplace(message, "%boss.name%", !boss.display_name().isEmpty(), boss.display_name());
+        message = message
+                .replaceAll("%boss.form%", boss.pokemonDetails().form().getName())
+                .replaceAll("%boss.name%", boss.display_name());
 
         return message;
     }

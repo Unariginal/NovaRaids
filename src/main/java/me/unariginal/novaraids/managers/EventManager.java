@@ -24,6 +24,7 @@ import me.unariginal.novaraids.config.MessagesConfig;
 import me.unariginal.novaraids.data.Category;
 import me.unariginal.novaraids.data.bosssettings.Boss;
 import me.unariginal.novaraids.utils.BanHandler;
+import me.unariginal.novaraids.utils.GuiUtils;
 import me.unariginal.novaraids.utils.TextUtils;
 import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
@@ -34,16 +35,15 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.Registries;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.TypedActionResult;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 public class EventManager {
     private static final NovaRaids nr = NovaRaids.INSTANCE;
@@ -244,35 +244,141 @@ public class EventManager {
                                     }
                                 }
 
-                                SimpleGui gui = new SimpleGui(ScreenHandlerType.GENERIC_9X6, player, false);
-                                gui.setTitle(Text.literal("Pick A Raid!"));
-                                for (int i = 0; i < joinable_raids.size(); i++) {
-                                    Raid raid = joinable_raids.get(i);
-                                    GuiElement element = new GuiElementBuilder(PokemonItem.from(joinable_raids.get(i).raidBoss_pokemon())).setCallback((slot, clickType, slotActionType) -> {
-                                        if (raid.raidBoss_category().require_pass()) {
-                                            if (nr.active_raids().get(nr.get_raid_id(raid)).stage() == 1) {
-                                                if (nr.active_raids().get(nr.get_raid_id(raid)).participating_players().size() < nr.active_raids().get(nr.get_raid_id(raid)).max_players() || nr.active_raids().get(nr.get_raid_id(raid)).max_players() == -1 || Permissions.check(player, "novaraids.override")) {
-                                                    if (raid.addPlayer(player.getUuid(), true)) {
-                                                        held_item.decrement(1);
-                                                        player.setStackInHand(hand, held_item);
-
-                                                        player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("joined_raid"), raid)));
-
-                                                        gui.close();
-                                                    }
-                                                } else {
-                                                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_max_players"), raid)));
-                                                }
-                                            } else {
-                                                player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_not_joinable"), raid)));
-                                            }
-                                        } else {
-                                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_no_pass_needed"), raid)));
-                                        }
-                                    }).build();
-                                    gui.setSlot(i, element);
+                                Map<Integer, SimpleGui> pages = new HashMap<>();
+                                int page_total = GuiUtils.getPageTotal(joinable_raids.size(), nr.guisConfig().pass_gui.displaySlotTotal());
+                                for (int i = 1; i <= page_total; i++) {
+                                    SimpleGui gui = new SimpleGui(GuiUtils.getScreenSize(nr.guisConfig().pass_gui.rows), player, false);
+                                    gui.setTitle(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().pass_gui.title)));
+                                    pages.put(i, gui);
                                 }
-                                gui.open();
+
+                                int index = 0;
+                                for (Map.Entry<Integer, SimpleGui> page_entry : pages.entrySet()) {
+                                    for (Integer slot : nr.guisConfig().pass_gui.displaySlots()) {
+                                        if (index < joinable_raids.size()) {
+                                            Raid raid = joinable_raids.get(index);
+
+                                            List<Text> lore = new ArrayList<>();
+                                            for (String line : nr.guisConfig().pass_gui.display_lore) {
+                                                lore.add(TextUtils.deserialize(TextUtils.parse(line, raid)));
+                                            }
+
+                                            ItemStack item = PokemonItem.from(raid.raidBoss_pokemon());
+                                            item.applyChanges(nr.guisConfig().pass_gui.display_data);
+                                            GuiElement element = new GuiElementBuilder(item)
+                                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().pass_gui.display_name, raid)))
+                                                    .setLore(lore)
+                                                    .setCallback((num, clickType, slotActionType) -> {
+                                                        if (clickType.isLeft) {
+                                                            if (raid.raidBoss_category().require_pass()) {
+                                                                if (nr.active_raids().get(nr.get_raid_id(raid)).stage() == 1) {
+                                                                    if (nr.active_raids().get(nr.get_raid_id(raid)).participating_players().size() < nr.active_raids().get(nr.get_raid_id(raid)).max_players() || nr.active_raids().get(nr.get_raid_id(raid)).max_players() == -1 || Permissions.check(player, "novaraids.override")) {
+                                                                        if (raid.addPlayer(player.getUuid(), true)) {
+                                                                            held_item.decrement(1);
+                                                                            player.setStackInHand(hand, held_item);
+
+                                                                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("joined_raid"), raid)));
+
+                                                                            page_entry.getValue().close();
+                                                                        }
+                                                                    } else {
+                                                                        player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_max_players"), raid)));
+                                                                    }
+                                                                } else {
+                                                                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_not_joinable"), raid)));
+                                                                }
+                                                            } else {
+                                                                player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_no_pass_needed"), raid)));
+                                                            }
+                                                        }
+                                                    }).build();
+                                            page_entry.getValue().setSlot(slot, element);
+                                            index++;
+                                        } else {
+                                            ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().pass_gui.background_button.item())));
+                                            item.applyChanges(nr.guisConfig().pass_gui.background_button.item_data());
+                                            List<Text> lore = new ArrayList<>();
+                                            for (String line : nr.guisConfig().pass_gui.background_button.item_lore()) {
+                                                lore.add(TextUtils.deserialize(TextUtils.parse(line)));
+                                            }
+                                            GuiElement element = new GuiElementBuilder(item)
+                                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().pass_gui.background_button.item_name())))
+                                                    .setLore(lore)
+                                                    .build();
+                                            page_entry.getValue().setSlot(slot, element);
+                                        }
+                                    }
+
+                                    if (page_entry.getKey() < page_total) {
+                                        for (Integer slot : nr.guisConfig().pass_gui.nextButtonSlots()) {
+                                            ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().pass_gui.next_button.item())));
+                                            item.applyChanges(nr.guisConfig().pass_gui.next_button.item_data());
+                                            List<Text> lore = new ArrayList<>();
+                                            for (String line : nr.guisConfig().pass_gui.next_button.item_lore()) {
+                                                lore.add(TextUtils.deserialize(TextUtils.parse(line)));
+                                            }
+                                            GuiElement element = new GuiElementBuilder(item)
+                                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().pass_gui.next_button.item_name())))
+                                                    .setLore(lore)
+                                                    .setCallback(clickType -> {
+                                                        page_entry.getValue().close();
+                                                        pages.get(page_entry.getKey() + 1).open();
+                                                    })
+                                                    .build();
+                                            page_entry.getValue().setSlot(slot, element);
+                                        }
+                                    }
+
+                                    if (page_entry.getKey() > 1) {
+                                        for (Integer slot : nr.guisConfig().pass_gui.previousButtonSlots()) {
+                                            ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().pass_gui.previous_button.item())));
+                                            item.applyChanges(nr.guisConfig().pass_gui.previous_button.item_data());
+                                            List<Text> lore = new ArrayList<>();
+                                            for (String line : nr.guisConfig().pass_gui.previous_button.item_lore()) {
+                                                lore.add(TextUtils.deserialize(TextUtils.parse(line)));
+                                            }
+                                            GuiElement element = new GuiElementBuilder(item)
+                                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().pass_gui.previous_button.item_name())))
+                                                    .setLore(lore)
+                                                    .setCallback(clickType -> {
+                                                        page_entry.getValue().close();
+                                                        pages.get(page_entry.getKey() - 1).open();
+                                                    })
+                                                    .build();
+                                            page_entry.getValue().setSlot(slot, element);
+                                        }
+                                    }
+
+                                    for (Integer slot : nr.guisConfig().pass_gui.closeButtonSlots()) {
+                                        ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().pass_gui.close_button.item())));
+                                        item.applyChanges(nr.guisConfig().pass_gui.close_button.item_data());
+                                        List<Text> lore = new ArrayList<>();
+                                        for (String line : nr.guisConfig().pass_gui.close_button.item_lore()) {
+                                            lore.add(TextUtils.deserialize(TextUtils.parse(line)));
+                                        }
+                                        GuiElement element = new GuiElementBuilder(item)
+                                                .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().pass_gui.close_button.item_name())))
+                                                .setLore(lore)
+                                                .setCallback(clickType -> page_entry.getValue().close())
+                                                .build();
+                                        page_entry.getValue().setSlot(slot, element);
+                                    }
+
+                                    for (Integer slot : nr.guisConfig().pass_gui.backgroundButtonSlots()) {
+                                        ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().pass_gui.background_button.item())));
+                                        item.applyChanges(nr.guisConfig().pass_gui.background_button.item_data());
+                                        List<Text> lore = new ArrayList<>();
+                                        for (String line : nr.guisConfig().pass_gui.background_button.item_lore()) {
+                                            lore.add(TextUtils.deserialize(TextUtils.parse(line)));
+                                        }
+                                        GuiElement element = new GuiElementBuilder(item)
+                                                .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().pass_gui.background_button.item_name())))
+                                                .setLore(lore)
+                                                .build();
+                                        page_entry.getValue().setSlot(slot, element);
+                                    }
+                                }
+                                pages.get(1).open();
                             } else {
                                 for (Raid raid : nr.active_raids().values()) {
                                     if (raid.participating_players().contains(player.getUuid())) {
@@ -316,24 +422,129 @@ public class EventManager {
                                     }
                                 }
 
-                                SimpleGui gui = new SimpleGui(ScreenHandlerType.GENERIC_9X6, player, false);
-                                gui.setTitle(Text.literal("Pick A Raid!"));
-                                for (int i = 0; i < available_raids.size(); i++) {
-                                    int index = i;
-                                    GuiElement element = new GuiElementBuilder(PokemonItem.from(available_raids.get(i).pokemonDetails().species())).setCallback((slot, clickType, slotActionType) -> {
-                                        if (nr.raidCommands().start(available_raids.get(index), player, held_item) != 0) {
-
-                                            held_item.decrement(1);
-                                            player.setStackInHand(hand, held_item);
-
-                                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("used_voucher"), available_raids.get(index))));
-
-                                            gui.close();
-                                        }
-                                    }).build();
-                                    gui.setSlot(i, element);
+                                Map<Integer, SimpleGui> pages = new HashMap<>();
+                                int page_total = GuiUtils.getPageTotal(available_raids.size(), nr.guisConfig().voucher_gui.displaySlotTotal());
+                                for (int i = 1; i <= page_total; i++) {
+                                    SimpleGui gui = new SimpleGui(GuiUtils.getScreenSize(nr.guisConfig().voucher_gui.rows), player, false);
+                                    gui.setTitle(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().voucher_gui.title)));
+                                    pages.put(i, gui);
                                 }
-                                gui.open();
+
+                                int index = 0;
+                                for (Map.Entry<Integer, SimpleGui> page_entry : pages.entrySet()) {
+                                    for (Integer slot : nr.guisConfig().voucher_gui.displaySlots()) {
+                                        if (index < available_raids.size()) {
+                                            Boss boss = available_raids.get(index);
+
+                                            List<Text> lore = new ArrayList<>();
+                                            for (String line : nr.guisConfig().voucher_gui.display_lore) {
+                                                lore.add(TextUtils.deserialize(TextUtils.parse(line, boss)));
+                                            }
+
+                                            ItemStack item = PokemonItem.from(boss.pokemonDetails().createPokemon());
+                                            item.applyChanges(nr.guisConfig().voucher_gui.display_data);
+                                            GuiElement element = new GuiElementBuilder(item)
+                                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().voucher_gui.display_name, boss)))
+                                                    .setLore(lore)
+                                                    .setCallback((num, clickType, slotActionType) -> {
+                                                        if (clickType.isLeft) {
+                                                            if (nr.raidCommands().start(boss, player, held_item) != 0) {
+                                                                held_item.decrement(1);
+                                                                player.setStackInHand(hand, held_item);
+
+                                                                player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("used_voucher"), boss)));
+
+                                                                page_entry.getValue().close();
+                                                            }
+                                                        }
+                                                    }).build();
+                                            page_entry.getValue().setSlot(slot, element);
+                                            index++;
+                                        } else {
+                                            ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().voucher_gui.background_button.item())));
+                                            item.applyChanges(nr.guisConfig().voucher_gui.background_button.item_data());
+                                            List<Text> lore = new ArrayList<>();
+                                            for (String line : nr.guisConfig().voucher_gui.background_button.item_lore()) {
+                                                lore.add(TextUtils.deserialize(TextUtils.parse(line)));
+                                            }
+                                            GuiElement element = new GuiElementBuilder(item)
+                                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().voucher_gui.background_button.item_name())))
+                                                    .setLore(lore)
+                                                    .build();
+                                            page_entry.getValue().setSlot(slot, element);
+                                        }
+                                    }
+
+                                    if (page_entry.getKey() < page_total) {
+                                        for (Integer slot : nr.guisConfig().voucher_gui.nextButtonSlots()) {
+                                            ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().voucher_gui.next_button.item())));
+                                            item.applyChanges(nr.guisConfig().voucher_gui.next_button.item_data());
+                                            List<Text> lore = new ArrayList<>();
+                                            for (String line : nr.guisConfig().voucher_gui.next_button.item_lore()) {
+                                                lore.add(TextUtils.deserialize(TextUtils.parse(line)));
+                                            }
+                                            GuiElement element = new GuiElementBuilder(item)
+                                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().voucher_gui.next_button.item_name())))
+                                                    .setLore(lore)
+                                                    .setCallback(clickType -> {
+                                                        page_entry.getValue().close();
+                                                        pages.get(page_entry.getKey() + 1).open();
+                                                    })
+                                                    .build();
+                                            page_entry.getValue().setSlot(slot, element);
+                                        }
+                                    }
+
+                                    if (page_entry.getKey() > 1) {
+                                        for (Integer slot : nr.guisConfig().voucher_gui.previousButtonSlots()) {
+                                            ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().voucher_gui.previous_button.item())));
+                                            item.applyChanges(nr.guisConfig().voucher_gui.previous_button.item_data());
+                                            List<Text> lore = new ArrayList<>();
+                                            for (String line : nr.guisConfig().voucher_gui.previous_button.item_lore()) {
+                                                lore.add(TextUtils.deserialize(TextUtils.parse(line)));
+                                            }
+                                            GuiElement element = new GuiElementBuilder(item)
+                                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().voucher_gui.previous_button.item_name())))
+                                                    .setLore(lore)
+                                                    .setCallback(clickType -> {
+                                                        page_entry.getValue().close();
+                                                        pages.get(page_entry.getKey() - 1).open();
+                                                    })
+                                                    .build();
+                                            page_entry.getValue().setSlot(slot, element);
+                                        }
+                                    }
+
+                                    for (Integer slot : nr.guisConfig().voucher_gui.closeButtonSlots()) {
+                                        ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().voucher_gui.close_button.item())));
+                                        item.applyChanges(nr.guisConfig().voucher_gui.close_button.item_data());
+                                        List<Text> lore = new ArrayList<>();
+                                        for (String line : nr.guisConfig().voucher_gui.close_button.item_lore()) {
+                                            lore.add(TextUtils.deserialize(TextUtils.parse(line)));
+                                        }
+                                        GuiElement element = new GuiElementBuilder(item)
+                                                .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().voucher_gui.close_button.item_name())))
+                                                .setLore(lore)
+                                                .setCallback(clickType -> page_entry.getValue().close())
+                                                .build();
+                                        page_entry.getValue().setSlot(slot, element);
+                                    }
+
+                                    for (Integer slot : nr.guisConfig().voucher_gui.backgroundButtonSlots()) {
+                                        ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().voucher_gui.background_button.item())));
+                                        item.applyChanges(nr.guisConfig().voucher_gui.background_button.item_data());
+                                        List<Text> lore = new ArrayList<>();
+                                        for (String line : nr.guisConfig().voucher_gui.background_button.item_lore()) {
+                                            lore.add(TextUtils.deserialize(TextUtils.parse(line)));
+                                        }
+                                        GuiElement element = new GuiElementBuilder(item)
+                                                .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().voucher_gui.background_button.item_name())))
+                                                .setLore(lore)
+                                                .build();
+                                        page_entry.getValue().setSlot(slot, element);
+                                    }
+                                }
+                                pages.get(1).open();
                             } else if (boss_name.equalsIgnoreCase("random")) {
                                 Boss boss_info;
                                 if (category.equalsIgnoreCase("null")) {

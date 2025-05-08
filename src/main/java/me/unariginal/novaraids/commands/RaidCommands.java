@@ -295,7 +295,9 @@ public class RaidCommands {
                     .then(
                             CommandManager.literal("queue")
                                     .requires(Permissions.require("novaraids.queue", 4))
-                                    .executes(this::queue)
+                                    .executes(ctx -> {
+                                        return queue(ctx, 1);
+                                    })
                     )
                     .then(
                             CommandManager.literal("checkbanned")
@@ -1285,7 +1287,7 @@ public class RaidCommands {
                         }
                     }
 
-                    if (pages.containsKey(page_entry.getKey() + 1)) {
+                    if (page_entry.getKey() < page_total) {
                         for (Integer slot : nr.guisConfig().raid_list_gui.nextButtonSlots()) {
                             ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().raid_list_gui.next_button.item())));
                             item.applyChanges(nr.guisConfig().raid_list_gui.next_button.item_data());
@@ -1305,7 +1307,7 @@ public class RaidCommands {
                         }
                     }
 
-                    if (pages.containsKey(page_entry.getKey() - 1)) {
+                    if (page_entry.getKey() > 1) {
                         for (Integer slot : nr.guisConfig().raid_list_gui.previousButtonSlots()) {
                             ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().raid_list_gui.previous_button.item())));
                             item.applyChanges(nr.guisConfig().raid_list_gui.previous_button.item_data());
@@ -1335,9 +1337,7 @@ public class RaidCommands {
                         GuiElement element = new GuiElementBuilder(item)
                                 .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().raid_list_gui.close_button.item_name())))
                                 .setLore(lore)
-                                .setCallback(clickType -> {
-                                    page_entry.getValue().close();
-                                })
+                                .setCallback(clickType -> page_entry.getValue().close())
                                 .build();
                         page_entry.getValue().setSlot(slot, element);
                     }
@@ -1362,7 +1362,7 @@ public class RaidCommands {
         return 1;
     }
 
-    private int queue(CommandContext<ServerCommandSource> ctx) {
+    private int queue(CommandContext<ServerCommandSource> ctx, int page_to_open) {
         if (nr.loaded_properly) {
             ServerPlayerEntity player = ctx.getSource().getPlayer();
             if (player != null) {
@@ -1372,7 +1372,7 @@ public class RaidCommands {
                 }
 
                 Map<Integer, SimpleGui> pages = new HashMap<>();
-                int page_total = GuiUtils.getPageTotal(nr.active_raids().size(), nr.guisConfig().queue_gui.displaySlotTotal());
+                int page_total = GuiUtils.getPageTotal(nr.queued_raids().size(), nr.guisConfig().queue_gui.displaySlotTotal());
                 for (int i = 1; i <= page_total; i++) {
                     SimpleGui gui = new SimpleGui(GuiUtils.getScreenSize(nr.guisConfig().queue_gui.rows), player, false);
                     gui.setTitle(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().queue_gui.title)));
@@ -1386,7 +1386,7 @@ public class RaidCommands {
                             Boss boss = nr.queued_raids().stream().toList().get(index).boss_info();
 
                             List<Text> lore = new ArrayList<>();
-                            if (Permissions.check(player, "novaraids.cancelqueue")) {
+                            if (Permissions.check(player, "novaraids.cancelqueue", 4)) {
                                 for (String line : nr.guisConfig().queue_gui.cancel_lore) {
                                     lore.add(TextUtils.deserialize(TextUtils.parse(line, boss)));
                                 }
@@ -1404,12 +1404,12 @@ public class RaidCommands {
                                     .setLore(lore)
                                     .setCallback((num, clickType, slotActionType) -> {
                                         if (clickType.isRight) {
-                                            if (Permissions.check(player, "novaraids.cancelqueue")) {
+                                            if (Permissions.check(player, "novaraids.cancelqueue", 4)) {
                                                 page_entry.getValue().close();
                                                 nr.queued_raids().stream().toList().get(finalIndex).cancel_item();
                                                 player.sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("queue_item_cancelled"), boss)));
                                                 nr.queued_raids().remove(nr.queued_raids().stream().toList().get(finalIndex));
-                                                page_entry.getValue().open();
+                                                queue(ctx, page_entry.getKey());
                                             }
                                         }
                                     }).build();
@@ -1430,7 +1430,7 @@ public class RaidCommands {
                         }
                     }
 
-                    if (pages.containsKey(page_entry.getKey() + 1)) {
+                    if (page_entry.getKey() < page_total) {
                         for (Integer slot : nr.guisConfig().queue_gui.nextButtonSlots()) {
                             ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().queue_gui.next_button.item())));
                             item.applyChanges(nr.guisConfig().queue_gui.next_button.item_data());
@@ -1443,14 +1443,14 @@ public class RaidCommands {
                                     .setLore(lore)
                                     .setCallback(clickType -> {
                                         page_entry.getValue().close();
-                                        pages.get(page_entry.getKey() + 1).open();
+                                        queue(ctx, page_entry.getKey() + 1);
                                     })
                                     .build();
                             page_entry.getValue().setSlot(slot, element);
                         }
                     }
 
-                    if (pages.containsKey(page_entry.getKey() - 1)) {
+                    if (page_entry.getKey() > 1) {
                         for (Integer slot : nr.guisConfig().queue_gui.previousButtonSlots()) {
                             ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().queue_gui.previous_button.item())));
                             item.applyChanges(nr.guisConfig().queue_gui.previous_button.item_data());
@@ -1463,7 +1463,7 @@ public class RaidCommands {
                                     .setLore(lore)
                                     .setCallback(clickType -> {
                                         page_entry.getValue().close();
-                                        pages.get(page_entry.getKey() - 1).open();
+                                        queue(ctx, page_entry.getKey() - 1);
                                     })
                                     .build();
                             page_entry.getValue().setSlot(slot, element);
@@ -1480,9 +1480,7 @@ public class RaidCommands {
                         GuiElement element = new GuiElementBuilder(item)
                                 .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().queue_gui.close_button.item_name())))
                                 .setLore(lore)
-                                .setCallback(clickType -> {
-                                    page_entry.getValue().close();
-                                })
+                                .setCallback(clickType -> page_entry.getValue().close())
                                 .build();
                         page_entry.getValue().setSlot(slot, element);
                     }
@@ -1501,7 +1499,7 @@ public class RaidCommands {
                         page_entry.getValue().setSlot(slot, element);
                     }
                 }
-                pages.get(1).open();
+                pages.get(page_to_open).open();
                 return 1;
             }
         }
