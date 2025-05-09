@@ -24,7 +24,7 @@
       ],
       "pokemon_display_item": {
         "symbol": "#",
-        "item_name": "%form% %species%",
+        "item_name": "%pokemon%",
         "item_lore": [],
         "item_data": {}
       },

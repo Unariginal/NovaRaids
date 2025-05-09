@@ -1,6 +1,5 @@
 package me.unariginal.novaraids.commands;
 
-import com.cobblemon.mod.common.CobblemonItems;
 import com.cobblemon.mod.common.api.abilities.Ability;
 import com.cobblemon.mod.common.api.moves.Move;
 import com.cobblemon.mod.common.item.PokemonItem;
@@ -18,6 +17,8 @@ import me.unariginal.novaraids.commands.suggestions.BossSuggestions;
 import me.unariginal.novaraids.commands.suggestions.CategorySuggestions;
 import me.unariginal.novaraids.data.*;
 import me.unariginal.novaraids.data.bosssettings.Boss;
+import me.unariginal.novaraids.data.guis.ContrabandGui;
+import me.unariginal.novaraids.data.guis.DisplayItemGui;
 import me.unariginal.novaraids.data.items.Pass;
 import me.unariginal.novaraids.data.items.RaidBall;
 import me.unariginal.novaraids.data.items.Voucher;
@@ -36,7 +37,6 @@ import net.minecraft.component.type.LoreComponent;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.Registries;
 import net.minecraft.screen.ScreenHandlerType;
@@ -45,7 +45,6 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import org.apache.commons.lang3.StringUtils;
 
@@ -300,12 +299,28 @@ public class RaidCommands {
                                     })
                     )
                     .then(
-                            // /raid checkbanned global
-                            // /raid checkbanned category <category>
-                            // /raid checkbanned boss <boss>
                             CommandManager.literal("checkbanned")
                                     .requires(Permissions.require("novaraids.checkbanned", 4))
-                                    .executes(this::checkbanned)
+                                    .then(
+                                            CommandManager.literal("global")
+                                                    .executes(ctx -> checkbanned(ctx, "global"))
+                                    )
+                                    .then(
+                                            CommandManager.literal("category")
+                                                    .then(
+                                                            CommandManager.argument("category", StringArgumentType.string())
+                                                                    .suggests(new CategorySuggestions())
+                                                                    .executes(ctx -> checkbanned(ctx, "category"))
+                                                    )
+                                    )
+                                    .then(
+                                            CommandManager.literal("boss")
+                                                    .then(
+                                                            CommandManager.argument("boss", StringArgumentType.string())
+                                                                    .suggests(new BossSuggestions())
+                                                                    .executes(ctx -> checkbanned(ctx, "boss"))
+                                                    )
+                                    )
                     )
                     .then(
                             CommandManager.literal("history")
@@ -369,372 +384,597 @@ public class RaidCommands {
         return 1;
     }
 
-    // TODO: SHOW THE OTHER ONES JSOICNANASLDKMAISCMALKMASLIDNMCASJN ok no more keyboard spam from me I swear
-    private int checkbanned(CommandContext<ServerCommandSource> ctx) {
+    // TODO: <!>TESTING<!> Show other contraband
+    private int checkbanned(CommandContext<ServerCommandSource> ctx, String type) {
         if (nr.loaded_properly) {
             if (ctx.getSource().isExecutedByPlayer()) {
                 ServerPlayerEntity player = ctx.getSource().getPlayer();
                 if (player != null) {
-                    try {
-                        SimpleGui main_gui = new SimpleGui(ScreenHandlerType.HOPPER, player, false);
-                        main_gui.setTitle(TextUtils.deserialize(nr.messagesConfig().getMessage("contraband_gui_title")));
-
-                        List<List<Species>> species_pages = new ArrayList<>();
-                        species_pages.add(new ArrayList<>());
-                        int count = 0;
-                        int page = 0;
-                        for (Species species : nr.config().global_banned_pokemon) {
-                            species_pages.get(page).add(species);
-                            count++;
-                            if (count > 44) {
-                                species_pages.add(new ArrayList<>());
-                                count = 0;
-                                page++;
+                    ContrabandGui gui;
+                    Boss boss;
+                    Category category;
+                    switch (type) {
+                        case "global" -> {
+                            category = null;
+                            boss = null;
+                            gui = nr.guisConfig().global_contraband_gui;
+                        }
+                        case "category" -> {
+                            boss = null;
+                            String category_id = StringArgumentType.getString(ctx, "category");
+                            category = nr.bossesConfig().getCategory(category_id);
+                            if (category != null) {
+                                gui = nr.guisConfig().category_contraband_gui;
+                            } else {
+                                return 0;
                             }
                         }
-
-                        List<List<Move>> move_pages = new ArrayList<>();
-                        move_pages.add(new ArrayList<>());
-                        count = 0;
-                        page = 0;
-                        for (Move move : nr.config().global_banned_moves) {
-                            move_pages.get(page).add(move);
-                            count++;
-                            if (count > 44) {
-                                move_pages.add(new ArrayList<>());
-                                page++;
-                                count = 0;
+                        case "boss" -> {
+                            String boss_id = StringArgumentType.getString(ctx, "boss");
+                            boss = nr.bossesConfig().getBoss(boss_id);
+                            if (boss != null) {
+                                category = nr.bossesConfig().getCategory(boss.category_id());
+                                gui = nr.guisConfig().boss_contraband_gui;
+                            } else {
+                                return 0;
                             }
                         }
-
-                        List<List<Ability>> ability_pages = new ArrayList<>();
-                        ability_pages.add(new ArrayList<>());
-                        count = 0;
-                        page = 0;
-                        for (Ability ability : nr.config().global_banned_abilities) {
-                            ability_pages.get(page).add(ability);
-                            count++;
-                            if (count > 44) {
-                                ability_pages.add(new ArrayList<>());
-                                page++;
-                                count = 0;
-                            }
+                        default -> {
+                            return 0;
                         }
-
-                        List<List<Item>> held_item_pages = new ArrayList<>();
-                        held_item_pages.add(new ArrayList<>());
-                        count = 0;
-                        page = 0;
-                        for (Item held_item : nr.config().global_banned_held_items) {
-                            held_item_pages.get(page).add(held_item);
-                            count++;
-                            if (count > 44) {
-                                held_item_pages.add(new ArrayList<>());
-                                page++;
-                                count = 0;
-                            }
-                        }
-
-                        List<List<Item>> bag_item_pages = new ArrayList<>();
-                        bag_item_pages.add(new ArrayList<>());
-                        count = 0;
-                        page = 0;
-                        for (Item bag_item : nr.config().global_banned_bag_items) {
-                            bag_item_pages.get(page).add(bag_item);
-                            count++;
-                            if (count > 44) {
-                                bag_item_pages.add(new ArrayList<>());
-                                page++;
-                                count = 0;
-                            }
-                        }
-
-                        int slot = 0;
-                        List<SimpleGui> species_guis = new ArrayList<>();
-                        page = 0;
-                        for (List<Species> list_page : species_pages) {
-                            SimpleGui gui_page = new SimpleGui(ScreenHandlerType.GENERIC_9X6, player, false);
-                            gui_page.setTitle(Text.literal("Banned Pokemon"));
-                            for (Species species : list_page) {
-                                GuiElement banned_element = new GuiElementBuilder(PokemonItem.from(species))
-                                        .setName(species.getTranslatedName())
-                                        .build();
-                                gui_page.setSlot(slot, banned_element);
-                                slot++;
-                            }
-                            int finalPage = page;
-                            if (finalPage - 1 >= 0) {
-                                gui_page.setSlot(45, new GuiElementBuilder(Items.ARROW)
-                                        .setName(Text.literal("Previous Page").styled(style -> style.withFormatting(Formatting.GRAY).withItalic(false)))
-                                        .setCallback(((i, clickType, slotActionType) -> {
-                                            species_guis.get(finalPage - 1).open();
-                                        }))
-                                        .build()
-                                );
-                            }
-                            if (species_pages.size() - 1 > finalPage) {
-                                gui_page.setSlot(53, new GuiElementBuilder(Items.ARROW)
-                                        .setName(Text.literal("Next Page").styled(style -> style.withFormatting(Formatting.GRAY).withItalic(false)))
-                                        .setCallback(((i, clickType, slotActionType) -> {
-                                            species_guis.get(finalPage + 1).open();
-                                        }))
-                                        .build()
-                                );
-                            }
-                            gui_page.setSlot(49, new GuiElementBuilder(Items.BARRIER)
-                                    .setName(Text.literal("Back").styled(style -> style.withFormatting(Formatting.GRAY).withItalic(false)))
-                                    .setCallback(((i, clickType, slotActionType) -> {
-                                        main_gui.open();
-                                    }))
-                                    .build()
-                            );
-                            species_guis.add(gui_page);
-                            page++;
-                            slot = 0;
-                        }
-
-                        List<SimpleGui> move_guis = new ArrayList<>();
-                        page = 0;
-                        for (List<Move> list_page : move_pages) {
-                            SimpleGui gui_page = new SimpleGui(ScreenHandlerType.GENERIC_9X6, player, false);
-                            gui_page.setTitle(Text.literal("Banned Moves"));
-                            for (Move move : list_page) {
-                                GuiElement banned_move = new GuiElementBuilder(Items.PAPER)
-                                        .setName(move.getDisplayName())
-                                        .build();
-                                gui_page.setSlot(slot, banned_move);
-                                slot++;
-                            }
-                            int finalPage = page;
-                            if (finalPage - 1 >= 0) {
-                                gui_page.setSlot(45, new GuiElementBuilder(Items.ARROW)
-                                        .setName(Text.literal("Previous Page").styled(style -> style.withFormatting(Formatting.GRAY).withItalic(false)))
-                                        .setCallback(((i, clickType, slotActionType) -> {
-                                            move_guis.get(finalPage - 1).open();
-                                        }))
-                                        .build()
-                                );
-                            }
-                            if (move_pages.size() - 1 > finalPage) {
-                                gui_page.setSlot(53, new GuiElementBuilder(Items.ARROW)
-                                                .setName(Text.literal("Next Page").styled(style -> style.withFormatting(Formatting.GRAY).withItalic(false)))
-                                                .setCallback(((i, clickType, slotActionType) -> {
-                                                    move_guis.get(finalPage + 1).open();
-                                                }))
-                                        .build()
-                                );
-                            }
-                            gui_page.setSlot(49, new GuiElementBuilder(Items.BARRIER)
-                                            .setName(Text.literal("Back").styled(style -> style.withFormatting(Formatting.GRAY).withItalic(false)))
-                                            .setCallback(((i, clickType, slotActionType) -> {
-                                                main_gui.open();
-                                            }))
-                                    .build()
-                            );
-                            move_guis.add(gui_page);
-                            page++;
-                            slot = 0;
-                        }
-
-                        List<SimpleGui> abilities_guis = new ArrayList<>();
-                        page = 0;
-                        for (List<Ability> list_page : ability_pages) {
-                            SimpleGui gui_page = new SimpleGui(ScreenHandlerType.GENERIC_9X6, player, false);
-                            gui_page.setTitle(Text.literal("Banned Abilities"));
-                            for (Ability ability : list_page) {
-                                GuiElement banned_element = new GuiElementBuilder(Items.NETHER_STAR)
-                                        .setName(MiscUtilsKt.asTranslated(ability.getDisplayName()))
-                                        .build();
-                                gui_page.setSlot(slot, banned_element);
-                                slot++;
-                            }
-                            int finalPage = page;
-                            if (finalPage - 1 >= 0) {
-                                gui_page.setSlot(45, new GuiElementBuilder(Items.ARROW)
-                                        .setName(Text.literal("Previous Page").styled(style -> style.withFormatting(Formatting.GRAY).withItalic(false)))
-                                        .setCallback(((i, clickType, slotActionType) -> {
-                                            abilities_guis.get(finalPage - 1).open();
-                                        }))
-                                        .build()
-                                );
-                            }
-                            if (ability_pages.size() - 1 > finalPage) {
-                                gui_page.setSlot(53, new GuiElementBuilder(Items.ARROW)
-                                        .setName(Text.literal("Next Page").styled(style -> style.withFormatting(Formatting.GRAY).withItalic(false)))
-                                        .setCallback(((i, clickType, slotActionType) -> {
-                                            abilities_guis.get(finalPage + 1).open();
-                                        }))
-                                        .build()
-                                );
-                            }
-                            gui_page.setSlot(49, new GuiElementBuilder(Items.BARRIER)
-                                    .setName(Text.literal("Back").styled(style -> style.withFormatting(Formatting.GRAY).withItalic(false)))
-                                    .setCallback(((i, clickType, slotActionType) -> {
-                                        main_gui.open();
-                                    }))
-                                    .build()
-                            );
-                            abilities_guis.add(gui_page);
-                            page++;
-                            slot = 0;
-                        }
-
-                        List<SimpleGui> held_item_guis = new ArrayList<>();
-                        page = 0;
-                        for (List<Item> list_page : held_item_pages) {
-                            SimpleGui gui_page = new SimpleGui(ScreenHandlerType.GENERIC_9X6, player, false);
-                            gui_page.setTitle(Text.literal("Banned Held Items"));
-                            for (Item item : list_page) {
-                                GuiElement banned_element = new GuiElementBuilder(item)
-                                        .build();
-                                gui_page.setSlot(slot, banned_element);
-                                slot++;
-                            }
-                            int finalPage = page;
-                            if (finalPage - 1 >= 0) {
-                                gui_page.setSlot(45, new GuiElementBuilder(Items.ARROW)
-                                        .setName(Text.literal("Previous Page").styled(style -> style.withFormatting(Formatting.GRAY).withItalic(false)))
-                                        .setCallback(((i, clickType, slotActionType) -> {
-                                            held_item_guis.get(finalPage - 1).open();
-                                        }))
-                                        .build()
-                                );
-                            }
-                            if (held_item_pages.size() - 1 > finalPage) {
-                                gui_page.setSlot(53, new GuiElementBuilder(Items.ARROW)
-                                        .setName(Text.literal("Next Page").styled(style -> style.withFormatting(Formatting.GRAY).withItalic(false)))
-                                        .setCallback(((i, clickType, slotActionType) -> {
-                                            held_item_guis.get(finalPage + 1).open();
-                                        }))
-                                        .build()
-                                );
-                            }
-                            gui_page.setSlot(49, new GuiElementBuilder(Items.BARRIER)
-                                    .setName(Text.literal("Back").styled(style -> style.withFormatting(Formatting.GRAY).withItalic(false)))
-                                    .setCallback(((i, clickType, slotActionType) -> {
-                                        main_gui.open();
-                                    }))
-                                    .build()
-                            );
-                            held_item_guis.add(gui_page);
-                            page++;
-                            slot = 0;
-                        }
-
-                        List<SimpleGui> bag_item_guis = new ArrayList<>();
-                        page = 0;
-                        for (List<Item> list_page : bag_item_pages) {
-                            SimpleGui gui_page = new SimpleGui(ScreenHandlerType.GENERIC_9X6, player, false);
-                            gui_page.setTitle(Text.literal("Banned Bag Items"));
-                            for (Item item : list_page) {
-                                GuiElement banned_element = new GuiElementBuilder(item)
-                                        .build();
-                                gui_page.setSlot(slot, banned_element);
-                                slot++;
-                            }
-                            int finalPage = page;
-                            if (finalPage - 1 >= 0) {
-                                gui_page.setSlot(45, new GuiElementBuilder(Items.ARROW)
-                                        .setName(Text.literal("Previous Page").styled(style -> style.withFormatting(Formatting.GRAY).withItalic(false)))
-                                        .setCallback(((i, clickType, slotActionType) -> {
-                                            bag_item_guis.get(finalPage - 1).open();
-                                        }))
-                                        .build()
-                                );
-                            }
-                            if (bag_item_pages.size() - 1 > finalPage) {
-                                gui_page.setSlot(53, new GuiElementBuilder(Items.ARROW)
-                                        .setName(Text.literal("Next Page").styled(style -> style.withFormatting(Formatting.GRAY).withItalic(false)))
-                                        .setCallback(((i, clickType, slotActionType) -> {
-                                            bag_item_guis.get(finalPage + 1).open();
-                                        }))
-                                        .build()
-                                );
-                            }
-                            gui_page.setSlot(49, new GuiElementBuilder(Items.BARRIER)
-                                    .setName(Text.literal("Back").styled(style -> style.withFormatting(Formatting.GRAY).withItalic(false)))
-                                    .setCallback(((i, clickType, slotActionType) -> {
-                                        main_gui.open();
-                                    }))
-                                    .build()
-                            );
-                            bag_item_guis.add(gui_page);
-                            page++;
-                            slot = 0;
-                        }
-
-                        GuiElement banned_pokemon_main = new GuiElementBuilder(CobblemonItems.POKE_BALL)
-                                .setName(Text.literal("Banned Pokemon").styled(style -> style.withColor(Formatting.RED).withItalic(false)))
-                                .setCallback(((i, clickType, slotActionType) -> {
-                                    if (!species_guis.isEmpty()) {
-                                        main_gui.close();
-                                        species_guis.getFirst().open();
-                                    } else {
-                                        player.sendMessage(TextUtils.deserialize("There are no banned pokemon."));
-                                    }
-                                })).build();
-
-                        main_gui.setSlot(0, banned_pokemon_main);
-
-                        GuiElement banned_moves_main = new GuiElementBuilder(CobblemonItems.RAZOR_CLAW)
-                                .setName(Text.literal("Banned Moves").styled(style -> style.withColor(Formatting.RED).withItalic(false)))
-                                .setCallback(((i, clickType, slotActionType) -> {
-                                    if (!move_guis.isEmpty()) {
-                                        main_gui.close();
-                                        move_guis.getFirst().open();
-                                    } else {
-                                        player.sendMessage(TextUtils.deserialize("There are no banned moves."));
-                                    }
-                                }))
-                                .build();
-                        main_gui.setSlot(1, banned_moves_main);
-
-                        GuiElement banned_abilities_main = new GuiElementBuilder(CobblemonItems.ABILITY_PATCH)
-                                .setName(Text.literal("Banned Abilities").styled(style -> style.withColor(Formatting.RED).withItalic(false)))
-                                .setCallback(((i, clickType, slotActionType) -> {
-                                    if (!abilities_guis.isEmpty()) {
-                                        main_gui.close();
-                                        abilities_guis.getFirst().open();
-                                    } else {
-                                        player.sendMessage(TextUtils.deserialize("There are no banned abilities."));
-                                    }
-                                }))
-                                .build();
-                        main_gui.setSlot(2, banned_abilities_main);
-
-                        GuiElement banned_held_items_main = new GuiElementBuilder(CobblemonItems.LEFTOVERS)
-                                .setName(Text.literal("Banned Held Items").styled(style -> style.withColor(Formatting.RED).withItalic(false)))
-                                .setCallback(((i, clickType, slotActionType) -> {
-                                    if (!held_item_guis.isEmpty()) {
-                                        main_gui.close();
-                                        held_item_guis.getFirst().open();
-                                    } else {
-                                        player.sendMessage(TextUtils.deserialize("There are no banned held items."));
-                                    }
-                                }))
-                                .build();
-                        main_gui.setSlot(3, banned_held_items_main);
-
-                        GuiElement banned_bag_items_main = new GuiElementBuilder(CobblemonItems.POTION)
-                                .setName(Text.literal("Banned Bag Items").styled(style -> style.withColor(Formatting.RED).withItalic(false)))
-                                .setCallback(((i, clickType, slotActionType) -> {
-                                    if (!bag_item_guis.isEmpty()) {
-                                        main_gui.close();
-                                        bag_item_guis.getFirst().open();
-                                    } else {
-                                        player.sendMessage(TextUtils.deserialize("There are no banned bag items."));
-                                    }
-                                }))
-                                .build();
-                        main_gui.setSlot(4, banned_bag_items_main);
-                        main_gui.open();
-                    } catch (Exception e) {
-                        nr.logError(e.getMessage());
                     }
+                    String title = gui.title;
+                    String pokemon_item_name = gui.banned_pokemon_button.item_name();
+                    List<String> pokemon_item_lore = gui.banned_pokemon_button.item_lore();
+                    String move_item_name = gui.banned_moves_button.item_name();
+                    List<String> move_item_lore = gui.banned_moves_button.item_lore();
+                    String ability_item_name = gui.banned_abilities_button.item_name();
+                    List<String> ability_item_lore = gui.banned_abilities_button.item_lore();
+                    String held_item_name = gui.banned_held_items_button.item_name();
+                    List<String> held_item_lore = gui.banned_held_items_button.item_lore();
+                    String bag_item_name = gui.banned_bag_items_button.item_name();
+                    List<String> bag_item_lore = gui.banned_bag_items_button.item_lore();
+                    String background_item_name = gui.background_button.item_name();
+                    List<String> background_item_lore = gui.background_button.item_lore();
+                    String close_item_name = gui.close_button.item_name();
+                    List<String> close_item_lore = gui.close_button.item_lore();
+
+                    if (category != null) {
+                        title = gui.title.replaceAll("%category%", category.name());
+                        pokemon_item_name = gui.banned_pokemon_button.item_name().replaceAll("%category%", category.name());
+                        List<String> lore = new ArrayList<>();
+                        for (String line : pokemon_item_lore) {
+                            lore.add(line.replaceAll("%category%", category.name()));
+                        }
+                        pokemon_item_lore = lore;
+
+                        move_item_name = gui.banned_moves_button.item_name().replaceAll("%category%", category.name());
+                        lore = new ArrayList<>();
+                        for (String line : move_item_lore) {
+                            lore.add(line.replaceAll("%category%", category.name()));
+                        }
+                        move_item_lore = lore;
+
+                        ability_item_name = gui.banned_abilities_button.item_name().replaceAll("%category%", category.name());
+                        lore = new ArrayList<>();
+                        for (String line : ability_item_lore) {
+                            lore.add(line.replaceAll("%category%", category.name()));
+                        }
+                        ability_item_lore = lore;
+
+                        held_item_name = gui.banned_held_items_button.item_name().replaceAll("%category%", category.name());
+                        lore = new ArrayList<>();
+                        for (String line : held_item_lore) {
+                            lore.add(line.replaceAll("%category%", category.name()));
+                        }
+                        held_item_lore = lore;
+
+                        bag_item_name = gui.banned_bag_items_button.item_name().replaceAll("%category%", category.name());
+                        lore = new ArrayList<>();
+                        for (String line : bag_item_lore) {
+                            lore.add(line.replaceAll("%category%", category.name()));
+                        }
+                        bag_item_lore = lore;
+
+                        background_item_name = gui.background_button.item_name().replaceAll("%category%", category.name());
+                        lore = new ArrayList<>();
+                        for (String line : background_item_lore) {
+                            lore.add(line.replaceAll("%category%", category.name()));
+                        }
+                        background_item_lore = lore;
+
+                        close_item_name = gui.close_button.item_name().replaceAll("%category%", category.name());
+                        lore = new ArrayList<>();
+                        for (String line : close_item_lore) {
+                            lore.add(line.replaceAll("%category%", category.name()));
+                        }
+                        close_item_lore = lore;
+                    }
+                    if (boss != null) {
+                        title = TextUtils.parse(title, boss);
+                        pokemon_item_name = TextUtils.parse(pokemon_item_name, boss);
+                        List<String> lore = new ArrayList<>();
+                        for (String line : pokemon_item_lore) {
+                            lore.add(TextUtils.parse(line, boss));
+                        }
+                        pokemon_item_lore = lore;
+
+                        move_item_name = TextUtils.parse(move_item_name, boss);
+                        lore = new ArrayList<>();
+                        for (String line : move_item_lore) {
+                            lore.add(TextUtils.parse(line, boss));
+                        }
+                        move_item_lore = lore;
+
+                        ability_item_name = TextUtils.parse(ability_item_name, boss);
+                        lore = new ArrayList<>();
+                        for (String line : ability_item_lore) {
+                            lore.add(TextUtils.parse(line, boss));
+                        }
+                        ability_item_lore = lore;
+
+                        held_item_name = TextUtils.parse(held_item_name, boss);
+                        lore = new ArrayList<>();
+                        for (String line : held_item_lore) {
+                            lore.add(TextUtils.parse(line, boss));
+                        }
+                        held_item_lore = lore;
+
+                        bag_item_name = TextUtils.parse(bag_item_name, boss);
+                        lore = new ArrayList<>();
+                        for (String line : bag_item_lore) {
+                            lore.add(TextUtils.parse(line, boss));
+                        }
+                        bag_item_lore = lore;
+
+                        background_item_name = TextUtils.parse(background_item_name, boss);
+                        lore = new ArrayList<>();
+                        for (String line : background_item_lore) {
+                            lore.add(TextUtils.parse(line, boss));
+                        }
+                        background_item_lore = lore;
+
+                        close_item_name = TextUtils.parse(close_item_name, boss);
+                        lore = new ArrayList<>();
+                        for (String line : close_item_lore) {
+                            lore.add(TextUtils.parse(line, boss));
+                        }
+                        close_item_lore = lore;
+                    }
+
+                    SimpleGui main_gui;
+                    if (gui.use_hopper_gui) {
+                        main_gui = new SimpleGui(ScreenHandlerType.HOPPER, player, false);
+                    } else {
+                        main_gui = new SimpleGui(GuiUtils.getScreenSize(gui.rows), player, false);
+                    }
+                    main_gui.setTitle(TextUtils.deserialize(title));
+
+                    List<Text> lore = new ArrayList<>();
+                    for (String line : pokemon_item_lore) {
+                        lore.add(TextUtils.deserialize(TextUtils.parse(line)));
+                    }
+                    for (Integer slot : gui.pokemonSlots()) {
+                        Item item = Registries.ITEM.get(Identifier.of(gui.banned_pokemon_button.item()));
+                        GuiElement element = new GuiElementBuilder(item)
+                                .setName(TextUtils.deserialize(TextUtils.parse(pokemon_item_name)))
+                                .setLore(lore)
+                                .setCallback(clickType -> {
+                                    main_gui.close();
+                                    openContrabandGui(ctx, player, gui.banned_pokemon, "pokemon", 1, boss, category);
+                                })
+                                .build();
+                        main_gui.setSlot(slot, element);
+                    }
+
+                    lore = new ArrayList<>();
+                    for (String line : move_item_lore) {
+                        lore.add(TextUtils.deserialize(TextUtils.parse(line)));
+                    }
+                    for (Integer slot : gui.moveSlots()) {
+                        Item item = Registries.ITEM.get(Identifier.of(gui.banned_moves_button.item()));
+                        GuiElement element = new GuiElementBuilder(item)
+                                .setName(TextUtils.deserialize(TextUtils.parse(move_item_name)))
+                                .setLore(lore)
+                                .setCallback(clickType -> {
+                                    main_gui.close();
+                                    openContrabandGui(ctx, player, gui.banned_moves, "move", 1, boss, category);
+                                })
+                                .build();
+                        main_gui.setSlot(slot, element);
+                    }
+
+                    lore = new ArrayList<>();
+                    for (String line : ability_item_lore) {
+                        lore.add(TextUtils.deserialize(TextUtils.parse(line)));
+                    }
+                    for (Integer slot : gui.abilitySlots()) {
+                        Item item = Registries.ITEM.get(Identifier.of(gui.banned_abilities_button.item()));
+                        GuiElement element = new GuiElementBuilder(item)
+                                .setName(TextUtils.deserialize(TextUtils.parse(ability_item_name)))
+                                .setLore(lore)
+                                .setCallback(clickType -> {
+                                    main_gui.close();
+                                    openContrabandGui(ctx, player, gui.banned_abilities, "ability", 1, boss, category);
+                                })
+                                .build();
+                        main_gui.setSlot(slot, element);
+                    }
+
+                    lore = new ArrayList<>();
+                    for (String line : held_item_lore) {
+                        lore.add(TextUtils.deserialize(TextUtils.parse(line)));
+                    }
+                    for (Integer slot : gui.heldItemSlots()) {
+                        Item item = Registries.ITEM.get(Identifier.of(gui.banned_held_items_button.item()));
+                        GuiElement element = new GuiElementBuilder(item)
+                                .setName(TextUtils.deserialize(TextUtils.parse(held_item_name)))
+                                .setLore(lore)
+                                .setCallback(clickType -> {
+                                    main_gui.close();
+                                    openContrabandGui(ctx, player, gui.banned_held_items, "held_item", 1, boss, category);
+                                })
+                                .build();
+                        main_gui.setSlot(slot, element);
+                    }
+
+                    lore = new ArrayList<>();
+                    for (String line : bag_item_lore) {
+                        lore.add(TextUtils.deserialize(TextUtils.parse(line)));
+                    }
+                    for (Integer slot : gui.bagItemSlots()) {
+                        Item item = Registries.ITEM.get(Identifier.of(gui.banned_bag_items_button.item()));
+                        GuiElement element = new GuiElementBuilder(item)
+                                .setName(TextUtils.deserialize(TextUtils.parse(bag_item_name)))
+                                .setLore(lore)
+                                .setCallback(clickType -> {
+                                    main_gui.close();
+                                    openContrabandGui(ctx, player, gui.banned_bag_items, "bag_item", 1, boss, category);
+                                })
+                                .build();
+                        main_gui.setSlot(slot, element);
+                    }
+
+                    lore = new ArrayList<>();
+                    for (String line : background_item_lore) {
+                        lore.add(TextUtils.deserialize(TextUtils.parse(line)));
+                    }
+                    for (Integer slot : gui.backgroundButtonSlots()) {
+                        Item item = Registries.ITEM.get(Identifier.of(gui.background_button.item()));
+                        GuiElement element = new GuiElementBuilder(item)
+                                .setName(TextUtils.deserialize(TextUtils.parse(background_item_name)))
+                                .setLore(lore)
+                                .setCallback(clickType -> main_gui.close())
+                                .build();
+                        main_gui.setSlot(slot, element);
+                    }
+
+                    lore = new ArrayList<>();
+                    for (String line : close_item_lore) {
+                        lore.add(TextUtils.deserialize(TextUtils.parse(line)));
+                    }
+                    for (Integer slot : gui.closeButtonSlots()) {
+                        Item item = Registries.ITEM.get(Identifier.of(gui.close_button.item()));
+                        GuiElement element = new GuiElementBuilder(item)
+                                .setName(TextUtils.deserialize(TextUtils.parse(close_item_name)))
+                                .setLore(lore)
+                                .setCallback(clickType -> main_gui.close())
+                                .build();
+                        main_gui.setSlot(slot, element);
+                    }
+
+                    main_gui.open();
                 }
             }
         }
         return 1;
+    }
+
+    private void openContrabandGui(CommandContext<ServerCommandSource> ctx, ServerPlayerEntity player, DisplayItemGui gui, String type, int page_to_open, Boss boss, Category category) {
+        Map<ItemStack, String> display_items = new HashMap<>();
+        if (type.equalsIgnoreCase("pokemon")) {
+            if (boss != null && category != null) {
+                for (Species species : boss.raid_details().banned_pokemon()) {
+                    display_items.put(PokemonItem.from(species), TextUtils.parse(gui.display_button.item_name().replaceAll("%pokemon%", species.getName()).replaceAll("%category%", category.name()), boss));
+                }
+            } else if (category != null) {
+                for (Species species : category.banned_pokemon()) {
+                    display_items.put(PokemonItem.from(species), TextUtils.parse(gui.display_button.item_name().replaceAll("%pokemon%", species.getName()).replaceAll("%category%", category.name())));
+                }
+            } else {
+                for (Species species : nr.config().global_banned_pokemon) {
+                    display_items.put(PokemonItem.from(species), TextUtils.parse(gui.display_button.item_name().replaceAll("%pokemon%", species.getName())));
+                }
+            }
+        } else if (type.equalsIgnoreCase("move")) {
+            if (boss != null && category != null) {
+                for (Move move : boss.raid_details().banned_moves()) {
+                    display_items.put(Registries.ITEM.get(Identifier.of(gui.display_button.item())).getDefaultStack(), TextUtils.parse(gui.display_button.item_name().replaceAll("%move%", move.getDisplayName().getString()).replaceAll("%category%", category.name()), boss));
+                }
+            } else if (category != null) {
+                for (Move move : category.banned_moves()) {
+                    display_items.put(Registries.ITEM.get(Identifier.of(gui.display_button.item())).getDefaultStack(), TextUtils.parse(gui.display_button.item_name().replaceAll("%move%", move.getDisplayName().getString()).replaceAll("%category%", category.name())));
+                }
+            } else {
+                for (Move move : nr.config().global_banned_moves) {
+                    display_items.put(Registries.ITEM.get(Identifier.of(gui.display_button.item())).getDefaultStack(), TextUtils.parse(gui.display_button.item_name().replaceAll("%move%", move.getDisplayName().getString())));
+                }
+            }
+        } else if (type.equalsIgnoreCase("ability")) {
+            if (boss != null && category != null) {
+                for (Ability ability : boss.raid_details().banned_abilities()) {
+                    display_items.put(Registries.ITEM.get(Identifier.of(gui.display_button.item())).getDefaultStack(), TextUtils.parse(gui.display_button.item_name().replaceAll("%ability%", MiscUtilsKt.asTranslated(ability.getDisplayName()).getString()).replaceAll("%category%", category.name()), boss));
+                }
+            } else if (category != null) {
+                for (Ability ability : category.banned_abilities()) {
+                    display_items.put(Registries.ITEM.get(Identifier.of(gui.display_button.item())).getDefaultStack(), TextUtils.parse(gui.display_button.item_name().replaceAll("%ability%", MiscUtilsKt.asTranslated(ability.getDisplayName()).getString()).replaceAll("%category%", category.name())));
+                }
+            } else {
+                for (Ability ability : nr.config().global_banned_abilities) {
+                    display_items.put(Registries.ITEM.get(Identifier.of(gui.display_button.item())).getDefaultStack(), TextUtils.parse(gui.display_button.item_name().replaceAll("%ability%", MiscUtilsKt.asTranslated(ability.getDisplayName()).getString())));
+                }
+            }
+        } else if (type.equalsIgnoreCase("held_item")) {
+            if (boss != null && category != null) {
+                for (Item item : boss.raid_details().banned_held_items()) {
+                    display_items.put(item.getDefaultStack(), TextUtils.parse(gui.display_button.item_name().replaceAll("%item%", item.getName().getString()).replaceAll("%category%", category.name()), boss));
+                }
+            } else if (category != null) {
+                for (Item item : category.banned_held_items()) {
+                    display_items.put(item.getDefaultStack(), TextUtils.parse(gui.display_button.item_name().replaceAll("%item%", item.getName().getString()).replaceAll("%category%", category.name())));
+                }
+            } else {
+                for (Item item : nr.config().global_banned_held_items) {
+                    display_items.put(item.getDefaultStack(), TextUtils.parse(gui.display_button.item_name().replaceAll("%item%", item.getName().getString())));
+                }
+            }
+        } else if (type.equalsIgnoreCase("bag_item")) {
+            if (boss != null && category != null) {
+                for (Item item : boss.raid_details().banned_bag_items()) {
+                    display_items.put(item.getDefaultStack(), TextUtils.parse(gui.display_button.item_name().replaceAll("%item%", item.getName().getString()).replaceAll("%category%", category.name()), boss));
+                }
+            } else if (category != null) {
+                for (Item item : category.banned_bag_items()) {
+                    display_items.put(item.getDefaultStack(), TextUtils.parse(gui.display_button.item_name().replaceAll("%item%", item.getName().getString()).replaceAll("%category%", category.name())));
+                }
+            } else {
+                for (Item item : nr.config().global_banned_bag_items) {
+                    display_items.put(item.getDefaultStack(), TextUtils.parse(gui.display_button.item_name().replaceAll("%item%", item.getName().getString())));
+                }
+            }
+        }
+
+        Map<Integer, SimpleGui> pages = new HashMap<>();
+        int page_total = GuiUtils.getPageTotal(display_items.size(), gui.displaySlotTotal());
+        for (int i = 1; i <= page_total; i++) {
+            SimpleGui main_gui = new SimpleGui(GuiUtils.getScreenSize(gui.rows), player, false);
+            String title = TextUtils.parse(gui.title);
+            if (category != null) {
+                title = title.replaceAll("%category%", category.name());
+            }
+            if (boss != null) {
+                title = TextUtils.parse(title, boss);
+            }
+            main_gui.setTitle(TextUtils.deserialize(title));
+            pages.put(i, main_gui);
+        }
+
+        int index = 0;
+        for (Map.Entry<Integer, SimpleGui> page_entry : pages.entrySet()) {
+            for (Integer slot : gui.displaySlots()) {
+                if (index < display_items.size()) {
+                    List<Text> lore = new ArrayList<>();
+                    for (String line : gui.display_button.item_lore()) {
+                        if (category != null) {
+                            line = line.replaceAll("%category%", category.name());
+                        }
+                        if (boss != null) {
+                            line = TextUtils.parse(line, boss);
+                        }
+                        lore.add(TextUtils.deserialize(TextUtils.parse(line)));
+                    }
+
+                    ItemStack item = display_items.keySet().stream().toList().get(index);
+                    item.applyChanges(gui.display_button.item_data());
+                    GuiElement element = new GuiElementBuilder(item)
+                            .setName(TextUtils.deserialize(display_items.values().stream().toList().get(index)))
+                            .setLore(lore)
+                            .build();
+                    page_entry.getValue().setSlot(slot, element);
+                    index++;
+                } else {
+                    ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(gui.background_button.item())));
+                    item.applyChanges(gui.background_button.item_data());
+                    List<Text> lore = new ArrayList<>();
+                    for (String line : gui.background_button.item_lore()) {
+                        if (category != null) {
+                            line = line.replaceAll("%category%", category.name());
+                        }
+                        if (boss != null) {
+                            line = TextUtils.parse(line, boss);
+                        }
+                        lore.add(TextUtils.deserialize(TextUtils.parse(line)));
+                    }
+
+                    String name = TextUtils.parse(gui.background_button.item_name());
+                    if (category != null) {
+                        name = name.replaceAll("%category%", category.name());
+                    }
+                    if (boss != null) {
+                        name = TextUtils.parse(name, boss);
+                    }
+
+                    GuiElement element = new GuiElementBuilder(item)
+                            .setName(TextUtils.deserialize(name))
+                            .setLore(lore)
+                            .build();
+                    page_entry.getValue().setSlot(slot, element);
+                }
+            }
+
+            if (page_entry.getKey() < page_total) {
+                for (Integer slot : gui.nextButtonSlots()) {
+                    ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(gui.next_button.item())));
+                    item.applyChanges(gui.next_button.item_data());
+                    List<Text> lore = new ArrayList<>();
+                    for (String line : gui.next_button.item_lore()) {
+                        if (category != null) {
+                            line = line.replaceAll("%category%", category.name());
+                        }
+                        if (boss != null) {
+                            line = TextUtils.parse(line, boss);
+                        }
+                        lore.add(TextUtils.deserialize(TextUtils.parse(line)));
+                    }
+
+                    String name = TextUtils.parse(gui.next_button.item_name());
+                    if (category != null) {
+                        name = name.replaceAll("%category%", category.name());
+                    }
+                    if (boss != null) {
+                        name = TextUtils.parse(name, boss);
+                    }
+
+                    GuiElement element = new GuiElementBuilder(item)
+                            .setName(TextUtils.deserialize(name))
+                            .setLore(lore)
+                            .setCallback(clickType -> {
+                                page_entry.getValue().close();
+                                openContrabandGui(ctx, player, gui, type, page_entry.getKey() + 1, boss, category);
+                            })
+                            .build();
+                    page_entry.getValue().setSlot(slot, element);
+                }
+            }
+
+            if (page_entry.getKey() > 1) {
+                for (Integer slot : gui.previousButtonSlots()) {
+                    ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(gui.previous_button.item())));
+                    item.applyChanges(gui.previous_button.item_data());
+                    List<Text> lore = new ArrayList<>();
+                    for (String line : gui.previous_button.item_lore()) {
+                        if (category != null) {
+                            line = line.replaceAll("%category%", category.name());
+                        }
+                        if (boss != null) {
+                            line = TextUtils.parse(line, boss);
+                        }
+                        lore.add(TextUtils.deserialize(TextUtils.parse(line)));
+                    }
+
+                    String name = TextUtils.parse(gui.previous_button.item_name());
+                    if (category != null) {
+                        name = name.replaceAll("%category%", category.name());
+                    }
+                    if (boss != null) {
+                        name = TextUtils.parse(name, boss);
+                    }
+
+                    GuiElement element = new GuiElementBuilder(item)
+                            .setName(TextUtils.deserialize(name))
+                            .setLore(lore)
+                            .setCallback(clickType -> {
+                                page_entry.getValue().close();
+                                openContrabandGui(ctx, player, gui, type, page_entry.getKey() - 1, boss, category);
+                            })
+                            .build();
+                    page_entry.getValue().setSlot(slot, element);
+                }
+            }
+
+            for (Integer slot : gui.closeButtonSlots()) {
+                ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(gui.close_button.item())));
+                item.applyChanges(gui.close_button.item_data());
+                List<Text> lore = new ArrayList<>();
+                for (String line : gui.close_button.item_lore()) {
+                    if (category != null) {
+                        line = line.replaceAll("%category%", category.name());
+                    }
+                    if (boss != null) {
+                        line = TextUtils.parse(line, boss);
+                    }
+                    lore.add(TextUtils.deserialize(TextUtils.parse(line)));
+                }
+
+                String name = TextUtils.parse(gui.close_button.item_name());
+                if (category != null) {
+                    name = name.replaceAll("%category%", category.name());
+                }
+                if (boss != null) {
+                    name = TextUtils.parse(name, boss);
+                }
+
+                String guiType;
+                if (boss != null) {
+                    guiType = "boss";
+                } else if (category != null) {
+                    guiType = "category";
+                } else {
+                    guiType = "global";
+                }
+
+                GuiElement element = new GuiElementBuilder(item)
+                        .setName(TextUtils.deserialize(name))
+                        .setLore(lore)
+                        .setCallback(clickType -> checkbanned(ctx, guiType))
+                        .build();
+                page_entry.getValue().setSlot(slot, element);
+            }
+
+            for (Integer slot : gui.backgroundButtonSlots()) {
+                ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(gui.background_button.item())));
+                item.applyChanges(gui.background_button.item_data());
+                List<Text> lore = new ArrayList<>();
+                for (String line : gui.background_button.item_lore()) {
+                    if (category != null) {
+                        line = line.replaceAll("%category%", category.name());
+                    }
+                    if (boss != null) {
+                        line = TextUtils.parse(line, boss);
+                    }
+                    lore.add(TextUtils.deserialize(TextUtils.parse(line)));
+                }
+
+                String name = TextUtils.parse(gui.background_button.item_name());
+                if (category != null) {
+                    name = name.replaceAll("%category%", category.name());
+                }
+                if (boss != null) {
+                    name = TextUtils.parse(name, boss);
+                }
+
+                GuiElement element = new GuiElementBuilder(item)
+                        .setName(TextUtils.deserialize(name))
+                        .setLore(lore)
+                        .build();
+                page_entry.getValue().setSlot(slot, element);
+            }
+        }
+        if (!pages.isEmpty()) {
+            pages.get(page_to_open).open();
+        } else {
+            if (type.equalsIgnoreCase("pokemon")) {
+                player.sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("checkbanned_command_no_banned_pokemon"))));
+            } else if (type.equalsIgnoreCase("move")) {
+                player.sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("checkbanned_command_no_banned_moves"))));
+            } else if (type.equalsIgnoreCase("ability")) {
+                player.sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("checkbanned_command_no_banned_abilities"))));
+            } else if (type.equalsIgnoreCase("held_item")) {
+                player.sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("checkbanned_command_no_banned_held_items"))));
+            } else if (type.equalsIgnoreCase("bag_item")) {
+                player.sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("checkbanned_command_no_banned_bag_items"))));
+            }
+
+            String guiType;
+            if (boss != null) {
+                guiType = "boss";
+            } else if (category != null) {
+                guiType = "category";
+            } else {
+                guiType = "global";
+            }
+            checkbanned(ctx, guiType);
+        }
     }
 
     private int testRewards(CommandContext<ServerCommandSource> ctx) {
@@ -764,10 +1004,12 @@ public class RaidCommands {
         for (DistributionSection category_reward : category_rewards) {
             boolean overridden = false;
             List<Place> places = category_reward.places();
+            outer:
             for (Place place : places) {
                 for (Place overridden_placement : overridden_placements) {
                     if (overridden_placement.place().equalsIgnoreCase(place.place())) {
                         overridden = true;
+                        break outer;
                     }
                 }
             }

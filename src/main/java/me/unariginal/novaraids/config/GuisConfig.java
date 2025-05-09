@@ -531,6 +531,40 @@ public class GuisConfig {
             out.close();
         }
         global_contraband_gui = loadContrabandGui(file, global_contraband_gui, "guis/global_contraband");
+
+        file = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/guis/category_contraband.json").toFile();
+        if (file.createNewFile()) {
+            InputStream stream = NovaRaids.class.getResourceAsStream("/raid_config_files/guis/category_contraband.json");
+            assert stream != null;
+            OutputStream out = new FileOutputStream(file);
+
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = stream.read(buffer)) > 0) {
+                out.write(buffer, 0, length);
+            }
+
+            stream.close();
+            out.close();
+        }
+        category_contraband_gui = loadContrabandGui(file, category_contraband_gui, "guis/category_contraband");
+
+        file = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/guis/boss_contraband.json").toFile();
+        if (file.createNewFile()) {
+            InputStream stream = NovaRaids.class.getResourceAsStream("/raid_config_files/guis/boss_contraband.json");
+            assert stream != null;
+            OutputStream out = new FileOutputStream(file);
+
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = stream.read(buffer)) > 0) {
+                out.write(buffer, 0, length);
+            }
+
+            stream.close();
+            out.close();
+        }
+        boss_contraband_gui = loadContrabandGui(file, boss_contraband_gui, "guis/boss_contraband");
     }
 
     public ContrabandGui loadContrabandGui(File file, ContrabandGui gui, String location) throws IOException, NullPointerException, UnsupportedOperationException {

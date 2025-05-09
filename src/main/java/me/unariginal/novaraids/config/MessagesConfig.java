@@ -67,7 +67,11 @@ public class MessagesConfig {
         messages.put("give_command_failed_to_give", "%prefix% Failed to give the item!");
         messages.put("give_command_received_item", "%prefix% You received a %raid_item%!");
         messages.put("give_command_feedback", "%prefix% Successfully gave %target% a %raid_item%");
-        messages.put("contraband_gui_title", "Raid Contraband");
+        messages.put("checkbanned_command_no_banned_pokemon", "%prefix% There are no banned pokemon!");
+        messages.put("checkbanned_command_no_banned_moves", "%prefix% There are no banned moves!");
+        messages.put("checkbanned_command_no_banned_abilities", "%prefix% There are no banned abilities!");
+        messages.put("checkbanned_command_no_banned_held_items", "%prefix% There are no banned held items!");
+        messages.put("checkbanned_command_no_banned_bag_items", "%prefix% There are no banned bag items!");
         messages.put("leaderboard_message_header", "------- Raid Results -------");
         messages.put("leaderboard_message_item", " - [%raid.player.place%] %raid.player% : %raid.player.damage% damage");
         messages.put("leaderboard_individual", "You placed %raid.player.place%%place_suffix% with %raid.player.damage% damage!");

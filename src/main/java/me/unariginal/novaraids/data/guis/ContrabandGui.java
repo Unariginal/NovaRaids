@@ -1,5 +1,6 @@
 package me.unariginal.novaraids.data.guis;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ContrabandGui extends BaseGuiData {
@@ -45,5 +46,75 @@ public class ContrabandGui extends BaseGuiData {
         this.banned_held_items = banned_held_items;
         this.banned_bag_items_button = banned_bag_items_button;
         this.banned_bag_items = banned_bag_items;
+    }
+
+    public List<Integer> pokemonSlots() {
+        List<Integer> slots = new ArrayList<>();
+        int slot = 0;
+        for (String line : layout) {
+            for (char c : line.toCharArray()) {
+                if (c == banned_pokemon_button.symbol().charAt(0)) {
+                    slots.add(slot);
+                }
+                slot++;
+            }
+        }
+        return slots;
+    }
+
+    public List<Integer> moveSlots() {
+        List<Integer> slots = new ArrayList<>();
+        int slot = 0;
+        for (String line : layout) {
+            for (char c : line.toCharArray()) {
+                if (c == banned_moves_button.symbol().charAt(0)) {
+                    slots.add(slot);
+                }
+                slot++;
+            }
+        }
+        return slots;
+    }
+
+    public List<Integer> abilitySlots() {
+        List<Integer> slots = new ArrayList<>();
+        int slot = 0;
+        for (String line : layout) {
+            for (char c : line.toCharArray()) {
+                if (c == banned_abilities_button.symbol().charAt(0)) {
+                    slots.add(slot);
+                }
+                slot++;
+            }
+        }
+        return slots;
+    }
+
+    public List<Integer> heldItemSlots() {
+        List<Integer> slots = new ArrayList<>();
+        int slot = 0;
+        for (String line : layout) {
+            for (char c : line.toCharArray()) {
+                if (c == banned_held_items_button.symbol().charAt(0)) {
+                    slots.add(slot);
+                }
+                slot++;
+            }
+        }
+        return slots;
+    }
+
+    public List<Integer> bagItemSlots() {
+        List<Integer> slots = new ArrayList<>();
+        int slot = 0;
+        for (String line : layout) {
+            for (char c : line.toCharArray()) {
+                if (c == banned_bag_items_button.symbol().charAt(0)) {
+                    slots.add(slot);
+                }
+                slot++;
+            }
+        }
+        return slots;
     }
 }

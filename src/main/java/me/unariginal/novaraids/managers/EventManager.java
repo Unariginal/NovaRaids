@@ -378,7 +378,9 @@ public class EventManager {
                                         page_entry.getValue().setSlot(slot, element);
                                     }
                                 }
-                                pages.get(1).open();
+                                if (!pages.isEmpty()) {
+                                    pages.get(1).open();
+                                }
                             } else {
                                 for (Raid raid : nr.active_raids().values()) {
                                     if (raid.participating_players().contains(player.getUuid())) {
@@ -544,7 +546,9 @@ public class EventManager {
                                         page_entry.getValue().setSlot(slot, element);
                                     }
                                 }
-                                pages.get(1).open();
+                                if (!pages.isEmpty()) {
+                                    pages.get(1).open();
+                                }
                             } else if (boss_name.equalsIgnoreCase("random")) {
                                 Boss boss_info;
                                 if (category.equalsIgnoreCase("null")) {

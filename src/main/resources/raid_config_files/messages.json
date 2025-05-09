@@ -53,8 +53,11 @@
     "give_command_failed_to_give": "%prefix% Failed to give the item!",
     "give_command_received_item": "%prefix% You received %amount% raid %raid_item%!",
     "give_command_feedback": "%prefix% Successfully gave %target% %amount% raid %raid_item%",
-
-    "contraband_gui_title": "Raid Contraband",
+    "checkbanned_command_no_banned_pokemon": "%prefix% There are no banned pokemon!",
+    "checkbanned_command_no_banned_moves": "%prefix% There are no banned moves!",
+    "checkbanned_command_no_banned_abilities": "%prefix% There are no banned abilities!",
+    "checkbanned_command_no_banned_held_items": "%prefix% There are no banned held items!",
+    "checkbanned_command_no_banned_bag_items": "%prefix% There are no banned bag items!",
 
     "leaderboard_message_header": "------- Raid Results -------",
     "leaderboard_message_item": " - [%raid.player.place%] %raid.player% : %raid.player.damage% damage",
