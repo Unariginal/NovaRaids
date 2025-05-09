@@ -374,12 +374,12 @@ public class RaidCommands {
     private int modInfo(CommandContext<ServerCommandSource> ctx) {
         ServerPlayerEntity player = ctx.getSource().getPlayer();
         if (player != null) {
-            player.sendMessage(Text.literal("--------- Nova Raids ---------"));
-            player.sendMessage(Text.literal("Author: Unariginal ").append(Text.literal("(Ariginal)").styled(style -> style.withItalic(true))));
-            player.sendMessage(Text.literal("Version: Beta v0.2.3"));
-            player.sendMessage(Text.literal("Source").styled(style -> style.withUnderline(true).withItalic(true).withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://github.com/Unariginal/NovaRaids"))));
-            player.sendMessage(Text.literal("Wiki").styled(style -> style.withItalic(true).withUnderline(true).withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://github.com/Unariginal/NovaRaids/wiki"))));
-            player.sendMessage(Text.literal("----------------------------"));
+            player.sendMessage(TextUtils.deserialize("<gray><st><b><i>--------- <reset><red>Nova Raids <reset><gray><st><b><i>---------"));
+            player.sendMessage(TextUtils.deserialize("<gray><b>Author: <reset><white>Unariginal <i>(Ariginal)"));
+            player.sendMessage(TextUtils.deserialize("<gray><b>Version: <reset><white>Beta v0.3.0"));
+            player.sendMessage(TextUtils.deserialize("<gray><b><i><u><click:open_url:https://github.com/Unariginal/NovaRaids>Source"));
+            player.sendMessage(TextUtils.deserialize("<gray><b><i><u><click:open_url:https://github.com/Unariginal/NovaRaids/wiki>Wiki"));
+            player.sendMessage(TextUtils.deserialize("<gray><st><b><i>----------------------------"));
         }
         return 1;
     }
