@@ -3,6 +3,7 @@ package me.unariginal.novaraids;
 import me.unariginal.novaraids.commands.RaidCommands;
 import me.unariginal.novaraids.config.*;
 import me.unariginal.novaraids.data.QueueItem;
+import me.unariginal.novaraids.managers.CollectingDataToSellToTheChineseGovernment;
 import me.unariginal.novaraids.managers.EventManager;
 import me.unariginal.novaraids.managers.Raid;
 import me.unariginal.novaraids.managers.TickManager;
@@ -15,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 
 public class NovaRaids implements ModInitializer {
     private static final String MOD_ID = "novaraids";
@@ -61,6 +63,11 @@ public class NovaRaids implements ModInitializer {
                 EventManager.right_click_events();
                 EventManager.player_events();
                 EventManager.cobblemon_events();
+//                try {
+//                    CollectingDataToSellToTheChineseGovernment.sendStartWebhook();
+//                } catch (ExecutionException | InterruptedException e) {
+//                    e.printStackTrace();
+//                }
             } else {
                 LOGGER.error("[RAIDS] Config did not load properly! Mod will not be loaded.");
             }
@@ -98,6 +105,8 @@ public class NovaRaids implements ModInitializer {
                 for (Raid raid : active_raids.values()) {
                     raid.stop();
                 }
+
+//                CollectingDataToSellToTheChineseGovernment.deleteWebhook();
                 // TODO: Save current raid, write queue to file
             }
         });

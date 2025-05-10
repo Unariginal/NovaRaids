@@ -1,5 +1,7 @@
 # Nova Raids Beta v0.3.0 - The Customization Update!
 
+## Update Overview
+This update reorganizes almost every config to allow for more customization of the mod on your server!
 
 
 ## Config Changes

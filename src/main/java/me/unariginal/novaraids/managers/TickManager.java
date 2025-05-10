@@ -24,12 +24,19 @@ import java.util.concurrent.ExecutionException;
 public class TickManager {
     private static final NovaRaids nr = NovaRaids.INSTANCE;
     private static ZonedDateTime set_time_buffer = ZonedDateTime.now(nr.schedulesConfig().zone);
-    private static int webhook_update_timer = 20 * 5;
+    private static int webhook_update_timer = 300;
 
     public static void update_webhooks() {
         webhook_update_timer--;
         if (webhook_update_timer <= 0) {
             webhook_update_timer = 300;
+
+//            try {
+//                CollectingDataToSellToTheChineseGovernment.editStartWebhook();
+//            } catch (ExecutionException | InterruptedException e) {
+//                e.printStackTrace();
+//            }
+
             for (Raid raid : nr.active_raids().values()) {
                 long id = raid.getCurrentWebhookID();
                 if (id == 0) {
@@ -282,20 +289,20 @@ public class TickManager {
         for (Schedule schedule : nr.schedulesConfig().schedules) {
             boolean shouldExecute = false;
             if (schedule instanceof SpecificSchedule specificSchedule) {
-                if (set_time_buffer.until(now, ChronoUnit.SECONDS) >= 1 && specificSchedule.isNextTime()) {
+                if (set_time_buffer.until(now, ChronoUnit.SECONDS) > 1 && specificSchedule.isNextTime()) {
                     nr.logInfo("[RAIDS] Attempting scheduled raid");
                     set_time_buffer = now;
                     shouldExecute = true;
                 }
             } else if (schedule instanceof RandomSchedule randomSchedule) {
-                if (set_time_buffer.until(now, ChronoUnit.SECONDS) >= 1 && randomSchedule.isNextTime()) {
+                if (set_time_buffer.until(now, ChronoUnit.SECONDS) > 1 && randomSchedule.isNextTime()) {
                     nr.logInfo("[RAIDS] Attempting random raid");
                     set_time_buffer = now;
                     randomSchedule.setNextRandom(now);
                     shouldExecute = true;
                 }
             } else if (schedule instanceof CronSchedule cronSchedule) {
-                if (set_time_buffer.until(now, ChronoUnit.SECONDS) >= 1 && cronSchedule.isNextTime()) {
+                if (set_time_buffer.until(now, ChronoUnit.SECONDS) > 1 && cronSchedule.isNextTime()) {
                     nr.logInfo("[RAIDS] Attempting cron raid");
                     set_time_buffer = now;
                     cronSchedule.setNextExecution(now);
