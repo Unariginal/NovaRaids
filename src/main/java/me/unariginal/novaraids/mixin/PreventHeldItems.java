@@ -13,9 +13,11 @@ public class PreventHeldItems {
     public void updatePostDeath(CallbackInfo ci) {
         PokemonEntity entity = (PokemonEntity) (Object) this;
         Pokemon pokemon = entity.getPokemon();
-        if (pokemon.getPersistentData().contains("raid_entity")) {
-            if (pokemon.getPersistentData().getBoolean("raid_entity")) {
-                pokemon.removeHeldItem();
+        if (!pokemon.isPlayerOwned()) {
+            if (pokemon.getPersistentData().contains("raid_entity")) {
+                if (pokemon.getPersistentData().getBoolean("raid_entity")) {
+                    pokemon.removeHeldItem();
+                }
             }
         }
     }

@@ -15,10 +15,12 @@ public class PreventDrops {
         LivingEntity entity = (LivingEntity) (Object) this;
         if (entity instanceof PokemonEntity pokemonEntity) {
             Pokemon pokemon = pokemonEntity.getPokemon();
-            if (pokemon.getPersistentData().contains("raid_entity")) {
-                if (pokemon.getPersistentData().getBoolean("raid_entity")) {
-                    pokemon.removeHeldItem();
-                    pokemonEntity.teleport(pokemonEntity.getX(), -1000, pokemonEntity.getZ(), false);
+            if (!pokemon.isPlayerOwned()) {
+                if (pokemon.getPersistentData().contains("raid_entity")) {
+                    if (pokemon.getPersistentData().getBoolean("raid_entity")) {
+                        pokemon.removeHeldItem();
+                        pokemonEntity.teleport(pokemonEntity.getX(), -1000, pokemonEntity.getZ(), false);
+                    }
                 }
             }
         }
@@ -29,9 +31,11 @@ public class PreventDrops {
         LivingEntity entity = (LivingEntity) (Object) this;
         if (entity instanceof PokemonEntity pokemonEntity) {
             Pokemon pokemon = pokemonEntity.getPokemon();
-            if (pokemon.getPersistentData().contains("raid_entity")) {
-                if (pokemon.getPersistentData().getBoolean("raid_entity")) {
-                    ci.cancel();
+            if (!pokemon.isPlayerOwned()) {
+                if (pokemon.getPersistentData().contains("raid_entity")) {
+                    if (pokemon.getPersistentData().getBoolean("raid_entity")) {
+                        ci.cancel();
+                    }
                 }
             }
         }
@@ -42,9 +46,11 @@ public class PreventDrops {
         LivingEntity entity = (LivingEntity) (Object) this;
         if (entity instanceof PokemonEntity pokemonEntity) {
             Pokemon pokemon = pokemonEntity.getPokemon();
-            if (pokemon.getPersistentData().contains("raid_entity")) {
-                if (pokemon.getPersistentData().getBoolean("raid_entity")) {
-                    ci.cancel();
+            if (!pokemon.isPlayerOwned()) {
+                if (pokemon.getPersistentData().contains("raid_entity")) {
+                    if (pokemon.getPersistentData().getBoolean("raid_entity")) {
+                        ci.cancel();
+                    }
                 }
             }
         }

@@ -201,10 +201,12 @@ public class EventManager {
                             return Unit.INSTANCE;
                         }
                     }
-                    if (pokemon.getPersistentData().contains("boss_clone")) {
-                        if (pokemon.getPersistentData().getBoolean("boss_clone")) {
-                            event.cancel();
-                            return Unit.INSTANCE;
+                    if (!pokemon.isPlayerOwned()) {
+                        if (pokemon.getPersistentData().contains("boss_clone")) {
+                            if (pokemon.getPersistentData().getBoolean("boss_clone")) {
+                                event.cancel();
+                                return Unit.INSTANCE;
+                            }
                         }
                     }
                 }
