@@ -16,7 +16,7 @@ import java.util.List;
 public class LocationsConfig {
     private final NovaRaids nr = NovaRaids.INSTANCE;
 
-    List<Location> locations = new ArrayList<>();
+    public List<Location> locations = new ArrayList<>();
 
     public LocationsConfig() {
         try {

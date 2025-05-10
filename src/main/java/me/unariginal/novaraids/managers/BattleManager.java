@@ -2,6 +2,8 @@ package me.unariginal.novaraids.managers;
 
 import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.drop.DropTable;
+import com.cobblemon.mod.common.api.events.CobblemonEvents;
+import com.cobblemon.mod.common.api.events.pokemon.ShinyChanceCalculationEvent;
 import com.cobblemon.mod.common.api.moves.MoveTemplate;
 import com.cobblemon.mod.common.api.pokemon.Natures;
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
@@ -27,6 +29,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class BattleManager {
     private static UUID get_leading_pokemon(PartyStore party) {
@@ -40,7 +43,15 @@ public class BattleManager {
         return leading_pokemon;
     }
 
-    public static void invoke_catch_encounter(Raid raid, ServerPlayerEntity player, double shiny_chance, int min_perfect_ivs) {
+    public static boolean checkRate(float shinyRate) {
+        if (shinyRate >= 1) {
+            return (kotlin.random.Random.Default.nextFloat() < (1 / shinyRate));
+        } else {
+            return (kotlin.random.Random.Default.nextFloat() < shinyRate);
+        }
+    }
+
+    public static void invoke_catch_encounter(Raid raid, ServerPlayerEntity player, float shiny_chance, int min_perfect_ivs) {
         Pokemon pokemon = raid.boss_info().pokemonDetails().createPokemon();
         NbtCompound data = new NbtCompound();
         data.putBoolean("raid_entity", true);
@@ -51,7 +62,13 @@ public class BattleManager {
         CatchSettings settings = raid.boss_info().catch_settings();
 
         if (shiny_chance > 0) {
-            pokemon.setShiny(new Random().nextInt((int) shiny_chance) == 0);
+            AtomicReference<Float> new_shiny = new AtomicReference<>(shiny_chance);
+            CobblemonEvents.SHINY_CHANCE_CALCULATION.post(new ShinyChanceCalculationEvent[]{new ShinyChanceCalculationEvent(shiny_chance, pokemon)}, event -> {
+                new_shiny.set(event.calculate(player));
+                return Unit.INSTANCE;
+            });
+            shiny_chance = new_shiny.get();
+            pokemon.setShiny(checkRate(shiny_chance));
         } else {
             pokemon.setShiny(false);
         }

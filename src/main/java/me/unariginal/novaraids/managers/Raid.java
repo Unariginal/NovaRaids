@@ -299,7 +299,7 @@ public class Raid {
             for (ServerPlayerEntity player : players_to_reward) {
                 if (player != null) {
                     already_catching.add(player);
-                    BattleManager.invoke_catch_encounter(this, player, placement.shiny_chance(), placement.min_perfect_ivs());
+                    BattleManager.invoke_catch_encounter(this, player, (float) placement.shiny_chance(), placement.min_perfect_ivs());
                 }
             }
         }
