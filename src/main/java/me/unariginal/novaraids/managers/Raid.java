@@ -436,7 +436,7 @@ public class Raid {
                         }
 
                         if (!no_more_rewards.contains(player) || duplicate_placement_exists) {
-                            int rolls = new Random().nextInt(reward.min_rolls(), reward.max_rolls());
+                            int rolls = new Random().nextInt(reward.min_rolls(), reward.max_rolls() + 1);
                             List<RewardPool> distributed_pools = new ArrayList<>();
                             for (int i = 0; i < rolls; i++) {
                                 Map.Entry<?, Double> pool_entry = RandomUtils.getRandomEntry(reward.pools());
