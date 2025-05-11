@@ -612,28 +612,16 @@ public class EventManager {
 
                             if (can_throw) {
                                 can_throw = false;
-//                                outer:
                                 for (Raid raid : nr.active_raids().values()) {
                                     if (raid.participating_players().contains(player.getUuid())) {
                                         if (raid.stage() == 4) {
-//                                            // Old Data
-//                                            if (custom_data.contains("raid_categories")) {
-//                                                NbtCompound categories = custom_data.copyNbt().getCompound("raid_categories");
-//                                                for (String key : categories.getKeys()) {
-//                                                    if (raid.raidBoss_category().name().equalsIgnoreCase(key)) {
-//                                                        can_throw = true;
-//                                                        break outer;
-//                                                    }
-//                                                }
-//                                            } else if (custom_data.contains("raid_bosses")) {
-//                                                NbtCompound bosses = custom_data.copyNbt().getCompound("raid_bosses");
-//                                                for (String key : bosses.getKeys()) {
-//                                                    if (raid.boss_info().boss_id().equalsIgnoreCase(key)) {
-//                                                        can_throw = true;
-//                                                        break outer;
-//                                                    }
-//                                                }
-//                                            } else {
+                                            // Old Data
+                                            if (custom_data.contains("raid_categories")) {
+                                                break;
+                                            } else if (custom_data.contains("raid_bosses")) {
+                                                break;
+                                            }
+
                                             if (custom_data.contains("raid_boss") && custom_data.contains("raid_category")) {
                                                 String boss = custom_data.copyNbt().getString("raid_boss");
                                                 String category = custom_data.copyNbt().getString("raid_category");
@@ -659,7 +647,6 @@ public class EventManager {
                                                 can_throw = true;
                                                 break;
                                             }
-//                                            }
                                         }
                                     }
                                 }

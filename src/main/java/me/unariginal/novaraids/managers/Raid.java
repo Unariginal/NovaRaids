@@ -459,6 +459,8 @@ public class Raid {
                                         pool.distributeRewards(player);
                                         distributed_pools.add(pool);
                                     }
+                                } else {
+                                    nr.logError("[RAIDS] Pool was null!");
                                 }
                             }
                         }
@@ -821,47 +823,64 @@ public class Raid {
         }
         damage_by_player.put(player_uuid, damage);
         latest_damage.remove(player_uuid);
-        latest_damage.add(player_uuid);
+        latest_damage.addFirst(player_uuid);
     }
 
     public List<Map.Entry<String, Integer>> get_damage_leaderboard() {
-        List<Map.Entry<UUID, Integer>> leaderboard_backwards = damage_by_player.entrySet().stream().sorted(Map.Entry.comparingByValue()).toList();
-        Map<String, Integer> leaderboard = new HashMap<>();
-        for (int i = leaderboard_backwards.size() - 1; i >= 0; i--) {
-            Optional<GameProfile> player = Objects.requireNonNull(nr.server().getUserCache()).getByUuid(leaderboard_backwards.get(i).getKey());
-            int finalI = i;
-            player.ifPresent(gameProfile -> leaderboard.put(gameProfile.getName(), leaderboard_backwards.get(finalI).getValue()));
-        }
+        List<Map.Entry<UUID, Integer>> leaderboard_list = new ArrayList<>(damage_by_player.entrySet());
 
-        Map<Integer, Long> damage_frequencies = leaderboard.values().stream().collect(Collectors.groupingBy(value -> value, Collectors.counting()));
+        Map<Integer, Long> damage_frequencies = leaderboard_list.stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)).values().stream().collect(Collectors.groupingBy(value -> value, Collectors.counting()));
         List<Integer> duplicates = damage_frequencies.entrySet().stream().filter(entry -> entry.getValue() > 1).map(Map.Entry::getKey).toList();
 
-        List<Map.Entry<String, Integer>> backwards_again = leaderboard.entrySet().stream().sorted((e1, e2) -> {
-            if (duplicates.contains(e1.getValue()) && duplicates.contains(e2.getValue())) {
-                for (UUID uuid1 : latest_damage) {
-                    UserCache userCache = nr.server().getUserCache();
-                    if (userCache != null) {
-                        Optional<GameProfile> profile = userCache.getByUuid(uuid1);
-                        if (profile.isPresent()) {
-                            if (e1.getKey().equals(profile.get().getName())) {
-                                return -1;
-                            } else if (e2.getKey().equals(profile.get().getName())) {
-                                return 1;
-                            }
+        leaderboard_list.sort((o1, o2) -> o2.getValue().compareTo(o1.getValue()));
+
+        for (int n = leaderboard_list.size(); n > 0; n--) {
+            if (n == 1) {
+                break;
+            }
+            for (int i = 0; i < n - 1; i++) {
+                Map.Entry<UUID, Integer> e1 = leaderboard_list.get(i);
+                Map.Entry<UUID, Integer> e2 = leaderboard_list.get(i + 1);
+                System.out.println(e1.getKey() + " : " + e1.getValue() + " vs " + e2.getKey() + " : " + e2.getValue());
+                boolean duplicate = false;
+                for (int value : duplicates) {
+                    if (e1.getValue() == value) {
+                        duplicate = true;
+                        break;
+                    }
+                    if (e2.getValue() == value) {
+                        duplicate = true;
+                        break;
+                    }
+                }
+                if (duplicate && e1.getValue().compareTo(e2.getValue()) == 0) {
+                    for (UUID uDmg : latest_damage) {
+                        if (e1.getKey().equals(uDmg)) {
+                            break;
+                        }
+                        if (e2.getKey().equals(uDmg)) {
+                            Map.Entry<UUID, Integer> temp = leaderboard_list.get(i);
+                            leaderboard_list.set(i, leaderboard_list.get(i + 1));
+                            leaderboard_list.set(i + 1, temp);
+                            break;
                         }
                     }
                 }
-            } else if (duplicates.contains(e1.getValue())) {
-                return -1;
-            } else if (duplicates.contains(e2.getValue())) {
-                return 1;
             }
-            return 0;
-        }).toList();
-        List<Map.Entry<String, Integer>> sorted_leaderboard = new ArrayList<>();
-        for (Map.Entry<String, Integer> stringIntegerEntry : backwards_again) {
-            sorted_leaderboard.addFirst(stringIntegerEntry);
         }
+
+        List<Map.Entry<String, Integer>> sorted_leaderboard = new ArrayList<>();
+        UserCache cache = nr.server().getUserCache();
+        if (cache != null) {
+            for (Map.Entry<UUID, Integer> entry : leaderboard_list) {
+                Optional<GameProfile> profile = cache.getByUuid(entry.getKey());
+                if (profile.isPresent()) {
+                    String name = profile.get().getName();
+                    sorted_leaderboard.add(Map.entry(name, entry.getValue()));
+                }
+            }
+        }
+
         return sorted_leaderboard;
     }
 

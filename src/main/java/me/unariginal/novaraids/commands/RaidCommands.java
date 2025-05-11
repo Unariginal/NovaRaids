@@ -294,9 +294,7 @@ public class RaidCommands {
                     .then(
                             CommandManager.literal("queue")
                                     .requires(Permissions.require("novaraids.queue", 4))
-                                    .executes(ctx -> {
-                                        return queue(ctx, 1);
-                                    })
+                                    .executes(ctx -> queue(ctx, 1))
                     )
                     .then(
                             CommandManager.literal("checkbanned")
@@ -339,8 +337,8 @@ public class RaidCommands {
                                     )
                     )
                     .then(
-                            CommandManager.literal("test")
-                                    .requires(Permissions.require("novaraids.test", 4))
+                            CommandManager.literal("testrewards")
+                                    .requires(Permissions.require("novaraids.testrewards", 4))
                                     .then(
                                             CommandManager.argument("boss", StringArgumentType.string())
                                                     .suggests(new BossSuggestions())
@@ -365,6 +363,41 @@ public class RaidCommands {
                                         }
                                         return 1;
                                     })
+                    )
+                    .then(
+                            CommandManager.literal("damage")
+                                    .requires(Permissions.require("novaraids.damage", 4))
+                                    .then(
+                                            CommandManager.argument("id", IntegerArgumentType.integer(1))
+                                                    .then(
+                                                            CommandManager.argument("amount", IntegerArgumentType.integer(1))
+                                                                    .executes(ctx -> {
+                                                                        if (nr.loaded_properly) {
+                                                                            int id = IntegerArgumentType.getInteger(ctx, "id");
+                                                                            if (nr.active_raids().containsKey(id)) {
+                                                                                Raid raid = nr.active_raids().get(id);
+                                                                                if (raid != null) {
+                                                                                    if (ctx.getSource().isExecutedByPlayer()) {
+                                                                                        ServerPlayerEntity player = ctx.getSource().getPlayer();
+                                                                                        if (player != null) {
+                                                                                            int damage = IntegerArgumentType.getInteger(ctx, "amount");
+                                                                                            if (damage > raid.current_health()) {
+                                                                                                damage = raid.current_health();
+                                                                                            }
+
+                                                                                            raid.apply_damage(damage);
+                                                                                            raid.update_player_damage(player.getUuid(), damage);
+                                                                                            raid.participating_broadcast(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("player_damage_report"), raid, player, damage, -1)));
+                                                                                            player.sendMessage(TextUtils.deserialize("<green>The damage has been applied."));
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                        return 1;
+                                                                    })
+                                                    )
+                                    )
                     )
         ));
     }
@@ -1361,7 +1394,7 @@ public class RaidCommands {
                 String boss_id;
                 if (boss_name != null) {
                     if (boss_name.equalsIgnoreCase("*")) {
-                        nr.logInfo("[Raids] this should be a global ball");
+//                        nr.logInfo("[Raids] this should be a global ball");
                         category_id = "*";
                         boss_id = "*";
                         raid_pokeball = nr.config().getRaidBall(key);
@@ -1378,7 +1411,7 @@ public class RaidCommands {
                         }
                         lore = new LoreComponent(lore_text);
                     } else {
-                        nr.logInfo("[Raids] this should be a specific boss ball for " + boss_name);
+//                        nr.logInfo("[Raids] this should be a specific boss ball for " + boss_name);
                         category_id = "null";
                         Boss boss = nr.bossesConfig().getBoss(boss_name);
                         if (boss == null) {
@@ -1403,7 +1436,7 @@ public class RaidCommands {
                     }
                 } else {
                     if (category != null) {
-                        nr.logInfo("[Raids] this should be a specific category ball. " + category);
+//                        nr.logInfo("[Raids] this should be a specific category ball. " + category);
                         boss_id = "*";
                         Category cat = nr.bossesConfig().getCategory(category);
                         if (cat == null) {

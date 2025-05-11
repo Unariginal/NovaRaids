@@ -38,6 +38,8 @@ public record RewardPool(String name, boolean allow_duplicates, int min_rolls, i
                 if (to_give != null) {
                     to_give.apply_reward(player);
                     applied_rewards.add(to_give.name());
+                } else {
+                    NovaRaids.INSTANCE.logError("[RAIDS] Failed to distribute reward. No reward was found to give.");
                 }
             } else {
                 NovaRaids.INSTANCE.logError("[RAIDS] Reward pool total weight was zero. Possibly caused by a reward pool having more rolls than available rewards with duplicates disabled.");
