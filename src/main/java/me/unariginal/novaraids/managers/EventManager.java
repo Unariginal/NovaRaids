@@ -30,6 +30,7 @@ import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -46,6 +47,26 @@ import java.util.*;
 public class EventManager {
     private static final NovaRaids nr = NovaRaids.INSTANCE;
     private static final MessagesConfig messages = nr.messagesConfig();
+
+    public static void capture_event() {
+        CobblemonEvents.THROWN_POKEBALL_HIT.subscribe(Priority.HIGHEST, event -> {
+            PokemonEntity pokemonEntity = event.getPokemon();
+            Pokemon pokemon = pokemonEntity.getPokemon();
+            if (pokemon.getPersistentData().contains("raid_entity")) {
+                for (Raid raid : nr.active_raids().values()) {
+                    for (PokemonEntity clone : raid.get_clones().keySet()) {
+                        if (clone.getUuid().equals(pokemonEntity.getUuid())) {
+                            raid.addPokeballs_capturing(event.getPokeBall());
+                            return Unit.INSTANCE;
+                        }
+                    }
+                }
+                pokemonEntity.remove(Entity.RemovalReason.DISCARDED);
+                event.cancel();
+            }
+            return Unit.INSTANCE;
+        });
+    }
 
     public static void battle_events() {
         CobblemonEvents.BATTLE_STARTED_PRE.subscribe(Priority.HIGHEST, event -> {

@@ -4,6 +4,7 @@ import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.battles.model.PokemonBattle;
 import com.cobblemon.mod.common.api.drop.DropTable;
 import com.cobblemon.mod.common.battles.BattleRegistry;
+import com.cobblemon.mod.common.entity.pokeball.EmptyPokeBallEntity;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.cobblemon.mod.common.pokemon.properties.UncatchableProperty;
@@ -23,6 +24,7 @@ import me.unariginal.novaraids.utils.RandomUtils;
 import me.unariginal.novaraids.utils.TextUtils;
 import me.unariginal.novaraids.utils.WebhookHandler;
 import net.kyori.adventure.bossbar.BossBar;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.item.ItemStack;
@@ -69,6 +71,7 @@ public class Raid {
     private final Map<UUID, BossBar> player_bossbars = new HashMap<>();
 
     private final Map<PokemonEntity, UUID> clones = new HashMap<>();
+    private final List<EmptyPokeBallEntity> pokeballs_capturing = new ArrayList<>();
 
     private long raid_start_time = 0;
     private long raid_end_time = 0;
@@ -122,6 +125,16 @@ public class Raid {
         List<PokemonEntity> toRemove = new ArrayList<>(clones.keySet());
         for (PokemonEntity pokemon : toRemove) {
             remove_clone(pokemon);
+        }
+
+        List<EmptyPokeBallEntity> pokeballs = new ArrayList<>(pokeballs_capturing);
+        for (EmptyPokeBallEntity entity : pokeballs) {
+            if (entity != null) {
+                if (entity.isAlive() && !entity.isRemoved()) {
+                    entity.remove(Entity.RemovalReason.DISCARDED);
+                    removePokeballs_capturing(entity);
+                }
+            }
         }
 
         for (UUID player_uuid : player_bossbars.keySet()) {
@@ -850,6 +863,18 @@ public class Raid {
             sorted_leaderboard.addFirst(stringIntegerEntry);
         }
         return sorted_leaderboard;
+    }
+
+    public List<EmptyPokeBallEntity> getPokeballs_capturing() {
+        return pokeballs_capturing;
+    }
+
+    public void addPokeballs_capturing(EmptyPokeBallEntity entity) {
+        pokeballs_capturing.add(entity);
+    }
+
+    public void removePokeballs_capturing(EmptyPokeBallEntity entity) {
+        pokeballs_capturing.remove(entity);
     }
 
     public Map<UUID, BossBar> bossbars() {

@@ -353,6 +353,19 @@ public class RaidCommands {
                                                     )
                                     )
                     )
+                    .then(
+                            CommandManager.literal("world")
+                                    .requires(Permissions.require("novaraids.world", 4))
+                                    .executes(ctx -> {
+                                        if (ctx.getSource().isExecutedByPlayer()) {
+                                            ServerPlayerEntity player = ctx.getSource().getPlayer();
+                                            if (player != null) {
+                                                player.sendMessage(TextUtils.deserialize(player.getServerWorld().getRegistryKey().getValue().toString()));
+                                            }
+                                        }
+                                        return 1;
+                                    })
+                    )
         ));
     }
 

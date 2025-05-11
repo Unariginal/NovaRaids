@@ -1,5 +1,6 @@
 package me.unariginal.novaraids.managers;
 
+import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.battles.model.PokemonBattle;
 import com.cobblemon.mod.common.api.battles.model.actor.BattleActor;
 import com.cobblemon.mod.common.battles.ActiveBattlePokemon;
