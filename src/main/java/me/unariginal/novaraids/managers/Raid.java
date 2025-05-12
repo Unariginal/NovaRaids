@@ -122,19 +122,23 @@ public class Raid {
 
         end_battles();
 
-        List<PokemonEntity> toRemove = new ArrayList<>(clones.keySet());
-        for (PokemonEntity pokemon : toRemove) {
-            remove_clone(pokemon);
-        }
-
         List<EmptyPokeBallEntity> pokeballs = new ArrayList<>(pokeballs_capturing);
         for (EmptyPokeBallEntity entity : pokeballs) {
             if (entity != null) {
                 if (entity.isAlive() && !entity.isRemoved()) {
                     entity.remove(Entity.RemovalReason.DISCARDED);
+                    PokemonEntity pokemonEntity = entity.getCapturingPokemon();
+                    if (pokemonEntity != null) {
+                        pokemonEntity.remove(Entity.RemovalReason.DISCARDED);
+                    }
                     removePokeballs_capturing(entity);
                 }
             }
+        }
+
+        List<PokemonEntity> toRemove = new ArrayList<>(clones.keySet());
+        for (PokemonEntity pokemon : toRemove) {
+            remove_clone(pokemon);
         }
 
         for (UUID player_uuid : player_bossbars.keySet()) {
@@ -356,8 +360,8 @@ public class Raid {
         }
 
         // TODO: <!>TESTING<!> Use BOTH reward distribution sections!
-        List<DistributionSection> category_rewards = raidBoss_category.rewards();
-        List<DistributionSection> boss_rewards = boss_info.raid_details().rewards();
+        List<DistributionSection> category_rewards = new ArrayList<>(raidBoss_category.rewards());
+        List<DistributionSection> boss_rewards = new ArrayList<>(boss_info.raid_details().rewards());
 
         List<Place> overridden_placements = new ArrayList<>();
 
@@ -375,10 +379,12 @@ public class Raid {
         for (DistributionSection category_reward : category_rewards) {
             boolean overridden = false;
             List<Place> places = category_reward.places();
+            outer:
             for (Place place : places) {
                 for (Place overridden_placement : overridden_placements) {
                     if (overridden_placement.place().equalsIgnoreCase(place.place())) {
                         overridden = true;
+                        break outer;
                     }
                 }
             }
@@ -437,27 +443,33 @@ public class Raid {
                 for (ServerPlayerEntity player : players_to_reward) {
                     if (player != null) {
                         boolean duplicate_placement_exists = false;
-                        outer:
+                        int place_count = 0;
                         for (DistributionSection rewardSection : rewards) {
                             List<Place> rewardPlaces = rewardSection.places();
                             for (Place rewardPlace : rewardPlaces) {
                                 if (rewardPlace.place().equalsIgnoreCase(place.place())) {
-                                    duplicate_placement_exists = true;
-                                    break outer;
+                                    place_count++;
+                                    break;
                                 }
+                            }
+                            if (place_count >= 2) {
+                                duplicate_placement_exists = true;
+                                break;
                             }
                         }
 
                         if (!no_more_rewards.contains(player) || duplicate_placement_exists) {
                             int rolls = new Random().nextInt(reward.min_rolls(), reward.max_rolls() + 1);
-                            List<RewardPool> distributed_pools = new ArrayList<>();
+                            List<UUID> distributed_pools = new ArrayList<>();
                             for (int i = 0; i < rolls; i++) {
                                 Map.Entry<?, Double> pool_entry = RandomUtils.getRandomEntry(reward.pools());
                                 if (pool_entry != null) {
                                     RewardPool pool = (RewardPool) pool_entry.getKey();
-                                    if (reward.allow_duplicates() || !distributed_pools.contains(pool)) {
+                                    if (reward.allow_duplicates() || !distributed_pools.contains(pool.uuid())) {
                                         pool.distributeRewards(player);
-                                        distributed_pools.add(pool);
+                                        distributed_pools.add(pool.uuid());
+                                    } else {
+                                        i--;
                                     }
                                 } else {
                                     nr.logError("[RAIDS] Pool was null!");
@@ -823,7 +835,7 @@ public class Raid {
         }
         damage_by_player.put(player_uuid, damage);
         latest_damage.remove(player_uuid);
-        latest_damage.addFirst(player_uuid);
+        latest_damage.add(player_uuid);
     }
 
     public List<Map.Entry<String, Integer>> get_damage_leaderboard() {

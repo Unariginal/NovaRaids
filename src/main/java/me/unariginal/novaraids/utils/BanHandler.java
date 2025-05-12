@@ -13,6 +13,7 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.server.network.ServerPlayerEntity;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class BanHandler {
@@ -24,16 +25,16 @@ public class BanHandler {
         // Party Check!
         PartyStore party = Cobblemon.INSTANCE.getStorage().getParty(player);
 
-        List<Species> banned_pokemon = nr.config().global_banned_pokemon;
+        List<Species> banned_pokemon = new ArrayList<>(nr.config().global_banned_pokemon);
         banned_pokemon.addAll(boss.raid_details().banned_pokemon());
         banned_pokemon.addAll(nr.bossesConfig().getCategory(boss.category_id()).banned_pokemon());
-        List<Ability> banned_abilities = nr.config().global_banned_abilities;
+        List<Ability> banned_abilities = new ArrayList<>(nr.config().global_banned_abilities);
         banned_abilities.addAll(boss.raid_details().banned_abilities());
         banned_abilities.addAll(nr.bossesConfig().getCategory(boss.category_id()).banned_abilities());
-        List<Move> banned_moves = nr.config().global_banned_moves;
+        List<Move> banned_moves = new ArrayList<>(nr.config().global_banned_moves);
         banned_moves.addAll(boss.raid_details().banned_moves());
         banned_moves.addAll(nr.bossesConfig().getCategory(boss.category_id()).banned_moves());
-        List<Item> banned_held_items = nr.config().global_banned_held_items;
+        List<Item> banned_held_items = new ArrayList<>(nr.config().global_banned_held_items);
         banned_held_items.addAll(boss.raid_details().banned_held_items());
         banned_held_items.addAll(nr.bossesConfig().getCategory(boss.category_id()).banned_held_items());
 
@@ -75,7 +76,7 @@ public class BanHandler {
 
         // Item Check!
         PlayerInventory inventory = player.getInventory();
-        List<Item> banned_bag_items = nr.config().global_banned_bag_items;
+        List<Item> banned_bag_items = new ArrayList<>(nr.config().global_banned_bag_items);
         banned_bag_items.addAll(boss.raid_details().banned_bag_items());
         banned_bag_items.addAll(nr.bossesConfig().getCategory(boss.category_id()).banned_bag_items());
         for (Item item : banned_bag_items) {

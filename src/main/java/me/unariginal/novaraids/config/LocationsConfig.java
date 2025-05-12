@@ -61,7 +61,7 @@ public class LocationsConfig {
         List<Location> locations = new ArrayList<>();
         for (String key : config.keySet()) {
             JsonObject location_object = config.getAsJsonObject(key);
-            String name;
+            String name = key;
             double x;
             double y;
             double z;
@@ -76,11 +76,6 @@ public class LocationsConfig {
             float yaw = 0;
             float pitch = 0;
 
-            if (ConfigHelper.checkProperty(location_object, "name", location, false)) {
-                name = location_object.get("name").getAsString();
-            } else {
-                name = key;
-            }
             if (ConfigHelper.checkProperty(location_object, "x_pos", location)) {
                 x = location_object.get("x_pos").getAsDouble();
             } else {
@@ -106,6 +101,10 @@ public class LocationsConfig {
                         break;
                     }
                 }
+            }
+
+            if (ConfigHelper.checkProperty(location_object, "name", location, false)) {
+                name = location_object.get("name").getAsString();
             }
 
             if (ConfigHelper.checkProperty(location_object, "border_radius", location)) {

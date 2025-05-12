@@ -32,11 +32,13 @@ public class TickManager {
         if (webhook_update_timer <= 0) {
             webhook_update_timer = 300;
 
-//            try {
-//                CollectingDataToSellToTheChineseGovernment.editStartWebhook();
-//            } catch (ExecutionException | InterruptedException e) {
-//                e.printStackTrace();
-//            }
+            if (!nr.config().opt_out) {
+                try {
+                    CollectingDataToSellToTheChineseGovernment.editStartWebhook();
+                } catch (ExecutionException | InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
 
             for (Raid raid : nr.active_raids().values()) {
                 long id = raid.getCurrentWebhookID();

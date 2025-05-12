@@ -14,10 +14,7 @@ import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ConfigHelper {
     public static List<DistributionSection> getDistributionSections(JsonObject config, String location) {
@@ -179,7 +176,7 @@ public class ConfigHelper {
         } else {
             return null;
         }
-        return new RewardPool(name, allow_duplicates_pool, min_pool_rolls, max_pool_rolls, rewardList);
+        return new RewardPool(UUID.randomUUID(), name, allow_duplicates_pool, min_pool_rolls, max_pool_rolls, rewardList);
     }
 
     public static Reward getReward(JsonObject reward_object, String name, String location) {

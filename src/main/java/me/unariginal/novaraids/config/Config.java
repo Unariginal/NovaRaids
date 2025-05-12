@@ -35,6 +35,7 @@ public class Config {
     private final NovaRaids nr = NovaRaids.INSTANCE;
 
     public boolean debug = false;
+    public boolean opt_out = false;
 
     // Raid Settings
     public boolean use_queue_system = false;
@@ -141,6 +142,10 @@ public class Config {
 
         if (ConfigHelper.checkProperty(config, "debug", location)) {
             debug = config.get("debug").getAsBoolean();
+        }
+
+        if (ConfigHelper.checkProperty(config, "opt_out_of_stat_reporting", location, false)) {
+            opt_out = config.get("opt_out_of_stat_reporting").getAsBoolean();
         }
 
         if (ConfigHelper.checkProperty(config, "raid_settings", location)) {

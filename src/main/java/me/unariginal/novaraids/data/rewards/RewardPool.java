@@ -3,12 +3,9 @@ package me.unariginal.novaraids.data.rewards;
 import me.unariginal.novaraids.NovaRaids;
 import net.minecraft.server.network.ServerPlayerEntity;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
-public record RewardPool(String name, boolean allow_duplicates, int min_rolls, int max_rolls, Map<Reward, Double> rewards) {
+public record RewardPool(UUID uuid, String name, boolean allow_duplicates, int min_rolls, int max_rolls, Map<Reward, Double> rewards) {
     public void distributeRewards(ServerPlayerEntity player) {
         List<String> applied_rewards = new ArrayList<>();
 

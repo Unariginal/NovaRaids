@@ -436,16 +436,13 @@ public class RaidCommands {
                 ServerPlayerEntity player = ctx.getSource().getPlayer();
                 if (player != null) {
                     ContrabandGui gui;
-                    Boss boss;
-                    Category category;
+                    Boss boss = null;
+                    Category category = null;
                     switch (type) {
                         case "global" -> {
-                            category = null;
-                            boss = null;
                             gui = nr.guisConfig().global_contraband_gui;
                         }
                         case "category" -> {
-                            boss = null;
                             String category_id = StringArgumentType.getString(ctx, "category");
                             category = nr.bossesConfig().getCategory(category_id);
                             if (category != null) {
@@ -601,12 +598,14 @@ public class RaidCommands {
                     }
                     for (Integer slot : gui.pokemonSlots()) {
                         Item item = Registries.ITEM.get(Identifier.of(gui.banned_pokemon_button.item()));
+                        Boss finalBoss = boss;
+                        Category finalCategory = category;
                         GuiElement element = new GuiElementBuilder(item)
                                 .setName(TextUtils.deserialize(TextUtils.parse(pokemon_item_name)))
                                 .setLore(lore)
                                 .setCallback(clickType -> {
                                     main_gui.close();
-                                    openContrabandGui(ctx, player, gui.banned_pokemon, "pokemon", 1, boss, category);
+                                    openContrabandGui(ctx, player, gui.banned_pokemon, "pokemon", 1, finalBoss, finalCategory);
                                 })
                                 .build();
                         main_gui.setSlot(slot, element);
@@ -618,12 +617,14 @@ public class RaidCommands {
                     }
                     for (Integer slot : gui.moveSlots()) {
                         Item item = Registries.ITEM.get(Identifier.of(gui.banned_moves_button.item()));
+                        Boss finalBoss1 = boss;
+                        Category finalCategory1 = category;
                         GuiElement element = new GuiElementBuilder(item)
                                 .setName(TextUtils.deserialize(TextUtils.parse(move_item_name)))
                                 .setLore(lore)
                                 .setCallback(clickType -> {
                                     main_gui.close();
-                                    openContrabandGui(ctx, player, gui.banned_moves, "move", 1, boss, category);
+                                    openContrabandGui(ctx, player, gui.banned_moves, "move", 1, finalBoss1, finalCategory1);
                                 })
                                 .build();
                         main_gui.setSlot(slot, element);
@@ -635,12 +636,14 @@ public class RaidCommands {
                     }
                     for (Integer slot : gui.abilitySlots()) {
                         Item item = Registries.ITEM.get(Identifier.of(gui.banned_abilities_button.item()));
+                        Boss finalBoss2 = boss;
+                        Category finalCategory2 = category;
                         GuiElement element = new GuiElementBuilder(item)
                                 .setName(TextUtils.deserialize(TextUtils.parse(ability_item_name)))
                                 .setLore(lore)
                                 .setCallback(clickType -> {
                                     main_gui.close();
-                                    openContrabandGui(ctx, player, gui.banned_abilities, "ability", 1, boss, category);
+                                    openContrabandGui(ctx, player, gui.banned_abilities, "ability", 1, finalBoss2, finalCategory2);
                                 })
                                 .build();
                         main_gui.setSlot(slot, element);
@@ -652,12 +655,14 @@ public class RaidCommands {
                     }
                     for (Integer slot : gui.heldItemSlots()) {
                         Item item = Registries.ITEM.get(Identifier.of(gui.banned_held_items_button.item()));
+                        Boss finalBoss3 = boss;
+                        Category finalCategory3 = category;
                         GuiElement element = new GuiElementBuilder(item)
                                 .setName(TextUtils.deserialize(TextUtils.parse(held_item_name)))
                                 .setLore(lore)
                                 .setCallback(clickType -> {
                                     main_gui.close();
-                                    openContrabandGui(ctx, player, gui.banned_held_items, "held_item", 1, boss, category);
+                                    openContrabandGui(ctx, player, gui.banned_held_items, "held_item", 1, finalBoss3, finalCategory3);
                                 })
                                 .build();
                         main_gui.setSlot(slot, element);
@@ -669,12 +674,14 @@ public class RaidCommands {
                     }
                     for (Integer slot : gui.bagItemSlots()) {
                         Item item = Registries.ITEM.get(Identifier.of(gui.banned_bag_items_button.item()));
+                        Boss finalBoss4 = boss;
+                        Category finalCategory4 = category;
                         GuiElement element = new GuiElementBuilder(item)
                                 .setName(TextUtils.deserialize(TextUtils.parse(bag_item_name)))
                                 .setLore(lore)
                                 .setCallback(clickType -> {
                                     main_gui.close();
-                                    openContrabandGui(ctx, player, gui.banned_bag_items, "bag_item", 1, boss, category);
+                                    openContrabandGui(ctx, player, gui.banned_bag_items, "bag_item", 1, finalBoss4, finalCategory4);
                                 })
                                 .build();
                         main_gui.setSlot(slot, element);
@@ -1030,8 +1037,8 @@ public class RaidCommands {
         Boss boss_info = nr.bossesConfig().getBoss(boss);
         Category raidBoss_category = nr.bossesConfig().getCategory(boss_info.category_id());
 
-        List<DistributionSection> category_rewards = raidBoss_category.rewards();
-        List<DistributionSection> boss_rewards = boss_info.raid_details().rewards();
+        List<DistributionSection> category_rewards = new ArrayList<>(raidBoss_category.rewards());
+        List<DistributionSection> boss_rewards = new ArrayList<>(boss_info.raid_details().rewards());
 
         List<Place> overridden_placements = new ArrayList<>();
 
@@ -1100,28 +1107,36 @@ public class RaidCommands {
                 for (ServerPlayerEntity player : players_to_reward) {
                     if (player != null) {
                         boolean duplicate_placement_exists = false;
-                        outer:
+                        int place_count = 0;
                         for (DistributionSection rewardSection : rewards) {
                             List<Place> rewardPlaces = rewardSection.places();
                             for (Place rewardPlace : rewardPlaces) {
                                 if (rewardPlace.place().equalsIgnoreCase(place.place())) {
-                                    duplicate_placement_exists = true;
-                                    break outer;
+                                    place_count++;
+                                    break;
                                 }
+                            }
+                            if (place_count >= 2) {
+                                duplicate_placement_exists = true;
+                                break;
                             }
                         }
 
                         if (!no_more_rewards.contains(player) || duplicate_placement_exists) {
                             int rolls = new Random().nextInt(reward.min_rolls(), reward.max_rolls() + 1);
-                            List<RewardPool> distributed_pools = new ArrayList<>();
+                            List<UUID> distributed_pools = new ArrayList<>();
                             for (int i = 0; i < rolls; i++) {
                                 Map.Entry<?, Double> pool_entry = RandomUtils.getRandomEntry(reward.pools());
                                 if (pool_entry != null) {
                                     RewardPool pool = (RewardPool) pool_entry.getKey();
-                                    if (reward.allow_duplicates() || !distributed_pools.contains(pool)) {
+                                    if (reward.allow_duplicates() || !distributed_pools.contains(pool.uuid())) {
                                         pool.distributeRewards(player);
-                                        distributed_pools.add(pool);
+                                        distributed_pools.add(pool.uuid());
+                                    } else {
+                                        i--;
                                     }
+                                } else {
+                                    nr.logError("[RAIDS] Pool was null!");
                                 }
                             }
                         }
