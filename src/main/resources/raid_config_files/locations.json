@@ -1,5 +1,6 @@
 {
   "example_location": {
+    "name": "Example Location",
     "x_pos": 0.0,
     "y_pos": 100.0,
     "z_pos": 0.0,
@@ -17,6 +18,7 @@
     }
   },
   "another_location": {
+    "name": "Another Location",
     "x_pos": 10.0,
     "y_pos": 100.0,
     "z_pos": 0.0,

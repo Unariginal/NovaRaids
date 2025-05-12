@@ -29,6 +29,7 @@ This update reorganizes almost every config to allow for more customization of t
 
 ### NovaRaids/locations.json Changes
 **Config Changes:**
+- Added `name` to each location. This is the name used for the `%raid.location%` placeholder.
 - Added `border_radius` to each location. This is the external border radius of the location.
 - Added `boss_pushback_radius` to each location. This is the radius around the boss where players cannot enter.
 - Added `boss_facing_direction` to each location. This is the direction the boss will be facing when it spawns in, in degrees.

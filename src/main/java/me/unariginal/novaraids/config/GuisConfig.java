@@ -55,7 +55,7 @@ public class GuisConfig {
                     ComponentChanges.EMPTY
             ),
             "#",
-            "<light_purple>[ID: %raid.id%] %boss.name%",
+            "<light_purple>[ID: %raid.id%] %boss.id%",
             List.of(
                     "<gray>HP: %boss.currenthp%/%boss.maxhp%",
                     "<gray>Category: %raid.category%",
@@ -99,7 +99,7 @@ public class GuisConfig {
             new GuiButton("N", "minecraft:arrow", "Next", List.of(), ComponentChanges.EMPTY),
             new GuiButton("P", "minecraft:arrow", "Previous", List.of(), ComponentChanges.EMPTY),
             "#",
-            "<light_purple>%boss.name%",
+            "<light_purple>%boss.id%",
             List.of(),
             List.of("<red>Right click to cancel this raid!"),
             ComponentChanges.EMPTY
@@ -120,7 +120,7 @@ public class GuisConfig {
             new GuiButton("C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
             new GuiButton("N", "minecraft:arrow", "Next", List.of(), ComponentChanges.EMPTY),
             new GuiButton("P", "minecraft:arrow", "Previous", List.of(), ComponentChanges.EMPTY),
-            new GuiButton("#", null, "<light_purple>%boss.name%", List.of(), ComponentChanges.EMPTY)
+            new GuiButton("#", null, "<light_purple>%boss.id%", List.of(), ComponentChanges.EMPTY)
     );
 
     public DisplayItemGui pass_gui = new DisplayItemGui(
@@ -138,7 +138,7 @@ public class GuisConfig {
             new GuiButton("C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
             new GuiButton("N", "minecraft:arrow", "Next", List.of(), ComponentChanges.EMPTY),
             new GuiButton("P", "minecraft:arrow", "Previous", List.of(), ComponentChanges.EMPTY),
-            new GuiButton("#", null, "<light_purple>%boss.name%",
+            new GuiButton("#", null, "<light_purple>%boss.id%",
                     List.of(
                             "<gray>HP: %boss.currenthp%/%boss.maxhp%",
                             "<gray>Category: %raid.category%",
@@ -334,7 +334,7 @@ public class GuisConfig {
     );
 
     public ContrabandGui boss_contraband_gui = new ContrabandGui(
-            "%boss.name% Raid Contraband",
+            "%boss.id% Raid Contraband",
             0,
             List.of("PMAHB"),
             new GuiButton("_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
@@ -343,7 +343,7 @@ public class GuisConfig {
             null,
             true,
             new GuiButton("P", "cobblemon:poke_ball", "<red>Banned Pokemon", List.of(), ComponentChanges.EMPTY),
-            new DisplayItemGui("%boss.name% Banned Pokemon", 6,
+            new DisplayItemGui("%boss.id% Banned Pokemon", 6,
                     List.of(
                             "#########",
                             "#########",
@@ -359,7 +359,7 @@ public class GuisConfig {
                     new GuiButton("#", null, "%form% %species%", List.of(), ComponentChanges.EMPTY)
             ),
             new GuiButton("M", "cobblemon:razor_claw", "<red>Banned Moves", List.of(), ComponentChanges.EMPTY),
-            new DisplayItemGui("%boss.name% Banned Moves", 6,
+            new DisplayItemGui("%boss.id% Banned Moves", 6,
                     List.of(
                             "#########",
                             "#########",
@@ -375,7 +375,7 @@ public class GuisConfig {
                     new GuiButton("#", "minecraft:paper", "%move%", List.of(), ComponentChanges.EMPTY)
             ),
             new GuiButton("A", "cobblemon:ability_patch", "<red>Banned Abilities", List.of(), ComponentChanges.EMPTY),
-            new DisplayItemGui("%boss.name% Banned Abilities", 6,
+            new DisplayItemGui("%boss.id% Banned Abilities", 6,
                     List.of(
                             "#########",
                             "#########",
@@ -391,7 +391,7 @@ public class GuisConfig {
                     new GuiButton("#", "minecraft:nether_star", "%ability%", List.of(), ComponentChanges.EMPTY)
             ),
             new GuiButton("H", "cobblemon:leftovers", "<red>Banned Held Items", List.of(), ComponentChanges.EMPTY),
-            new DisplayItemGui("%boss.name% Banned Held Items", 6,
+            new DisplayItemGui("%boss.id% Banned Held Items", 6,
                     List.of(
                             "#########",
                             "#########",
@@ -407,7 +407,7 @@ public class GuisConfig {
                     new GuiButton("#", null, "%item%", List.of(), ComponentChanges.EMPTY)
             ),
             new GuiButton("B", "cobblemon:potion", "<red>Banned Bag Items", List.of(), ComponentChanges.EMPTY),
-            new DisplayItemGui("%boss.name% Banned Bag Items", 6,
+            new DisplayItemGui("%boss.id% Banned Bag Items", 6,
                     List.of(
                             "#########",
                             "#########",

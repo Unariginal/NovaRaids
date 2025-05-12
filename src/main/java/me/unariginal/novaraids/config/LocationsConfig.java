@@ -61,6 +61,7 @@ public class LocationsConfig {
         List<Location> locations = new ArrayList<>();
         for (String key : config.keySet()) {
             JsonObject location_object = config.getAsJsonObject(key);
+            String name;
             double x;
             double y;
             double z;
@@ -75,6 +76,11 @@ public class LocationsConfig {
             float yaw = 0;
             float pitch = 0;
 
+            if (ConfigHelper.checkProperty(location_object, "name", location, false)) {
+                name = location_object.get("name").getAsString();
+            } else {
+                name = key;
+            }
             if (ConfigHelper.checkProperty(location_object, "x_pos", location)) {
                 x = location_object.get("x_pos").getAsDouble();
             } else {
@@ -151,14 +157,14 @@ public class LocationsConfig {
                 }
             }
             Vec3d join_pos = new Vec3d(join_x, join_y, join_z);
-            locations.add(new Location(key, pos, world, border_radius, boss_pushback_radius, boss_facing_direction, use_join_location, join_pos, yaw, pitch));
+            locations.add(new Location(key, name, pos, world, border_radius, boss_pushback_radius, boss_facing_direction, use_join_location, join_pos, yaw, pitch));
         }
         this.locations = locations;
     }
 
     public Location getLocation(String key) {
         for (Location loc : locations) {
-            if (loc.name().equalsIgnoreCase(key)) {
+            if (loc.id().equalsIgnoreCase(key)) {
                 return loc;
             }
         }

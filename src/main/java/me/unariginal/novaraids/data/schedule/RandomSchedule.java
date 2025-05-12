@@ -31,6 +31,6 @@ public class RandomSchedule extends Schedule {
         if (next_random == null) {
             setNextRandom(now);
         }
-        return now.until(next_random, ChronoUnit.SECONDS) <= 0;
+        return now.isAfter(next_random);
     }
 }

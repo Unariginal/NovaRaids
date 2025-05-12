@@ -43,7 +43,6 @@ import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.ClickEvent;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.apache.commons.lang3.StringUtils;
@@ -1165,7 +1164,7 @@ public class RaidCommands {
                     for (String key : spawn_locations.keySet()) {
                         boolean valid_spawn = true;
                         for (Raid raid : nr.active_raids().values()) {
-                            if (raid.raidBoss_location().name().equalsIgnoreCase(key)) {
+                            if (raid.raidBoss_location().id().equalsIgnoreCase(key)) {
                                 valid_spawn = false;
                                 break;
                             }

@@ -54,7 +54,8 @@ public class TextUtils {
                 .replaceAll("%raid.category%", raid.raidBoss_category().name())
                 .replaceAll("%raid.id%", String.valueOf(NovaRaids.INSTANCE.get_raid_id(raid)))
                 .replaceAll("%raid.min_players%", String.valueOf(raid.min_players()))
-                .replaceAll("%raid.join_method%", (raid.raidBoss_category().require_pass()) ? "A Raid Pass" : "/raid list");
+                .replaceAll("%raid.join_method%", (raid.raidBoss_category().require_pass()) ? "A Raid Pass" : "/raid list")
+                .replaceAll("%raid.location%", raid.raidBoss_location().name());
     }
 
     public static String parse(String message, Boss boss) {
@@ -65,7 +66,7 @@ public class TextUtils {
                 .replaceAll("%boss.level%", String.valueOf(boss.pokemonDetails().level()))
                 .replaceAll("%boss.minimum_level%", String.valueOf(boss.raid_details().minimum_level()));
         message = spaceReplace(message, "%boss.form%", !boss.pokemonDetails().form().getName().equalsIgnoreCase("normal"), boss.pokemonDetails().form().getName());
-        message = spaceReplace(message, "%boss.name%", !boss.display_name().isEmpty(), boss.display_name());
+        message = spaceReplace(message, "%boss.id%", !boss.display_name().isEmpty(), boss.display_name());
         message = message
                 .replaceAll("%boss.form%", boss.pokemonDetails().form().getName())
                 .replaceAll("%boss.name%", boss.display_name());

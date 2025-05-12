@@ -64,6 +64,6 @@ public class CronSchedule extends Schedule {
         if (nextExecution == null) {
             setNextExecution(now);
         }
-        return now.until(nextExecution, ChronoUnit.SECONDS) <= 0;
+        return now.isAfter(nextExecution);
     }
 }
