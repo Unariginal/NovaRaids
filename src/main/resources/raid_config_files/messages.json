@@ -69,9 +69,11 @@
     "webhook_username": "Raid Alert!",
     "webhook_avatar_url": "https://cdn.modrinth.com/data/MdwFAVRL/e54083a07bcd9436d1f8d2879b0d821a54588b9e.png",
     "role_ping": "<@&role_id_here>",
+    "webhook_update_rate_seconds": 15,
+    "delete_if_no_fight_phase": true,
     "raid_start": {
       "enabled": true,
-      "embed_title": "%boss.form% %boss.species% Raid Has Started",
+      "embed_title": "%boss.name% Raid Has Started",
       "fields": [
         {
           "inline": false,
@@ -82,7 +84,7 @@
     },
     "raid_running": {
       "enabled": true,
-      "embed_title": "%boss.form% %boss.species% Raid In Progress!",
+      "embed_title": "%boss.name% Raid In Progress!",
       "fields": [
         {
           "inline": false,
@@ -104,7 +106,7 @@
     },
     "raid_end": {
       "enabled": true,
-      "embed_title": "%boss.form% %boss.species% Raid Has Ended",
+      "embed_title": "%boss.name% Raid Has Ended",
       "fields": [
         {
           "inline": false,
@@ -118,6 +120,18 @@
         "name": "%raid.player.place%. %raid.player%:",
         "value": "%raid.player.damage% damage"
       }
+    },
+    "raid_failed": {
+      "enabled": true,
+      "embed_title": "Failed To Defeat %boss.name%!",
+      "fields": [
+        {
+          "inline": false,
+          "name": "Dealt %raid.total_damage%/%boss.maxhp% damage!",
+          "value": "",
+          "insert_leaderboard_after": false
+        }
+      ]
     }
   }
 }

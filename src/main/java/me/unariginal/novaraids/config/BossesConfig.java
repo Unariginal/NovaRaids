@@ -373,7 +373,7 @@ public class BossesConfig {
             }
         }
 
-        List<DistributionSection> rewards = ConfigHelper.getDistributionSections(config, location);
+        List<DistributionSection> rewards = ConfigHelper.getDistributionSections(config, location, true);
         categories.add(new Category(
                 category_name, 
                 require_pass,
@@ -915,7 +915,7 @@ public class BossesConfig {
                     catch_bossbar = bossbars.get("catch").getAsString();
                 }
             }
-            rewards = ConfigHelper.getDistributionSections(raid_details, location);
+            rewards = ConfigHelper.getDistributionSections(raid_details, location, false);
         } else {
             throw new NullPointerException("Boss must have raid details!");
         }

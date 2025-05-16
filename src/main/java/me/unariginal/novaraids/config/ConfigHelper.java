@@ -17,7 +17,7 @@ import net.minecraft.util.Identifier;
 import java.util.*;
 
 public class ConfigHelper {
-    public static List<DistributionSection> getDistributionSections(JsonObject config, String location) {
+    public static List<DistributionSection> getDistributionSections(JsonObject config, String location, boolean isCategorySection) {
         List<DistributionSection> rewards = new ArrayList<>();
         if (checkProperty(config, "reward_distribution", location)) {
             JsonArray reward_distributions = config.getAsJsonArray("reward_distribution");
@@ -113,7 +113,7 @@ public class ConfigHelper {
                 } else {
                     continue;
                 }
-                rewards.add(new DistributionSection(places, allow_duplicates, min_rolls, max_rolls, reward_pools));
+                rewards.add(new DistributionSection(isCategorySection, places, allow_duplicates, min_rolls, max_rolls, reward_pools));
             }
         }
         return rewards;

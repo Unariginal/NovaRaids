@@ -7,6 +7,7 @@ import me.unariginal.novaraids.managers.CollectingDataToSellToTheChineseGovernme
 import me.unariginal.novaraids.managers.EventManager;
 import me.unariginal.novaraids.managers.Raid;
 import me.unariginal.novaraids.managers.TickManager;
+import me.unariginal.novaraids.utils.WebhookHandler;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -64,13 +65,13 @@ public class NovaRaids implements ModInitializer {
                 EventManager.player_events();
                 EventManager.cobblemon_events();
                 EventManager.capture_event();
-                if (!config.opt_out) {
-                    try {
-                        CollectingDataToSellToTheChineseGovernment.sendStartWebhook();
-                    } catch (ExecutionException | InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
+//                if (!config.opt_out) {
+//                    try {
+//                        CollectingDataToSellToTheChineseGovernment.sendStartWebhook();
+//                    } catch (ExecutionException | InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
             } else {
                 LOGGER.error("[RAIDS] Config did not load properly! Mod will not be loaded.");
             }
@@ -109,11 +110,11 @@ public class NovaRaids implements ModInitializer {
                     raid.stop();
                 }
 
-                try {
-                    CollectingDataToSellToTheChineseGovernment.deleteWebhook();
-                } catch (ExecutionException | InterruptedException e) {
-                    e.printStackTrace();
-                }
+//                try {
+//                    CollectingDataToSellToTheChineseGovernment.deleteWebhook();
+//                } catch (ExecutionException | InterruptedException e) {
+//                    e.printStackTrace();
+//                }
                 // TODO: Save current raid, write queue to file
             }
         });
@@ -157,6 +158,9 @@ public class NovaRaids implements ModInitializer {
         rewardPoolsConfig = new RewardPoolsConfig();
         bossesConfig = new BossesConfig();
         guisConfig = new GuisConfig();
+        if (WebhookHandler.webhook_toggle) {
+            WebhookHandler.connectWebhook();
+        }
     }
 
     public MinecraftServer server() {

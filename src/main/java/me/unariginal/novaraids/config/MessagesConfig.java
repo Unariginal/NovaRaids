@@ -169,6 +169,7 @@ public class MessagesConfig {
                     WebhookHandler.running_embed_enabled = raid_running_object.get("enabled").getAsBoolean();
                 }
                 if (WebhookHandler.running_embed_enabled) {
+                    boolean has_leaderboard = false;
                     if (ConfigHelper.checkProperty(raid_running_object, "embed_title", "messages")) {
                         WebhookHandler.running_embed_title = raid_running_object.get("embed_title").getAsString();
                     }
@@ -177,14 +178,20 @@ public class MessagesConfig {
                         List<FieldData> fields = new ArrayList<>();
                         for (JsonElement field_element : raid_running_fields_array) {
                             JsonObject field_object = field_element.getAsJsonObject();
-                            fields.add(getFieldData(field_object));
+                            FieldData fieldData = getFieldData(field_object);
+                            fields.add(fieldData);
+                            if (fieldData.insert_leaderboard_after()) {
+                                has_leaderboard = true;
+                            }
                         }
                         WebhookHandler.running_embed_fields = fields;
                     }
-                    if (ConfigHelper.checkProperty(raid_running_object, "leaderboard_field_layout", "messages")) {
-                        JsonObject leaderboard_field_object = raid_running_object.get("leaderboard_field_layout").getAsJsonObject();
-                        FieldData leaderboard_field = getFieldData(leaderboard_field_object);
-                        WebhookHandler.running_embed_leaderboard_field = new FieldData(leaderboard_field.inline(), leaderboard_field.name(), leaderboard_field.value(), false);
+                    if (has_leaderboard) {
+                        if (ConfigHelper.checkProperty(raid_running_object, "leaderboard_field_layout", "messages")) {
+                            JsonObject leaderboard_field_object = raid_running_object.get("leaderboard_field_layout").getAsJsonObject();
+                            FieldData leaderboard_field = getFieldData(leaderboard_field_object);
+                            WebhookHandler.running_embed_leaderboard_field = new FieldData(leaderboard_field.inline(), leaderboard_field.name(), leaderboard_field.value(), false);
+                        }
                     }
                 }
             }
@@ -194,6 +201,7 @@ public class MessagesConfig {
                     WebhookHandler.end_embed_enabled = raid_end_object.get("enabled").getAsBoolean();
                 }
                 if (WebhookHandler.end_embed_enabled) {
+                    boolean has_leaderboard = false;
                     if (ConfigHelper.checkProperty(raid_end_object, "embed_title", "messages")) {
                         WebhookHandler.end_embed_title = raid_end_object.get("embed_title").getAsString();
                     }
@@ -202,14 +210,52 @@ public class MessagesConfig {
                         List<FieldData> fields = new ArrayList<>();
                         for (JsonElement field_element : raid_end_fields_array) {
                             JsonObject field_object = field_element.getAsJsonObject();
-                            fields.add(getFieldData(field_object));
+                            FieldData fieldData = getFieldData(field_object);
+                            fields.add(fieldData);
+                            if (fieldData.insert_leaderboard_after()) {
+                                has_leaderboard = true;
+                            }
                         }
                         WebhookHandler.end_embed_fields = fields;
                     }
-                    if (ConfigHelper.checkProperty(raid_end_object, "leaderboard_field_layout", "messages")) {
-                        JsonObject leaderboard_field_object = raid_end_object.get("leaderboard_field_layout").getAsJsonObject();
-                        FieldData leaderboard_field = getFieldData(leaderboard_field_object);
-                        WebhookHandler.end_embed_leaderboard_field = new FieldData(leaderboard_field.inline(), leaderboard_field.name(), leaderboard_field.value(), false);
+                    if (has_leaderboard) {
+                        if (ConfigHelper.checkProperty(raid_end_object, "leaderboard_field_layout", "messages")) {
+                            JsonObject leaderboard_field_object = raid_end_object.get("leaderboard_field_layout").getAsJsonObject();
+                            FieldData leaderboard_field = getFieldData(leaderboard_field_object);
+                            WebhookHandler.end_embed_leaderboard_field = new FieldData(leaderboard_field.inline(), leaderboard_field.name(), leaderboard_field.value(), false);
+                        }
+                    }
+                }
+            }
+            if (ConfigHelper.checkProperty(discord_object, "raid_failed", "messages")) {
+                JsonObject raid_failed_object = discord_object.get("raid_failed").getAsJsonObject();
+                if (ConfigHelper.checkProperty(raid_failed_object, "enabled", "messages")) {
+                    WebhookHandler.failed_embed_enabled = raid_failed_object.get("enabled").getAsBoolean();
+                }
+                if (WebhookHandler.failed_embed_enabled) {
+                    boolean has_leaderboard = false;
+                    if (ConfigHelper.checkProperty(raid_failed_object, "embed_title", "messages")) {
+                        WebhookHandler.failed_embed_title = raid_failed_object.get("embed_title").getAsString();
+                    }
+                    if (ConfigHelper.checkProperty(raid_failed_object, "fields", "messages")) {
+                        JsonArray raid_end_fields_array = raid_failed_object.get("fields").getAsJsonArray();
+                        List<FieldData> fields = new ArrayList<>();
+                        for (JsonElement field_element : raid_end_fields_array) {
+                            JsonObject field_object = field_element.getAsJsonObject();
+                            FieldData fieldData = getFieldData(field_object);
+                            fields.add(fieldData);
+                            if (fieldData.insert_leaderboard_after()) {
+                                has_leaderboard = true;
+                            }
+                        }
+                        WebhookHandler.failed_embed_fields = fields;
+                    }
+                    if (has_leaderboard) {
+                        if (ConfigHelper.checkProperty(raid_failed_object, "leaderboard_field_layout", "messages")) {
+                            JsonObject leaderboard_field_object = raid_failed_object.get("leaderboard_field_layout").getAsJsonObject();
+                            FieldData leaderboard_field = getFieldData(leaderboard_field_object);
+                            WebhookHandler.failed_embed_leaderboard_field = new FieldData(leaderboard_field.inline(), leaderboard_field.name(), leaderboard_field.value(), false);
+                        }
                     }
                 }
             }
@@ -224,8 +270,8 @@ public class MessagesConfig {
         if (ConfigHelper.checkProperty(field_object, "inline", "messages")) {
             inline = field_object.get("inline").getAsBoolean();
         }
-        if (ConfigHelper.checkProperty(field_object, "id", "messages")) {
-            name = field_object.get("id").getAsString();
+        if (ConfigHelper.checkProperty(field_object, "name", "messages")) {
+            name = field_object.get("name").getAsString();
         }
         if (ConfigHelper.checkProperty(field_object, "value", "messages")) {
             value = field_object.get("value").getAsString();

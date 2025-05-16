@@ -47,6 +47,7 @@ public class TextUtils {
                 .replaceAll("%raid.completion_time%", (raid.raid_completion_time() > 0) ? TextUtils.hms(raid.raid_completion_time()) : "")
                 .replaceAll("%raid.phase_timer%", TextUtils.hms(((raid.phase_start_time() + (raid.phase_length() * 20L)) - NovaRaids.INSTANCE.server().getOverworld().getTime())/20))
                 .replaceAll("%boss.currenthp%", String.valueOf(raid.current_health()))
+                .replaceAll("%raid.total_damage%", String.valueOf(raid.max_health() - raid.current_health()))
                 .replaceAll("%raid.timer%", TextUtils.hms(raid.raid_timer() / 20))
                 .replaceAll("%raid.player_count%", String.valueOf(raid.participating_players().size()))
                 .replaceAll("%raid.max_players%", (raid.max_players() == -1) ? "∞" : String.valueOf(raid.max_players()))

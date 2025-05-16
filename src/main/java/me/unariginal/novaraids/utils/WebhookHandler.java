@@ -27,18 +27,26 @@ public class WebhookHandler {
     public static String webhook_url = "https://discord.com/api/webhooks/";
     public static String webhook_username =  "Raid Alert!";
     public static String webhook_avatar_url = "https://cdn.modrinth.com/data/MdwFAVRL/e54083a07bcd9436d1f8d2879b0d821a54588b9e.png";
-    public static String role_ping = "<@&roldidhere>";
+    public static String role_ping = "<@&role_id_here>";
+    public static int webhook_update_rate_seconds = 15;
+    public static boolean delete_if_no_fight_phase = true;
     public static boolean start_embed_enabled = false;
-    public static String start_embed_title = "%boss.form% %boss.species% Raid Has Started";
+    public static String start_embed_title = "%boss.name% Raid Has Started";
     public static List<FieldData> start_embed_fields = new ArrayList<>();
     public static boolean running_embed_enabled = false;
-    public static String running_embed_title = "%boss.form% %boss.species% Raid In Progress!";
+    public static String running_embed_title = "%boss.name% Raid In Progress!";
     public static List<FieldData> running_embed_fields = new ArrayList<>();
     public static FieldData running_embed_leaderboard_field = null;
     public static boolean end_embed_enabled = false;
-    public static String end_embed_title = "%boss.form% %boss.species% Raid Has Ended";
+    public static String end_embed_title = "%boss.name% Raid Has Ended";
     public static List<FieldData> end_embed_fields = new ArrayList<>();
     public static FieldData end_embed_leaderboard_field = null;
+    public static boolean failed_embed_enabled = false;
+    public static String failed_embed_title = "Failed To Defeat %boss.name%!";
+    public static List<FieldData> failed_embed_fields = new ArrayList<>();
+    public static FieldData failed_embed_leaderboard_field = null;
+
+    public static WebhookClient webhook = null;
 
     private static int hexToRGB(String hex) {
         if (hex.startsWith("#")) {
@@ -123,14 +131,20 @@ public class WebhookHandler {
         }
     }
 
+    public static void connectWebhook() {
+        webhook = WebhookClient.withUrl(webhook_url);
+    }
+
+    public static void deleteWebhook(long id) throws ExecutionException, InterruptedException {
+        webhook.delete(id);
+    }
+
     public static long sendStartRaidWebhook(Raid raid) throws ExecutionException, InterruptedException {
-        WebhookClient webhook = WebhookClient.withUrl(webhook_url);
         return webhook.send(buildStartRaidWebhook(raid).build()).get().getId();
     }
 
-    public static long editStartRaidWebhook(long id, Raid raid) throws ExecutionException, InterruptedException {
-        WebhookClient webhook = WebhookClient.withUrl(webhook_url);
-        return webhook.edit(id, buildStartRaidWebhook(raid).build()).get().getId();
+    public static void editStartRaidWebhook(long id, Raid raid) throws ExecutionException, InterruptedException {
+        webhook.edit(id, buildStartRaidWebhook(raid).build());
     }
 
     public static WebhookMessageBuilder buildStartRaidWebhook(Raid raid){
@@ -159,18 +173,16 @@ public class WebhookHandler {
                 .addEmbeds(embed);
     }
 
-    public static long sendEndRaidWebhook(long id, Raid raid) throws ExecutionException, InterruptedException {
-        WebhookClient webhook = WebhookClient.withUrl(webhook_url);
-        if (id == -1) {
-            return webhook.send(buildEndRaidWebhook(raid).build()).get().getId();
+    public static void sendEndRaidWebhook(long id, Raid raid) throws ExecutionException, InterruptedException {
+        if (id == 0) {
+            webhook.send(buildEndRaidWebhook(raid).build()).get();
         } else {
-            return editEndRaidWebhook(id, raid);
+            editEndRaidWebhook(id, raid);
         }
     }
 
-    public static long editEndRaidWebhook(long id, Raid raid) throws ExecutionException, InterruptedException {
-        WebhookClient webhook = WebhookClient.withUrl(webhook_url);
-        return webhook.edit(id, buildEndRaidWebhook(raid).build()).get().getId();
+    public static void editEndRaidWebhook(long id, Raid raid) {
+        webhook.edit(id, buildEndRaidWebhook(raid).build());
     }
 
     public static WebhookMessageBuilder buildEndRaidWebhook(Raid raid) {
@@ -215,17 +227,16 @@ public class WebhookHandler {
     }
 
     public static long sendRunningWebhook(long id, Raid raid) throws ExecutionException, InterruptedException {
-        WebhookClient webhook = WebhookClient.withUrl(webhook_url);
-        if (id == -1) {
+        if (id == 0) {
             return webhook.send(buildRunningWebhook(raid).build()).get().getId();
         } else {
-            return editRunningWebhook(id, raid);
+            editRunningWebhook(id, raid);
         }
+        return id;
     }
 
-    public static long editRunningWebhook(long id, Raid raid) throws ExecutionException, InterruptedException {
-        WebhookClient webhook = WebhookClient.withUrl(webhook_url);
-        return webhook.edit(id, buildRunningWebhook(raid).build()).get().getId();
+    public static void editRunningWebhook(long id, Raid raid) throws ExecutionException, InterruptedException {
+        webhook.edit(id, buildRunningWebhook(raid).build());
     }
 
     public static WebhookMessageBuilder buildRunningWebhook(Raid raid) {
@@ -255,6 +266,59 @@ public class WebhookHandler {
                         String name = TextUtils.parse(running_embed_leaderboard_field.name(), raid, user, entry.getValue(), i + 1);
                         String value = TextUtils.parse(running_embed_leaderboard_field.value(), raid, user, entry.getValue(), i + 1);
                         embedBuilder.addField(new WebhookEmbed.EmbedField(running_embed_leaderboard_field.inline(), name, value));
+                    }
+                }
+            }
+        }
+
+        embedBuilder.setThumbnailUrl(thumbnailUrl);
+        WebhookEmbed embed = embedBuilder.build();
+
+        return new WebhookMessageBuilder()
+                .setUsername(webhook_username)
+                .setAvatarUrl(webhook_avatar_url)
+                .addEmbeds(embed);
+    }
+
+    public static void sendFailedWebhook(long id, Raid raid) throws ExecutionException, InterruptedException {
+        if (id == 0) {
+            webhook.send(buildFailedWebhook(raid).build()).get();
+        } else {
+            editFailedWebhook(id, raid);
+        }
+    }
+
+    public static void editFailedWebhook(long id, Raid raid) {
+        webhook.edit(id, buildFailedWebhook(raid).build());
+    }
+
+    public static WebhookMessageBuilder buildFailedWebhook(Raid raid) {
+        Pokemon pokemon = raid.raidBoss_pokemon();
+        int randColor = genTypeColor(pokemon);
+        String thumbnailUrl = getThumbnailUrl(pokemon);
+
+        WebhookEmbedBuilder embedBuilder = new WebhookEmbedBuilder()
+                .setColor(randColor)
+                .setAuthor(
+                        new WebhookEmbed.EmbedAuthor(
+                                TextUtils.parse(failed_embed_title, raid),
+                                "",
+                                thumbnailUrl
+                        )
+                );
+
+        for (FieldData field : failed_embed_fields) {
+            embedBuilder.addField(new WebhookEmbed.EmbedField(field.inline(), TextUtils.parse(field.name(), raid), TextUtils.parse(field.value(), raid)));
+            if (field.insert_leaderboard_after()) {
+                List<Map.Entry<String, Integer>> entries = raid.get_damage_leaderboard();
+
+                for (int i = 0; i < Math.min(entries.size(), 10); i++) {
+                    Map.Entry<String, Integer> entry = entries.get(i);
+                    if (cache != null) {
+                        GameProfile user = cache.findByName(entry.getKey()).orElseThrow();
+                        String name = TextUtils.parse(failed_embed_leaderboard_field.name(), raid, user, entry.getValue(), i + 1);
+                        String value = TextUtils.parse(failed_embed_leaderboard_field.value(), raid, user, entry.getValue(), i + 1);
+                        embedBuilder.addField(new WebhookEmbed.EmbedField(failed_embed_leaderboard_field.inline(), name, value));
                     }
                 }
             }

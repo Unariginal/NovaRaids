@@ -144,9 +144,9 @@ public class Config {
             debug = config.get("debug").getAsBoolean();
         }
 
-        if (ConfigHelper.checkProperty(config, "opt_out_of_stat_reporting", location, false)) {
-            opt_out = config.get("opt_out_of_stat_reporting").getAsBoolean();
-        }
+//        if (ConfigHelper.checkProperty(config, "opt_out_of_stat_reporting", location, false)) {
+//            opt_out = config.get("opt_out_of_stat_reporting").getAsBoolean();
+//        }
 
         if (ConfigHelper.checkProperty(config, "raid_settings", location)) {
             JsonObject raid_settings = config.getAsJsonObject("raid_settings");

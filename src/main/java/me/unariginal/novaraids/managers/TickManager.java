@@ -1,6 +1,5 @@
 package me.unariginal.novaraids.managers;
 
-import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.battles.model.PokemonBattle;
 import com.cobblemon.mod.common.api.battles.model.actor.BattleActor;
 import com.cobblemon.mod.common.battles.ActiveBattlePokemon;
@@ -25,20 +24,20 @@ import java.util.concurrent.ExecutionException;
 public class TickManager {
     private static final NovaRaids nr = NovaRaids.INSTANCE;
     private static ZonedDateTime set_time_buffer = ZonedDateTime.now(nr.schedulesConfig().zone);
-    private static int webhook_update_timer = 300;
+    private static int webhook_update_timer = WebhookHandler.webhook_update_rate_seconds * 20;
 
     public static void update_webhooks() {
         webhook_update_timer--;
         if (webhook_update_timer <= 0) {
-            webhook_update_timer = 300;
+            webhook_update_timer = WebhookHandler.webhook_update_rate_seconds * 20;
 
-            if (!nr.config().opt_out) {
-                try {
-                    CollectingDataToSellToTheChineseGovernment.editStartWebhook();
-                } catch (ExecutionException | InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
+//            if (!nr.config().opt_out) {
+//                try {
+//                    CollectingDataToSellToTheChineseGovernment.editStartWebhook();
+//                } catch (ExecutionException | InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//            }
 
             for (Raid raid : nr.active_raids().values()) {
                 long id = raid.getCurrentWebhookID();
@@ -47,13 +46,13 @@ public class TickManager {
                 }
                 if (raid.stage() == 1) {
                     try {
-                        raid.editWebhookID(WebhookHandler.editStartRaidWebhook(id, raid));
+                        WebhookHandler.editStartRaidWebhook(id, raid);
                     } catch (ExecutionException | InterruptedException e) {
                         nr.logError("Failed to edit raid_start webhook: " + e.getMessage());
                     }
                 } else if (raid.stage() == 2) {
                     try {
-                        raid.editWebhookID(WebhookHandler.editRunningWebhook(id, raid));
+                        WebhookHandler.editRunningWebhook(id, raid);
                     } catch (ExecutionException | InterruptedException e) {
                         nr.logError("Failed to edit raid_running webhook: " + e.getMessage());
                     }

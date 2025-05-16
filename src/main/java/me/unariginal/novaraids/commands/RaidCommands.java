@@ -1070,7 +1070,7 @@ public class RaidCommands {
             }
         }
 
-        List<ServerPlayerEntity> no_more_rewards = new ArrayList<>();
+        Map<ServerPlayerEntity, String> no_more_rewards = new HashMap<>();
         for (DistributionSection reward : rewards) {
             List<Place> places = reward.places();
             for (Place place : places) {
@@ -1122,7 +1122,7 @@ public class RaidCommands {
                             }
                         }
 
-                        if (!no_more_rewards.contains(player) || duplicate_placement_exists) {
+                        if (!no_more_rewards.containsKey(player) || (duplicate_placement_exists && place.place().equalsIgnoreCase(no_more_rewards.get(player)))) {
                             int rolls = new Random().nextInt(reward.min_rolls(), reward.max_rolls() + 1);
                             List<UUID> distributed_pools = new ArrayList<>();
                             for (int i = 0; i < rolls; i++) {
@@ -1144,8 +1144,8 @@ public class RaidCommands {
                 }
 
                 for (ServerPlayerEntity player : players_to_reward) {
-                    if (!place.allow_other_rewards()) {
-                        no_more_rewards.add(player);
+                    if (!place.allow_other_rewards() && !no_more_rewards.containsKey(player)) {
+                        no_more_rewards.put(player, place.place());
                     }
                 }
             }

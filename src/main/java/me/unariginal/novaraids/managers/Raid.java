@@ -208,6 +208,13 @@ public class Raid {
                     }
                 }
             }
+            if (WebhookHandler.webhook_toggle && webhook != 0 && WebhookHandler.delete_if_no_fight_phase) {
+                try {
+                    WebhookHandler.deleteWebhook(webhook);
+                } catch (ExecutionException | InterruptedException e) {
+                    nr.logError("Failed to delete webhook: " + e.getMessage());
+                }
+            }
         }
     }
 
@@ -216,6 +223,13 @@ public class Raid {
         tasks.clear();
         raid_end_time = nr.server().getOverworld().getTime();
         participating_broadcast(TextUtils.deserialize(TextUtils.parse(messages.getMessage("out_of_time"), this)));
+        if (WebhookHandler.webhook_toggle && WebhookHandler.failed_embed_enabled && webhook != 0) {
+            try {
+                WebhookHandler.sendFailedWebhook(webhook, this);
+            } catch (ExecutionException | InterruptedException e) {
+                nr.logError("Failed to send raid_failed webhook: " + e.getMessage());
+            }
+        }
     }
 
     public void pre_catch_phase() {
@@ -247,7 +261,7 @@ public class Raid {
             try {
                 WebhookHandler.sendEndRaidWebhook(webhook, this);
             } catch (ExecutionException | InterruptedException e) {
-                nr.logError("Failed to send start_raid webhook: " + e.getMessage());
+                nr.logError("Failed to send raid_end webhook: " + e.getMessage());
             }
         }
 
@@ -393,7 +407,7 @@ public class Raid {
             }
         }
 
-        List<ServerPlayerEntity> no_more_rewards = new ArrayList<>();
+        Map<ServerPlayerEntity, String> no_more_rewards = new HashMap<>();
         for (DistributionSection reward : rewards) {
             List<Place> places = reward.places();
             for (Place place : places) {
@@ -458,7 +472,7 @@ public class Raid {
                             }
                         }
 
-                        if (!no_more_rewards.contains(player) || duplicate_placement_exists) {
+                        if (!no_more_rewards.containsKey(player) || (duplicate_placement_exists && place.place().equalsIgnoreCase(no_more_rewards.get(player)))) {
                             int rolls = new Random().nextInt(reward.min_rolls(), reward.max_rolls() + 1);
                             List<UUID> distributed_pools = new ArrayList<>();
                             for (int i = 0; i < rolls; i++) {
@@ -480,8 +494,8 @@ public class Raid {
                 }
 
                 for (ServerPlayerEntity player : players_to_reward) {
-                    if (!place.allow_other_rewards()) {
-                        no_more_rewards.add(player);
+                    if (!place.allow_other_rewards() && !no_more_rewards.containsKey(player)) {
+                        no_more_rewards.put(player, place.place());
                     }
                 }
             }
