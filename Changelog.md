@@ -77,6 +77,13 @@ Raid Leaderboard Context Placeholders:
 - `%raid.player%` - The name of the player
 - `%raid.player.damage%` - The damage that player dealt to the boss
 
+Contraband Context Placeholders:
+- `%banned.pokemon%` - Banned Pokémon species
+- `%banned.ability%` - Banned Pokémon ability
+- `%banned.move%` - Banned Pokémon move
+- `%banned.held_item%` - Banned Pokémon held item
+- `%banned.bag_item%` - Banned item in inventory
+
 GUI Context Placeholders:
 - `%pokemon%` - Banned Pokémon species
 - `%move%` - Banned move name

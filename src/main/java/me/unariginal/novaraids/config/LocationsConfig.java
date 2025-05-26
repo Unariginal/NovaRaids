@@ -103,8 +103,8 @@ public class LocationsConfig {
                 }
             }
 
-            if (ConfigHelper.checkProperty(location_object, "id", location, false)) {
-                name = location_object.get("id").getAsString();
+            if (ConfigHelper.checkProperty(location_object, "name", location, false)) {
+                name = location_object.get("name").getAsString();
             }
 
             if (ConfigHelper.checkProperty(location_object, "border_radius", location)) {

@@ -438,9 +438,7 @@ public class RaidCommands {
                     Boss boss = null;
                     Category category = null;
                     switch (type) {
-                        case "global" -> {
-                            gui = nr.guisConfig().global_contraband_gui;
-                        }
+                        case "global" -> gui = nr.guisConfig().global_contraband_gui;
                         case "category" -> {
                             String category_id = StringArgumentType.getString(ctx, "category");
                             category = nr.bossesConfig().getCategory(category_id);

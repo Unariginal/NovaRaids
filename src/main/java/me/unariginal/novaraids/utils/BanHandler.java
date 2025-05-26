@@ -6,6 +6,7 @@ import com.cobblemon.mod.common.api.moves.Move;
 import com.cobblemon.mod.common.api.storage.party.PartyStore;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.cobblemon.mod.common.pokemon.Species;
+import com.cobblemon.mod.common.util.MiscUtilsKt;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.config.MessagesConfig;
 import me.unariginal.novaraids.data.bosssettings.Boss;
@@ -49,7 +50,7 @@ public class BanHandler {
             for (Ability ability : banned_abilities) {
                 if (pokemon.getAbility().getName().equals(ability.getName())) {
                     nr.logInfo("Not allowed ability");
-                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_banned_ability").replaceAll("%banned.ability%", ability.getName()))));
+                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_banned_ability").replaceAll("%banned.ability%", MiscUtilsKt.asTranslated(ability.getDisplayName()).getString()))));
                     return true;
                 }
             }
@@ -58,7 +59,7 @@ public class BanHandler {
                 for (Move set : pokemon.getMoveSet()) {
                     if (set.getName().equals(move.getName())) {
                         nr.logInfo("Not allowed move");
-                        player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_banned_move").replaceAll("%banned.move%", move.getName()))));
+                        player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_banned_move").replaceAll("%banned.move%", move.getDisplayName().getString()))));
                         return true;
                     }
                 }

@@ -271,8 +271,8 @@ public class MessagesConfig {
         if (ConfigHelper.checkProperty(field_object, "inline", "messages")) {
             inline = field_object.get("inline").getAsBoolean();
         }
-        if (ConfigHelper.checkProperty(field_object, "id", "messages")) {
-            name = field_object.get("id").getAsString();
+        if (ConfigHelper.checkProperty(field_object, "name", "messages")) {
+            name = field_object.get("name").getAsString();
         }
         if (ConfigHelper.checkProperty(field_object, "value", "messages")) {
             value = field_object.get("value").getAsString();
