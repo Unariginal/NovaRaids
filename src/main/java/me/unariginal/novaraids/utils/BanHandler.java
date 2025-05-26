@@ -20,7 +20,6 @@ public class BanHandler {
     private static final NovaRaids nr = NovaRaids.INSTANCE;
     private static final MessagesConfig messages = nr.messagesConfig();
 
-    // TODO: <!>TEST<!> Include other contraband sections
     public static boolean hasContraband(ServerPlayerEntity player, Boss boss) {
         // Party Check!
         PartyStore party = Cobblemon.INSTANCE.getStorage().getParty(player);

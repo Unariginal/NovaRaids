@@ -26,7 +26,7 @@ public class TickManager {
     private static ZonedDateTime set_time_buffer = ZonedDateTime.now(nr.schedulesConfig().zone);
     private static int webhook_update_timer = WebhookHandler.webhook_update_rate_seconds * 20;
 
-    public static void update_webhooks() {
+    public static void update_webhooks() throws ConcurrentModificationException {
         webhook_update_timer--;
         if (webhook_update_timer <= 0) {
             webhook_update_timer = WebhookHandler.webhook_update_rate_seconds * 20;
@@ -338,7 +338,7 @@ public class TickManager {
                             if (category != null) {
                                 total_weight += scheduleBoss.weight();
                                 if (random_weight < total_weight) {
-                                    Boss boss = nr.bossesConfig().getRandomBoss(category.name());
+                                    Boss boss = nr.bossesConfig().getRandomBoss(category.id());
                                     if (boss != null) {
                                         nr.raidCommands().start(boss, null, null);
                                         break;

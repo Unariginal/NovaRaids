@@ -31,18 +31,18 @@ public class WebhookHandler {
     public static int webhook_update_rate_seconds = 15;
     public static boolean delete_if_no_fight_phase = true;
     public static boolean start_embed_enabled = false;
-    public static String start_embed_title = "%boss.name% Raid Has Started";
+    public static String start_embed_title = "%boss.id% Raid Has Started";
     public static List<FieldData> start_embed_fields = new ArrayList<>();
     public static boolean running_embed_enabled = false;
-    public static String running_embed_title = "%boss.name% Raid In Progress!";
+    public static String running_embed_title = "%boss.id% Raid In Progress!";
     public static List<FieldData> running_embed_fields = new ArrayList<>();
     public static FieldData running_embed_leaderboard_field = null;
     public static boolean end_embed_enabled = false;
-    public static String end_embed_title = "%boss.name% Raid Has Ended";
+    public static String end_embed_title = "%boss.id% Raid Has Ended";
     public static List<FieldData> end_embed_fields = new ArrayList<>();
     public static FieldData end_embed_leaderboard_field = null;
     public static boolean failed_embed_enabled = false;
-    public static String failed_embed_title = "Failed To Defeat %boss.name%!";
+    public static String failed_embed_title = "Failed To Defeat %boss.id%!";
     public static List<FieldData> failed_embed_fields = new ArrayList<>();
     public static FieldData failed_embed_leaderboard_field = null;
 

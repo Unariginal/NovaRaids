@@ -9,6 +9,7 @@ import net.minecraft.item.Item;
 import java.util.List;
 
 public record RaidDetails(int minimum_level,
+                          int maximum_level,
                           int setup_phase_time,
                           int fight_phase_time,
                           boolean do_catch_phase,

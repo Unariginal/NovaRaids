@@ -123,13 +123,14 @@ public class BossesConfig {
         }
     }
 
-    public void loadSettings(String category_name, File file) throws IOException, NullPointerException, UnsupportedOperationException {
+    public void loadSettings(String category_id, File file) throws IOException, NullPointerException, UnsupportedOperationException {
         JsonElement root = JsonParser.parseReader(new FileReader(file));
         assert root != null;
         JsonObject config = root.getAsJsonObject();
         
-        String location = category_name + "/settings";
-        
+        String location = category_id + "/settings";
+
+        String category_name = category_id;
         boolean require_pass = false;
         int min_players = 0;
         int max_players = -1;
@@ -142,6 +143,11 @@ public class BossesConfig {
         String fight_bossbar = "fight_phase_example";
         String pre_catch_bossbar = "pre_catch_phase_example";
         String catch_bossbar = "catch_phase_example";
+
+        if (ConfigHelper.checkProperty(config, "category_name", location)) {
+            category_name = config.get("category_name").getAsString();
+        }
+
         if (ConfigHelper.checkProperty(config, "raid_details", location)) {
             JsonObject raid_details = config.getAsJsonObject("raid_details");
             if (ConfigHelper.checkProperty(raid_details, "require_pass", location)) {
@@ -341,8 +347,8 @@ public class BossesConfig {
                 for (String id : raidBalls.keySet()) {
                     JsonObject ballObject = raidBalls.getAsJsonObject(id);
                     Item pokeball = CobblemonItems.POKE_BALL;
-                    String pokeball_name = "<red> " + category_name + " Raid Ball";
-                    List<String> pokeball_lore = List.of("<gray>Use this to try and catch " + category_name + " bosses!");
+                    String pokeball_name = "<red> " + category_id + " Raid Ball";
+                    List<String> pokeball_lore = List.of("<gray>Use this to try and catch " + category_id + " bosses!");
                     ComponentChanges pokeball_data = ComponentChanges.EMPTY;
 
                     if (ConfigHelper.checkProperty(ballObject, "pokeball", location)) {
@@ -375,7 +381,8 @@ public class BossesConfig {
 
         List<DistributionSection> rewards = ConfigHelper.getDistributionSections(config, location, true);
         categories.add(new Category(
-                category_name, 
+                category_id,
+                category_name,
                 require_pass,
                 min_players, 
                 max_players,
@@ -804,6 +811,7 @@ public class BossesConfig {
 
         // Raid Details
         int minimum_level = 1;
+        int maximum_level = 100;
         int setup_phase_time;
         int fight_phase_time;
         boolean do_catch_phase = true;
@@ -824,6 +832,9 @@ public class BossesConfig {
             JsonObject raid_details = config.get("raid_details").getAsJsonObject();
             if (ConfigHelper.checkProperty(raid_details, "minimum_level", location)) {
                 minimum_level = raid_details.get("minimum_level").getAsInt();
+            }
+            if (ConfigHelper.checkProperty(raid_details, "maximum_level", location)) {
+                maximum_level = raid_details.get("maximum_level").getAsInt();
             }
             if (ConfigHelper.checkProperty(raid_details, "setup_phase_time", location)) {
                 setup_phase_time = raid_details.get("setup_phase_time").getAsInt();
@@ -922,6 +933,7 @@ public class BossesConfig {
 
         RaidDetails raidDetails = new RaidDetails(
                 minimum_level,
+                maximum_level,
                 setup_phase_time,
                 fight_phase_time,
                 do_catch_phase,
@@ -1124,7 +1136,7 @@ public class BossesConfig {
 
     public Category getCategory(String id) {
         for (Category category : categories) {
-            if (category.name().equalsIgnoreCase(id)) {
+            if (category.id().equalsIgnoreCase(id)) {
                 return category;
             }
         }

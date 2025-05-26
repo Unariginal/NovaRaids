@@ -373,7 +373,6 @@ public class Raid {
             }
         }
 
-        // TODO: <!>TESTING<!> Use BOTH reward distribution sections!
         List<DistributionSection> category_rewards = new ArrayList<>(raidBoss_category.rewards());
         List<DistributionSection> boss_rewards = new ArrayList<>(boss_info.raid_details().rewards());
 
@@ -812,6 +811,10 @@ public class Raid {
                             index = -2;
                             player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_minimum_level"), this)));
                             break;
+                        }
+                        if (pokemon.getLevel() > boss_info.raid_details().maximum_level()) {
+                            index = -2;
+                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_maximum_level"), this)));
                         }
                     }
                 }

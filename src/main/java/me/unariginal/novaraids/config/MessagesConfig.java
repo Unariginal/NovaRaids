@@ -49,6 +49,7 @@ public class MessagesConfig {
         messages.put("warning_banned_bag_item", "%prefix% %banned.bag_item% is banned from raids!");
         messages.put("warning_max_players", "%prefix% This raid is full!");
         messages.put("warning_minimum_level", "%prefix% Your pokemon must be above level %boss.minimum_level%!");
+        messages.put("warning_maximum_level", "%prefix% Your pokemon must be below level %boss.maximum_level%!");
         messages.put("warning_cooldown", "%prefix% You're on cooldown!");
         messages.put("warning_battle_during_raid", "%prefix% You can't battle wild pokemon during a raid!");
         messages.put("warning_not_your_encounter", "%prefix% This isn't your catch encounter!");
@@ -270,8 +271,8 @@ public class MessagesConfig {
         if (ConfigHelper.checkProperty(field_object, "inline", "messages")) {
             inline = field_object.get("inline").getAsBoolean();
         }
-        if (ConfigHelper.checkProperty(field_object, "name", "messages")) {
-            name = field_object.get("name").getAsString();
+        if (ConfigHelper.checkProperty(field_object, "id", "messages")) {
+            name = field_object.get("id").getAsString();
         }
         if (ConfigHelper.checkProperty(field_object, "value", "messages")) {
             value = field_object.get("value").getAsString();

@@ -1,8 +1,88 @@
 # Nova Raids Beta v0.3.0 - The Customization Update!
 
+If I missed anything... whoops :) I did my best
+
 ## Update Overview
 This update reorganizes almost every config to allow for more customization of the mod on your server!
+It also contains many bug fixes and fixes for some rare crashes.
 
+Here's a quick list of features added in this update:
+- Hiding players/Pokémon/other catch encounters during a raid.
+- Global contraband, category-based contraband, and boss-based contraband
+- Customizable item name, item lore, and item data for every type of item in the mod, using Kyori's MiniMessage formatting
+- Global, Category-based, and Boss-based raid balls
+- Location-based arena radius values
+- Location-based boss rotation
+- Rewards can be defined within reward pools
+- Reward pools can be defined within reward distribution sections
+- Bossbars are now assigned in the boss/category rather than in the bossbar config
+- Categories are now folder-based instead of being defined in a single config file
+- Many message changes/additions/removals
+- Discord webhooks can now be dynamic, updating placeholder values at a set interval
+- Bosses now have global weight and category weight for random selection
+- Reward override is now reward distribution and adds on to category rewards, optionally overriding category rewards
+- Catch phase settings now contain a species override
+- Catch phase settings allow for placement-based catch settings for minimum perfect ivs and shiny chance
+- Setting the shiny chance to 0 or below will disable it
+- Added a schedule config file to define when certain raids can occur naturally
+- Added gui configs to customize every gui in the mod
+
+## Command Changes
+- Added `/raid testrewards <boss> <placement> <total-players>`
+- Added `/raid damage <id> <amount>` to force damage to a boss, for testing purposes
+- Added `/raid world` to get the proper world ID for locations
+- Added `boss`, `category`, and `global` arguments to the checkbanned command
+- Added `boss`, `category`, and `global` arguments to the give pokeball command
+
+## All Placeholders
+General Placeholders:
+- `%prefix%` - The prefix defined in messages.json
+
+Boss Context Placeholders:
+- `%boss%` - The ID of the boss
+- `%boss.species%` - The species of the boss
+- `%boss.level%` - The level of the boss
+- `%boss.minimum_level%` - The minimum level required to fight the boss
+- `%boss.maximum_level%` - The maximum level allowed to fight the boss
+- `%boss.form%` - The form name of the boss, blank if normal
+- `%boss.name%` - The display name of the boss
+
+Raid Context Placeholders:
+- `%boss.maxhp%` - The maximum HP of the boss
+- `%raid.defeat_time%` - The time that the players took to defeat the boss
+- `%raid.completion_time%` - The total time of the raid from start to finish
+- `%raid.phase_timer%` - The current phase's timer
+- `%boss.currenthp%` - The current HP of the boss
+- `%raid.total_damage%` - The total damage dealt to the boss so far
+- `%raid.timer%` - The total runtime of the raid
+- `%raid.player_count%` - The total number of players participating in the raid
+- `%raid.max_players%` - The max players allowed in a raid
+- `%raid.phase%` - The current phase of the raid
+- `%raid.category%` - The name of the raid's category
+- `%raid.category.id%` - The id of the raid's category
+- `%raid.min_players%` - The minimum players required for the raid to start
+- `%raid.join_method%` - Either "A Raid Pass" or "/raid list"
+- `%raid.location%` - The name of the raid location
+- `%raid.location.id%` - The id of the raid location
+
+Give Command Context Placeholders:
+- `%target%` - The target player's name
+- `%raid_item%` - The item given
+- `%amount%` - The amount of the item
+- `%source%` - The source player's name
+
+Raid Leaderboard Context Placeholders:
+- `%raid.player.place%` - The placement of the player
+- `%place_suffix%` - "st" "nd" "rd" "th"
+- `%raid.player%` - The name of the player
+- `%raid.player.damage%` - The damage that player dealt to the boss
+
+GUI Context Placeholders:
+- `%pokemon%` - Banned Pokémon species
+- `%move%` - Banned move name
+- `%ability%` - Banned ability name
+- `%item%` - Banned item name
+- `%category%` - Category-based contraband category name
 
 ## Config Changes
 **Please Review The Default Config Generation To Gain Better Insight Into These Changes.**
@@ -55,12 +135,14 @@ This update reorganizes almost every config to allow for more customization of t
 - Removed `NovaRaids/categories.json`
 - Category settings are now specified in each Category Folder's `settings.json`
 - Raid schedules are now specified in `NovaRaids/schedules.json`, this includes random raids, set time raids, and the new cron timed raids.
+- Added `category_name` option, appears with the `%raid.category%` placeholder. Category id is now the folder name
 
 ### NovaRaids/messages.json Changes
 **Messages Section Changes:**
 - Removed `raid_list_gui_title`. Now specified in its gui config.
 - Removed `raid_queue_gui_title`. Now specified in its gui config.
 - Removed `contraband_gui_title`. Now specified in its gui config.
+- Added `"warning_maximum_level": "%prefix% Your pokemon must be below level %boss.maximum_level%!"`
 - Added `"give_command_invalid_category": "%prefix% Category %category% does not exist!"`
 - Added `"give_command_invalid_pokeball": "%prefix% Pokeball %pokeball% does not exist!"`
 - Added `"give_command_invalid_boss": "%prefix% Boss %boss% does not exist!"`
@@ -77,8 +159,11 @@ This update reorganizes almost every config to allow for more customization of t
 - Webhook messages now dynamically update every 15 seconds.
 - Webhook messages will be edited rather than sending new messages for each webhook section. New messages are sent for each raid, though.
 - Added `raid_running` section, this is sent and updated during the fight phase.
+- Added `raid_failed` section, this is sent if players fail to defeat the boss.
 - Added `insert_leaderboard_after` option to fields. Meant for use in the `raid_running` and `raid_end` sections. This will add a dynamic leaderboard to the field directly after the field this is set in.
 - Added `leaderboard_field_layout` for `raid_running` and `raid_end`. Follows the same format as other fields but allows for leaderboard placeholders.
+- Added `webhook_update_rate_seconds`. This is the rate that your webhook messages will update. Increase this if it's lagging
+- Added `delete_if_no_fight_phase`. This will delete the webhook post if the raid does not start due to lack of players.
 
 ### NovaRaids/bosses/your_boss.json Changes
 **Config Changes:**
@@ -105,7 +190,8 @@ This update reorganizes almost every config to allow for more customization of t
 - `allow_global_pokeballs` and `allow_category_pokeballs` to set if global raid balls and/or category raid balls can be used in this raid.
 
 **(New) Raid Details Section:**
-- `minimum_level` is moved here. This is the lowest level that a pokemon in the player's party can be.
+- `minimum_level` is moved here. This is the lowest level that a Pokémon in the player's party can be.
+- Added `maximum_level`, this is the highest level that a Pokémon in the player's party can be.
 - Each boss now gets their own phase timers, specified in this section.
 - `heal_party_on_challenge` will heal the player's party as they challenge the boss (will not heal if the party is all fainted).
 - Added a contraband section for boss-specific contraband.

@@ -35,7 +35,7 @@ public class Config {
     private final NovaRaids nr = NovaRaids.INSTANCE;
 
     public boolean debug = false;
-    public boolean opt_out = false;
+//    public boolean opt_out = false;
 
     // Raid Settings
     public boolean use_queue_system = false;
@@ -478,12 +478,12 @@ public class Config {
     }
 
     public void writeResults(Raid raid) throws IOException, NoSuchElementException {
-        File history_folder = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/history/" + raid.raidBoss_category().name()).toFile();
+        File history_folder = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/history/" + raid.raidBoss_category().id()).toFile();
         if (!history_folder.exists()) {
             history_folder.mkdirs();
         }
 
-        File history_file = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/history/" + raid.raidBoss_category().name() + "/" + raid.boss_info().boss_id() + ".json").toFile();
+        File history_file = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/history/" + raid.raidBoss_category().id() + "/" + raid.boss_info().boss_id() + ".json").toFile();
 
         JsonObject root;
         if (history_file.createNewFile()) {

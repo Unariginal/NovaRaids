@@ -11,7 +11,8 @@ import net.minecraft.item.Item;
 
 import java.util.List;
 
-public record Category(String name,
+public record Category(String id,
+                       String name,
                        boolean require_pass,
                        int min_players,
                        int max_players,

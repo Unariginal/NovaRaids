@@ -112,6 +112,12 @@ public class EventManager {
                                         event.cancel();
                                         return Unit.INSTANCE;
                                     }
+                                    if (pokemon.getLevel() > raid.boss_info().raid_details().maximum_level()) {
+                                        player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_maximum_level"), raid)));
+                                        event.setReason(null);
+                                        event.cancel();
+                                        return Unit.INSTANCE;
+                                    }
                                 }
                             }
 
@@ -674,7 +680,6 @@ public class EventManager {
                     }
                 }
 
-                // TODO: <!>TEST<!> Other banned shit
                 for (Raid raid : nr.active_raids().values()) {
                     if (raid.participating_players().contains(player.getUuid())) {
                         List<Item> banned_bag_items = nr.config().global_banned_bag_items;

@@ -429,7 +429,6 @@ public class RaidCommands {
         return 1;
     }
 
-    // TODO: <!>TESTING<!> Show other contraband
     private int checkbanned(CommandContext<ServerCommandSource> ctx, String type) {
         if (nr.loaded_properly) {
             if (ctx.getSource().isExecutedByPlayer()) {

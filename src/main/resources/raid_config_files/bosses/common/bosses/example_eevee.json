@@ -107,6 +107,7 @@
   },
   "raid_details": {
     "minimum_level": 25,
+    "maximum_level": 100,
     "setup_phase_time": 30,
     "fight_phase_time": 600,
     "do_catch_phase": true,
