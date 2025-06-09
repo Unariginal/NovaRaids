@@ -95,11 +95,18 @@ public class LocationsConfig {
 
             if (ConfigHelper.checkProperty(location_object, "world", location)) {
                 String world_path = location_object.get("world").getAsString();
+                boolean found = false;
                 for (ServerWorld w : nr.server().getWorlds()) {
-                    if (w.getRegistryKey().getValue().toString().equals(world_path)) {
+                    String id = w.getRegistryKey().getValue().toString();
+                    String path = w.getRegistryKey().getValue().getPath();
+                    if (id.equals(world_path) || path.equals(world_path)) {
                         world = w;
+                        found = true;
                         break;
                     }
+                }
+                if (!found) {
+                    nr.logError("[RAIDS] World " + world_path + " not found. Using overworld.");
                 }
             }
 

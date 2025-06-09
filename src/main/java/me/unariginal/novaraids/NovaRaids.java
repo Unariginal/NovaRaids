@@ -3,7 +3,6 @@ package me.unariginal.novaraids;
 import me.unariginal.novaraids.commands.RaidCommands;
 import me.unariginal.novaraids.config.*;
 import me.unariginal.novaraids.data.QueueItem;
-import me.unariginal.novaraids.managers.CollectingDataToSellToTheChineseGovernment;
 import me.unariginal.novaraids.managers.EventManager;
 import me.unariginal.novaraids.managers.Raid;
 import me.unariginal.novaraids.managers.TickManager;

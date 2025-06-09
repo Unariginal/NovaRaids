@@ -502,7 +502,7 @@ public class Raid {
     }
 
     public void addTask(ServerWorld world, Long delay, Runnable action) {
-        long current_tick = world.getTime();
+        long current_tick = NovaRaids.INSTANCE.server().getOverworld().getTime();
         long execute_tick = current_tick + delay;
 
         Task task = new Task(world, execute_tick, action);
