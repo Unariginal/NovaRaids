@@ -870,7 +870,6 @@ public class Raid {
             for (int i = 0; i < n - 1; i++) {
                 Map.Entry<UUID, Integer> e1 = leaderboard_list.get(i);
                 Map.Entry<UUID, Integer> e2 = leaderboard_list.get(i + 1);
-                System.out.println(e1.getKey() + " : " + e1.getValue() + " vs " + e2.getKey() + " : " + e2.getValue());
                 boolean duplicate = false;
                 for (int value : duplicates) {
                     if (e1.getValue() == value) {
