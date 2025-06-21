@@ -41,11 +41,16 @@ public class TextUtils {
     public static String parse(String message, Raid raid) {
         message = parse(message);
         message = parse(message, raid.boss_info());
+        long phaseRemaining = ((raid.phase_start_time() + (raid.phase_length() * 20L)) - NovaRaids.INSTANCE.server().getOverworld().getTime()) / 20;
+        if (phaseRemaining < 0) {
+            phaseRemaining = 0;
+        }
+
         return message
                 .replaceAll("%boss.maxhp%", String.valueOf(raid.max_health()))
                 .replaceAll("%raid.defeat_time%", (raid.boss_defeat_time() > 0) ? TextUtils.hms(raid.boss_defeat_time() * 20L) : "")
                 .replaceAll("%raid.completion_time%", (raid.raid_completion_time() > 0) ? TextUtils.hms(raid.raid_completion_time()) : "")
-                .replaceAll("%raid.phase_timer%", TextUtils.hms(((raid.phase_start_time() + (raid.phase_length() * 20L)) - NovaRaids.INSTANCE.server().getOverworld().getTime())/20))
+                .replaceAll("%raid.phase_timer%", TextUtils.hms(phaseRemaining))
                 .replaceAll("%boss.currenthp%", String.valueOf(raid.current_health()))
                 .replaceAll("%raid.total_damage%", String.valueOf(raid.max_health() - raid.current_health()))
                 .replaceAll("%raid.timer%", TextUtils.hms(raid.raid_timer() / 20))
@@ -118,6 +123,9 @@ public class TextUtils {
     }
 
     public static String hms(long raw_time) {
+        if (raw_time < 0) {
+            raw_time = 0;
+        }
         long hours;
         long minutes;
         long seconds = raw_time;
