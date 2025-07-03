@@ -61,6 +61,10 @@ public class BattleManager {
 
         CatchSettings settings = raid.boss_info().catch_settings();
 
+        if (settings.species_override() != raid.boss_info().pokemonDetails().species()) {
+            pokemon.setSpecies(settings.species_override());
+        }
+
         if (shiny_chance > 0) {
             AtomicReference<Float> new_shiny = new AtomicReference<>(shiny_chance);
             CobblemonEvents.SHINY_CHANCE_CALCULATION.post(new ShinyChanceCalculationEvent[]{new ShinyChanceCalculationEvent(shiny_chance, pokemon)}, event -> {
