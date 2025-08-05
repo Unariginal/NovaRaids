@@ -22,6 +22,19 @@ public class HidePlayersAndPokemon {
     public void canBeSpectated(ServerPlayerEntity spectator, CallbackInfoReturnable<Boolean> cir) {
         Entity self = (Entity) (Object) this;
         if (self instanceof PokemonEntity pokemonEntity) {
+            Pokemon pokemon = pokemonEntity.getPokemon();
+            if (pokemon != null) {
+                if (pokemon.getPersistentData().contains("raid_entity")
+                        && pokemon.getPersistentData().contains("boss_clone")
+                        && pokemon.getPersistentData().getBoolean("raid_entity")
+                        && pokemon.getPersistentData().getBoolean("boss_clone")) {
+                    if (!NovaRaids.INSTANCE.debug) {
+                        cir.setReturnValue(false);
+                        return;
+                    }
+                }
+            }
+
             if (NovaRaids.INSTANCE.config().hide_other_catch_encounters && !Permissions.check(spectator, "novaraids.showpokemon")) {
                 boolean inRaid = false;
                 for (Raid raid : NovaRaids.INSTANCE.active_raids().values()) {
@@ -31,7 +44,6 @@ public class HidePlayersAndPokemon {
                     }
                 }
                 if (inRaid) {
-                    Pokemon pokemon = pokemonEntity.getPokemon();
                     if (pokemon != null) {
                         if (pokemon.getPersistentData().contains("catch_encounter")) {
                             if (pokemonEntity.isBattling()) {
@@ -41,6 +53,7 @@ public class HidePlayersAndPokemon {
                                     if (battle != null) {
                                         if (!battle.getPlayers().contains(spectator)) {
                                             cir.setReturnValue(false);
+                                            return;
                                         }
                                     }
                                 }
@@ -58,7 +71,6 @@ public class HidePlayersAndPokemon {
                     }
                 }
                 if (inRaid) {
-                    Pokemon pokemon = pokemonEntity.getPokemon();
                     if (pokemon != null) {
                         if (!pokemon.getPersistentData().contains("raid_entity")) {
                             if (pokemon.isPlayerOwned()) {
@@ -68,6 +80,7 @@ public class HidePlayersAndPokemon {
                                     for (Raid raid : NovaRaids.INSTANCE.active_raids().values()) {
                                         if (raid.participating_players().contains(owner.getUuid())) {
                                             pokemonInRaid = true;
+                                            break;
                                         }
                                     }
                                     if (!owner.getUuid().equals(spectator.getUuid()) && pokemonInRaid) {

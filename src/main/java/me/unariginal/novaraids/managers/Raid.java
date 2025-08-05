@@ -319,7 +319,7 @@ public class Raid {
                     ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(entry.getKey());
                     if (player != null) {
                         if (!already_catching.contains(player)) {
-                            if (!placement.require_damage() || (damage_by_player.containsKey(player.getUuid()) && damage_by_player.get(player.getUuid()) > 0)) {
+                            if (!placement.require_damage() || (damage_by_player.containsKey(player.getUuid()) && damage_by_player.get(player.getUuid()) > 0) && participating_players.contains(player.getUuid())) {
                                 players_to_reward.add(player);
                             }
                         }
@@ -538,12 +538,12 @@ public class Raid {
         Vec3d pos = raidBoss_location.pos();
         return raidBoss_pokemon_uncatchable.sendOut(world, pos, null, entity -> {
             entity.setPersistent();
-            entity.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, -1, 9999, true, false));
+            entity.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 999999, 9999, true, false));
             entity.setMovementSpeed(0.0f);
             entity.setNoGravity(true);
             entity.setAiDisabled(true);
             if (boss_info.apply_glowing()) {
-                entity.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, -1, 9999, true, false));
+                entity.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, 999999, 9999, true, false));
             }
             entity.setInvulnerable(true);
             entity.setBodyYaw(raidBoss_location.boss_facing_direction());
@@ -561,7 +561,7 @@ public class Raid {
             if (player != null) {
                 PokemonBattle battle = BattleRegistry.INSTANCE.getBattleByParticipatingPlayer(player);
                 if (battle != null) {
-                    battle.end();
+                    battle.stop();
                 }
             }
         }

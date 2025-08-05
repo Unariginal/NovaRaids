@@ -144,6 +144,15 @@ public class MessagesConfig {
             if (ConfigHelper.checkProperty(discord_object, "role_ping", "messages")) {
                 WebhookHandler.role_ping = discord_object.get("role_ping").getAsString();
             }
+
+            if (ConfigHelper.checkProperty(discord_object, "webhook_update_rate_seconds", "messages")) {
+                WebhookHandler.webhook_update_rate_seconds = discord_object.get("webhook_update_rate_seconds").getAsInt();
+            }
+
+            if (ConfigHelper.checkProperty(discord_object, "delete_if_no_fight_phase", "messages")) {
+                WebhookHandler.delete_if_no_fight_phase = discord_object.get("delete_if_no_fight_phase").getAsBoolean();
+            }
+
             if (ConfigHelper.checkProperty(discord_object, "raid_start", "messages")) {
                 JsonObject raid_start_object = discord_object.get("raid_start").getAsJsonObject();
                 if (ConfigHelper.checkProperty(raid_start_object, "enabled", "messages")) {

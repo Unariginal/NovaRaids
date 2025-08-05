@@ -16,7 +16,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 
 public class NovaRaids implements ModInitializer {
     private static final String MOD_ID = "novaraids";

@@ -240,6 +240,23 @@ public class EventManager {
             }
             return Unit.INSTANCE;
         });
+
+        CobblemonEvents.EXPERIENCE_GAINED_EVENT_PRE.subscribe(Priority.NORMAL, event -> {
+            Pokemon pokemon = event.getPokemon();
+            if (pokemon.isPlayerOwned()) {
+                ServerPlayerEntity player = pokemon.getOwnerPlayer();
+                if (player != null) {
+                    for (Raid raid : nr.active_raids().values()) {
+                        if (raid.participating_players().contains(player.getUuid())) {
+                            if (event.getSource().isBattle()) {
+                                event.cancel();
+                            }
+                        }
+                    }
+                }
+            }
+            return Unit.INSTANCE;
+        });
     }
 
     public static void right_click_events() {

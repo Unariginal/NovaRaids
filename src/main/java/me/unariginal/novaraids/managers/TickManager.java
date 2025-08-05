@@ -267,7 +267,7 @@ public class TickManager {
                                                         angle += 360;
                                                     }
 
-                                                    double distance = 30;
+                                                    double distance = Math.min(30, raid.raidBoss_location().border_radius());
 
                                                     double new_x = cx + distance * Math.cos(Math.toRadians(angle));
                                                     double new_z = cz + distance * Math.sin(Math.toRadians(angle));
