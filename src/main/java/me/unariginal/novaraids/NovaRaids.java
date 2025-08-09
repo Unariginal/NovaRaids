@@ -19,7 +19,7 @@ import java.util.*;
 
 public class NovaRaids implements ModInitializer {
     private static final String MOD_ID = "novaraids";
-    private final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+    public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
     public static NovaRaids INSTANCE;
 
     private Config config;

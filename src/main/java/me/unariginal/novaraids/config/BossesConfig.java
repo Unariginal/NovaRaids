@@ -53,21 +53,14 @@ public class BossesConfig {
 
     public void loadBosses() throws IOException, NullPointerException, UnsupportedOperationException {
         File rootFolder = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids").toFile();
-        if (!rootFolder.exists()) {
-            rootFolder.mkdirs();
-        }
+        if (!rootFolder.exists()) rootFolder.mkdirs();
 
         File bossesFolder = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/bosses").toFile();
         if (!bossesFolder.exists()) {
             bossesFolder.mkdirs();
-        }
 
-        File[] files = bossesFolder.listFiles();
-        if (files == null || files.length == 0) {
             File exampleCategoryFolder = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/bosses/common/bosses").toFile();
-            if (!exampleCategoryFolder.exists()) {
-                exampleCategoryFolder.mkdirs();
-            }
+            if (!exampleCategoryFolder.exists()) exampleCategoryFolder.mkdirs();
 
             File settingsFile = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/bosses/common/settings.json").toFile();
             if (settingsFile.createNewFile()) {
@@ -102,7 +95,6 @@ public class BossesConfig {
             }
         }
 
-
         for (File file : Objects.requireNonNull(bossesFolder.listFiles())) {
             if (file.isDirectory()) {
                 String category_name = file.getName();
@@ -124,13 +116,21 @@ public class BossesConfig {
     }
 
     public void loadSettings(String category_id, File file) throws IOException, NullPointerException, UnsupportedOperationException {
-        JsonElement root = JsonParser.parseReader(new FileReader(file));
-        assert root != null;
+        JsonObject root = JsonParser.parseReader(new FileReader(file)).getAsJsonObject();
+        JsonObject newRoot = new JsonObject();
         JsonObject config = root.getAsJsonObject();
         
         String location = category_id + "/settings";
 
         String category_name = category_id;
+
+        if (root.has("category_name"))
+            category_name = root.get("category_name").getAsString();
+        newRoot.addProperty("category_name", category_name);
+
+
+        //------- Raid Details Section -------//
+
         boolean require_pass = false;
         int min_players = 0;
         int max_players = -1;
@@ -144,239 +144,259 @@ public class BossesConfig {
         String pre_catch_bossbar = "pre_catch_phase_example";
         String catch_bossbar = "catch_phase_example";
 
-        if (ConfigHelper.checkProperty(config, "category_name", location)) {
-            category_name = config.get("category_name").getAsString();
-        }
+        JsonObject raidDetails = new JsonObject();
+        if (root.has("raid_details"))
+            raidDetails = root.get("raid_details").getAsJsonObject();
 
-        if (ConfigHelper.checkProperty(config, "raid_details", location)) {
-            JsonObject raid_details = config.getAsJsonObject("raid_details");
-            if (ConfigHelper.checkProperty(raid_details, "require_pass", location)) {
-                require_pass = raid_details.get("require_pass").getAsBoolean();
-            }
-            
-            if (ConfigHelper.checkProperty(raid_details, "player_count", location)) {
-                JsonObject player_count = raid_details.getAsJsonObject("player_count");
-                if (ConfigHelper.checkProperty(player_count, "min", location)) {
-                    min_players = player_count.get("min").getAsInt();
-                }
-                if (ConfigHelper.checkProperty(player_count, "max", location)) {
-                    max_players = player_count.get("max").getAsInt();
-                }
-            }
-            
-            if (ConfigHelper.checkProperty(raid_details, "contraband", location)) {
-                JsonObject contraband = raid_details.get("contraband").getAsJsonObject();
-                if (ConfigHelper.checkProperty(contraband, "banned_pokemon", location)) {
-                    List<String> banned_species_names = contraband.getAsJsonArray("banned_pokemon").asList().stream().map(JsonElement::getAsString).toList();
-                    for (String species_name : banned_species_names) {
-                        Species toAdd = PokemonSpecies.INSTANCE.getByName(species_name);
-                        if (toAdd == null) {
-                            continue;
-                        }
-                        banned_species.add(toAdd);
-                    }
-                }
-                if (ConfigHelper.checkProperty(contraband, "banned_moves", location)) {
-                    List<String> banned_move_names = contraband.getAsJsonArray("banned_moves").asList().stream().map(JsonElement::getAsString).toList();
-                    for (String move_name : banned_move_names) {
-                        MoveTemplate template = Moves.INSTANCE.getByName(move_name);
-                        if (template == null) {
-                            continue;
-                        }
-                        banned_moves.add(template.create());
-                    }
-                }
-                if (ConfigHelper.checkProperty(contraband, "banned_abilities", location)) {
-                    List<String> banned_ability_names = contraband.getAsJsonArray("banned_abilities").asList().stream().map(JsonElement::getAsString).toList();
-                    for (String ability_name : banned_ability_names) {
-                        AbilityTemplate abilityTemplate = Abilities.INSTANCE.get(ability_name);
-                        if (abilityTemplate == null) {
-                            continue;
-                        }
-                        banned_abilities.add(abilityTemplate.create(false, Priority.LOWEST));
-                    }
-                }
-                if (ConfigHelper.checkProperty(contraband, "banned_held_items", location)) {
-                    List<String> banned_held_item_names = contraband.getAsJsonArray("banned_held_items").asList().stream().map(JsonElement::getAsString).toList();
-                    for (String held_item_name : banned_held_item_names) {
-                        Item banned_item = Registries.ITEM.get(Identifier.of(held_item_name));
-                        banned_held_items.add(banned_item);
-                    }
-                }
-                if (ConfigHelper.checkProperty(contraband, "banned_bag_items", location)) {
-                    List<String> banned_bag_item_names = contraband.getAsJsonArray("banned_bag_items").asList().stream().map(JsonElement::getAsString).toList();
-                    for (String bag_item_name : banned_bag_item_names) {
-                        Item bag_item = Registries.ITEM.get(Identifier.of(bag_item_name));
-                        banned_bag_items.add(bag_item);
-                    }
-                }
-            }
-            
-            if (ConfigHelper.checkProperty(raid_details, "bossbars", location)) {
-                JsonObject bossbars = raid_details.getAsJsonObject("bossbars");
-                if (ConfigHelper.checkProperty(bossbars, "setup", location)) {
-                    setup_bossbar = bossbars.get("setup").getAsString();
-                } else {
-                    throw new NullPointerException("Bossbars must have a 'setup' property.");
-                }
-                if (ConfigHelper.checkProperty(bossbars, "fight", location)) {
-                    fight_bossbar = bossbars.get("fight").getAsString();
-                } else {
-                    throw new NullPointerException("Bossbars must have a 'fight' property.");
-                }
-                if (ConfigHelper.checkProperty(bossbars, "pre_catch", location)) {
-                    pre_catch_bossbar = bossbars.get("pre_catch").getAsString();
-                } else {
-                    throw new NullPointerException("Bossbars must have a 'pre_catch' property.");
-                }
-                if (ConfigHelper.checkProperty(bossbars, "catch", location)) {
-                    catch_bossbar = bossbars.get("catch").getAsString();
-                } else {
-                    throw new NullPointerException("Bossbars must have a 'catch' property.");
-                }
-            }
+        if (raidDetails.has("require_pass"))
+            require_pass = raidDetails.get("require_pass").getAsBoolean();
+        raidDetails.addProperty("require_pass", require_pass);
+
+        JsonObject playerCount = new JsonObject();
+        if (raidDetails.has("player_count"))
+            playerCount = raidDetails.get("player_count").getAsJsonObject();
+
+        if (playerCount.has("min"))
+            min_players = playerCount.get("min").getAsInt();
+        playerCount.addProperty("min", min_players);
+
+        if (playerCount.has("max"))
+            max_players = playerCount.get("max").getAsInt();
+        playerCount.addProperty("max", max_players);
+
+        raidDetails.add("player_count", playerCount);
+
+        JsonObject contraband = new JsonObject();
+        if (raidDetails.has("contraband"))
+            contraband = raidDetails.get("contraband").getAsJsonObject();
+
+        JsonArray bannedPokemonJsonArray = new JsonArray();
+        List<String> bannedPokemon = new ArrayList<>();
+        if (contraband.has("banned_pokemon"))
+            bannedPokemon = contraband.getAsJsonArray("banned_pokemon").asList().stream().map(JsonElement::getAsString).toList();
+        for (String pokemon : bannedPokemon) {
+            Species species = PokemonSpecies.INSTANCE.getByName(pokemon);
+            if (species != null) banned_species.add(species);
+            else NovaRaids.LOGGER.warn("[NovaRaids] Contraband species {} not found in !{}", pokemon, file.getPath());
+            bannedPokemonJsonArray.add(pokemon);
         }
+        contraband.add("banned_pokemon", bannedPokemonJsonArray);
+
+        JsonArray bannedMovesJsonArray = new JsonArray();
+        List<String> bannedMoves = new ArrayList<>();
+        if (contraband.has("banned_moves"))
+            bannedMoves = contraband.getAsJsonArray("banned_moves").asList().stream().map(JsonElement::getAsString).toList();
+        for (String move : bannedMoves) {
+            MoveTemplate template = Moves.INSTANCE.getByName(move);
+            if (template != null) banned_moves.add(template.create());
+            else NovaRaids.LOGGER.warn("[NovaRaids] Contraband move {} not found in !{}", move, file.getPath());
+            bannedMovesJsonArray.add(move);
+        }
+        contraband.add("banned_moves", bannedMovesJsonArray);
+
+        JsonArray bannedAbilitiesJsonArray = new JsonArray();
+        List<String> bannedAbilities = new ArrayList<>();
+        if (contraband.has("banned_abilities"))
+            bannedAbilities = contraband.getAsJsonArray("banned_abilities").asList().stream().map(JsonElement::getAsString).toList();
+        for (String ability : bannedAbilities) {
+            AbilityTemplate abilityTemplate = Abilities.INSTANCE.get(ability);
+            if (abilityTemplate != null) banned_abilities.add(abilityTemplate.create(false, Priority.LOWEST));
+            else NovaRaids.LOGGER.warn("[NovaRaids] Contraband ability {} not found in !{}", ability, file.getPath());
+            bannedAbilitiesJsonArray.add(ability);
+        }
+        contraband.add("banned_abilities", bannedAbilitiesJsonArray);
+
+        JsonArray bannedHeldItemsJsonArray = new JsonArray();
+        List<String> bannedHeldItems = new ArrayList<>();
+        if (contraband.has("banned_held_items"))
+            bannedHeldItems = contraband.getAsJsonArray("banned_held_items").asList().stream().map(JsonElement::getAsString).toList();
+        for (String item : bannedHeldItems) {
+            Item bannedItem = Registries.ITEM.get(Identifier.of(item));
+            banned_held_items.add(bannedItem);
+            bannedHeldItemsJsonArray.add(item);
+        }
+        contraband.add("banned_held_items", bannedHeldItemsJsonArray);
+
+        JsonArray bannedBagItemsJsonArray = new JsonArray();
+        List<String> bannedBagItems = new ArrayList<>();
+        if (contraband.has("banned_bag_items"))
+            bannedBagItems = contraband.getAsJsonArray("banned_bag_items").asList().stream().map(JsonElement::getAsString).toList();
+        for (String item : bannedBagItems) {
+            Item bannedItem = Registries.ITEM.get(Identifier.of(item));
+            banned_bag_items.add(bannedItem);
+            bannedBagItemsJsonArray.add(item);
+        }
+        contraband.add("banned_bag_items", bannedBagItemsJsonArray);
+
+        raidDetails.add("contraband", contraband);
+
+        JsonObject bossbars = new JsonObject();
+        if (raidDetails.has("bossbars"))
+            bossbars = raidDetails.getAsJsonObject("bossbars");
+
+        if (bossbars.has("setup"))
+            setup_bossbar = bossbars.get("setup").getAsString();
+        bossbars.addProperty("setup", setup_bossbar);
+
+        if (bossbars.has("fight"))
+            fight_bossbar = bossbars.get("fight").getAsString();
+        bossbars.addProperty("fight", fight_bossbar);
+
+        if (bossbars.has("pre_catch"))
+            pre_catch_bossbar = bossbars.get("pre_catch").getAsString();
+        bossbars.addProperty("pre_catch", pre_catch_bossbar);
+
+        if (bossbars.has("catch"))
+            catch_bossbar = bossbars.get("catch").getAsString();
+        bossbars.addProperty("catch", catch_bossbar);
+
+        raidDetails.add("bossbars", bossbars);
+
+        newRoot.add("raid_details", raidDetails);
+
+
+        //------- Item Settings Section -------//
 
         Voucher category_choice_voucher = nr.config().global_choice_voucher;
         Voucher category_random_voucher = nr.config().global_random_voucher;
         Pass category_pass = nr.config().global_pass;
         List<RaidBall> category_balls = new ArrayList<>();
-        if (ConfigHelper.checkProperty(config, "item_settings", location)) {
-            JsonObject item_settings = config.getAsJsonObject("item_settings");
-            if (ConfigHelper.checkProperty(item_settings, "category_choice_voucher", location)) {
-                JsonObject voucher = item_settings.getAsJsonObject("category_choice_voucher");
-                Item voucher_item = category_choice_voucher.voucher_item();
-                String voucher_name = category_choice_voucher.voucher_name();
-                List<String> voucher_lore = category_choice_voucher.voucher_lore();
-                ComponentChanges voucher_data = category_choice_voucher.voucher_data();
 
-                if (ConfigHelper.checkProperty(voucher, "voucher_item", location)) {
-                    String voucher_item_name = voucher.get("voucher_item").getAsString();
-                    voucher_item = Registries.ITEM.get(Identifier.of(voucher_item_name));
-                }
-                if (ConfigHelper.checkProperty(voucher, "voucher_name", location)) {
-                    voucher_name = voucher.get("voucher_name").getAsString();
-                }
-                if (ConfigHelper.checkProperty(voucher, "voucher_lore", location)) {
-                    JsonArray lore_items = voucher.getAsJsonArray("voucher_lore");
-                    List<String> lore = new ArrayList<>();
-                    for (JsonElement l : lore_items) {
-                        String lore_item = l.getAsString();
-                        lore.add(lore_item);
-                    }
-                    voucher_lore = lore;
-                }
-                if (ConfigHelper.checkProperty(voucher, "voucher_data", location)) {
-                    JsonElement data = voucher.getAsJsonObject("voucher_data");
-                    if (data != null) {
-                        voucher_data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, data).getOrThrow().getFirst();
-                    }
-                }
+        JsonObject itemSettings = new JsonObject();
+        if (root.has("item_settings"))
+            itemSettings = root.getAsJsonObject("item_settings");
 
-                category_choice_voucher = new Voucher(voucher_item, voucher_name, voucher_lore, voucher_data);
+        JsonObject categoryChoiceVoucher = new JsonObject();
+        if (itemSettings.has("category_choice_voucher"))
+            categoryChoiceVoucher = itemSettings.getAsJsonObject("category_choice_voucher");
+
+        Item choiceVoucherItem = category_choice_voucher.voucher_item();
+        String choiceVoucherName = category_choice_voucher.voucher_name();
+        List<String> choiceVoucherLore = category_choice_voucher.voucher_lore();
+        ComponentChanges choiceVoucherData = category_choice_voucher.voucher_data();
+
+        if (categoryChoiceVoucher.has("voucher_item"))
+            choiceVoucherItem = Registries.ITEM.get(Identifier.of(categoryChoiceVoucher.get("voucher_item").getAsString()));
+        categoryChoiceVoucher.addProperty("voucher_item", Registries.ITEM.getId(choiceVoucherItem).toString());
+
+        if (categoryChoiceVoucher.has("voucher_name"))
+            choiceVoucherName = categoryChoiceVoucher.get("voucher_name").getAsString();
+        categoryChoiceVoucher.addProperty("voucher_name", choiceVoucherName);
+
+        if (categoryChoiceVoucher.has("voucher_lore"))
+            choiceVoucherLore = categoryChoiceVoucher.get("voucher_lore").getAsJsonArray().asList().stream().map(JsonElement::toString).toList();
+        JsonArray choiceLoreArray = new JsonArray();
+        for (String line : choiceVoucherLore) {
+            choiceLoreArray.add(line);
+        }
+        categoryChoiceVoucher.add("voucher_lore", choiceLoreArray);
+
+        if (categoryChoiceVoucher.has("voucher_data"))
+            choiceVoucherData = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, categoryChoiceVoucher.get("voucher_data")).getOrThrow().getFirst();
+        categoryChoiceVoucher.add("voucher_data", ComponentChanges.CODEC.encode(choiceVoucherData, JsonOps.INSTANCE, new JsonObject()).getOrThrow());
+
+        itemSettings.add("category_choice_voucher", categoryChoiceVoucher);
+
+        category_choice_voucher = new Voucher(choiceVoucherItem, choiceVoucherName, choiceVoucherLore, choiceVoucherData);
+
+        JsonObject categoryRandomVoucher = new JsonObject();
+        if (itemSettings.has("category_random_voucher"))
+            categoryRandomVoucher = itemSettings.getAsJsonObject("category_random_voucher");
+
+        Item randomVoucherItem = category_random_voucher.voucher_item();
+        String randomVoucherName = category_random_voucher.voucher_name();
+        List<String> randomVoucherLore = category_random_voucher.voucher_lore();
+        ComponentChanges randomVoucherData = category_random_voucher.voucher_data();
+
+        if (categoryRandomVoucher.has("voucher_item"))
+            randomVoucherItem = Registries.ITEM.get(Identifier.of(categoryRandomVoucher.get("voucher_item").getAsString()));
+        categoryRandomVoucher.addProperty("voucher_item", Registries.ITEM.getId(randomVoucherItem).toString());
+
+        if (categoryRandomVoucher.has("voucher_name"))
+            randomVoucherName = categoryRandomVoucher.get("voucher_name").getAsString();
+        categoryRandomVoucher.addProperty("voucher_name", randomVoucherName);
+
+        if (categoryRandomVoucher.has("voucher_lore"))
+            randomVoucherLore = categoryRandomVoucher.get("voucher_lore").getAsJsonArray().asList().stream().map(JsonElement::toString).toList();
+        JsonArray randomLoreArray = new JsonArray();
+        for (String line : randomVoucherLore) {
+            randomLoreArray.add(line);
+        }
+        categoryRandomVoucher.add("voucher_lore", randomLoreArray);
+
+        if (categoryRandomVoucher.has("voucher_data"))
+            randomVoucherData = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, categoryRandomVoucher.get("voucher_data")).getOrThrow().getFirst();
+        categoryRandomVoucher.add("voucher_data", ComponentChanges.CODEC.encode(randomVoucherData, JsonOps.INSTANCE, new JsonObject()).getOrThrow());
+
+        itemSettings.add("category_random_voucher", categoryRandomVoucher);
+
+        category_random_voucher = new Voucher(randomVoucherItem, randomVoucherName, randomVoucherLore, randomVoucherData);
+
+        JsonObject categoryPass = new JsonObject();
+        if (itemSettings.has("category_pass"))
+            categoryPass = itemSettings.getAsJsonObject("category_pass");
+
+        Item passItem = category_random_voucher.voucher_item();
+        String passName = category_random_voucher.voucher_name();
+        List<String> passLore = category_random_voucher.voucher_lore();
+        ComponentChanges passData = category_random_voucher.voucher_data();
+
+        if (categoryPass.has("pass_item"))
+            passItem = Registries.ITEM.get(Identifier.of(categoryPass.get("pass_item").getAsString()));
+        categoryPass.addProperty("pass_item", Registries.ITEM.getId(passItem).toString());
+
+        if (categoryPass.has("pass_name"))
+            passName = categoryPass.get("pass_name").getAsString();
+        categoryPass.addProperty("pass_name", passName);
+
+        if (categoryPass.has("pass_lore"))
+            passLore = categoryPass.get("pass_lore").getAsJsonArray().asList().stream().map(JsonElement::toString).toList();
+        JsonArray passLoreArray = new JsonArray();
+        for (String line : passLore) {
+            passLoreArray.add(line);
+        }
+        categoryPass.add("pass_lore", passLoreArray);
+
+        if (categoryPass.has("pass_data"))
+            passData = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, categoryPass.get("voucher_data")).getOrThrow().getFirst();
+        categoryPass.add("pass_data", ComponentChanges.CODEC.encode(passData, JsonOps.INSTANCE, new JsonObject()).getOrThrow());
+
+        itemSettings.add("category_pass", categoryPass);
+
+        category_pass = new Pass(passItem, passName, passLore, passData);
+
+        JsonObject raidBalls = new JsonObject();
+        if (itemSettings.has("raid_balls"))
+            raidBalls = itemSettings.getAsJsonObject("raid_balls");
+
+        for (String id : raidBalls.keySet()) {
+            JsonObject ballObject = raidBalls.getAsJsonObject(id);
+            Item pokeball = CobblemonItems.POKE_BALL;
+            String pokeball_name = "<red> " + category_id + " Raid Ball";
+            List<String> pokeball_lore = List.of("<gray>Use this to try and catch " + category_id + " bosses!");
+            ComponentChanges pokeball_data = ComponentChanges.EMPTY;
+
+            if (ballObject.has("pokeball"))
+                pokeball = Registries.ITEM.get(Identifier.of(ballObject.get("pokeball").getAsString()));
+            ballObject.addProperty("pokeball", Registries.ITEM.getId(pokeball).toString());
+
+            if (ballObject.has("pokeball_name"))
+                pokeball_name = ballObject.get("pokeball_name").getAsString();
+            ballObject.addProperty("pokeball_name", pokeball_name);
+
+            if (ballObject.has("pokeball_lore"))
+                pokeball_lore = ballObject.get("pokeball_lore").getAsJsonArray().asList().stream().map(JsonElement::toString).toList();
+            JsonArray pokeballLoreArray = new JsonArray();
+            for (String line : pokeball_lore) {
+                pokeballLoreArray.add(line);
             }
+            ballObject.add("pokeball_lore", pokeballLoreArray);
 
-            if (ConfigHelper.checkProperty(item_settings, "category_random_voucher", location)) {
-                JsonObject voucher = item_settings.getAsJsonObject("category_random_voucher");
-                Item voucher_item = category_random_voucher.voucher_item();
-                String voucher_name = category_random_voucher.voucher_name();
-                List<String> voucher_lore = category_random_voucher.voucher_lore();
-                ComponentChanges voucher_data = category_random_voucher.voucher_data();
+            if (ballObject.has("pokeball_data"))
+                pokeball_data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, ballObject.get("pokeball_data")).getOrThrow().getFirst();
+            ballObject.add("pokeball_data", ComponentChanges.CODEC.encode(pokeball_data, JsonOps.INSTANCE, new JsonObject()).getOrThrow());
 
-                if (ConfigHelper.checkProperty(voucher, "voucher_item", location)) {
-                    String voucher_item_name = voucher.get("voucher_item").getAsString();
-                    voucher_item = Registries.ITEM.get(Identifier.of(voucher_item_name));
-                }
-                if (ConfigHelper.checkProperty(voucher, "voucher_name", location)) {
-                    voucher_name = voucher.get("voucher_name").getAsString();
-                }
-                if (ConfigHelper.checkProperty(voucher, "voucher_lore", location)) {
-                    JsonArray lore_items = voucher.getAsJsonArray("voucher_lore");
-                    List<String> lore = new ArrayList<>();
-                    for (JsonElement l : lore_items) {
-                        String lore_item = l.getAsString();
-                        lore.add(lore_item);
-                    }
-                    voucher_lore = lore;
-                }
-                if (ConfigHelper.checkProperty(voucher, "voucher_data", location)) {
-                    JsonElement data = voucher.getAsJsonObject("voucher_data");
-                    if (data != null) {
-                        voucher_data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, data).getOrThrow().getFirst();
-                    }
-                }
-
-                category_random_voucher = new Voucher(voucher_item, voucher_name, voucher_lore, voucher_data);
-            }
-
-            if (ConfigHelper.checkProperty(item_settings, "category_pass", location)) {
-                JsonObject pass = item_settings.getAsJsonObject("category_pass");
-                Item pass_item = category_pass.pass_item();
-                String pass_name = category_pass.pass_name();
-                List<String> pass_lore = category_pass.pass_lore();
-                ComponentChanges pass_data = category_pass.pass_data();
-
-                if (ConfigHelper.checkProperty(pass, "pass_item", location)) {
-                    String pass_item_name = pass.get("pass_item").getAsString();
-                    pass_item = Registries.ITEM.get(Identifier.of(pass_item_name));
-                }
-                if (ConfigHelper.checkProperty(pass, "pass_name", location)) {
-                    pass_name = pass.get("pass_name").getAsString();
-                }
-                if (ConfigHelper.checkProperty(pass, "pass_lore", location)) {
-                    JsonArray lore_items = pass.getAsJsonArray("pass_lore");
-                    List<String> lore = new ArrayList<>();
-                    for (JsonElement l : lore_items) {
-                        String lore_item = l.getAsString();
-                        lore.add(lore_item);
-                    }
-                    pass_lore = lore;
-                }
-                if (ConfigHelper.checkProperty(pass, "pass_data", location)) {
-                    JsonElement data = pass.getAsJsonObject("pass_data");
-                    if (data != null) {
-                        pass_data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, data).getOrThrow().getFirst();
-                    }
-                }
-
-                category_pass = new Pass(pass_item, pass_name, pass_lore, pass_data);
-            }
-
-            if (ConfigHelper.checkProperty(item_settings, "raid_balls", location)) {
-                JsonObject raidBalls = item_settings.getAsJsonObject("raid_balls");
-                for (String id : raidBalls.keySet()) {
-                    JsonObject ballObject = raidBalls.getAsJsonObject(id);
-                    Item pokeball = CobblemonItems.POKE_BALL;
-                    String pokeball_name = "<red> " + category_id + " Raid Ball";
-                    List<String> pokeball_lore = List.of("<gray>Use this to try and catch " + category_id + " bosses!");
-                    ComponentChanges pokeball_data = ComponentChanges.EMPTY;
-
-                    if (ConfigHelper.checkProperty(ballObject, "pokeball", location)) {
-                        String pokeball_item_name = ballObject.get("pokeball").getAsString();
-                        pokeball = Registries.ITEM.get(Identifier.of(pokeball_item_name));
-                    }
-                    if (ConfigHelper.checkProperty(ballObject, "pokeball_name", location)) {
-                        pokeball_name = ballObject.get("pokeball_name").getAsString();
-                    }
-                    if (ConfigHelper.checkProperty(ballObject, "pokeball_lore", location)) {
-                        JsonArray lore_items = ballObject.getAsJsonArray("pokeball_lore");
-                        List<String> lore = new ArrayList<>();
-                        for (JsonElement l : lore_items) {
-                            String lore_item = l.getAsString();
-                            lore.add(lore_item);
-                        }
-                        pokeball_lore = lore;
-                    }
-                    if (ConfigHelper.checkProperty(ballObject, "pokeball_data", location)) {
-                        JsonElement data = ballObject.getAsJsonObject("pokeball_data");
-                        if (data != null) {
-                            pokeball_data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, data).getOrThrow().getFirst();
-                        }
-                    }
-
-                    category_balls.add(new RaidBall(id, pokeball, pokeball_name, pokeball_lore, pokeball_data));
-                }
-            }
+            category_balls.add(new RaidBall(id, pokeball, pokeball_name, pokeball_lore, pokeball_data));
         }
 
         List<DistributionSection> rewards = ConfigHelper.getDistributionSections(config, location, true);
@@ -433,6 +453,9 @@ public class BossesConfig {
         }
 
         // Pokemon Details
+        // TODO: Remove the form option if it's safe
+        // TODO: Allow multiple feature sections with weights
+        // TODO: Translate old single feature configs to multi feature configs automatically
         Species species;
         int level = 50;
         FormData form;
