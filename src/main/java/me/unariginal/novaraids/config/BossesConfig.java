@@ -118,12 +118,8 @@ public class BossesConfig {
     public void loadSettings(String category_id, File file) throws IOException, NullPointerException, UnsupportedOperationException {
         JsonObject root = JsonParser.parseReader(new FileReader(file)).getAsJsonObject();
         JsonObject newRoot = new JsonObject();
-        JsonObject config = root.getAsJsonObject();
-        
-        String location = category_id + "/settings";
 
         String category_name = category_id;
-
         if (root.has("category_name"))
             category_name = root.get("category_name").getAsString();
         newRoot.addProperty("category_name", category_name);
@@ -399,7 +395,7 @@ public class BossesConfig {
             category_balls.add(new RaidBall(id, pokeball, pokeball_name, pokeball_lore, pokeball_data));
         }
 
-        List<DistributionSection> rewards = ConfigHelper.getDistributionSections(config, location, true);
+        List<DistributionSection> rewards = ConfigHelper.getDistributionSections(root, "", true);
         categories.add(new Category(
                 category_id,
                 category_name,
@@ -424,42 +420,32 @@ public class BossesConfig {
     }
 
     public void loadBoss(String category_name, File file) throws IOException, NullPointerException, UnsupportedOperationException {
-        JsonElement root = JsonParser.parseReader(new FileReader(file));
-        assert root != null;
-        JsonObject config = root.getAsJsonObject();
+        JsonObject root = JsonParser.parseReader(new FileReader(file)).getAsJsonObject();
+        JsonObject newRoot = new JsonObject();
         String file_name = file.getName().substring(0, file.getName().indexOf(".json"));
 
         String location = category_name + "/bosses/" + file_name;
 
-        String boss_id;
-        if (ConfigHelper.checkProperty(config, "boss_id", location)) {
-            boss_id = config.get("boss_id").getAsString();
-        } else {
-            throw new NullPointerException("Boss must have a Boss ID!");
-        }
+        String boss_id = file_name;
+        if (root.has("boss_id"))
+            boss_id = root.get("boss_id").getAsString();
+        newRoot.addProperty("boss_id", boss_id);
 
-        double global_weight;
-        if (ConfigHelper.checkProperty(config, "global_weight", location)) {
-            global_weight = config.get("global_weight").getAsDouble();
-        } else {
-            throw new NullPointerException("Boss must have a global weight!");
-        }
+        double global_weight = 1;
+        if (root.has("global_weight"))
+            global_weight = root.get("global_weight").getAsDouble();
+        newRoot.addProperty("global_weight", global_weight);
 
-        double category_weight;
-        if (ConfigHelper.checkProperty(config, "category_weight", location)) {
-            category_weight = config.get("category_weight").getAsDouble();
-        } else {
-            throw new NullPointerException("Boss must have a category weight!");
-        }
+        double category_weight = 1;
+        if (root.has("category_weight"))
+            category_weight = root.get("category_weight").getAsDouble();
+        newRoot.addProperty("category_weight", category_weight);
 
         // Pokemon Details
-        // TODO: Remove the form option if it's safe
-        // TODO: Allow multiple feature sections with weights
-        // TODO: Translate old single feature configs to multi feature configs automatically
-        Species species;
+
+        Species species = null;
         int level = 50;
-        FormData form;
-        String features = "";
+        Map<String, Double> features = new HashMap<>();
         Map<Ability, Double> abilities = new HashMap<>();
         Map<Nature, Double> natures = new HashMap<>();
         Map<Gender, Double> genders = new HashMap<>();
@@ -471,192 +457,263 @@ public class BossesConfig {
         IVs ivs = IVs.createRandomIVs(0);
         EVs evs = EVs.createEmpty();
 
-        if (ConfigHelper.checkProperty(config, "pokemon_details", location)) {
-            JsonObject pokemon_details = config.getAsJsonObject("pokemon_details");
-            if (ConfigHelper.checkProperty(pokemon_details, "species", location)) {
-                species = PokemonSpecies.INSTANCE.getByName(pokemon_details.get("species").getAsString());
-                if (species == null) {
-                    throw new NullPointerException("Species not found!");
-                }
-            } else {
-                throw new NullPointerException("Pokemon details must have a species!");
-            }
-            if (ConfigHelper.checkProperty(pokemon_details, "level", location)) {
-                level = pokemon_details.get("level").getAsInt();
-            }
-            if (ConfigHelper.checkProperty(pokemon_details, "form", location)) {
-                form = species.getFormByName(pokemon_details.get("form").getAsString());
-            } else {
-                form = species.getStandardForm();
-            }
-            if (ConfigHelper.checkProperty(pokemon_details, "features", location)) {
-                features = pokemon_details.get("features").getAsString();
-            }
-            if (ConfigHelper.checkProperty(pokemon_details, "ability", location)) {
-                JsonArray ability_array = pokemon_details.getAsJsonArray("ability");
-                for (JsonElement ability_element : ability_array) {
-                    JsonObject ability = ability_element.getAsJsonObject();
-                    String ability_id;
-                    if (ConfigHelper.checkProperty(ability, "ability", location)) {
-                        ability_id = ability.get("ability").getAsString();
-                    } else {
-                        continue;
-                    }
-                    double weight;
-                    if (ConfigHelper.checkProperty(ability, "weight", location)) {
-                        weight = ability.get("weight").getAsDouble();
-                    } else {
-                        continue;
-                    }
-                    AbilityTemplate template = Abilities.INSTANCE.get(ability_id);
-                    if (template == null) {
-                        nr.logError("[RAIDS] Skipping unknown ability: " + ability_id + ".");
-                        continue;
-                    }
-                    Ability possible_ability = template.create(false, Priority.LOWEST);
-                    abilities.put(possible_ability, weight);
-                }
-                if (abilities.isEmpty()) {
-                    throw new NullPointerException("No abilities found!");
-                }
-            } else {
-                throw new NullPointerException("Pokemon details must have an ability!");
-            }
-            if (ConfigHelper.checkProperty(pokemon_details, "nature", location)) {
-                JsonArray nature_array = pokemon_details.getAsJsonArray("nature");
-                for (JsonElement nature_element : nature_array) {
-                    JsonObject nature = nature_element.getAsJsonObject();
-                    String nature_id;
-                    if (ConfigHelper.checkProperty(nature, "nature", location)) {
-                        nature_id = nature.get("nature").getAsString();
-                    } else {
-                        continue;
-                    }
-                    double weight;
-                    if (ConfigHelper.checkProperty(nature, "weight", location)) {
-                        weight = nature.get("weight").getAsDouble();
-                    } else {
-                        continue;
-                    }
-                    Nature possible_nature = Natures.INSTANCE.getNature(nature_id);
-                    if (possible_nature == null) {
-                        nr.logError("[RAIDS] Skipping unknown nature: " + nature_id + ".");
-                    }
-                    natures.put(possible_nature, weight);
-                }
-                if (natures.isEmpty()) {
-                    throw new NullPointerException("No natures found!");
-                }
-            } else {
-                throw new NullPointerException("Pokemon details must have a nature!");
-            }
-            if (ConfigHelper.checkProperty(pokemon_details, "gender", location)) {
-                JsonArray gender_array = pokemon_details.getAsJsonArray("gender");
-                for (JsonElement gender_element : gender_array) {
-                    JsonObject gender = gender_element.getAsJsonObject();
-                    String gender_id;
-                    if (ConfigHelper.checkProperty(gender, "gender", location)) {
-                        gender_id = gender.get("gender").getAsString();
-                    } else {
-                        continue;
-                    }
-                    double weight;
-                    if (ConfigHelper.checkProperty(gender, "weight", location)) {
-                        weight = gender.get("weight").getAsDouble();
-                    } else {
-                        continue;
-                    }
-                    Gender possible_gender = Gender.valueOf(gender_id.toUpperCase());
-                    genders.put(possible_gender, weight);
-                }
-                if (genders.isEmpty()) {
-                    throw new NullPointerException("No genders found!");
-                }
-            } else {
-                throw new NullPointerException("Pokemon details must have a gender!");
-            }
-            if (ConfigHelper.checkProperty(pokemon_details, "shiny", location)) {
-                shiny = pokemon_details.get("shiny").getAsBoolean();
-            }
-            if (ConfigHelper.checkProperty(pokemon_details, "scale", location)) {
-                scale = pokemon_details.get("scale").getAsFloat();
-            }
-            if (ConfigHelper.checkProperty(pokemon_details, "held_item", location)) {
-                held_item = Registries.ITEM.get(Identifier.of(pokemon_details.get("held_item").getAsString()));
-            }
-            if (ConfigHelper.checkProperty(pokemon_details, "held_item_data", location)) {
-                JsonElement data_element = pokemon_details.getAsJsonObject("held_item_data");
-                if (data_element != null) {
-                    held_item_data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, data_element).getOrThrow().getFirst();
-                }
-            }
-            if (ConfigHelper.checkProperty(pokemon_details, "moves", location)) {
-                List<String> moves_array = pokemon_details.getAsJsonArray("moves").asList().stream().map(JsonElement::getAsString).toList();
-                if (moves_array.isEmpty()) {
-                    throw new NullPointerException("Boss must have at least one move!");
-                }
-                for (String move : moves_array) {
-                    MoveTemplate template = Moves.INSTANCE.getByName(move);
-                    if (template == null) {
-                        nr.logError("[RAIDS] Skipping unknown move " + move + ".");
-                        continue;
-                    }
-                    moves.add(template);
-                }
-                if (moves.isEmpty()) {
-                    throw new NullPointerException("No moves found!");
-                }
-            }
-            if (ConfigHelper.checkProperty(pokemon_details, "ivs", location)) {
-                JsonObject ivs_object = pokemon_details.getAsJsonObject("ivs");
-                if (ConfigHelper.checkProperty(ivs_object, "hp", location)) {
-                    ivs.set(Stats.HP, ivs_object.get("hp").getAsInt());
-                }
-                if (ConfigHelper.checkProperty(ivs_object, "atk", location)) {
-                    ivs.set(Stats.ATTACK, ivs_object.get("atk").getAsInt());
-                }
-                if (ConfigHelper.checkProperty(ivs_object, "def", location)) {
-                    ivs.set(Stats.DEFENCE, ivs_object.get("def").getAsInt());
-                }
-                if (ConfigHelper.checkProperty(ivs_object, "sp_atk", location)) {
-                    ivs.set(Stats.SPECIAL_ATTACK, ivs_object.get("sp_atk").getAsInt());
-                }
-                if (ConfigHelper.checkProperty(ivs_object, "sp_def", location)) {
-                    ivs.set(Stats.SPECIAL_DEFENCE, ivs_object.get("sp_def").getAsInt());
-                }
-                if (ConfigHelper.checkProperty(ivs_object, "spd", location)) {
-                    ivs.set(Stats.SPEED, ivs_object.get("spd").getAsInt());
-                }
-            }
-            if (ConfigHelper.checkProperty(pokemon_details, "evs", location)) {
-                JsonObject evs_object = pokemon_details.getAsJsonObject("ivs");
-                if (ConfigHelper.checkProperty(evs_object, "hp", location)) {
-                    evs.set(Stats.HP, evs_object.get("hp").getAsInt());
-                }
-                if (ConfigHelper.checkProperty(evs_object, "atk", location)) {
-                    evs.set(Stats.ATTACK, evs_object.get("atk").getAsInt());
-                }
-                if (ConfigHelper.checkProperty(evs_object, "def", location)) {
-                    evs.set(Stats.DEFENCE, evs_object.get("def").getAsInt());
-                }
-                if (ConfigHelper.checkProperty(evs_object, "sp_atk", location)) {
-                    evs.set(Stats.SPECIAL_ATTACK, evs_object.get("sp_atk").getAsInt());
-                }
-                if (ConfigHelper.checkProperty(evs_object, "sp_def", location)) {
-                    evs.set(Stats.SPECIAL_DEFENCE, evs_object.get("sp_def").getAsInt());
-                }
-                if (ConfigHelper.checkProperty(evs_object, "spd", location)) {
-                    evs.set(Stats.SPEED, evs_object.get("spd").getAsInt());
-                }
-            }
-        } else {
-            throw new NullPointerException("Boss must have pokemon details!");
+        JsonObject pokemonDetails = new JsonObject();
+        if (root.has("pokemon_details"))
+            pokemonDetails = root.getAsJsonObject("pokemon_details");
+
+        if (pokemonDetails.has("species"))
+            species = PokemonSpecies.INSTANCE.getByName(pokemonDetails.get("species").getAsString());
+
+        if (species == null) {
+            NovaRaids.LOGGER.warn("[NovaRaids] Invalid species: {}. Using default (bulbasaur)", pokemonDetails.get("species").getAsString());
+            species = PokemonSpecies.INSTANCE.getByName("bulbasaur");
         }
 
-        PokemonDetails pokemonDetails = new PokemonDetails(
+        if (species == null) {
+            NovaRaids.LOGGER.error("[NovaRaids] Default species was invalid. Using random.");
+            species = PokemonSpecies.INSTANCE.random();
+        }
+
+        pokemonDetails.addProperty("species", species.getName());
+
+        if (pokemonDetails.has("level"))
+            level = pokemonDetails.get("level").getAsInt();
+        pokemonDetails.addProperty("level", level);
+
+        JsonArray featuresArray = new JsonArray();
+        if (pokemonDetails.has("features")) {
+            if (pokemonDetails.get("features").isJsonPrimitive()) {
+                String oldFeatures = pokemonDetails.get("features").getAsString();
+                features.put(oldFeatures, 1.0);
+            } else {
+                featuresArray = pokemonDetails.get("features").getAsJsonArray();
+            }
+        }
+
+        for (JsonElement featureElement : featuresArray) {
+            JsonObject featureObject = featureElement.getAsJsonObject();
+            if (!featureObject.has("feature")) continue;
+
+            String feature = featureObject.get("feature").getAsString();
+
+            double weight = 1.0;
+            if (featureObject.has("weight"))
+                weight = featureObject.get("weight").getAsDouble();
+
+            features.put(feature, weight);
+        }
+
+        featuresArray = new JsonArray();
+        for (Map.Entry<String, Double> entry : features.entrySet()) {
+            JsonObject featureObject = new JsonObject();
+            featureObject.addProperty("feature", entry.getKey());
+            featureObject.addProperty("weight", entry.getValue());
+            featuresArray.add(featureObject);
+        }
+        pokemonDetails.add("features", featuresArray);
+
+        JsonArray abilitiesArray = new JsonArray();
+        if (pokemonDetails.has("abilities"))
+            abilitiesArray = pokemonDetails.get("abilities").getAsJsonArray();
+        else if (pokemonDetails.has("ability"))
+            abilitiesArray = pokemonDetails.get("ability").getAsJsonArray();
+
+        for (JsonElement abilityElement : abilitiesArray) {
+            JsonObject abilityObject = abilityElement.getAsJsonObject();
+            if (!abilityObject.has("ability")) continue;
+            String ability = abilityObject.get("ability").getAsString();
+            double weight = 1.0;
+            if (abilityObject.has("weight"))
+                weight = abilityObject.get("weight").getAsDouble();
+
+            AbilityTemplate template = Abilities.INSTANCE.get(ability);
+            if (template == null) {
+                template = Abilities.INSTANCE.first();
+                NovaRaids.LOGGER.warn("[NovaRaids] Invalid ability: {}. Using default ({}).", ability, template.getName());
+            }
+
+            abilities.put(template.create(false, Priority.LOWEST), weight);
+        }
+
+        abilitiesArray = new JsonArray();
+        for (Map.Entry<Ability, Double> entry : abilities.entrySet()) {
+            JsonObject abilityObject = new JsonObject();
+            abilityObject.addProperty("ability", entry.getKey().getTemplate().getName());
+            abilityObject.addProperty("weight", entry.getValue());
+            abilitiesArray.add(abilityObject);
+        }
+        pokemonDetails.add("abilities", abilitiesArray);
+        pokemonDetails.remove("ability");
+
+        JsonArray naturesArray = new JsonArray();
+        if (pokemonDetails.has("natures"))
+            naturesArray = pokemonDetails.get("natures").getAsJsonArray();
+        else if (pokemonDetails.has("nature"))
+            naturesArray = pokemonDetails.get("nature").getAsJsonArray();
+
+
+        for (JsonElement natureElement : naturesArray) {
+            JsonObject natureObject = natureElement.getAsJsonObject();
+            if (!natureObject.has("nature")) continue;
+            String natureStr = natureObject.get("nature").getAsString();
+            double weight = 1.0;
+            if (natureObject.has("weight"))
+                weight = natureObject.get("weight").getAsDouble();
+
+            Nature nature = Natures.INSTANCE.getNature(natureStr);
+            if (nature == null) {
+                nature = Natures.INSTANCE.getSERIOUS();
+                NovaRaids.LOGGER.warn("[NovaRaids] Invalid nature: {}. Using default ({}).", natureStr, nature.getName());
+            }
+
+            natures.put(nature, weight);
+        }
+
+        naturesArray = new JsonArray();
+        for (Map.Entry<Nature, Double> entry : natures.entrySet()) {
+            JsonObject natureObject = new JsonObject();
+            natureObject.addProperty("nature", entry.getKey().getName().getPath());
+            natureObject.addProperty("weight", entry.getValue());
+            naturesArray.add(natureObject);
+        }
+        pokemonDetails.add("natures", abilitiesArray);
+        pokemonDetails.remove("nature");
+
+        JsonArray gendersArray = new JsonArray();
+        if (pokemonDetails.has("genders"))
+            gendersArray = pokemonDetails.get("genders").getAsJsonArray();
+        else if (pokemonDetails.has("gender"))
+            gendersArray = pokemonDetails.get("gender").getAsJsonArray();
+
+
+        for (JsonElement genderElement : gendersArray) {
+            JsonObject genderObject = genderElement.getAsJsonObject();
+            if (!genderObject.has("nature")) continue;
+            String genderStr = genderObject.get("nature").getAsString();
+            double weight = 1.0;
+            if (genderObject.has("weight"))
+                weight = genderObject.get("weight").getAsDouble();
+
+            Gender gender = Gender.GENDERLESS;
+            try {
+                gender = Gender.valueOf(genderStr.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                NovaRaids.LOGGER.warn("[NovaRaids] Invalid gender: {}. Using default (Genderless).", genderStr);
+            }
+
+            genders.put(gender, weight);
+        }
+
+        gendersArray = new JsonArray();
+        for (Map.Entry<Gender, Double> entry : genders.entrySet()) {
+            JsonObject genderObject = new JsonObject();
+            genderObject.addProperty("gender", entry.getKey().asString());
+            genderObject.addProperty("weight", entry.getValue());
+            gendersArray.add(genderObject);
+        }
+        pokemonDetails.add("genders", gendersArray);
+        pokemonDetails.remove("gender");
+
+        if (pokemonDetails.has("shiny"))
+            shiny = pokemonDetails.get("shiny").getAsBoolean();
+        pokemonDetails.addProperty("shiny", shiny);
+
+        if (pokemonDetails.has("scale"))
+            scale = pokemonDetails.get("scale").getAsInt();
+        pokemonDetails.addProperty("scale", scale);
+
+        if (pokemonDetails.has("held_item"))
+            held_item = Registries.ITEM.get(Identifier.of(pokemonDetails.get("held_item").getAsString()));
+        pokemonDetails.addProperty("held_item", held_item.equals(Items.AIR) ? "" : Registries.ITEM.getId(held_item).toString());
+
+        if (pokemonDetails.has("held_item_data"))
+            held_item_data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, pokemonDetails.get("held_item_data")).getOrThrow().getFirst();
+        pokemonDetails.add("held_item_data", ComponentChanges.CODEC.encode(held_item_data, JsonOps.INSTANCE, new JsonObject()).getOrThrow());
+
+        List<String> movesArray = new ArrayList<>();
+        if (pokemonDetails.has("moves"))
+            movesArray = pokemonDetails.get("moves").getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList();
+        for (String move : movesArray) {
+            MoveTemplate template = Moves.INSTANCE.getByNameOrDummy(move);
+            if (template.getNum() == -1) {
+                NovaRaids.LOGGER.warn("[NovaRaids] Invalid move: {}. Creating dummy move", move);
+                continue;
+            }
+            moves.add(template);
+        }
+
+        JsonArray jsonMoveArray = new JsonArray();
+        for (MoveTemplate move : moves) {
+            jsonMoveArray.add(move.getName());
+        }
+        pokemonDetails.add("moves", jsonMoveArray);
+
+        JsonObject ivsObject = new JsonObject();
+        if (pokemonDetails.has("ivs"))
+            ivsObject = pokemonDetails.get("ivs").getAsJsonObject();
+
+        if (ivsObject.has("hp"))
+            ivs.set(Stats.HP, Math.clamp(ivsObject.get("hp").getAsInt(), 0, IVs.MAX_VALUE));
+        ivsObject.addProperty("hp", ivs.get(Stats.HP));
+
+        if (ivsObject.has("atk"))
+            ivs.set(Stats.ATTACK, Math.clamp(ivsObject.get("atk").getAsInt(), 0, IVs.MAX_VALUE));
+        ivsObject.addProperty("atk", ivs.get(Stats.ATTACK));
+
+        if (ivsObject.has("def"))
+            ivs.set(Stats.DEFENCE, Math.clamp(ivsObject.get("def").getAsInt(), 0, IVs.MAX_VALUE));
+        ivsObject.addProperty("def", ivs.get(Stats.DEFENCE));
+
+        if (ivsObject.has("sp_atk"))
+            ivs.set(Stats.SPECIAL_ATTACK, Math.clamp(ivsObject.get("sp_atk").getAsInt(), 0, IVs.MAX_VALUE));
+        ivsObject.addProperty("sp_atk", ivs.get(Stats.ATTACK));
+
+        if (ivsObject.has("sp_def"))
+            ivs.set(Stats.SPECIAL_DEFENCE, Math.clamp(ivsObject.get("sp_def").getAsInt(), 0, IVs.MAX_VALUE));
+        ivsObject.addProperty("sp_def", ivs.get(Stats.SPEED));
+
+        if (ivsObject.has("spd"))
+            ivs.set(Stats.SPEED, Math.clamp(ivsObject.get("spd").getAsInt(), 0, IVs.MAX_VALUE));
+        ivsObject.addProperty("spd", ivs.get(Stats.SPEED));
+
+        pokemonDetails.add("ivs", ivsObject);
+
+        JsonObject evsObject = new JsonObject();
+        if (pokemonDetails.has("evs"))
+            evsObject = pokemonDetails.get("evs").getAsJsonObject();
+
+        if (evsObject.has("hp"))
+            evs.set(Stats.HP, Math.clamp(evsObject.get("hp").getAsInt(), 0, EVs.MAX_STAT_VALUE));
+        evsObject.addProperty("hp", evs.get(Stats.HP));
+
+        if (evsObject.has("atk"))
+            evs.set(Stats.ATTACK, Math.clamp(evsObject.get("atk").getAsInt(), 0, EVs.MAX_STAT_VALUE));
+        evsObject.addProperty("atk", evs.get(Stats.ATTACK));
+
+        if (evsObject.has("def"))
+            evs.set(Stats.DEFENCE, Math.clamp(evsObject.get("def").getAsInt(), 0, EVs.MAX_STAT_VALUE));
+        evsObject.addProperty("def", evs.get(Stats.DEFENCE));
+
+        if (evsObject.has("sp_atk"))
+            evs.set(Stats.SPECIAL_ATTACK, Math.clamp(evsObject.get("sp_atk").getAsInt(), 0, EVs.MAX_STAT_VALUE));
+        evsObject.addProperty("sp_atk", evs.get(Stats.SPEED));
+
+        if (evsObject.has("sp_def"))
+            evs.set(Stats.SPECIAL_DEFENCE, Math.clamp(evsObject.get("sp_def").getAsInt(), 0, EVs.MAX_STAT_VALUE));
+        evsObject.addProperty("sp_def", evs.get(Stats.SPEED));
+
+        if (evsObject.has("spd"))
+            evs.set(Stats.SPEED, Math.clamp(evsObject.get("spd").getAsInt(), 0, EVs.MAX_STAT_VALUE));
+        evsObject.addProperty("spd", evs.get(Stats.SPEED));
+
+        pokemonDetails.add("evs", evsObject);
+
+        newRoot.add("pokemon_details", pokemonDetails);
+
+
+        PokemonDetails pokemonInfo = new PokemonDetails(
                 species,
                 level,
-                form,
                 features,
                 abilities,
                 natures,
@@ -672,53 +729,64 @@ public class BossesConfig {
 
         // Boss Details
         String display_name = boss_id;
-        int base_health;
+        int base_health = 1000;
         int health_increase_per_player = 0;
         boolean apply_glowing = false;
         Map<String, Double> locations = new HashMap<>();
-        if (ConfigHelper.checkProperty(config, "boss_details", location)) {
-            JsonObject boss_details = config.get("boss_details").getAsJsonObject();
-            if (ConfigHelper.checkProperty(boss_details, "display_name", location)) {
-                display_name = boss_details.get("display_name").getAsString();
-            }
-            if (ConfigHelper.checkProperty(boss_details, "base_health", location)) {
-                base_health = boss_details.get("base_health").getAsInt();
-            } else {
-                throw new NullPointerException("Boss details must have base health!");
-            }
-            if (ConfigHelper.checkProperty(boss_details, "health_increase_per_player", location)) {
-                health_increase_per_player = boss_details.get("health_increase_per_player").getAsInt();
-            }
-            if (ConfigHelper.checkProperty(boss_details, "apply_glowing", location)) {
-                apply_glowing = boss_details.get("apply_glowing").getAsBoolean();
-            }
-            if (ConfigHelper.checkProperty(boss_details, "locations", location)) {
-                JsonArray locations_array = boss_details.get("locations").getAsJsonArray();
-                for (JsonElement location_element : locations_array) {
-                    JsonObject location_object = location_element.getAsJsonObject();
-                    String location_name;
-                    if (ConfigHelper.checkProperty(location_object, "location", location)) {
-                        location_name = location_object.get("location").getAsString();
-                    } else {
-                        continue;
-                    }
-                    double weight;
-                    if (ConfigHelper.checkProperty(location_object, "weight", location)) {
-                        weight = location_object.get("weight").getAsDouble();
-                    } else {
-                        continue;
-                    }
-                    locations.put(location_name, weight);
-                }
-                if (locations.isEmpty()) {
-                    throw new NullPointerException("No locations found!");
-                }
-            } else {
-                throw new NullPointerException("Boss details must have locations!");
-            }
-        } else {
-            throw new NullPointerException("Boss must have boss details!");
+
+        JsonObject bossDetails = new JsonObject();
+        if (root.has("boss_details"))
+            bossDetails = root.get("boss_details").getAsJsonObject();
+
+        if (bossDetails.has("display_name"))
+            display_name = bossDetails.get("display_name").getAsString();
+        bossDetails.addProperty("display_name", display_name);
+
+        if (bossDetails.has("base_health"))
+            base_health = bossDetails.get("base_health").getAsInt();
+        bossDetails.addProperty("base_health", base_health);
+
+        if (bossDetails.has("health_increase_per_player"))
+            health_increase_per_player = bossDetails.get("health_increase_per_player").getAsInt();
+        bossDetails.addProperty("health_increase_per_player", health_increase_per_player);
+
+        if (bossDetails.has("apply_glowing"))
+            apply_glowing = bossDetails.get("apply_glowing").getAsBoolean();
+        bossDetails.addProperty("apply_glowing", apply_glowing);
+
+        JsonArray locationsArray = new JsonArray();
+        if (bossDetails.has("locations"))
+            locationsArray = bossDetails.get("locations").getAsJsonArray();
+
+        for (JsonElement locationElement : locationsArray) {
+            JsonObject locationObject = locationElement.getAsJsonObject();
+            if (!locationObject.has("location")) continue;
+            double weight = 1.0;
+            if (locationObject.has("weight"))
+                weight = locationObject.get("weight").getAsDouble();
+            locations.put(locationObject.get("location").getAsString(), weight);
         }
+
+        if (locations.isEmpty()) {
+            try {
+                String defaultLocation = NovaRaids.INSTANCE.locationsConfig().locations.getFirst().id();
+                locations.put(defaultLocation, 1.0);
+                NovaRaids.LOGGER.error("[NovaRaids] No locations in boss details of boss, {}. Setting to default ({}). This will .", boss_id, defaultLocation);
+            } catch (NoSuchElementException e) {
+                NovaRaids.LOGGER.error("[NovaRaids] No locations to default to.. this should stop your server from crashing but please fix your locations and {} boss config!", boss_id);
+            }
+        }
+
+        locationsArray = new JsonArray();
+        for (Map.Entry<String, Double> entry : locations.entrySet()) {
+            JsonObject locationObject = new JsonObject();
+            locationObject.addProperty("location", entry.getKey());
+            locationObject.addProperty("weight", entry.getValue());
+            locationsArray.add(locationObject);
+        }
+        bossDetails.add("locations", locationsArray);
+
+        newRoot.add("boss_details", bossDetails);
 
         // Item Settings
         boolean allow_global_pokeballs = true;
@@ -726,8 +794,8 @@ public class BossesConfig {
         Voucher boss_voucher = nr.config().default_voucher;
         Pass boss_pass = nr.config().default_pass;
         List<RaidBall> boss_balls = new ArrayList<>();
-        if (ConfigHelper.checkProperty(config, "item_settings", location)) {
-            JsonObject item_settings = config.get("item_settings").getAsJsonObject();
+        if (ConfigHelper.checkProperty(root, "item_settings", location)) {
+            JsonObject item_settings = root.get("item_settings").getAsJsonObject();
             if (ConfigHelper.checkProperty(item_settings, "allow_global_pokeballs", location)) {
                 allow_global_pokeballs = item_settings.get("allow_global_pokeballs").getAsBoolean();
             }
@@ -851,8 +919,8 @@ public class BossesConfig {
         String pre_catch_bossbar = "";
         String catch_bossbar = "";
         List<DistributionSection> rewards;
-        if (ConfigHelper.checkProperty(config, "raid_details", location)) {
-            JsonObject raid_details = config.get("raid_details").getAsJsonObject();
+        if (ConfigHelper.checkProperty(root, "raid_details", location)) {
+            JsonObject raid_details = root.get("raid_details").getAsJsonObject();
             if (ConfigHelper.checkProperty(raid_details, "minimum_level", location)) {
                 minimum_level = raid_details.get("minimum_level").getAsInt();
             }
@@ -990,8 +1058,8 @@ public class BossesConfig {
         boolean reset_moves = true;
         List<CatchPlacement> catch_places = new ArrayList<>();
 
-        if (ConfigHelper.checkProperty(config, "catch_settings", location)) {
-            JsonObject catch_settings = config.get("catch_settings").getAsJsonObject();
+        if (ConfigHelper.checkProperty(root, "catch_settings", location)) {
+            JsonObject catch_settings = root.get("catch_settings").getAsJsonObject();
             if (ConfigHelper.checkProperty(catch_settings, "species_override", location)) {
                 String species_string = catch_settings.get("species_override").getAsString();
                 if (!species_string.isEmpty()) {
@@ -1094,7 +1162,7 @@ public class BossesConfig {
                 category_name,
                 global_weight,
                 category_weight,
-                pokemonDetails,
+                pokemonInfo,
                 display_name,
                 base_health,
                 health_increase_per_player,

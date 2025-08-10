@@ -18,8 +18,7 @@ import java.util.Map;
 public record PokemonDetails(
         Species species,
         int level,
-        FormData form,
-        String features,
+        Map<String, Double> features,
         Map<Ability, Double> possible_abilities,
         Map<Nature, Double> possible_natures,
         Map<Gender, Double> possible_gender,
@@ -54,10 +53,12 @@ public record PokemonDetails(
             }
         }
         pokemon.heal();
-        pokemon.setForm(form);
-        PokemonProperties.Companion.parse(features).apply(pokemon);
+        Map.Entry<?, Double> entry = RandomUtils.getRandomEntry(features);
+        if (entry != null) {
+            PokemonProperties.Companion.parse((String) entry.getKey()).apply(pokemon);
+        }
 
-        Map.Entry<?, Double> entry = RandomUtils.getRandomEntry(possible_abilities);
+        entry = RandomUtils.getRandomEntry(possible_abilities);
         if (entry != null) {
             pokemon.updateAbility((Ability) entry.getKey());
         }
