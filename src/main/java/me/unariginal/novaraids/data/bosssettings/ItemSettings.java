@@ -6,13 +6,13 @@ import me.unariginal.novaraids.data.items.Voucher;
 
 import java.util.List;
 
-public record ItemSettings(boolean allow_global_pokeballs,
-                           boolean allow_category_pokeballs,
+public record ItemSettings(boolean allowGlobalPokeballs,
+                           boolean allowCategoryPokeballs,
                            Voucher voucher,
                            Pass pass,
-                           List<RaidBall> raid_balls) {
+                           List<RaidBall> raidBalls) {
     public RaidBall getRaidBall(String key) {
-        for (RaidBall ball : raid_balls) {
+        for (RaidBall ball : raidBalls) {
             if (ball.id().equals(key)) {
                 return ball;
             }

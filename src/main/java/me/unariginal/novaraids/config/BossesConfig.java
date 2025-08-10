@@ -43,7 +43,7 @@ public class BossesConfig {
         try {
             loadBosses();
         } catch (IOException | NullPointerException | UnsupportedOperationException e) {
-            nr.loaded_properly = false;
+            nr.loadedProperly = false;
             nr.logError("[RAIDS] Failed to load bosses folder. " + e.getMessage());
             for (StackTraceElement element : e.getStackTrace()) {
                 nr.logError("  " + element.toString());
@@ -253,113 +253,113 @@ public class BossesConfig {
 
         //------- Item Settings Section -------//
 
-        Voucher category_choice_voucher = nr.config().global_choice_voucher;
-        Voucher category_random_voucher = nr.config().global_random_voucher;
-        Pass category_pass = nr.config().global_pass;
-        List<RaidBall> category_balls = new ArrayList<>();
+        Voucher categoryChoiceVoucher = nr.config().global_choice_voucher;
+        Voucher categoryRandomVoucher = nr.config().global_random_voucher;
+        Pass categoryPass = nr.config().global_pass;
+        List<RaidBall> categoryBalls = new ArrayList<>();
 
         JsonObject itemSettings = new JsonObject();
         if (root.has("item_settings"))
             itemSettings = root.getAsJsonObject("item_settings");
 
-        JsonObject categoryChoiceVoucher = new JsonObject();
+        JsonObject categoryChoiceVoucherObject = new JsonObject();
         if (itemSettings.has("category_choice_voucher"))
-            categoryChoiceVoucher = itemSettings.getAsJsonObject("category_choice_voucher");
+            categoryChoiceVoucherObject = itemSettings.getAsJsonObject("category_choice_voucher");
 
-        Item choiceVoucherItem = category_choice_voucher.voucher_item();
-        String choiceVoucherName = category_choice_voucher.voucher_name();
-        List<String> choiceVoucherLore = category_choice_voucher.voucher_lore();
-        ComponentChanges choiceVoucherData = category_choice_voucher.voucher_data();
+        Item choiceVoucherItem = categoryChoiceVoucher.voucherItem();
+        String choiceVoucherName = categoryChoiceVoucher.voucherName();
+        List<String> choiceVoucherLore = categoryChoiceVoucher.voucherLore();
+        ComponentChanges choiceVoucherData = categoryChoiceVoucher.voucherData();
 
-        if (categoryChoiceVoucher.has("voucher_item"))
-            choiceVoucherItem = Registries.ITEM.get(Identifier.of(categoryChoiceVoucher.get("voucher_item").getAsString()));
-        categoryChoiceVoucher.addProperty("voucher_item", Registries.ITEM.getId(choiceVoucherItem).toString());
+        if (categoryChoiceVoucherObject.has("voucher_item"))
+            choiceVoucherItem = Registries.ITEM.get(Identifier.of(categoryChoiceVoucherObject.get("voucher_item").getAsString()));
+        categoryChoiceVoucherObject.addProperty("voucher_item", Registries.ITEM.getId(choiceVoucherItem).toString());
 
-        if (categoryChoiceVoucher.has("voucher_name"))
-            choiceVoucherName = categoryChoiceVoucher.get("voucher_name").getAsString();
-        categoryChoiceVoucher.addProperty("voucher_name", choiceVoucherName);
+        if (categoryChoiceVoucherObject.has("voucher_name"))
+            choiceVoucherName = categoryChoiceVoucherObject.get("voucher_name").getAsString();
+        categoryChoiceVoucherObject.addProperty("voucher_name", choiceVoucherName);
 
-        if (categoryChoiceVoucher.has("voucher_lore"))
-            choiceVoucherLore = categoryChoiceVoucher.get("voucher_lore").getAsJsonArray().asList().stream().map(JsonElement::toString).toList();
+        if (categoryChoiceVoucherObject.has("voucher_lore"))
+            choiceVoucherLore = categoryChoiceVoucherObject.get("voucher_lore").getAsJsonArray().asList().stream().map(JsonElement::toString).toList();
         JsonArray choiceLoreArray = new JsonArray();
         for (String line : choiceVoucherLore) {
             choiceLoreArray.add(line);
         }
-        categoryChoiceVoucher.add("voucher_lore", choiceLoreArray);
+        categoryChoiceVoucherObject.add("voucher_lore", choiceLoreArray);
 
-        if (categoryChoiceVoucher.has("voucher_data"))
-            choiceVoucherData = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, categoryChoiceVoucher.get("voucher_data")).getOrThrow().getFirst();
-        categoryChoiceVoucher.add("voucher_data", ComponentChanges.CODEC.encode(choiceVoucherData, JsonOps.INSTANCE, new JsonObject()).getOrThrow());
+        if (categoryChoiceVoucherObject.has("voucher_data"))
+            choiceVoucherData = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, categoryChoiceVoucherObject.get("voucher_data")).getOrThrow().getFirst();
+        categoryChoiceVoucherObject.add("voucher_data", ComponentChanges.CODEC.encode(choiceVoucherData, JsonOps.INSTANCE, new JsonObject()).getOrThrow());
 
-        itemSettings.add("category_choice_voucher", categoryChoiceVoucher);
+        itemSettings.add("category_choice_voucher", categoryChoiceVoucherObject);
 
-        category_choice_voucher = new Voucher(choiceVoucherItem, choiceVoucherName, choiceVoucherLore, choiceVoucherData);
+        categoryChoiceVoucher = new Voucher(choiceVoucherItem, choiceVoucherName, choiceVoucherLore, choiceVoucherData);
 
-        JsonObject categoryRandomVoucher = new JsonObject();
+        JsonObject categoryRandomVoucherObject = new JsonObject();
         if (itemSettings.has("category_random_voucher"))
-            categoryRandomVoucher = itemSettings.getAsJsonObject("category_random_voucher");
+            categoryRandomVoucherObject = itemSettings.getAsJsonObject("category_random_voucher");
 
-        Item randomVoucherItem = category_random_voucher.voucher_item();
-        String randomVoucherName = category_random_voucher.voucher_name();
-        List<String> randomVoucherLore = category_random_voucher.voucher_lore();
-        ComponentChanges randomVoucherData = category_random_voucher.voucher_data();
+        Item randomVoucherItem = categoryRandomVoucher.voucherItem();
+        String randomVoucherName = categoryRandomVoucher.voucherName();
+        List<String> randomVoucherLore = categoryRandomVoucher.voucherLore();
+        ComponentChanges randomVoucherData = categoryRandomVoucher.voucherData();
 
-        if (categoryRandomVoucher.has("voucher_item"))
-            randomVoucherItem = Registries.ITEM.get(Identifier.of(categoryRandomVoucher.get("voucher_item").getAsString()));
-        categoryRandomVoucher.addProperty("voucher_item", Registries.ITEM.getId(randomVoucherItem).toString());
+        if (categoryRandomVoucherObject.has("voucher_item"))
+            randomVoucherItem = Registries.ITEM.get(Identifier.of(categoryRandomVoucherObject.get("voucher_item").getAsString()));
+        categoryRandomVoucherObject.addProperty("voucher_item", Registries.ITEM.getId(randomVoucherItem).toString());
 
-        if (categoryRandomVoucher.has("voucher_name"))
-            randomVoucherName = categoryRandomVoucher.get("voucher_name").getAsString();
-        categoryRandomVoucher.addProperty("voucher_name", randomVoucherName);
+        if (categoryRandomVoucherObject.has("voucher_name"))
+            randomVoucherName = categoryRandomVoucherObject.get("voucher_name").getAsString();
+        categoryRandomVoucherObject.addProperty("voucher_name", randomVoucherName);
 
-        if (categoryRandomVoucher.has("voucher_lore"))
-            randomVoucherLore = categoryRandomVoucher.get("voucher_lore").getAsJsonArray().asList().stream().map(JsonElement::toString).toList();
+        if (categoryRandomVoucherObject.has("voucher_lore"))
+            randomVoucherLore = categoryRandomVoucherObject.get("voucher_lore").getAsJsonArray().asList().stream().map(JsonElement::toString).toList();
         JsonArray randomLoreArray = new JsonArray();
         for (String line : randomVoucherLore) {
             randomLoreArray.add(line);
         }
-        categoryRandomVoucher.add("voucher_lore", randomLoreArray);
+        categoryRandomVoucherObject.add("voucher_lore", randomLoreArray);
 
-        if (categoryRandomVoucher.has("voucher_data"))
-            randomVoucherData = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, categoryRandomVoucher.get("voucher_data")).getOrThrow().getFirst();
-        categoryRandomVoucher.add("voucher_data", ComponentChanges.CODEC.encode(randomVoucherData, JsonOps.INSTANCE, new JsonObject()).getOrThrow());
+        if (categoryRandomVoucherObject.has("voucher_data"))
+            randomVoucherData = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, categoryRandomVoucherObject.get("voucher_data")).getOrThrow().getFirst();
+        categoryRandomVoucherObject.add("voucher_data", ComponentChanges.CODEC.encode(randomVoucherData, JsonOps.INSTANCE, new JsonObject()).getOrThrow());
 
-        itemSettings.add("category_random_voucher", categoryRandomVoucher);
+        itemSettings.add("category_random_voucher", categoryRandomVoucherObject);
 
-        category_random_voucher = new Voucher(randomVoucherItem, randomVoucherName, randomVoucherLore, randomVoucherData);
+        categoryRandomVoucher = new Voucher(randomVoucherItem, randomVoucherName, randomVoucherLore, randomVoucherData);
 
-        JsonObject categoryPass = new JsonObject();
+        JsonObject categoryPassObject = new JsonObject();
         if (itemSettings.has("category_pass"))
-            categoryPass = itemSettings.getAsJsonObject("category_pass");
+            categoryPassObject = itemSettings.getAsJsonObject("category_pass");
 
-        Item passItem = category_random_voucher.voucher_item();
-        String passName = category_random_voucher.voucher_name();
-        List<String> passLore = category_random_voucher.voucher_lore();
-        ComponentChanges passData = category_random_voucher.voucher_data();
+        Item passItem = categoryPass.passItem();
+        String passName = categoryPass.passName();
+        List<String> passLore = categoryPass.passLore();
+        ComponentChanges passData = categoryPass.passData();
 
-        if (categoryPass.has("pass_item"))
-            passItem = Registries.ITEM.get(Identifier.of(categoryPass.get("pass_item").getAsString()));
-        categoryPass.addProperty("pass_item", Registries.ITEM.getId(passItem).toString());
+        if (categoryPassObject.has("pass_item"))
+            passItem = Registries.ITEM.get(Identifier.of(categoryPassObject.get("pass_item").getAsString()));
+        categoryPassObject.addProperty("pass_item", Registries.ITEM.getId(passItem).toString());
 
-        if (categoryPass.has("pass_name"))
-            passName = categoryPass.get("pass_name").getAsString();
-        categoryPass.addProperty("pass_name", passName);
+        if (categoryPassObject.has("pass_name"))
+            passName = categoryPassObject.get("pass_name").getAsString();
+        categoryPassObject.addProperty("pass_name", passName);
 
-        if (categoryPass.has("pass_lore"))
-            passLore = categoryPass.get("pass_lore").getAsJsonArray().asList().stream().map(JsonElement::toString).toList();
+        if (categoryPassObject.has("pass_lore"))
+            passLore = categoryPassObject.get("pass_lore").getAsJsonArray().asList().stream().map(JsonElement::toString).toList();
         JsonArray passLoreArray = new JsonArray();
         for (String line : passLore) {
             passLoreArray.add(line);
         }
-        categoryPass.add("pass_lore", passLoreArray);
+        categoryPassObject.add("pass_lore", passLoreArray);
 
-        if (categoryPass.has("pass_data"))
-            passData = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, categoryPass.get("voucher_data")).getOrThrow().getFirst();
-        categoryPass.add("pass_data", ComponentChanges.CODEC.encode(passData, JsonOps.INSTANCE, new JsonObject()).getOrThrow());
+        if (categoryPassObject.has("pass_data"))
+            passData = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, categoryPassObject.get("voucher_data")).getOrThrow().getFirst();
+        categoryPassObject.add("pass_data", ComponentChanges.CODEC.encode(passData, JsonOps.INSTANCE, new JsonObject()).getOrThrow());
 
-        itemSettings.add("category_pass", categoryPass);
+        itemSettings.add("category_pass", categoryPassObject);
 
-        category_pass = new Pass(passItem, passName, passLore, passData);
+        categoryPass = new Pass(passItem, passName, passLore, passData);
 
         JsonObject raidBalls = new JsonObject();
         if (itemSettings.has("raid_balls"))
@@ -392,7 +392,7 @@ public class BossesConfig {
                 pokeball_data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, ballObject.get("pokeball_data")).getOrThrow().getFirst();
             ballObject.add("pokeball_data", ComponentChanges.CODEC.encode(pokeball_data, JsonOps.INSTANCE, new JsonObject()).getOrThrow());
 
-            category_balls.add(new RaidBall(id, pokeball, pokeball_name, pokeball_lore, pokeball_data));
+            categoryBalls.add(new RaidBall(id, pokeball, pokeball_name, pokeball_lore, pokeball_data));
         }
 
         List<DistributionSection> rewards = ConfigHelper.getDistributionSections(root, "", true);
@@ -410,11 +410,11 @@ public class BossesConfig {
                 setup_bossbar, 
                 fight_bossbar, 
                 pre_catch_bossbar, 
-                catch_bossbar, 
-                category_choice_voucher, 
-                category_random_voucher, 
-                category_pass, 
-                category_balls, 
+                catch_bossbar,
+                categoryChoiceVoucher,
+                categoryRandomVoucher,
+                categoryPass,
+                categoryBalls,
                 rewards
         ));
     }
@@ -422,24 +422,24 @@ public class BossesConfig {
     public void loadBoss(String category_name, File file) throws IOException, NullPointerException, UnsupportedOperationException {
         JsonObject root = JsonParser.parseReader(new FileReader(file)).getAsJsonObject();
         JsonObject newRoot = new JsonObject();
-        String file_name = file.getName().substring(0, file.getName().indexOf(".json"));
+        String fileName = file.getName().substring(0, file.getName().indexOf(".json"));
 
-        String location = category_name + "/bosses/" + file_name;
+        String location = category_name + "/bosses/" + fileName;
 
-        String boss_id = file_name;
+        String bossId = fileName;
         if (root.has("boss_id"))
-            boss_id = root.get("boss_id").getAsString();
-        newRoot.addProperty("boss_id", boss_id);
+            bossId = root.get("boss_id").getAsString();
+        newRoot.addProperty("boss_id", bossId);
 
-        double global_weight = 1;
+        double globalWeight = 1;
         if (root.has("global_weight"))
-            global_weight = root.get("global_weight").getAsDouble();
-        newRoot.addProperty("global_weight", global_weight);
+            globalWeight = root.get("global_weight").getAsDouble();
+        newRoot.addProperty("global_weight", globalWeight);
 
-        double category_weight = 1;
+        double categoryWeight = 1;
         if (root.has("category_weight"))
-            category_weight = root.get("category_weight").getAsDouble();
-        newRoot.addProperty("category_weight", category_weight);
+            categoryWeight = root.get("category_weight").getAsDouble();
+        newRoot.addProperty("category_weight", categoryWeight);
 
         // Pokemon Details
 
@@ -451,8 +451,8 @@ public class BossesConfig {
         Map<Gender, Double> genders = new HashMap<>();
         boolean shiny = false;
         float scale = 1.0f;
-        Item held_item = Items.AIR;
-        ComponentChanges held_item_data = ComponentChanges.EMPTY;
+        Item heldItem = Items.AIR;
+        ComponentChanges heldItemData = ComponentChanges.EMPTY;
         List<MoveTemplate> moves = new ArrayList<>();
         IVs ivs = IVs.createRandomIVs(0);
         EVs evs = EVs.createEmpty();
@@ -623,12 +623,12 @@ public class BossesConfig {
         pokemonDetails.addProperty("scale", scale);
 
         if (pokemonDetails.has("held_item"))
-            held_item = Registries.ITEM.get(Identifier.of(pokemonDetails.get("held_item").getAsString()));
-        pokemonDetails.addProperty("held_item", held_item.equals(Items.AIR) ? "" : Registries.ITEM.getId(held_item).toString());
+            heldItem = Registries.ITEM.get(Identifier.of(pokemonDetails.get("held_item").getAsString()));
+        pokemonDetails.addProperty("held_item", heldItem.equals(Items.AIR) ? "" : Registries.ITEM.getId(heldItem).toString());
 
         if (pokemonDetails.has("held_item_data"))
-            held_item_data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, pokemonDetails.get("held_item_data")).getOrThrow().getFirst();
-        pokemonDetails.add("held_item_data", ComponentChanges.CODEC.encode(held_item_data, JsonOps.INSTANCE, new JsonObject()).getOrThrow());
+            heldItemData = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, pokemonDetails.get("held_item_data")).getOrThrow().getFirst();
+        pokemonDetails.add("held_item_data", ComponentChanges.CODEC.encode(heldItemData, JsonOps.INSTANCE, new JsonObject()).getOrThrow());
 
         List<String> movesArray = new ArrayList<>();
         if (pokemonDetails.has("moves"))
@@ -720,18 +720,18 @@ public class BossesConfig {
                 genders,
                 shiny,
                 scale,
-                held_item,
-                held_item_data,
+                heldItem,
+                heldItemData,
                 moves,
                 ivs,
                 evs
         );
 
         // Boss Details
-        String display_name = boss_id;
-        int base_health = 1000;
-        int health_increase_per_player = 0;
-        boolean apply_glowing = false;
+        String displayName = bossId;
+        int baseHealth = 1000;
+        int healthIncreasePerPlayer = 0;
+        boolean applyGlowing = false;
         Map<String, Double> locations = new HashMap<>();
 
         JsonObject bossDetails = new JsonObject();
@@ -739,20 +739,20 @@ public class BossesConfig {
             bossDetails = root.get("boss_details").getAsJsonObject();
 
         if (bossDetails.has("display_name"))
-            display_name = bossDetails.get("display_name").getAsString();
-        bossDetails.addProperty("display_name", display_name);
+            displayName = bossDetails.get("display_name").getAsString();
+        bossDetails.addProperty("display_name", displayName);
 
         if (bossDetails.has("base_health"))
-            base_health = bossDetails.get("base_health").getAsInt();
-        bossDetails.addProperty("base_health", base_health);
+            baseHealth = bossDetails.get("base_health").getAsInt();
+        bossDetails.addProperty("base_health", baseHealth);
 
         if (bossDetails.has("health_increase_per_player"))
-            health_increase_per_player = bossDetails.get("health_increase_per_player").getAsInt();
-        bossDetails.addProperty("health_increase_per_player", health_increase_per_player);
+            healthIncreasePerPlayer = bossDetails.get("health_increase_per_player").getAsInt();
+        bossDetails.addProperty("health_increase_per_player", healthIncreasePerPlayer);
 
         if (bossDetails.has("apply_glowing"))
-            apply_glowing = bossDetails.get("apply_glowing").getAsBoolean();
-        bossDetails.addProperty("apply_glowing", apply_glowing);
+            applyGlowing = bossDetails.get("apply_glowing").getAsBoolean();
+        bossDetails.addProperty("apply_glowing", applyGlowing);
 
         JsonArray locationsArray = new JsonArray();
         if (bossDetails.has("locations"))
@@ -771,9 +771,9 @@ public class BossesConfig {
             try {
                 String defaultLocation = NovaRaids.INSTANCE.locationsConfig().locations.getFirst().id();
                 locations.put(defaultLocation, 1.0);
-                NovaRaids.LOGGER.error("[NovaRaids] No locations in boss details of boss, {}. Setting to default ({}). This will .", boss_id, defaultLocation);
+                NovaRaids.LOGGER.error("[NovaRaids] No locations in boss details of boss, {}. Setting to default ({}). This will .", bossId, defaultLocation);
             } catch (NoSuchElementException e) {
-                NovaRaids.LOGGER.error("[NovaRaids] No locations to default to.. this should stop your server from crashing but please fix your locations and {} boss config!", boss_id);
+                NovaRaids.LOGGER.error("[NovaRaids] No locations to default to.. this should stop your server from crashing but please fix your locations and {} boss config!", bossId);
             }
         }
 
@@ -789,24 +789,24 @@ public class BossesConfig {
         newRoot.add("boss_details", bossDetails);
 
         // Item Settings
-        boolean allow_global_pokeballs = true;
-        boolean allow_category_pokeballs = true;
-        Voucher boss_voucher = nr.config().default_voucher;
-        Pass boss_pass = nr.config().default_pass;
-        List<RaidBall> boss_balls = new ArrayList<>();
+        boolean allowGlobalPokeballs = true;
+        boolean allowCategoryPokeballs = true;
+        Voucher bossVoucher = nr.config().default_voucher;
+        Pass bossPass = nr.config().default_pass;
+        List<RaidBall> bossBalls = new ArrayList<>();
         if (ConfigHelper.checkProperty(root, "item_settings", location)) {
             JsonObject item_settings = root.get("item_settings").getAsJsonObject();
             if (ConfigHelper.checkProperty(item_settings, "allow_global_pokeballs", location)) {
-                allow_global_pokeballs = item_settings.get("allow_global_pokeballs").getAsBoolean();
+                allowGlobalPokeballs = item_settings.get("allow_global_pokeballs").getAsBoolean();
             }
             if (ConfigHelper.checkProperty(item_settings, "allow_category_pokeballs", location)) {
-                allow_category_pokeballs = item_settings.get("allow_category_pokeballs").getAsBoolean();
+                allowCategoryPokeballs = item_settings.get("allow_category_pokeballs").getAsBoolean();
             }
             if (ConfigHelper.checkProperty(item_settings, "boss_voucher", location)) {
-                Item voucher_item = nr.config().default_voucher.voucher_item();
-                String voucher_name = nr.config().default_voucher.voucher_name();
-                List<String> voucher_lore = nr.config().default_voucher.voucher_lore();
-                ComponentChanges voucher_data = nr.config().default_voucher.voucher_data();
+                Item voucher_item = nr.config().default_voucher.voucherItem();
+                String voucher_name = nr.config().default_voucher.voucherName();
+                List<String> voucher_lore = nr.config().default_voucher.voucherLore();
+                ComponentChanges voucher_data = nr.config().default_voucher.voucherData();
                 JsonObject boss_voucher_object = item_settings.getAsJsonObject("boss_voucher");
                 if (ConfigHelper.checkProperty(boss_voucher_object, "voucher_item", location)) {
                     voucher_item = Registries.ITEM.get(Identifier.of(boss_voucher_object.get("voucher_item").getAsString()));
@@ -828,13 +828,13 @@ public class BossesConfig {
                         voucher_data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, data_object).getOrThrow().getFirst();
                     }
                 }
-                boss_voucher = new Voucher(voucher_item, voucher_name, voucher_lore, voucher_data);
+                bossVoucher = new Voucher(voucher_item, voucher_name, voucher_lore, voucher_data);
             }
             if (ConfigHelper.checkProperty(item_settings, "boss_pass", location)) {
-                Item pass_item = nr.config().default_pass.pass_item();
-                String pass_name = nr.config().default_pass.pass_name();
-                List<String> pass_lore = nr.config().default_pass.pass_lore();
-                ComponentChanges pass_data = nr.config().default_pass.pass_data();
+                Item pass_item = nr.config().default_pass.passItem();
+                String pass_name = nr.config().default_pass.passName();
+                List<String> pass_lore = nr.config().default_pass.passLore();
+                ComponentChanges pass_data = nr.config().default_pass.passData();
                 JsonObject boss_pass_object = item_settings.getAsJsonObject("boss_pass");
                 if (ConfigHelper.checkProperty(boss_pass_object, "pass_item", location)) {
                     pass_item = Registries.ITEM.get(Identifier.of(boss_pass_object.get("pass_item").getAsString()));
@@ -856,7 +856,7 @@ public class BossesConfig {
                         pass_data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, data_object).getOrThrow().getFirst();
                     }
                 }
-                boss_pass = new Pass(pass_item, pass_name, pass_lore, pass_data);
+                bossPass = new Pass(pass_item, pass_name, pass_lore, pass_data);
             }
             if (ConfigHelper.checkProperty(item_settings, "raid_balls", location)) {
                 JsonObject raid_balls = item_settings.getAsJsonObject("raid_balls");
@@ -887,17 +887,17 @@ public class BossesConfig {
                             data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, dataElement).getOrThrow().getFirst();
                         }
                     }
-                    boss_balls.add(new RaidBall(ball_id, item, name, lore, data));
+                    bossBalls.add(new RaidBall(ball_id, item, name, lore, data));
                 }
             }
         }
 
         ItemSettings itemSettings = new ItemSettings(
-                allow_global_pokeballs,
-                allow_category_pokeballs,
-                boss_voucher,
-                boss_pass,
-                boss_balls
+                allowGlobalPokeballs,
+                allowCategoryPokeballs,
+                bossVoucher,
+                bossPass,
+                bossBalls
         );
 
         // Raid Details
@@ -1046,7 +1046,6 @@ public class BossesConfig {
         // Catch Settings
         Species species_override = species;
         int level_override = 1;
-        FormData form_override = species.getStandardForm();
         String features_override = "";
         boolean keep_scale = false;
         boolean keep_held_item = false;
@@ -1073,10 +1072,6 @@ public class BossesConfig {
             }
             if (ConfigHelper.checkProperty(catch_settings, "level_override", location)) {
                 level_override = catch_settings.get("level_override").getAsInt();
-            }
-            if (ConfigHelper.checkProperty(catch_settings, "form_override", location)) {
-                String form_ov = catch_settings.get("form_override").getAsString();
-                form_override = species_override.getFormByName(form_ov);
             }
             if (ConfigHelper.checkProperty(catch_settings, "features_override", location)) {
                 features_override = catch_settings.get("features_override").getAsString();
@@ -1144,7 +1139,6 @@ public class BossesConfig {
         CatchSettings catch_settings = new CatchSettings(
                 species_override,
                 level_override,
-                form_override,
                 features_override,
                 keep_scale,
                 keep_held_item,
@@ -1158,15 +1152,15 @@ public class BossesConfig {
         );
 
         bosses.add(new Boss(
-                boss_id,
+                bossId,
                 category_name,
-                global_weight,
-                category_weight,
+                globalWeight,
+                categoryWeight,
                 pokemonInfo,
-                display_name,
-                base_health,
-                health_increase_per_player,
-                apply_glowing,
+                displayName,
+                baseHealth,
+                healthIncreasePerPlayer,
+                applyGlowing,
                 locations,
                 itemSettings,
                 raidDetails,
@@ -1177,8 +1171,8 @@ public class BossesConfig {
     public Boss getRandomBoss(String category) {
         double total_weight = 0;
         for (Boss boss : bosses) {
-            if (boss.category_id().equalsIgnoreCase(category)) {
-                total_weight += boss.category_weight();
+            if (boss.categoryId().equalsIgnoreCase(category)) {
+                total_weight += boss.categoryWeight();
             }
         }
 
@@ -1186,8 +1180,8 @@ public class BossesConfig {
             double random_weight = new Random().nextDouble(total_weight);
             total_weight = 0;
             for (Boss boss : bosses) {
-                if (boss.category_id().equalsIgnoreCase(category)) {
-                    total_weight += boss.category_weight();
+                if (boss.categoryId().equalsIgnoreCase(category)) {
+                    total_weight += boss.categoryWeight();
                     if (random_weight < total_weight) {
                         return boss;
                     }
@@ -1200,14 +1194,14 @@ public class BossesConfig {
     public Boss getRandomBoss() {
         double total_weight = 0;
         for (Boss boss : bosses) {
-            total_weight += boss.global_weight();
+            total_weight += boss.globalWeight();
         }
 
         if (total_weight > 0) {
             double random_weight = new Random().nextDouble(total_weight);
             total_weight = 0;
             for (Boss boss : bosses) {
-                total_weight += boss.global_weight();
+                total_weight += boss.globalWeight();
                 if (random_weight < total_weight) {
                     return boss;
                 }
@@ -1218,7 +1212,7 @@ public class BossesConfig {
 
     public Boss getBoss(String id) {
         for (Boss boss : bosses) {
-            if (boss.boss_id().equalsIgnoreCase(id)) {
+            if (boss.bossId().equalsIgnoreCase(id)) {
                 return boss;
             }
         }

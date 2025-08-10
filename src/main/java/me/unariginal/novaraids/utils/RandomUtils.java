@@ -5,20 +5,20 @@ import java.util.Random;
 
 public class RandomUtils {
     public static Map.Entry<?, Double> getRandomEntry(Map<?, Double> map) {
-        double total_weight = 0.0;
+        double totalWeight = 0.0;
 
         if (!map.isEmpty()) {
             for (Map.Entry<?, Double> entry : map.entrySet()) {
-                total_weight += entry.getValue();
+                totalWeight += entry.getValue();
             }
 
-            if (total_weight > 0.0) {
-                double random_weight = new Random().nextDouble(total_weight);
-                total_weight = 0.0;
+            if (totalWeight > 0.0) {
+                double randomWeight = new Random().nextDouble(totalWeight);
+                totalWeight = 0.0;
 
                 for (Map.Entry<?, Double> entry : map.entrySet()) {
-                    total_weight += entry.getValue();
-                    if (random_weight < total_weight) {
+                    totalWeight += entry.getValue();
+                    if (randomWeight < totalWeight) {
                         return entry;
                     }
                 }

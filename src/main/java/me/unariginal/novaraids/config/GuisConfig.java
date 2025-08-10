@@ -428,7 +428,7 @@ public class GuisConfig {
         try {
             loadGuis();
         } catch (IOException | NullPointerException | UnsupportedOperationException e) {
-            nr.loaded_properly = false;
+            nr.loadedProperly = false;
             nr.logError("[RAIDS] Failed to load gui files. " + e.getMessage());
             for (StackTraceElement element : e.getStackTrace()) {
                 nr.logError("  " + element.toString());
@@ -576,7 +576,7 @@ public class GuisConfig {
             gui.title = config.get("gui_title").getAsString();
         }
         if (ConfigHelper.checkProperty(config, "use_hopper_gui", location)) {
-            gui.use_hopper_gui = config.get("use_hopper_gui").getAsBoolean();
+            gui.useHopperGui = config.get("use_hopper_gui").getAsBoolean();
         }
         if (ConfigHelper.checkProperty(config, "rows", location)) {
             gui.rows = config.get("rows").getAsInt();
@@ -585,16 +585,16 @@ public class GuisConfig {
             gui.layout = config.getAsJsonArray("gui_layout").asList().stream().map(JsonElement::getAsString).toList();
         }
 
-        gui.banned_pokemon_button = getButton(config, "banned_pokemon", location, gui.banned_pokemon_button);
-        gui.banned_pokemon = getBannedItemGui(config, "banned_pokemon", "pokemon_display_item", location, gui.banned_pokemon);
-        gui.banned_moves_button = getButton(config, "banned_moves", location, gui.banned_moves_button);
-        gui.banned_moves = getBannedItemGui(config, "banned_moves", "move_display_item", location, gui.banned_moves);
-        gui.banned_abilities_button = getButton(config, "banned_abilities", location, gui.banned_abilities_button);
-        gui.banned_abilities = getBannedItemGui(config, "banned_abilities", "ability_display_item", location, gui.banned_abilities);
-        gui.banned_held_items_button = getButton(config, "banned_held_items", location, gui.banned_held_items_button);
-        gui.banned_held_items = getBannedItemGui(config, "banned_held_items", "held_item_display_item", location, gui.banned_held_items);
-        gui.banned_bag_items_button = getButton(config, "banned_bag_items", location, gui.banned_bag_items_button);
-        gui.banned_bag_items = getBannedItemGui(config, "banned_bag_items", "bag_item_display_item", location, gui.banned_bag_items);
+        gui.bannedPokemonButton = getButton(config, "banned_pokemon", location, gui.bannedPokemonButton);
+        gui.bannedPokemon = getBannedItemGui(config, "banned_pokemon", "pokemon_display_item", location, gui.bannedPokemon);
+        gui.bannedMovesButton = getButton(config, "banned_moves", location, gui.bannedMovesButton);
+        gui.bannedMoves = getBannedItemGui(config, "banned_moves", "move_display_item", location, gui.bannedMoves);
+        gui.bannedAbilitiesButton = getButton(config, "banned_abilities", location, gui.bannedAbilitiesButton);
+        gui.bannedAbilities = getBannedItemGui(config, "banned_abilities", "ability_display_item", location, gui.bannedAbilities);
+        gui.bannedHeldItemsButton = getButton(config, "banned_held_items", location, gui.bannedHeldItemsButton);
+        gui.bannedHeldItems = getBannedItemGui(config, "banned_held_items", "held_item_display_item", location, gui.bannedHeldItems);
+        gui.bannedBagItemsButton = getButton(config, "banned_bag_items", location, gui.bannedBagItemsButton);
+        gui.bannedBagItems = getBannedItemGui(config, "banned_bag_items", "bag_item_display_item", location, gui.bannedBagItems);
 
         return gui;
     }
@@ -613,11 +613,11 @@ public class GuisConfig {
                 if (ConfigHelper.checkProperty(gui_settings, "gui_layout", location)) {
                     gui.layout = gui_settings.getAsJsonArray("gui_layout").asList().stream().map(JsonElement::getAsString).toList();
                 }
-                gui.display_button = getButton(gui_settings, display_item_property, location, gui.display_button);
-                gui.background_button = getButton(gui_settings, "background_item", location, gui.background_button);
-                gui.previous_button = getButton(gui_settings, "previous_item", location, gui.previous_button);
-                gui.next_button = getButton(gui_settings, "next_item", location, gui.next_button);
-                gui.close_button = getButton(gui_settings, "close_item", location, gui.close_button);
+                gui.displayButton = getButton(gui_settings, display_item_property, location, gui.displayButton);
+                gui.backgroundButton = getButton(gui_settings, "background_item", location, gui.backgroundButton);
+                gui.previousButton = getButton(gui_settings, "previous_item", location, gui.previousButton);
+                gui.nextButton = getButton(gui_settings, "next_item", location, gui.nextButton);
+                gui.closeButton = getButton(gui_settings, "close_item", location, gui.closeButton);
             }
         }
         return gui;
@@ -642,34 +642,34 @@ public class GuisConfig {
         if (ConfigHelper.checkProperty(config, "raid_display_item", location)) {
             JsonObject raid_display_item = config.getAsJsonObject("raid_display_item");
             if (ConfigHelper.checkProperty(raid_display_item, "symbol", location)) {
-                raid_list_gui.display_symbol = raid_display_item.get("symbol").getAsString();
+                raid_list_gui.displaySymbol = raid_display_item.get("symbol").getAsString();
             }
             if (ConfigHelper.checkProperty(raid_display_item, "item_name", location)) {
-                raid_list_gui.display_name = raid_display_item.get("item_name").getAsString();
+                raid_list_gui.displayName = raid_display_item.get("item_name").getAsString();
             }
             if (ConfigHelper.checkProperty(raid_display_item, "item_lore", location)) {
                 JsonObject item_lore = raid_display_item.getAsJsonObject("item_lore");
                 if (ConfigHelper.checkProperty(item_lore, "joinable", location)) {
-                    raid_list_gui.joinable_lore = item_lore.getAsJsonArray("joinable").asList().stream().map(JsonElement::getAsString).toList();
+                    raid_list_gui.joinableLore = item_lore.getAsJsonArray("joinable").asList().stream().map(JsonElement::getAsString).toList();
                 }
                 if (ConfigHelper.checkProperty(item_lore, "requires_pass", location)) {
-                    raid_list_gui.requires_pass_lore = item_lore.getAsJsonArray("requires_pass").asList().stream().map(JsonElement::getAsString).toList();
+                    raid_list_gui.requiresPassLore = item_lore.getAsJsonArray("requires_pass").asList().stream().map(JsonElement::getAsString).toList();
                 }
                 if (ConfigHelper.checkProperty(item_lore, "in_progress", location)) {
-                    raid_list_gui.in_progress_lore = item_lore.getAsJsonArray("in_progress").asList().stream().map(JsonElement::getAsString).toList();
+                    raid_list_gui.inProgressLore = item_lore.getAsJsonArray("in_progress").asList().stream().map(JsonElement::getAsString).toList();
                 }
             }
             if (ConfigHelper.checkProperty(raid_display_item, "item_data", location, false)) {
                 JsonElement item_data = raid_display_item.get("item_data");
                 if (item_data != null) {
-                    raid_list_gui.display_data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, item_data).getOrThrow().getFirst();
+                    raid_list_gui.displayData = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, item_data).getOrThrow().getFirst();
                 }
             }
         }
-        raid_list_gui.close_button = getButton(config, "close_item", location, raid_list_gui.close_button);
-        raid_list_gui.next_button = getButton(config, "next_item", location, raid_list_gui.next_button);
-        raid_list_gui.previous_button = getButton(config, "previous_item", location, raid_list_gui.previous_button);
-        raid_list_gui.background_button = getButton(config, "background_item", location, raid_list_gui.background_button);
+        raid_list_gui.closeButton = getButton(config, "close_item", location, raid_list_gui.closeButton);
+        raid_list_gui.nextButton = getButton(config, "next_item", location, raid_list_gui.nextButton);
+        raid_list_gui.previousButton = getButton(config, "previous_item", location, raid_list_gui.previousButton);
+        raid_list_gui.backgroundButton = getButton(config, "background_item", location, raid_list_gui.backgroundButton);
     }
 
     public void loadRaidQueue(File file) throws IOException, NullPointerException, UnsupportedOperationException {
@@ -691,32 +691,32 @@ public class GuisConfig {
         if (ConfigHelper.checkProperty(config, "raid_display_item", location)) {
             JsonObject raid_display_item = config.getAsJsonObject("raid_display_item");
             if (ConfigHelper.checkProperty(raid_display_item, "symbol", location)) {
-                queue_gui.display_symbol = raid_display_item.get("symbol").getAsString();
+                queue_gui.displaySymbol = raid_display_item.get("symbol").getAsString();
             }
             if (ConfigHelper.checkProperty(raid_display_item, "item_name", location)) {
-                queue_gui.display_name = raid_display_item.get("item_name").getAsString();
+                queue_gui.displayName = raid_display_item.get("item_name").getAsString();
             }
             if (ConfigHelper.checkProperty(raid_display_item, "item_lore", location)) {
                 JsonObject item_lore = raid_display_item.getAsJsonObject("item_lore");
                 if (ConfigHelper.checkProperty(item_lore, "default", location)) {
-                    queue_gui.default_lore = item_lore.getAsJsonArray("default").asList().stream().map(JsonElement::getAsString).toList();
+                    queue_gui.defaultLore = item_lore.getAsJsonArray("default").asList().stream().map(JsonElement::getAsString).toList();
                 }
                 if (ConfigHelper.checkProperty(item_lore, "cancelable", location)) {
-                    queue_gui.cancel_lore = item_lore.getAsJsonArray("cancelable").asList().stream().map(JsonElement::getAsString).toList();
+                    queue_gui.cancelLore = item_lore.getAsJsonArray("cancelable").asList().stream().map(JsonElement::getAsString).toList();
                 }
             }
             if (ConfigHelper.checkProperty(raid_display_item, "item_data", location, false)) {
                 JsonElement item_data = raid_display_item.get("item_data");
                 if (item_data != null) {
-                    queue_gui.display_data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, item_data).getOrThrow().getFirst();
+                    queue_gui.displayData = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, item_data).getOrThrow().getFirst();
                 }
             }
         }
 
-        queue_gui.background_button = getButton(config, "background_item", location, queue_gui.background_button);
-        queue_gui.next_button = getButton(config, "next_item", location, queue_gui.next_button);
-        queue_gui.previous_button = getButton(config, "previous_item", location, queue_gui.previous_button);
-        queue_gui.close_button = getButton(config, "close_item", location, queue_gui.close_button);
+        queue_gui.backgroundButton = getButton(config, "background_item", location, queue_gui.backgroundButton);
+        queue_gui.nextButton = getButton(config, "next_item", location, queue_gui.nextButton);
+        queue_gui.previousButton = getButton(config, "previous_item", location, queue_gui.previousButton);
+        queue_gui.closeButton = getButton(config, "close_item", location, queue_gui.closeButton);
     }
 
     public void loadRaidVoucher(File file) throws IOException, NullPointerException, UnsupportedOperationException {
@@ -735,11 +735,11 @@ public class GuisConfig {
         if (ConfigHelper.checkProperty(config, "gui_layout", location)) {
             voucher_gui.layout = config.getAsJsonArray("gui_layout").asList().stream().map(JsonElement::getAsString).toList();
         }
-        voucher_gui.display_button = getButton(config, "raid_display_item", location, voucher_gui.display_button);
-        voucher_gui.background_button = getButton(config, "background_item", location, voucher_gui.background_button);
-        voucher_gui.next_button = getButton(config, "next_item", location, voucher_gui.next_button);
-        voucher_gui.previous_button = getButton(config, "previous_item", location, voucher_gui.previous_button);
-        voucher_gui.close_button = getButton(config, "close_item", location, voucher_gui.close_button);
+        voucher_gui.displayButton = getButton(config, "raid_display_item", location, voucher_gui.displayButton);
+        voucher_gui.backgroundButton = getButton(config, "background_item", location, voucher_gui.backgroundButton);
+        voucher_gui.nextButton = getButton(config, "next_item", location, voucher_gui.nextButton);
+        voucher_gui.previousButton = getButton(config, "previous_item", location, voucher_gui.previousButton);
+        voucher_gui.closeButton = getButton(config, "close_item", location, voucher_gui.closeButton);
     }
 
     public void loadRaidPass(File file) throws IOException, NullPointerException, UnsupportedOperationException {
@@ -758,19 +758,19 @@ public class GuisConfig {
         if (ConfigHelper.checkProperty(config, "gui_layout", location)) {
             pass_gui.layout = config.getAsJsonArray("gui_layout").asList().stream().map(JsonElement::getAsString).toList();
         }
-        pass_gui.display_button = getButton(config, "raid_display_item", location, pass_gui.display_button);
-        pass_gui.background_button = getButton(config, "background_item", location, voucher_gui.background_button);
-        pass_gui.next_button = getButton(config, "next_item", location, voucher_gui.next_button);
-        pass_gui.previous_button = getButton(config, "previous_item", location, voucher_gui.previous_button);
-        pass_gui.close_button = getButton(config, "close_item", location, voucher_gui.close_button);
+        pass_gui.displayButton = getButton(config, "raid_display_item", location, pass_gui.displayButton);
+        pass_gui.backgroundButton = getButton(config, "background_item", location, voucher_gui.backgroundButton);
+        pass_gui.nextButton = getButton(config, "next_item", location, voucher_gui.nextButton);
+        pass_gui.previousButton = getButton(config, "previous_item", location, voucher_gui.previousButton);
+        pass_gui.closeButton = getButton(config, "close_item", location, voucher_gui.closeButton);
     }
 
     public GuiButton getButton(JsonObject config, String button_property, String location, GuiButton button) throws NullPointerException, UnsupportedOperationException {
         String symbol = button.symbol();
         String item = button.item();
-        String item_name = button.item_name();
-        List<String> item_lore = button.item_lore();
-        ComponentChanges item_data = button.item_data();
+        String item_name = button.itemName();
+        List<String> item_lore = button.itemLore();
+        ComponentChanges item_data = button.itemData();
 
         if (ConfigHelper.checkProperty(config, button_property, location)) {
             JsonObject button_item = config.getAsJsonObject(button_property);

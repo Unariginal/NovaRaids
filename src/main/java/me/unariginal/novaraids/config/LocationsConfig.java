@@ -22,7 +22,7 @@ public class LocationsConfig {
         try {
             loadLocations();
         } catch (IOException | NullPointerException | UnsupportedOperationException e) {
-            nr.loaded_properly = false;
+            nr.loadedProperly = false;
             nr.logError("[RAIDS] Failed to load locations file. " + e.getMessage());
             for (StackTraceElement element : e.getStackTrace()) {
                 nr.logError("  " + element.toString());

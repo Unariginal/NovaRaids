@@ -5,15 +5,15 @@ import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.*;
 
-public record RewardPool(UUID uuid, String name, boolean allow_duplicates, int min_rolls, int max_rolls, Map<Reward, Double> rewards) {
+public record RewardPool(UUID uuid, String name, boolean allowDuplicates, int minRolls, int maxRolls, Map<Reward, Double> rewards) {
     public void distributeRewards(ServerPlayerEntity player) {
-        List<String> applied_rewards = new ArrayList<>();
+        List<String> appliedRewards = new ArrayList<>();
 
-        int rolls = new Random().nextInt(min_rolls(), max_rolls() + 1);
+        int rolls = new Random().nextInt(minRolls(), maxRolls() + 1);
         for (int i = 0; i < rolls; i++) {
             double total_weight = 0.0;
             for (Reward reward : rewards().keySet()) {
-                if (allow_duplicates() || !applied_rewards.contains(reward.name)) {
+                if (allowDuplicates() || !appliedRewards.contains(reward.name)) {
                     total_weight += rewards().get(reward);
                 }
             }
@@ -23,7 +23,7 @@ public record RewardPool(UUID uuid, String name, boolean allow_duplicates, int m
                 total_weight = 0.0;
                 Reward to_give = null;
                 for (Reward reward : rewards().keySet()) {
-                    if (allow_duplicates() || !applied_rewards.contains(reward.name)) {
+                    if (allowDuplicates() || !appliedRewards.contains(reward.name)) {
                         total_weight += rewards().get(reward);
                         if (random_weight < total_weight) {
                             to_give = reward;
@@ -33,8 +33,8 @@ public record RewardPool(UUID uuid, String name, boolean allow_duplicates, int m
                 }
 
                 if (to_give != null) {
-                    to_give.apply_reward(player);
-                    applied_rewards.add(to_give.name());
+                    to_give.applyReward(player);
+                    appliedRewards.add(to_give.name());
                 } else {
                     NovaRaids.INSTANCE.logError("[RAIDS] Failed to distribute reward. No reward was found to give.");
                 }

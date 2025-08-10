@@ -19,5 +19,5 @@ public abstract class Reward {
         return name;
     }
 
-    public void apply_reward(ServerPlayerEntity player) {}
+    public void applyReward(ServerPlayerEntity player) {}
 }

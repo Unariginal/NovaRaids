@@ -23,23 +23,15 @@ import java.util.concurrent.ExecutionException;
 
 public class TickManager {
     private static final NovaRaids nr = NovaRaids.INSTANCE;
-    private static ZonedDateTime set_time_buffer = ZonedDateTime.now(nr.schedulesConfig().zone);
-    private static int webhook_update_timer = WebhookHandler.webhook_update_rate_seconds * 20;
+    private static ZonedDateTime setTimeBuffer = ZonedDateTime.now(nr.schedulesConfig().zone);
+    private static int webhookUpdateTimer = WebhookHandler.webhookUpdateRateSeconds * 20;
 
-    public static void update_webhooks() throws ConcurrentModificationException {
-        webhook_update_timer--;
-        if (webhook_update_timer <= 0) {
-            webhook_update_timer = WebhookHandler.webhook_update_rate_seconds * 20;
+    public static void updateWebhooks() throws ConcurrentModificationException {
+        webhookUpdateTimer--;
+        if (webhookUpdateTimer <= 0) {
+            webhookUpdateTimer = WebhookHandler.webhookUpdateRateSeconds * 20;
 
-//            if (!nr.config().opt_out) {
-//                try {
-//                    CollectingDataToSellToTheChineseGovernment.editStartWebhook();
-//                } catch (ExecutionException | InterruptedException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-
-            for (Raid raid : nr.active_raids().values()) {
+            for (Raid raid : nr.activeRaids().values()) {
                 long id = raid.getCurrentWebhookID();
                 if (id == 0) {
                     continue;
@@ -61,14 +53,14 @@ public class TickManager {
         }
     }
 
-    public static void fix_boss_positions() throws ConcurrentModificationException {
-        for (Raid raid : nr.active_raids().values()) {
+    public static void fixBossPositions() throws ConcurrentModificationException {
+        for (Raid raid : nr.activeRaids().values()) {
             raid.fixBossPosition();
             if (raid.stage() == 2 || raid.stage() == 4) {
                 List<PokemonEntity> toRemove = new ArrayList<>();
-                for (PokemonEntity pokemonEntity : raid.get_clones().keySet()) {
-                    UUID player_uuid = raid.get_clones().get(pokemonEntity);
-                    ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(player_uuid);
+                for (PokemonEntity pokemonEntity : raid.getClones().keySet()) {
+                    UUID playerUUID = raid.getClones().get(pokemonEntity);
+                    ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(playerUUID);
                     if (player != null) {
                         PokemonBattle battle = BattleRegistry.INSTANCE.getBattleByParticipatingPlayer(player);
                         if (battle == null) {
@@ -79,28 +71,28 @@ public class TickManager {
                     }
                 }
                 for (PokemonEntity pokemonEntity : toRemove) {
-                    raid.remove_clone(pokemonEntity);
+                    raid.removeClone(pokemonEntity);
                 }
             }
 
-            if (raid.stage() > 1 && raid.participating_players().isEmpty()) {
+            if (raid.stage() > 1 && raid.participatingPlayers().isEmpty()) {
                 raid.stop();
             }
         }
     }
 
-    public static void fix_player_positions() throws ConcurrentModificationException {
-        for (Raid raid : nr.active_raids().values()) {
+    public static void fixPlayerPositions() throws ConcurrentModificationException {
+        for (Raid raid : nr.activeRaids().values()) {
             for (ServerPlayerEntity player : nr.server().getPlayerManager().getPlayerList()) {
                 if (player != null) {
-                    int raid_radius = raid.raidBoss_location().border_radius();
-                    int raid_pushback = raid.raidBoss_location().boss_pushback_radius();
-                    ServerWorld world = raid.raidBoss_location().world();
+                    int raidRadius = raid.raidBossLocation().borderRadius();
+                    int raidPushback = raid.raidBossLocation().bossPushbackRadius();
+                    ServerWorld world = raid.raidBossLocation().world();
                     if (player.getServerWorld() == world) {
                         double x = player.getPos().getX();
                         double z = player.getPos().getZ();
-                        double cx = raid.raidBoss_location().pos().getX();
-                        double cz = raid.raidBoss_location().pos().getZ();
+                        double cx = raid.raidBossLocation().pos().getX();
+                        double cz = raid.raidBossLocation().pos().getZ();
 
                         // Get direction vector
                         double deltaX = x - cx;
@@ -119,25 +111,25 @@ public class TickManager {
                         double hyp = Math.pow(deltaX, 2) + Math.pow(deltaZ, 2);
                         hyp = Math.sqrt(hyp);
 
-                        if (hyp < raid_pushback) {
-                            distance = raid_pushback + 1;
-                        } else if (hyp > raid_radius) {
-                            if (raid.stage() < 3 && raid.participating_players().contains(player.getUuid()) && raid.stage() != -1 ) {
-                                distance = raid_radius - 1;
+                        if (hyp < raidPushback) {
+                            distance = raidPushback + 1;
+                        } else if (hyp > raidRadius) {
+                            if (raid.stage() < 3 && raid.participatingPlayers().contains(player.getUuid()) && raid.stage() != -1 ) {
+                                distance = raidRadius - 1;
                             }
                         }
 
                         if (!Double.isNaN(distance)) {
-                            double new_x = cx + distance * Math.cos(Math.toRadians(angle));
-                            double new_z = cz + distance * Math.sin(Math.toRadians(angle));
-                            double new_y = raid.raidBoss_location().pos().getY();
-                            int chunkX = (int) Math.floor(new_x / 16);
-                            int chunkZ = (int) Math.floor(new_z / 16);
+                            double newX = cx + distance * Math.cos(Math.toRadians(angle));
+                            double newZ = cz + distance * Math.sin(Math.toRadians(angle));
+                            double newY = raid.raidBossLocation().pos().getY();
+                            int chunkX = (int) Math.floor(newX / 16);
+                            int chunkZ = (int) Math.floor(newZ / 16);
                             world.setChunkForced(chunkX, chunkZ, true);
-                            while (!world.getBlockState(new BlockPos((int) new_x, (int) new_y, (int) new_z)).isAir()) {
-                                new_y++;
+                            while (!world.getBlockState(new BlockPos((int) newX, (int) newY, (int) newZ)).isAir()) {
+                                newY++;
                             }
-                            player.teleport(world, new_x, new_y, new_z, player.getYaw(), player.getPitch());
+                            player.teleport(world, newX, newY, newZ, player.getYaw(), player.getPitch());
                             world.setChunkForced(chunkX, chunkZ, false);
                         }
                     }
@@ -146,48 +138,48 @@ public class TickManager {
         }
     }
 
-    public static void handle_defeated_bosses() throws ConcurrentModificationException {
-        List<Raid> to_remove = new ArrayList<>();
-        for (Raid raid : nr.active_raids().values()) {
+    public static void handleDefeatedBosses() throws ConcurrentModificationException {
+        List<Raid> toRemove = new ArrayList<>();
+        for (Raid raid : nr.activeRaids().values()) {
             if (raid.stage() == -1) {
-                to_remove.add(raid);
+                toRemove.add(raid);
                 continue;
             }
 
             if (raid.stage() == 2) {
-                if (raid.current_health() <= 0) {
-                    raid.pre_catch_phase();
+                if (raid.currentHealth() <= 0) {
+                    raid.preCatchPhase();
                 }
             }
         }
 
-        for (Raid raid : to_remove) {
-            nr.remove_raid(raid);
+        for (Raid raid : toRemove) {
+            nr.removeRaid(raid);
             raid.stop();
         }
     }
 
-    public static void execute_tasks() throws ConcurrentModificationException {
+    public static void executeTasks() throws ConcurrentModificationException {
         ServerWorld world = nr.server().getOverworld();
-        long current_tick = world.getTime();
-        for (Raid raid : nr.active_raids().values()) {
+        long currentTick = world.getTime();
+        for (Raid raid : nr.activeRaids().values()) {
             if (!raid.getTasks().isEmpty()) {
-                if (raid.getTasks().get(current_tick) != null) {
-                    if (!raid.getTasks().get(current_tick).isEmpty()) {
-                        for (Task task : raid.getTasks().get(current_tick)) {
+                if (raid.getTasks().get(currentTick) != null) {
+                    if (!raid.getTasks().get(currentTick).isEmpty()) {
+                        for (Task task : raid.getTasks().get(currentTick)) {
                             task.action().run();
                         }
-                        raid.getTasks().remove(current_tick);
+                        raid.getTasks().remove(currentTick);
                     }
                 }
             }
         }
     }
 
-    public static void update_bossbars() throws ConcurrentModificationException {
-        for (Raid raid : nr.active_raids().values()) {
+    public static void updateBossbars() throws ConcurrentModificationException {
+        for (Raid raid : nr.activeRaids().values()) {
             if (raid.stage() == 2) {
-                float progress = (float) raid.current_health() / raid.max_health();
+                float progress = (float) raid.currentHealth() / raid.maxHealth();
 
                 if (progress < 0F) {
                     progress = 0F;
@@ -197,18 +189,18 @@ public class TickManager {
                     progress = 1F;
                 }
 
-                for (UUID player_uuid : raid.bossbars().keySet()) {
+                for (UUID playerUUID : raid.bossbars().keySet()) {
                     try {
-                        raid.bossbars().get(player_uuid).progress(progress);
+                        raid.bossbars().get(playerUUID).progress(progress);
                     } catch (IllegalArgumentException | NullPointerException e) {
-                        nr.logError("Error updating bossbar for player uuid: " + player_uuid);
+                        nr.logError("Error updating bossbar for player uuid: " + playerUUID);
                         nr.logError("Error Message: " + e.getMessage());
                     }
                 }
             } else {
-                float remaining_ticks = (float) (raid.phase_end_time() - nr.server().getOverworld().getTime());
-                float progress = 1.0F / (raid.phase_length() * 20L);
-                float total = progress * remaining_ticks;
+                float remainingTicks = (float) (raid.phaseEndTime() - nr.server().getOverworld().getTime());
+                float progress = 1.0F / (raid.phaseLength() * 20L);
+                float total = progress * remainingTicks;
 
                 if (total < 0F) {
                     total = 0F;
@@ -218,28 +210,28 @@ public class TickManager {
                     total = 1F;
                 }
 
-                for (UUID player_uuid : raid.bossbars().keySet()) {
+                for (UUID playerUUID : raid.bossbars().keySet()) {
                     try {
-                        if (raid.bossbars().containsKey(player_uuid) && raid.bossbars().get(player_uuid) != null) {
-                            raid.bossbars().get(player_uuid).progress(total);
+                        if (raid.bossbars().containsKey(playerUUID) && raid.bossbars().get(playerUUID) != null) {
+                            raid.bossbars().get(playerUUID).progress(total);
                         }
                     } catch (IllegalArgumentException | NullPointerException e) {
-                        nr.logError("Error updating bossbar for player uuid: " + player_uuid);
+                        nr.logError("Error updating bossbar for player uuid: " + playerUUID);
                         nr.logError("Error Message: " + e.getMessage());
                     }
                 }
             }
 
-            raid.show_overlay(raid.bossbar_data());
+            raid.showOverlay(raid.bossbarData());
         }
     }
 
-    public static void fix_player_pokemon() throws ConcurrentModificationException {
+    public static void fixPlayerPokemon() throws ConcurrentModificationException {
         if (!nr.config().hide_other_pokemon_in_raid) {
-            for (Raid raid : nr.active_raids().values()) {
+            for (Raid raid : nr.activeRaids().values()) {
                 if (raid.stage() == 2) {
-                    for (UUID player_uuid : raid.participating_players()) {
-                        ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(player_uuid);
+                    for (UUID playerUUID : raid.participatingPlayers()) {
+                        ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(playerUUID);
                         if (player != null) {
                             PokemonBattle battle = BattleRegistry.INSTANCE.getBattleByParticipatingPlayer(player);
                             if (battle != null) {
@@ -253,8 +245,8 @@ public class TickManager {
                                                 if (entity != null) {
                                                     double x = entity.getPos().getX();
                                                     double z = entity.getPos().getZ();
-                                                    double cx = raid.raidBoss_location().pos().getX();
-                                                    double cz = raid.raidBoss_location().pos().getZ();
+                                                    double cx = raid.raidBossLocation().pos().getX();
+                                                    double cz = raid.raidBossLocation().pos().getZ();
 
                                                     // Get direction vector
                                                     double deltaX = x - cx;
@@ -267,12 +259,12 @@ public class TickManager {
                                                         angle += 360;
                                                     }
 
-                                                    double distance = Math.min(30, raid.raidBoss_location().border_radius());
+                                                    double distance = Math.min(30, raid.raidBossLocation().borderRadius());
 
-                                                    double new_x = cx + distance * Math.cos(Math.toRadians(angle));
-                                                    double new_z = cz + distance * Math.sin(Math.toRadians(angle));
+                                                    double newX = cx + distance * Math.cos(Math.toRadians(angle));
+                                                    double newZ = cz + distance * Math.sin(Math.toRadians(angle));
 
-                                                    entity.setPosition(new_x, raid.raidBoss_location().pos().getY(), new_z);
+                                                    entity.setPosition(newX, raid.raidBossLocation().pos().getY(), newZ);
                                                 }
                                             }
                                         }
@@ -286,58 +278,58 @@ public class TickManager {
         }
     }
 
-    public static void scheduled_raids() throws ConcurrentModificationException {
+    public static void scheduledRaids() throws ConcurrentModificationException {
         ZonedDateTime now = ZonedDateTime.now(nr.schedulesConfig().zone);
         for (Schedule schedule : nr.schedulesConfig().schedules) {
             boolean shouldExecute = false;
             if (schedule instanceof SpecificSchedule specificSchedule) {
-                if (set_time_buffer.until(now, ChronoUnit.SECONDS) >= 1 && specificSchedule.isNextTime()) {
+                if (setTimeBuffer.until(now, ChronoUnit.SECONDS) >= 1 && specificSchedule.isNextTime()) {
                     nr.logInfo("[RAIDS] Attempting scheduled raid");
-                    set_time_buffer = now;
+                    setTimeBuffer = now;
                     shouldExecute = true;
                 }
             } else if (schedule instanceof RandomSchedule randomSchedule) {
-                if (set_time_buffer.until(now, ChronoUnit.SECONDS) >= 1 && randomSchedule.isNextTime()) {
+                if (setTimeBuffer.until(now, ChronoUnit.SECONDS) >= 1 && randomSchedule.isNextTime()) {
                     nr.logInfo("[RAIDS] Attempting random raid");
-                    set_time_buffer = now;
+                    setTimeBuffer = now;
                     randomSchedule.setNextRandom(now);
                     shouldExecute = true;
                 }
             } else if (schedule instanceof CronSchedule cronSchedule) {
-                if (set_time_buffer.until(now, ChronoUnit.SECONDS) >= 1 && cronSchedule.isNextTime()) {
+                if (setTimeBuffer.until(now, ChronoUnit.SECONDS) >= 1 && cronSchedule.isNextTime()) {
                     nr.logInfo("[RAIDS] Attempting cron raid");
-                    set_time_buffer = now;
+                    setTimeBuffer = now;
                     cronSchedule.setNextExecution(now);
                     shouldExecute = true;
                 }
             }
 
             if (shouldExecute) {
-                double total_weight = 0.0;
+                double totalWeight = 0.0;
                 for (ScheduleBoss scheduleBoss : schedule.bosses) {
                     if (scheduleBoss.type().equalsIgnoreCase("category")) {
                         if (nr.bossesConfig().getCategory(scheduleBoss.id()) != null) {
-                            total_weight += scheduleBoss.weight();
+                            totalWeight += scheduleBoss.weight();
                         } else {
                             nr.logError("[RAIDS] Category " + scheduleBoss.id() + " does not exist. Skipping.");
                         }
                     } else if (scheduleBoss.type().equalsIgnoreCase("boss")) {
                         if (nr.bossesConfig().getBoss(scheduleBoss.id()) != null) {
-                            total_weight += scheduleBoss.weight();
+                            totalWeight += scheduleBoss.weight();
                         } else {
                             nr.logError("[RAIDS] Boss " + scheduleBoss.id() + " does not exist. Skipping.");
                         }
                     }
                 }
-                if (total_weight > 0.0) {
-                    double random_weight = new Random().nextDouble(total_weight);
-                    total_weight = 0.0;
+                if (totalWeight > 0.0) {
+                    double randomWeight = new Random().nextDouble(totalWeight);
+                    totalWeight = 0.0;
                     for (ScheduleBoss scheduleBoss : schedule.bosses) {
                         if (scheduleBoss.type().equalsIgnoreCase("category")) {
                             Category category = nr.bossesConfig().getCategory(scheduleBoss.id());
                             if (category != null) {
-                                total_weight += scheduleBoss.weight();
-                                if (random_weight < total_weight) {
+                                totalWeight += scheduleBoss.weight();
+                                if (randomWeight < totalWeight) {
                                     Boss boss = nr.bossesConfig().getRandomBoss(category.id());
                                     if (boss != null) {
                                         nr.raidCommands().start(boss, null, null);
@@ -350,8 +342,8 @@ public class TickManager {
                         } else if (scheduleBoss.type().equalsIgnoreCase("boss")) {
                             Boss boss = nr.bossesConfig().getBoss(scheduleBoss.id());
                             if (boss != null) {
-                                total_weight += scheduleBoss.weight();
-                                if (random_weight < total_weight) {
+                                totalWeight += scheduleBoss.weight();
+                                if (randomWeight < totalWeight) {
                                     nr.raidCommands().start(boss, null, null);
                                     break;
                                 }

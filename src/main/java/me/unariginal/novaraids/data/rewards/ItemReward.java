@@ -38,7 +38,7 @@ public class ItemReward extends Reward {
     }
 
     @Override
-    public void apply_reward(ServerPlayerEntity player) {
+    public void applyReward(ServerPlayerEntity player) {
         ItemStack reward = new ItemStack(item());
         reward.setCount(new Random().nextInt(minCount(), maxCount() + 1));
         if (data() != null) {

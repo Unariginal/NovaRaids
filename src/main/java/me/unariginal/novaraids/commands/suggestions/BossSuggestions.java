@@ -13,9 +13,9 @@ import java.util.concurrent.CompletableFuture;
 public class BossSuggestions implements SuggestionProvider<ServerCommandSource> {
     @Override
     public CompletableFuture<Suggestions> getSuggestions(CommandContext<ServerCommandSource> context, SuggestionsBuilder builder) {
-        if (NovaRaids.INSTANCE.loaded_properly) {
+        if (NovaRaids.INSTANCE.loadedProperly) {
             for (Boss boss : NovaRaids.INSTANCE.bossesConfig().bosses) {
-                builder.suggest(boss.boss_id());
+                builder.suggest(boss.bossId());
             }
         }
         return builder.buildFuture();

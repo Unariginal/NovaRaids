@@ -33,13 +33,13 @@ public class PokemonReward extends Reward {
     private final String gender;
     private final boolean shiny;
     private final float scale;
-    private final String held_item;
-    private final ComponentChanges held_item_data;
-    private final List<String> move_set;
+    private final String heldItem;
+    private final ComponentChanges heldItemData;
+    private final List<String> moveSet;
     private final IVs ivs;
     private final EVs evs;
 
-    public PokemonReward(String name, String species, int level, String ability, String nature, String form, String features, String gender, boolean shiny, float scale, String held_item, ComponentChanges held_item_data, List<String> move_set, IVs ivs, EVs evs) {
+    public PokemonReward(String name, String species, int level, String ability, String nature, String form, String features, String gender, boolean shiny, float scale, String heldItem, ComponentChanges heldItemData, List<String> moveSet, IVs ivs, EVs evs) {
         super(name, "pokemon");
         this.species = species;
         this.level = level;
@@ -50,9 +50,9 @@ public class PokemonReward extends Reward {
         this.gender = gender;
         this.shiny = shiny;
         this.scale = scale;
-        this.held_item = held_item;
-        this.held_item_data = held_item_data;
-        this.move_set = move_set;
+        this.heldItem = heldItem;
+        this.heldItemData = heldItemData;
+        this.moveSet = moveSet;
         this.ivs = ivs;
         this.evs = evs;
     }
@@ -95,21 +95,21 @@ public class PokemonReward extends Reward {
         return scale;
     }
 
-    public Item held_item() {
-        if (!held_item.isEmpty()) {
-            return Registries.ITEM.get(Identifier.of(held_item));
+    public Item heldItem() {
+        if (!heldItem.isEmpty()) {
+            return Registries.ITEM.get(Identifier.of(heldItem));
         }
         return null;
     }
 
-    public ComponentChanges held_item_data() {
-        return held_item_data;
+    public ComponentChanges heldItemData() {
+        return heldItemData;
     }
 
-    public ItemStack held_item_stack() {
-        ItemStack stack = new ItemStack(held_item());
-        if (held_item_data() != null) {
-            stack.applyChanges(held_item_data());
+    public ItemStack heldItemStack() {
+        ItemStack stack = new ItemStack(heldItem());
+        if (heldItemData() != null) {
+            stack.applyChanges(heldItemData());
         }
         return stack;
     }
@@ -117,7 +117,7 @@ public class PokemonReward extends Reward {
     public MoveSet moves() {
         int index = 0;
         MoveSet moves = new MoveSet();
-        for (String move : move_set) {
+        for (String move : moveSet) {
             MoveTemplate moveTemplate = Moves.INSTANCE.getByName(move);
             if (moveTemplate != null) {
                 moves.setMove(index, moveTemplate.create());
@@ -136,7 +136,7 @@ public class PokemonReward extends Reward {
     }
 
     @Override
-    public void apply_reward(ServerPlayerEntity player) {
+    public void applyReward(ServerPlayerEntity player) {
         Pokemon pokemon = new Pokemon();
         pokemon.setSpecies(species());
         pokemon.setLevel(level());
@@ -147,8 +147,8 @@ public class PokemonReward extends Reward {
         pokemon.setGender(gender());
         pokemon.setShiny(shiny());
         pokemon.setScaleModifier(scale());
-        if (held_item() != null) {
-            pokemon.setHeldItem$common(held_item_stack());
+        if (heldItem() != null) {
+            pokemon.setHeldItem$common(heldItemStack());
         }
         int move_slot = 0;
         for (Move move : moves()) {

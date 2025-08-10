@@ -104,7 +104,7 @@ public class Config {
         try {
             loadConfig();
         } catch (IOException | NullPointerException | UnsupportedOperationException e) {
-            nr.loaded_properly = false;
+            nr.loadedProperly = false;
             nr.logError("[RAIDS] Failed to load config file. " + e.getMessage());
             for (StackTraceElement element : e.getStackTrace()) {
                 nr.logError("  " + element.toString());
@@ -232,10 +232,10 @@ public class Config {
                 if (vouchers_enabled) {
                     if (ConfigHelper.checkProperty(voucher_settings, "default_voucher", location)) {
                         JsonObject voucher = voucher_settings.getAsJsonObject("default_voucher");
-                        Item default_voucher_item = default_voucher.voucher_item();
-                        String default_voucher_name = default_voucher.voucher_name();
-                        List<String> default_voucher_lore = default_voucher.voucher_lore();
-                        ComponentChanges default_voucher_data = default_voucher.voucher_data();
+                        Item default_voucher_item = default_voucher.voucherItem();
+                        String default_voucher_name = default_voucher.voucherName();
+                        List<String> default_voucher_lore = default_voucher.voucherLore();
+                        ComponentChanges default_voucher_data = default_voucher.voucherData();
 
                         if (ConfigHelper.checkProperty(voucher, "voucher_item", location)) {
                             String voucher_item_name = voucher.get("voucher_item").getAsString();
@@ -270,10 +270,10 @@ public class Config {
 
                     if (ConfigHelper.checkProperty(voucher_settings, "global_choice_voucher", location, false)) {
                         JsonObject voucher = voucher_settings.getAsJsonObject("global_choice_voucher");
-                        Item global_choice_voucher_item = global_choice_voucher.voucher_item();
-                        String global_choice_voucher_name = global_choice_voucher.voucher_name();
-                        List<String> global_choice_voucher_lore = global_choice_voucher.voucher_lore();
-                        ComponentChanges global_choice_voucher_data = global_choice_voucher.voucher_data();
+                        Item global_choice_voucher_item = global_choice_voucher.voucherItem();
+                        String global_choice_voucher_name = global_choice_voucher.voucherName();
+                        List<String> global_choice_voucher_lore = global_choice_voucher.voucherLore();
+                        ComponentChanges global_choice_voucher_data = global_choice_voucher.voucherData();
 
                         if (ConfigHelper.checkProperty(voucher, "voucher_item", location)) {
                             String voucher_item_name = voucher.get("voucher_item").getAsString();
@@ -308,10 +308,10 @@ public class Config {
 
                     if (ConfigHelper.checkProperty(voucher_settings, "global_random_voucher", location, false)) {
                         JsonObject voucher = voucher_settings.getAsJsonObject("global_random_voucher");
-                        Item global_random_voucher_item = global_random_voucher.voucher_item();
-                        String global_random_voucher_name = global_random_voucher.voucher_name();
-                        List<String> global_random_voucher_lore = global_random_voucher.voucher_lore();
-                        ComponentChanges global_random_voucher_data = global_random_voucher.voucher_data();
+                        Item global_random_voucher_item = global_random_voucher.voucherItem();
+                        String global_random_voucher_name = global_random_voucher.voucherName();
+                        List<String> global_random_voucher_lore = global_random_voucher.voucherLore();
+                        ComponentChanges global_random_voucher_data = global_random_voucher.voucherData();
 
                         if (ConfigHelper.checkProperty(voucher, "voucher_item", location)) {
                             String voucher_item_name = voucher.get("voucher_item").getAsString();
@@ -354,10 +354,10 @@ public class Config {
                 if (passes_enabled) {
                     if (ConfigHelper.checkProperty(pass_settings, "default_pass", location)) {
                         JsonObject pass = pass_settings.getAsJsonObject("default_pass");
-                        Item default_pass_item = default_pass.pass_item();
-                        String default_pass_name = default_pass.pass_name();
-                        List<String> default_pass_lore = default_pass.pass_lore();
-                        ComponentChanges default_pass_data = default_pass.pass_data();
+                        Item default_pass_item = default_pass.passItem();
+                        String default_pass_name = default_pass.passName();
+                        List<String> default_pass_lore = default_pass.passLore();
+                        ComponentChanges default_pass_data = default_pass.passData();
 
                         if (ConfigHelper.checkProperty(pass, "pass_item", location)) {
                             String pass_item_name = pass.get("pass_item").getAsString();
@@ -392,10 +392,10 @@ public class Config {
 
                     if (ConfigHelper.checkProperty(pass_settings, "global_pass", location, false)) {
                         JsonObject pass = pass_settings.getAsJsonObject("global_pass");
-                        Item global_pass_item = global_pass.pass_item();
-                        String global_pass_name = global_pass.pass_name();
-                        List<String> global_pass_lore = global_pass.pass_lore();
-                        ComponentChanges global_pass_data = global_pass.pass_data();
+                        Item global_pass_item = global_pass.passItem();
+                        String global_pass_name = global_pass.passName();
+                        List<String> global_pass_lore = global_pass.passLore();
+                        ComponentChanges global_pass_data = global_pass.passData();
 
                         if (ConfigHelper.checkProperty(pass, "pass_item", location)) {
                             String pass_item_name = pass.get("pass_item").getAsString();
@@ -478,12 +478,12 @@ public class Config {
     }
 
     public void writeResults(Raid raid) throws IOException, NoSuchElementException {
-        File history_folder = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/history/" + raid.raidBoss_category().id()).toFile();
+        File history_folder = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/history/" + raid.raidBossCategory().id()).toFile();
         if (!history_folder.exists()) {
             history_folder.mkdirs();
         }
 
-        File history_file = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/history/" + raid.raidBoss_category().id() + "/" + raid.boss_info().boss_id() + ".json").toFile();
+        File history_file = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/history/" + raid.raidBossCategory().id() + "/" + raid.bossInfo().bossId() + ".json").toFile();
 
         JsonObject root;
         if (history_file.createNewFile()) {
@@ -494,13 +494,13 @@ public class Config {
 
         JsonObject this_raid = new JsonObject();
         this_raid.addProperty("uuid", raid.uuid().toString());
-        this_raid.addProperty("length", TextUtils.hms(raid.raid_completion_time()));
-        this_raid.addProperty("had_catch_phase", raid.boss_info().raid_details().do_catch_phase());
-        this_raid.addProperty("total_players", raid.get_damage_leaderboard().size());
+        this_raid.addProperty("length", TextUtils.hms(raid.raidCompletionTime()));
+        this_raid.addProperty("had_catch_phase", raid.bossInfo().raidDetails().doCatchPhase());
+        this_raid.addProperty("total_players", raid.getDamageLeaderboard().size());
 
         JsonArray this_raid_leaderboard = new JsonArray();
         int place = 1;
-        for (Map.Entry<String, Integer> entry : raid.get_damage_leaderboard()) {
+        for (Map.Entry<String, Integer> entry : raid.getDamageLeaderboard()) {
             JsonObject leaderboard_entry = new JsonObject();
             UserCache cache =  nr.server().getUserCache();
             if (cache != null) {

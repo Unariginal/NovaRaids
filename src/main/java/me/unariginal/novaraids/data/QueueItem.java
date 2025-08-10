@@ -8,19 +8,19 @@ import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.UUID;
 
-public record QueueItem(UUID uuid, Boss boss_info, Location raidBoss_location, UUID started_by, ItemStack starting_item) {
+public record QueueItem(UUID uuid, Boss bossInfo, Location raidBossLocation, UUID startedBy, ItemStack startingItem) {
     private static final NovaRaids nr = NovaRaids.INSTANCE;
 
     public void start_raid() {
-        nr.add_raid(new Raid(boss_info, raidBoss_location, started_by, starting_item));
+        nr.addRaid(new Raid(bossInfo, raidBossLocation, startedBy, startingItem));
     }
 
     public void cancel_item() {
-        if (nr.bossesConfig().getCategory(boss_info.category_id()).require_pass()) {
-            if (starting_item != null) {
-                ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(started_by);
+        if (nr.bossesConfig().getCategory(bossInfo.categoryId()).requirePass()) {
+            if (startingItem != null) {
+                ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(startedBy);
                 if (player != null) {
-                    player.giveItemStack(starting_item);
+                    player.giveItemStack(startingItem);
                 }
             }
         }

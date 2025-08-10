@@ -7,19 +7,19 @@ public class BaseGuiData {
     public String title;
     public int rows;
     public List<String> layout;
-    public GuiButton background_button;
-    public GuiButton close_button;
-    public GuiButton next_button;
-    public GuiButton previous_button;
+    public GuiButton backgroundButton;
+    public GuiButton closeButton;
+    public GuiButton nextButton;
+    public GuiButton previousButton;
 
-    public BaseGuiData(String title, int rows, List<String> layout, GuiButton background_button, GuiButton close_button, GuiButton next_button, GuiButton previous_button) {
+    public BaseGuiData(String title, int rows, List<String> layout, GuiButton backgroundButton, GuiButton closeButton, GuiButton nextButton, GuiButton previousButton) {
         this.title = title;
         this.rows = rows;
         this.layout = layout;
-        this.background_button = background_button;
-        this.close_button = close_button;
-        this.next_button = next_button;
-        this.previous_button = previous_button;
+        this.backgroundButton = backgroundButton;
+        this.closeButton = closeButton;
+        this.nextButton = nextButton;
+        this.previousButton = previousButton;
     }
 
     public List<Integer> nextButtonSlots() {
@@ -27,7 +27,7 @@ public class BaseGuiData {
         int slot = 0;
         for (String line : layout) {
             for (char c : line.toCharArray()) {
-                if (c == next_button.symbol().charAt(0)) {
+                if (c == nextButton.symbol().charAt(0)) {
                     slots.add(slot);
                 }
                 slot++;
@@ -41,7 +41,7 @@ public class BaseGuiData {
         int slot = 0;
         for (String line : layout) {
             for (char c : line.toCharArray()) {
-                if (c == background_button.symbol().charAt(0)) {
+                if (c == backgroundButton.symbol().charAt(0)) {
                     slots.add(slot);
                 }
                 slot++;
@@ -55,7 +55,7 @@ public class BaseGuiData {
         int slot = 0;
         for (String line : layout) {
             for (char c : line.toCharArray()) {
-                if (c == previous_button.symbol().charAt(0)) {
+                if (c == previousButton.symbol().charAt(0)) {
                     slots.add(slot);
                 }
                 slot++;
@@ -69,7 +69,7 @@ public class BaseGuiData {
         int slot = 0;
         for (String line : layout) {
             for (char c : line.toCharArray()) {
-                if (c == close_button.symbol().charAt(0)) {
+                if (c == closeButton.symbol().charAt(0)) {
                     slots.add(slot);
                 }
                 slot++;

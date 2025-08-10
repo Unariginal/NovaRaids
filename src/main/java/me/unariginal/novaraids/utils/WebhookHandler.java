@@ -23,28 +23,28 @@ import net.minecraft.util.UserCache;
 public class WebhookHandler {
     private static final NovaRaids nr = NovaRaids.INSTANCE;
     private static final UserCache cache =  nr.server().getUserCache();
-    public static boolean webhook_toggle = false;
-    public static String webhook_url = "https://discord.com/api/webhooks/";
-    public static String webhook_username =  "Raid Alert!";
-    public static String webhook_avatar_url = "https://cdn.modrinth.com/data/MdwFAVRL/e54083a07bcd9436d1f8d2879b0d821a54588b9e.png";
-    public static String role_ping = "<@&role_id_here>";
-    public static int webhook_update_rate_seconds = 15;
-    public static boolean delete_if_no_fight_phase = true;
-    public static boolean start_embed_enabled = false;
-    public static String start_embed_title = "%boss.id% Raid Has Started";
-    public static List<FieldData> start_embed_fields = new ArrayList<>();
-    public static boolean running_embed_enabled = false;
-    public static String running_embed_title = "%boss.id% Raid In Progress!";
-    public static List<FieldData> running_embed_fields = new ArrayList<>();
-    public static FieldData running_embed_leaderboard_field = null;
-    public static boolean end_embed_enabled = false;
-    public static String end_embed_title = "%boss.id% Raid Has Ended";
-    public static List<FieldData> end_embed_fields = new ArrayList<>();
-    public static FieldData end_embed_leaderboard_field = null;
-    public static boolean failed_embed_enabled = false;
-    public static String failed_embed_title = "Failed To Defeat %boss.id%!";
-    public static List<FieldData> failed_embed_fields = new ArrayList<>();
-    public static FieldData failed_embed_leaderboard_field = null;
+    public static boolean webhookToggle = false;
+    public static String webhookUrl = "https://discord.com/api/webhooks/";
+    public static String webhookUsername =  "Raid Alert!";
+    public static String webhookAvatarUrl = "https://cdn.modrinth.com/data/MdwFAVRL/e54083a07bcd9436d1f8d2879b0d821a54588b9e.png";
+    public static String rolePing = "<@&role_id_here>";
+    public static int webhookUpdateRateSeconds = 15;
+    public static boolean deleteIfNoFightPhase = true;
+    public static boolean startEmbedEnabled = false;
+    public static String startEmbedTitle = "%boss.id% Raid Has Started";
+    public static List<FieldData> startEmbedFields = new ArrayList<>();
+    public static boolean runningEmbedEnabled = false;
+    public static String runningEmbedTitle = "%boss.id% Raid In Progress!";
+    public static List<FieldData> runningEmbedFields = new ArrayList<>();
+    public static FieldData runningEmbedLeaderboardField = null;
+    public static boolean endEmbedEnabled = false;
+    public static String endEmbedTitle = "%boss.id% Raid Has Ended";
+    public static List<FieldData> endEmbedFields = new ArrayList<>();
+    public static FieldData endEmbedLeaderboardField = null;
+    public static boolean failedEmbedEnabled = false;
+    public static String failedEmbedTitle = "Failed To Defeat %boss.id%!";
+    public static List<FieldData> failedEmbedFields = new ArrayList<>();
+    public static FieldData failedEmbedLeaderboardField = null;
 
     public static WebhookClient webhook = null;
 
@@ -132,7 +132,7 @@ public class WebhookHandler {
     }
 
     public static void connectWebhook() {
-        webhook = WebhookClient.withUrl(webhook_url);
+        webhook = WebhookClient.withUrl(webhookUrl);
     }
 
     public static void deleteWebhook(long id) throws ExecutionException, InterruptedException {
@@ -148,7 +148,7 @@ public class WebhookHandler {
     }
 
     public static WebhookMessageBuilder buildStartRaidWebhook(Raid raid){
-        Pokemon pokemon = raid.raidBoss_pokemon();
+        Pokemon pokemon = raid.raidBossPokemon();
         int randColor = genTypeColor(pokemon);
         String thumbnailUrl = getThumbnailUrl(pokemon);
 
@@ -156,20 +156,20 @@ public class WebhookHandler {
                 .setColor(randColor)
                 .setAuthor(
                         new WebhookEmbed.EmbedAuthor(
-                                TextUtils.parse(start_embed_title, raid),
+                                TextUtils.parse(startEmbedTitle, raid),
                                 "",
                                 thumbnailUrl
                         )
                 );
-        for (FieldData field : start_embed_fields) {
+        for (FieldData field : startEmbedFields) {
             embedBuilder.addField(new WebhookEmbed.EmbedField(field.inline(), TextUtils.parse(field.name(), raid), TextUtils.parse(field.value(), raid)));
         }
         embedBuilder.setThumbnailUrl(thumbnailUrl);
         WebhookEmbed embed = embedBuilder.build();
         return new WebhookMessageBuilder()
-                .setContent(role_ping)
-                .setUsername(webhook_username)
-                .setAvatarUrl(webhook_avatar_url)
+                .setContent(rolePing)
+                .setUsername(webhookUsername)
+                .setAvatarUrl(webhookAvatarUrl)
                 .addEmbeds(embed);
     }
 
@@ -186,7 +186,7 @@ public class WebhookHandler {
     }
 
     public static WebhookMessageBuilder buildEndRaidWebhook(Raid raid) {
-        Pokemon pokemon = raid.raidBoss_pokemon();
+        Pokemon pokemon = raid.raidBossPokemon();
         int randColor = genTypeColor(pokemon);
         String thumbnailUrl = getThumbnailUrl(pokemon);
 
@@ -194,24 +194,24 @@ public class WebhookHandler {
                 .setColor(randColor)
                 .setAuthor(
                         new WebhookEmbed.EmbedAuthor(
-                                TextUtils.parse(end_embed_title, raid),
+                                TextUtils.parse(endEmbedTitle, raid),
                                 "",
                                 thumbnailUrl
                         )
                 );
 
-        for (FieldData field : end_embed_fields) {
+        for (FieldData field : endEmbedFields) {
             embedBuilder.addField(new WebhookEmbed.EmbedField(field.inline(), TextUtils.parse(field.name(), raid), TextUtils.parse(field.value(), raid)));
-            if (field.insert_leaderboard_after()) {
-                List<Map.Entry<String, Integer>> entries = raid.get_damage_leaderboard();
+            if (field.insertLeaderboardAfter()) {
+                List<Map.Entry<String, Integer>> entries = raid.getDamageLeaderboard();
 
                 for (int i = 0; i < Math.min(entries.size(), 10); i++) {
                     Map.Entry<String, Integer> entry = entries.get(i);
                     if (cache != null) {
                         GameProfile user = cache.findByName(entry.getKey()).orElseThrow();
-                        String name = TextUtils.parse(end_embed_leaderboard_field.name(), raid, user, entry.getValue(), i + 1);
-                        String value = TextUtils.parse(end_embed_leaderboard_field.value(), raid, user, entry.getValue(), i + 1);
-                        embedBuilder.addField(new WebhookEmbed.EmbedField(end_embed_leaderboard_field.inline(), name, value));
+                        String name = TextUtils.parse(endEmbedLeaderboardField.name(), raid, user, entry.getValue(), i + 1);
+                        String value = TextUtils.parse(endEmbedLeaderboardField.value(), raid, user, entry.getValue(), i + 1);
+                        embedBuilder.addField(new WebhookEmbed.EmbedField(endEmbedLeaderboardField.inline(), name, value));
                     }
                 }
             }
@@ -221,8 +221,8 @@ public class WebhookHandler {
         WebhookEmbed embed = embedBuilder.build();
 
         return new WebhookMessageBuilder()
-                .setUsername(webhook_username)
-                .setAvatarUrl(webhook_avatar_url)
+                .setUsername(webhookUsername)
+                .setAvatarUrl(webhookAvatarUrl)
                 .addEmbeds(embed);
     }
 
@@ -240,7 +240,7 @@ public class WebhookHandler {
     }
 
     public static WebhookMessageBuilder buildRunningWebhook(Raid raid) {
-        Pokemon pokemon = raid.raidBoss_pokemon();
+        Pokemon pokemon = raid.raidBossPokemon();
         int randColor = genTypeColor(pokemon);
         String thumbnailUrl = getThumbnailUrl(pokemon);
 
@@ -248,24 +248,24 @@ public class WebhookHandler {
                 .setColor(randColor)
                 .setAuthor(
                         new WebhookEmbed.EmbedAuthor(
-                                TextUtils.parse(running_embed_title, raid),
+                                TextUtils.parse(runningEmbedTitle, raid),
                                 "",
                                 thumbnailUrl
                         )
                 );
 
-        for (FieldData field : running_embed_fields) {
+        for (FieldData field : runningEmbedFields) {
             embedBuilder.addField(new WebhookEmbed.EmbedField(field.inline(), TextUtils.parse(field.name(), raid), TextUtils.parse(field.value(), raid)));
-            if (field.insert_leaderboard_after()) {
-                List<Map.Entry<String, Integer>> entries = raid.get_damage_leaderboard();
+            if (field.insertLeaderboardAfter()) {
+                List<Map.Entry<String, Integer>> entries = raid.getDamageLeaderboard();
 
                 for (int i = 0; i < Math.min(entries.size(), 10); i++) {
                     Map.Entry<String, Integer> entry = entries.get(i);
                     if (cache != null) {
                         GameProfile user = cache.findByName(entry.getKey()).orElseThrow();
-                        String name = TextUtils.parse(running_embed_leaderboard_field.name(), raid, user, entry.getValue(), i + 1);
-                        String value = TextUtils.parse(running_embed_leaderboard_field.value(), raid, user, entry.getValue(), i + 1);
-                        embedBuilder.addField(new WebhookEmbed.EmbedField(running_embed_leaderboard_field.inline(), name, value));
+                        String name = TextUtils.parse(runningEmbedLeaderboardField.name(), raid, user, entry.getValue(), i + 1);
+                        String value = TextUtils.parse(runningEmbedLeaderboardField.value(), raid, user, entry.getValue(), i + 1);
+                        embedBuilder.addField(new WebhookEmbed.EmbedField(runningEmbedLeaderboardField.inline(), name, value));
                     }
                 }
             }
@@ -275,8 +275,8 @@ public class WebhookHandler {
         WebhookEmbed embed = embedBuilder.build();
 
         return new WebhookMessageBuilder()
-                .setUsername(webhook_username)
-                .setAvatarUrl(webhook_avatar_url)
+                .setUsername(webhookUsername)
+                .setAvatarUrl(webhookAvatarUrl)
                 .addEmbeds(embed);
     }
 
@@ -293,7 +293,7 @@ public class WebhookHandler {
     }
 
     public static WebhookMessageBuilder buildFailedWebhook(Raid raid) {
-        Pokemon pokemon = raid.raidBoss_pokemon();
+        Pokemon pokemon = raid.raidBossPokemon();
         int randColor = genTypeColor(pokemon);
         String thumbnailUrl = getThumbnailUrl(pokemon);
 
@@ -301,24 +301,24 @@ public class WebhookHandler {
                 .setColor(randColor)
                 .setAuthor(
                         new WebhookEmbed.EmbedAuthor(
-                                TextUtils.parse(failed_embed_title, raid),
+                                TextUtils.parse(failedEmbedTitle, raid),
                                 "",
                                 thumbnailUrl
                         )
                 );
 
-        for (FieldData field : failed_embed_fields) {
+        for (FieldData field : failedEmbedFields) {
             embedBuilder.addField(new WebhookEmbed.EmbedField(field.inline(), TextUtils.parse(field.name(), raid), TextUtils.parse(field.value(), raid)));
-            if (field.insert_leaderboard_after()) {
-                List<Map.Entry<String, Integer>> entries = raid.get_damage_leaderboard();
+            if (field.insertLeaderboardAfter()) {
+                List<Map.Entry<String, Integer>> entries = raid.getDamageLeaderboard();
 
                 for (int i = 0; i < Math.min(entries.size(), 10); i++) {
                     Map.Entry<String, Integer> entry = entries.get(i);
                     if (cache != null) {
                         GameProfile user = cache.findByName(entry.getKey()).orElseThrow();
-                        String name = TextUtils.parse(failed_embed_leaderboard_field.name(), raid, user, entry.getValue(), i + 1);
-                        String value = TextUtils.parse(failed_embed_leaderboard_field.value(), raid, user, entry.getValue(), i + 1);
-                        embedBuilder.addField(new WebhookEmbed.EmbedField(failed_embed_leaderboard_field.inline(), name, value));
+                        String name = TextUtils.parse(failedEmbedLeaderboardField.name(), raid, user, entry.getValue(), i + 1);
+                        String value = TextUtils.parse(failedEmbedLeaderboardField.value(), raid, user, entry.getValue(), i + 1);
+                        embedBuilder.addField(new WebhookEmbed.EmbedField(failedEmbedLeaderboardField.inline(), name, value));
                     }
                 }
             }
@@ -328,8 +328,8 @@ public class WebhookHandler {
         WebhookEmbed embed = embedBuilder.build();
 
         return new WebhookMessageBuilder()
-                .setUsername(webhook_username)
-                .setAvatarUrl(webhook_avatar_url)
+                .setUsername(webhookUsername)
+                .setAvatarUrl(webhookAvatarUrl)
                 .addEmbeds(embed);
     }
 }

@@ -26,7 +26,7 @@ public class SchedulesConfig {
         try {
             loadSchedules();
         } catch (IOException | NullPointerException | UnsupportedOperationException e) {
-            nr.loaded_properly = false;
+            nr.loadedProperly = false;
             nr.logError("[RAIDS] Failed to load schedules file. " + e.getMessage());
             for (StackTraceElement element : e.getStackTrace()) {
                 nr.logError("  " + element.toString());

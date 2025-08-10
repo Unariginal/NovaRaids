@@ -18,7 +18,7 @@ public class RewardPresetsConfig {
         try {
             loadConfig();
         } catch (IOException | NullPointerException | UnsupportedOperationException e) {
-            NovaRaids.INSTANCE.loaded_properly = false;
+            NovaRaids.INSTANCE.loadedProperly = false;
             NovaRaids.INSTANCE.logError("[RAIDS] Failed to load reward presets file. " + e.getMessage());
             for (StackTraceElement element : e.getStackTrace()) {
                 NovaRaids.INSTANCE.logError("  " + element.toString());

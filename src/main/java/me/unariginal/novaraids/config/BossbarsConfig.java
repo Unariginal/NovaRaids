@@ -5,7 +5,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.BossbarData;
-import me.unariginal.novaraids.data.Location;
 import me.unariginal.novaraids.data.bosssettings.Boss;
 import net.fabricmc.loader.api.FabricLoader;
 import net.kyori.adventure.bossbar.BossBar;
@@ -21,7 +20,7 @@ public class BossbarsConfig {
         try {
             loadConfig();
         } catch (IOException | NullPointerException | UnsupportedOperationException e) {
-            NovaRaids.INSTANCE.loaded_properly = false;
+            NovaRaids.INSTANCE.loadedProperly = false;
             NovaRaids.INSTANCE.logError("[RAIDS] Failed to load bossbars file. " + e.getMessage());
             for (StackTraceElement element : e.getStackTrace()) {
                 NovaRaids.INSTANCE.logError("  " + element.toString());
@@ -111,31 +110,31 @@ public class BossbarsConfig {
         String bossbar_id = "";
         switch (phase) {
             case "setup":
-                if (boss.raid_details().setup_bossbar().isEmpty()) {
-                    bossbar_id = NovaRaids.INSTANCE.bossesConfig().getCategory(boss.category_id()).setup_bossbar();
+                if (boss.raidDetails().setupBossbar().isEmpty()) {
+                    bossbar_id = NovaRaids.INSTANCE.bossesConfig().getCategory(boss.categoryId()).setupBossbar();
                 } else {
-                    bossbar_id = boss.raid_details().setup_bossbar();
+                    bossbar_id = boss.raidDetails().setupBossbar();
                 }
                 break;
             case "fight":
-                if (boss.raid_details().fight_bossbar().isEmpty()) {
-                    bossbar_id = NovaRaids.INSTANCE.bossesConfig().getCategory(boss.category_id()).fight_bossbar();
+                if (boss.raidDetails().fightBossbar().isEmpty()) {
+                    bossbar_id = NovaRaids.INSTANCE.bossesConfig().getCategory(boss.categoryId()).fightBossbar();
                 } else {
-                    bossbar_id = boss.raid_details().fight_bossbar();
+                    bossbar_id = boss.raidDetails().fightBossbar();
                 }
                 break;
             case "pre_catch":
-                if (boss.raid_details().pre_catch_bossbar().isEmpty()) {
-                    bossbar_id = NovaRaids.INSTANCE.bossesConfig().getCategory(boss.category_id()).pre_catch_bossbar();
+                if (boss.raidDetails().preCatchBossbar().isEmpty()) {
+                    bossbar_id = NovaRaids.INSTANCE.bossesConfig().getCategory(boss.categoryId()).preCatchBossbar();
                 } else {
-                    bossbar_id = boss.raid_details().pre_catch_bossbar();
+                    bossbar_id = boss.raidDetails().preCatchBossbar();
                 }
                 break;
             case "catch":
-                if (boss.raid_details().catch_bossbar().isEmpty()) {
-                    bossbar_id = NovaRaids.INSTANCE.bossesConfig().getCategory(boss.category_id()).catch_bossbar();
+                if (boss.raidDetails().catchBossbar().isEmpty()) {
+                    bossbar_id = NovaRaids.INSTANCE.bossesConfig().getCategory(boss.categoryId()).catchBossbar();
                 } else {
-                    bossbar_id = boss.raid_details().catch_bossbar();
+                    bossbar_id = boss.raidDetails().catchBossbar();
                 }
                 break;
         }

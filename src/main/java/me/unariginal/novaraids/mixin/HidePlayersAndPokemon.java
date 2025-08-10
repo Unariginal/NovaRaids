@@ -37,8 +37,8 @@ public class HidePlayersAndPokemon {
 
             if (NovaRaids.INSTANCE.config().hide_other_catch_encounters && !Permissions.check(spectator, "novaraids.showpokemon")) {
                 boolean inRaid = false;
-                for (Raid raid : NovaRaids.INSTANCE.active_raids().values()) {
-                    if (raid.participating_players().contains(spectator.getUuid())) {
+                for (Raid raid : NovaRaids.INSTANCE.activeRaids().values()) {
+                    if (raid.participatingPlayers().contains(spectator.getUuid())) {
                         inRaid = true;
                         break;
                     }
@@ -64,8 +64,8 @@ public class HidePlayersAndPokemon {
             }
             if (NovaRaids.INSTANCE.config().hide_other_pokemon_in_raid && !Permissions.check(spectator, "novaraids.showpokemon")) {
                 boolean inRaid = false;
-                for (Raid raid : NovaRaids.INSTANCE.active_raids().values()) {
-                    if (raid.participating_players().contains(spectator.getUuid())) {
+                for (Raid raid : NovaRaids.INSTANCE.activeRaids().values()) {
+                    if (raid.participatingPlayers().contains(spectator.getUuid())) {
                         inRaid = true;
                         break;
                     }
@@ -77,8 +77,8 @@ public class HidePlayersAndPokemon {
                                 ServerPlayerEntity owner = pokemon.getOwnerPlayer();
                                 if (owner != null) {
                                     boolean pokemonInRaid = false;
-                                    for (Raid raid : NovaRaids.INSTANCE.active_raids().values()) {
-                                        if (raid.participating_players().contains(owner.getUuid())) {
+                                    for (Raid raid : NovaRaids.INSTANCE.activeRaids().values()) {
+                                        if (raid.participatingPlayers().contains(owner.getUuid())) {
                                             pokemonInRaid = true;
                                             break;
                                         }
@@ -95,15 +95,15 @@ public class HidePlayersAndPokemon {
         } else if (self instanceof ServerPlayerEntity serverPlayerEntity) {
             if (NovaRaids.INSTANCE.config().hide_other_players_in_raid && !Permissions.check(spectator, "novaraids.showplayers")) {
                 boolean inRaid = false;
-                for (Raid raid : NovaRaids.INSTANCE.active_raids().values()) {
-                    if (raid.participating_players().contains(spectator.getUuid())) {
+                for (Raid raid : NovaRaids.INSTANCE.activeRaids().values()) {
+                    if (raid.participatingPlayers().contains(spectator.getUuid())) {
                         inRaid = true;
                         break;
                     }
                 }
                 boolean otherPlayerInRaid = false;
-                for (Raid raid : NovaRaids.INSTANCE.active_raids().values()) {
-                    if (raid.participating_players().contains(serverPlayerEntity.getUuid())) {
+                for (Raid raid : NovaRaids.INSTANCE.activeRaids().values()) {
+                    if (raid.participatingPlayers().contains(serverPlayerEntity.getUuid())) {
                         otherPlayerInRaid = true;
                         break;
                     }

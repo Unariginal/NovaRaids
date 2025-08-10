@@ -31,15 +31,15 @@ public class NovaRaids implements ModInitializer {
     private RewardPoolsConfig rewardPoolsConfig;
     private BossesConfig bossesConfig;
     private GuisConfig guisConfig;
-    public boolean loaded_properly = true;
+    public boolean loadedProperly = true;
 
     public boolean debug = true;
     private MinecraftServer server;
     private FabricServerAudiences audience;
     private RaidCommands raidCommands;
 
-    private final Map<Integer, Raid> active_raids = new HashMap<>();
-    private final Queue<QueueItem> queued_raids = new LinkedList<>();
+    private final Map<Integer, Raid> activeRaids = new HashMap<>();
+    private final Queue<QueueItem> queuedRaids = new LinkedList<>();
 
     @Override
     public void onInitialize() {
@@ -52,24 +52,14 @@ public class NovaRaids implements ModInitializer {
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             this.server = server;
             this.audience = FabricServerAudiences.of(server);
-            // Ignore my bullshit method of error handling for these configs, I'll ask someone
-            // what the best practice for configs is eventually...
-            // But for now, I settle for what works.
-            // Amo, you're the someone
+
             reloadConfig();
-            if (loaded_properly) {
-                EventManager.battle_events();
-                EventManager.right_click_events();
-                EventManager.player_events();
-                EventManager.cobblemon_events();
+            if (loadedProperly) {
+                EventManager.battleEvents();
+                EventManager.rightClickEvents();
+                EventManager.playerEvents();
+                EventManager.cobblemonEvents();
                 EventManager.capture_event();
-//                if (!config.opt_out) {
-//                    try {
-//                        CollectingDataToSellToTheChineseGovernment.sendStartWebhook();
-//                    } catch (ExecutionException | InterruptedException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
             } else {
                 LOGGER.error("[RAIDS] Config did not load properly! Mod will not be loaded.");
             }
@@ -77,20 +67,20 @@ public class NovaRaids implements ModInitializer {
 
         // Server tick loop
         ServerTickEvents.END_SERVER_TICK.register(server -> {
-            if (loaded_properly) {
+            if (loadedProperly) {
                 try {
-                    TickManager.update_webhooks();
-                    TickManager.fix_boss_positions();
-                    TickManager.handle_defeated_bosses();
-                    TickManager.execute_tasks();
-                    TickManager.update_bossbars();
-                    TickManager.fix_player_positions();
-                    TickManager.fix_player_pokemon();
-                    TickManager.scheduled_raids();
+                    TickManager.updateWebhooks();
+                    TickManager.fixBossPositions();
+                    TickManager.handleDefeatedBosses();
+                    TickManager.executeTasks();
+                    TickManager.updateBossbars();
+                    TickManager.fixPlayerPositions();
+                    TickManager.fixPlayerPokemon();
+                    TickManager.scheduledRaids();
                 } catch (ConcurrentModificationException e) {
                     logInfo("[RAIDS] Concurrent modification error!");
                 }
-                for (Raid raid : active_raids.values()) {
+                for (Raid raid : activeRaids.values()) {
                     raid.removePlayers();
                 }
             }
@@ -98,21 +88,15 @@ public class NovaRaids implements ModInitializer {
 
         // Clean up at server stop
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
-            if (loaded_properly) {
-                for (QueueItem queue : queued_raids) {
+            if (loadedProperly) {
+                for (QueueItem queue : queuedRaids) {
                     queue.cancel_item();
                 }
-                queued_raids.clear();
+                queuedRaids.clear();
 
-                for (Raid raid : active_raids.values()) {
+                for (Raid raid : activeRaids.values()) {
                     raid.stop();
                 }
-
-//                try {
-//                    CollectingDataToSellToTheChineseGovernment.deleteWebhook();
-//                } catch (ExecutionException | InterruptedException e) {
-//                    e.printStackTrace();
-//                }
                 // TODO: Save current raid, write queue to file
             }
         });
@@ -156,7 +140,7 @@ public class NovaRaids implements ModInitializer {
         rewardPoolsConfig = new RewardPoolsConfig();
         bossesConfig = new BossesConfig();
         guisConfig = new GuisConfig();
-        if (WebhookHandler.webhook_toggle) {
+        if (WebhookHandler.webhookToggle) {
             WebhookHandler.connectWebhook();
         }
     }
@@ -189,30 +173,30 @@ public class NovaRaids implements ModInitializer {
         logger().error(message);
     }
 
-    public Map<Integer, Raid> active_raids() {
-        return active_raids;
+    public Map<Integer, Raid> activeRaids() {
+        return activeRaids;
     }
 
-    public Queue<QueueItem> queued_raids() {
-        return queued_raids;
+    public Queue<QueueItem> queuedRaids() {
+        return queuedRaids;
     }
 
-    public void add_queue_item(QueueItem item) {
-        if (!queued_raids.contains(item)) {
-            queued_raids.add(item);
+    public void addQueueItem(QueueItem item) {
+        if (!queuedRaids.contains(item)) {
+            queuedRaids.add(item);
         } else {
             logInfo("[RAIDS] Queue item already exists!");
         }
     }
 
-    public void remove_queue_item(QueueItem item) {
-        queued_raids.remove(item);
+    public void removeQueueItem(QueueItem item) {
+        queuedRaids.remove(item);
     }
 
-    public void init_next_raid() {
+    public void initNextRaid() {
         if (config.use_queue_system) {
-            if (!queued_raids.isEmpty()) {
-                queued_raids.remove().start_raid();
+            if (!queuedRaids.isEmpty()) {
+                queuedRaids.remove().start_raid();
             }
         }
     }
@@ -221,40 +205,40 @@ public class NovaRaids implements ModInitializer {
         return raidCommands;
     }
 
-    public int get_raid_id(Raid raid) {
-        for (int key : active_raids.keySet()) {
-            if (active_raids.get(key).uuid().equals(raid.uuid())) {
+    public int getRaidId(Raid raid) {
+        for (int key : activeRaids.keySet()) {
+            if (activeRaids.get(key).uuid().equals(raid.uuid())) {
                 return key;
             }
         }
         return -1;
     }
 
-    public void add_raid(Raid raid) {
-        if (get_raid_id(raid) == -1) {
-            int next_id = fix_raid_ids();
-            active_raids.put(next_id, raid);
+    public void addRaid(Raid raid) {
+        if (getRaidId(raid) == -1) {
+            int next_id = fixRaidIds();
+            activeRaids.put(next_id, raid);
         }
     }
 
-    public void remove_raid(Raid raid) {
-        int id = get_raid_id(raid);
+    public void removeRaid(Raid raid) {
+        int id = getRaidId(raid);
         if (id != -1) {
-            active_raids.remove(id);
-            fix_raid_ids();
+            activeRaids.remove(id);
+            fixRaidIds();
         }
     }
 
-    public int fix_raid_ids() {
-        Map<Integer, Raid> new_raids = new HashMap<>();
+    public int fixRaidIds() {
+        Map<Integer, Raid> newRaids = new HashMap<>();
         int count = 1;
-        for (int key : active_raids.keySet()) {
-            Raid raid = active_raids.get(key);
-            new_raids.put(count, raid);
+        for (int key : activeRaids.keySet()) {
+            Raid raid = activeRaids.get(key);
+            newRaids.put(count, raid);
             count++;
         }
-        active_raids.clear();
-        active_raids.putAll(new_raids);
+        activeRaids.clear();
+        activeRaids.putAll(newRaids);
         return count;
     }
 }

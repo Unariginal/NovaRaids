@@ -4,48 +4,48 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ContrabandGui extends BaseGuiData {
-    public boolean use_hopper_gui;
-    public GuiButton banned_pokemon_button;
-    public DisplayItemGui banned_pokemon;
-    public GuiButton banned_moves_button;
-    public DisplayItemGui banned_moves;
-    public GuiButton banned_abilities_button;
-    public DisplayItemGui banned_abilities;
-    public GuiButton banned_held_items_button;
-    public DisplayItemGui banned_held_items;
-    public GuiButton banned_bag_items_button;
-    public DisplayItemGui banned_bag_items;
+    public boolean useHopperGui;
+    public GuiButton bannedPokemonButton;
+    public DisplayItemGui bannedPokemon;
+    public GuiButton bannedMovesButton;
+    public DisplayItemGui bannedMoves;
+    public GuiButton bannedAbilitiesButton;
+    public DisplayItemGui bannedAbilities;
+    public GuiButton bannedHeldItemsButton;
+    public DisplayItemGui bannedHeldItems;
+    public GuiButton bannedBagItemsButton;
+    public DisplayItemGui bannedBagItems;
 
     public ContrabandGui(String title,
                          int rows,
                          List<String> layout,
-                         GuiButton background_button,
-                         GuiButton close_button,
-                         GuiButton next_button,
-                         GuiButton previous_button,
-                         boolean use_hopper_gui,
-                         GuiButton banned_pokemon_button,
-                         DisplayItemGui banned_pokemon,
-                         GuiButton banned_moves_button,
-                         DisplayItemGui banned_moves,
-                         GuiButton banned_abilities_button,
-                         DisplayItemGui banned_abilities,
-                         GuiButton banned_held_items_button,
-                         DisplayItemGui banned_held_items,
-                         GuiButton banned_bag_items_button,
-                         DisplayItemGui banned_bag_items) {
-        super(title, rows, layout, background_button, close_button, next_button, previous_button);
-        this.use_hopper_gui = use_hopper_gui;
-        this.banned_pokemon_button = banned_pokemon_button;
-        this.banned_pokemon = banned_pokemon;
-        this.banned_moves_button = banned_moves_button;
-        this.banned_moves = banned_moves;
-        this.banned_abilities_button = banned_abilities_button;
-        this.banned_abilities = banned_abilities;
-        this.banned_held_items_button = banned_held_items_button;
-        this.banned_held_items = banned_held_items;
-        this.banned_bag_items_button = banned_bag_items_button;
-        this.banned_bag_items = banned_bag_items;
+                         GuiButton backgroundButton,
+                         GuiButton closeButton,
+                         GuiButton nextButton,
+                         GuiButton previousButton,
+                         boolean useHopperGui,
+                         GuiButton bannedPokemonButton,
+                         DisplayItemGui bannedPokemon,
+                         GuiButton bannedMovesButton,
+                         DisplayItemGui bannedMoves,
+                         GuiButton bannedAbilitiesButton,
+                         DisplayItemGui bannedAbilities,
+                         GuiButton bannedHeldItemsButton,
+                         DisplayItemGui bannedHeldItems,
+                         GuiButton bannedBagItemsButton,
+                         DisplayItemGui bannedBagItems) {
+        super(title, rows, layout, backgroundButton, closeButton, nextButton, previousButton);
+        this.useHopperGui = useHopperGui;
+        this.bannedPokemonButton = bannedPokemonButton;
+        this.bannedPokemon = bannedPokemon;
+        this.bannedMovesButton = bannedMovesButton;
+        this.bannedMoves = bannedMoves;
+        this.bannedAbilitiesButton = bannedAbilitiesButton;
+        this.bannedAbilities = bannedAbilities;
+        this.bannedHeldItemsButton = bannedHeldItemsButton;
+        this.bannedHeldItems = bannedHeldItems;
+        this.bannedBagItemsButton = bannedBagItemsButton;
+        this.bannedBagItems = bannedBagItems;
     }
 
     public List<Integer> pokemonSlots() {
@@ -53,7 +53,7 @@ public class ContrabandGui extends BaseGuiData {
         int slot = 0;
         for (String line : layout) {
             for (char c : line.toCharArray()) {
-                if (c == banned_pokemon_button.symbol().charAt(0)) {
+                if (c == bannedPokemonButton.symbol().charAt(0)) {
                     slots.add(slot);
                 }
                 slot++;
@@ -67,7 +67,7 @@ public class ContrabandGui extends BaseGuiData {
         int slot = 0;
         for (String line : layout) {
             for (char c : line.toCharArray()) {
-                if (c == banned_moves_button.symbol().charAt(0)) {
+                if (c == bannedMovesButton.symbol().charAt(0)) {
                     slots.add(slot);
                 }
                 slot++;
@@ -81,7 +81,7 @@ public class ContrabandGui extends BaseGuiData {
         int slot = 0;
         for (String line : layout) {
             for (char c : line.toCharArray()) {
-                if (c == banned_abilities_button.symbol().charAt(0)) {
+                if (c == bannedAbilitiesButton.symbol().charAt(0)) {
                     slots.add(slot);
                 }
                 slot++;
@@ -95,7 +95,7 @@ public class ContrabandGui extends BaseGuiData {
         int slot = 0;
         for (String line : layout) {
             for (char c : line.toCharArray()) {
-                if (c == banned_held_items_button.symbol().charAt(0)) {
+                if (c == bannedHeldItemsButton.symbol().charAt(0)) {
                     slots.add(slot);
                 }
                 slot++;
@@ -109,7 +109,7 @@ public class ContrabandGui extends BaseGuiData {
         int slot = 0;
         for (String line : layout) {
             for (char c : line.toCharArray()) {
-                if (c == banned_bag_items_button.symbol().charAt(0)) {
+                if (c == bannedBagItemsButton.symbol().charAt(0)) {
                     slots.add(slot);
                 }
                 slot++;

@@ -20,7 +20,7 @@ public class CommandReward extends Reward {
     }
 
     @Override
-    public void apply_reward(ServerPlayerEntity player) {
+    public void applyReward(ServerPlayerEntity player) {
         CommandManager cmdManager = Objects.requireNonNull(player.getServer()).getCommandManager();
         ServerCommandSource source = player.getServer().getCommandSource();
         for (String command : commands) {

@@ -13,25 +13,25 @@ import java.util.List;
 
 public record Category(String id,
                        String name,
-                       boolean require_pass,
-                       int min_players,
-                       int max_players,
-                       List<Species> banned_pokemon,
-                       List<Move> banned_moves,
-                       List<Ability> banned_abilities,
-                       List<Item> banned_held_items,
-                       List<Item> banned_bag_items,
-                       String setup_bossbar,
-                       String fight_bossbar,
-                       String pre_catch_bossbar,
-                       String catch_bossbar,
-                       Voucher category_choice_voucher,
-                       Voucher category_random_voucher,
-                       Pass category_pass,
-                       List<RaidBall> category_balls,
+                       boolean requirePass,
+                       int minPlayers,
+                       int maxPlayers,
+                       List<Species> bannedPokemon,
+                       List<Move> bannedMoves,
+                       List<Ability> bannedAbilities,
+                       List<Item> bannedHeldItems,
+                       List<Item> bannedBagItems,
+                       String setupBossbar,
+                       String fightBossbar,
+                       String preCatchBossbar,
+                       String catchBossbar,
+                       Voucher categoryChoiceVoucher,
+                       Voucher categoryRandomVoucher,
+                       Pass categoryPass,
+                       List<RaidBall> categoryBalls,
                        List<DistributionSection> rewards) {
     public RaidBall getRaidBall(String key) {
-        for (RaidBall ball : category_balls) {
+        for (RaidBall ball : categoryBalls) {
             if (ball.id().equals(key)) {
                 return ball;
             }

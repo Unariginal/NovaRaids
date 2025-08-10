@@ -5,6 +5,7 @@ import com.cobblemon.mod.common.api.moves.MoveTemplate;
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
 import com.cobblemon.mod.common.api.pokemon.stats.Stat;
 import com.cobblemon.mod.common.pokemon.*;
+import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.utils.RandomUtils;
 import net.minecraft.component.ComponentChanges;
 import net.minecraft.item.Item;
@@ -18,22 +19,22 @@ import java.util.Map;
 public record PokemonDetails(
         Species species,
         int level,
-        Map<String, Double> features,
-        Map<Ability, Double> possible_abilities,
-        Map<Nature, Double> possible_natures,
-        Map<Gender, Double> possible_gender,
+        Map<String, Double> possibleFeatures,
+        Map<Ability, Double> possibleAbilities,
+        Map<Nature, Double> possibleNatures,
+        Map<Gender, Double> possibleGenders,
         boolean shiny,
         float scale,
-        Item held_item,
-        ComponentChanges held_item_data,
+        Item heldItem,
+        ComponentChanges heldItemData,
         List<MoveTemplate> moves,
         IVs ivs,
         EVs evs) {
 
-    public ItemStack held_item_stack() {
-        ItemStack stack = new ItemStack(held_item());
-        if (held_item_data != null) {
-            stack.applyChanges(held_item_data);
+    public ItemStack heldItemStack() {
+        ItemStack stack = new ItemStack(heldItem());
+        if (heldItemData != null) {
+            stack.applyChanges(heldItemData);
         }
         return stack;
     }
@@ -45,30 +46,30 @@ public record PokemonDetails(
             pokemon.setLevel(level);
         } else {
             try {
-                Field level_field = pokemon.getClass().getDeclaredField("level");
-                level_field.setAccessible(true);
-                level_field.set(pokemon, level);
+                Field levelField = pokemon.getClass().getDeclaredField("level");
+                levelField.setAccessible(true);
+                levelField.set(pokemon, level);
             } catch (NoSuchFieldException | IllegalAccessException e) {
-                e.printStackTrace();
+                NovaRaids.LOGGER.error("[NovaRaids] Failed to set pokemon level above 100.", e);
             }
         }
         pokemon.heal();
-        Map.Entry<?, Double> entry = RandomUtils.getRandomEntry(features);
+        Map.Entry<?, Double> entry = RandomUtils.getRandomEntry(possibleFeatures);
         if (entry != null) {
             PokemonProperties.Companion.parse((String) entry.getKey()).apply(pokemon);
         }
 
-        entry = RandomUtils.getRandomEntry(possible_abilities);
+        entry = RandomUtils.getRandomEntry(possibleAbilities);
         if (entry != null) {
             pokemon.updateAbility((Ability) entry.getKey());
         }
 
-        entry = RandomUtils.getRandomEntry(possible_natures);
+        entry = RandomUtils.getRandomEntry(possibleNatures);
         if (entry != null) {
             pokemon.setNature((Nature) entry.getKey());
         }
 
-        entry = RandomUtils.getRandomEntry(possible_gender);
+        entry = RandomUtils.getRandomEntry(possibleGenders);
         if (entry != null) {
             pokemon.setGender((Gender) entry.getKey());
         }
@@ -76,8 +77,8 @@ public record PokemonDetails(
         pokemon.setShiny(shiny);
         pokemon.setScaleModifier(scale);
 
-        if (held_item != null) {
-            pokemon.setHeldItem$common(held_item_stack());
+        if (heldItem != null) {
+            pokemon.setHeldItem$common(heldItemStack());
         }
 
         for (int i = 0; i < moves.size(); i++) {

@@ -13,15 +13,15 @@ public class Schedule {
     }
 
     public ScheduleBoss getBoss() {
-        double total_weight = 0;
+        double totalWeight = 0;
         for (ScheduleBoss boss : bosses) {
-            total_weight += boss.weight();
+            totalWeight += boss.weight();
         }
-        double random_weight = new Random().nextDouble(total_weight);
-        total_weight = 0;
+        double random_weight = new Random().nextDouble(totalWeight);
+        totalWeight = 0;
         for (ScheduleBoss boss : bosses) {
-            total_weight += boss.weight();
-            if (random_weight < total_weight) {
+            totalWeight += boss.weight();
+            if (random_weight < totalWeight) {
                 return boss;
             }
         }

@@ -68,7 +68,7 @@ public class RaidCommands {
                                             CommandManager.argument("boss", StringArgumentType.string())
                                                     .suggests(new BossSuggestions())
                                                     .executes(ctx -> {
-                                                        if (nr.loaded_properly) {
+                                                        if (nr.loadedProperly) {
                                                             return start(nr.bossesConfig().getBoss(StringArgumentType.getString(ctx, "boss")), ctx.getSource().getPlayer(), null);
                                                         } else {
                                                             return 0;
@@ -78,7 +78,7 @@ public class RaidCommands {
                                     .then(
                                             CommandManager.literal("random")
                                                     .executes(ctx -> {
-                                                        if (nr.loaded_properly) {
+                                                        if (nr.loadedProperly) {
                                                             return start(nr.bossesConfig().getRandomBoss(), ctx.getSource().getPlayer(), null);
                                                         } else {
                                                             return 0;
@@ -88,7 +88,7 @@ public class RaidCommands {
                                                             CommandManager.argument("category", StringArgumentType.string())
                                                                     .suggests(new CategorySuggestions())
                                                                     .executes(ctx -> {
-                                                                        if (nr.loaded_properly) {
+                                                                        if (nr.loadedProperly) {
                                                                             String categoryStr = StringArgumentType.getString(ctx, "category");
                                                                             Boss boss = nr.bossesConfig().getRandomBoss(categoryStr);
 
@@ -175,10 +175,10 @@ public class RaidCommands {
                                                                                                     .then(
                                                                                                             CommandManager.argument("pokeball", StringArgumentType.string())
                                                                                                                     .suggests((ctx, builder) -> {
-                                                                                                                        if (nr.loaded_properly) {
+                                                                                                                        if (nr.loadedProperly) {
                                                                                                                             Boss boss = nr.bossesConfig().getBoss(StringArgumentType.getString(ctx, "boss"));
                                                                                                                             if (boss != null) {
-                                                                                                                                for (RaidBall ball : boss.item_settings().raid_balls()) {
+                                                                                                                                for (RaidBall ball : boss.itemSettings().raidBalls()) {
                                                                                                                                     builder.suggest(ball.id());
                                                                                                                                 }
                                                                                                                             }
@@ -200,10 +200,10 @@ public class RaidCommands {
                                                                                                     .then(
                                                                                                             CommandManager.argument("pokeball", StringArgumentType.string())
                                                                                                                     .suggests((ctx, builder) -> {
-                                                                                                                        if (nr.loaded_properly) {
+                                                                                                                        if (nr.loadedProperly) {
                                                                                                                             Category cat = nr.bossesConfig().getCategory(StringArgumentType.getString(ctx, "category"));
                                                                                                                             if (cat != null) {
-                                                                                                                                for (RaidBall ball : cat.category_balls()) {
+                                                                                                                                for (RaidBall ball : cat.categoryBalls()) {
                                                                                                                                     builder.suggest(ball.id());
                                                                                                                                 }
                                                                                                                             }
@@ -222,7 +222,7 @@ public class RaidCommands {
                                                                                     .then(
                                                                                             CommandManager.argument("pokeball", StringArgumentType.string())
                                                                                                     .suggests((ctx, builder) -> {
-                                                                                                        if (nr.loaded_properly) {
+                                                                                                        if (nr.loadedProperly) {
                                                                                                             for (RaidBall ball : nr.config().raid_balls) {
                                                                                                                 builder.suggest(ball.id());
                                                                                                             }
@@ -250,13 +250,13 @@ public class RaidCommands {
                                     .then(
                                             CommandManager.argument("id", IntegerArgumentType.integer(1))
                                                     .executes(ctx -> {
-                                                        if (nr.loaded_properly) {
+                                                        if (nr.loadedProperly) {
                                                             if (ctx.getSource().isExecutedByPlayer()) {
                                                                 ServerPlayerEntity player = ctx.getSource().getPlayer();
                                                                 if (player != null) {
-                                                                    if (nr.active_raids().containsKey(IntegerArgumentType.getInteger(ctx, "id"))) {
-                                                                        Raid raid = nr.active_raids().get(IntegerArgumentType.getInteger(ctx, "id"));
-                                                                        if (raid.participating_players().size() < raid.max_players() || Permissions.check(player, "novaraids.override") || raid.max_players() == -1) {
+                                                                    if (nr.activeRaids().containsKey(IntegerArgumentType.getInteger(ctx, "id"))) {
+                                                                        Raid raid = nr.activeRaids().get(IntegerArgumentType.getInteger(ctx, "id"));
+                                                                        if (raid.participatingPlayers().size() < raid.maxPlayers() || Permissions.check(player, "novaraids.override") || raid.maxPlayers() == -1) {
                                                                             if (raid.addPlayer(player.getUuid(), false)) {
                                                                                 player.sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("joined_raid"), raid)));
                                                                             }
@@ -275,12 +275,12 @@ public class RaidCommands {
                             CommandManager.literal("leave")
                                     .requires(Permissions.require("novaraids.leave", 4))
                                     .executes(ctx -> {
-                                        if (nr.loaded_properly) {
+                                        if (nr.loadedProperly) {
                                             if (ctx.getSource().isExecutedByPlayer()) {
-                                                for (Raid raid : nr.active_raids().values()) {
+                                                for (Raid raid : nr.activeRaids().values()) {
                                                     ServerPlayerEntity player = ctx.getSource().getPlayer();
                                                     if (player != null) {
-                                                        if (raid.participating_players().contains(player.getUuid())) {
+                                                        if (raid.participatingPlayers().contains(player.getUuid())) {
                                                             raid.removePlayer(player.getUuid());
                                                         }
                                                     }
@@ -371,22 +371,22 @@ public class RaidCommands {
                                                     .then(
                                                             CommandManager.argument("amount", IntegerArgumentType.integer(1))
                                                                     .executes(ctx -> {
-                                                                        if (nr.loaded_properly) {
+                                                                        if (nr.loadedProperly) {
                                                                             int id = IntegerArgumentType.getInteger(ctx, "id");
-                                                                            if (nr.active_raids().containsKey(id)) {
-                                                                                Raid raid = nr.active_raids().get(id);
+                                                                            if (nr.activeRaids().containsKey(id)) {
+                                                                                Raid raid = nr.activeRaids().get(id);
                                                                                 if (raid != null) {
                                                                                     if (ctx.getSource().isExecutedByPlayer()) {
                                                                                         ServerPlayerEntity player = ctx.getSource().getPlayer();
                                                                                         if (player != null) {
                                                                                             int damage = IntegerArgumentType.getInteger(ctx, "amount");
-                                                                                            if (damage > raid.current_health()) {
-                                                                                                damage = raid.current_health();
+                                                                                            if (damage > raid.currentHealth()) {
+                                                                                                damage = raid.currentHealth();
                                                                                             }
 
-                                                                                            raid.apply_damage(damage);
-                                                                                            raid.update_player_damage(player.getUuid(), damage);
-                                                                                            raid.participating_broadcast(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("player_damage_report"), raid, player, damage, -1)));
+                                                                                            raid.applyDamage(damage);
+                                                                                            raid.updatePlayerDamage(player.getUuid(), damage);
+                                                                                            raid.participatingBroadcast(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("player_damage_report"), raid, player, damage, -1)));
                                                                                             player.sendMessage(TextUtils.deserialize("<green>The damage has been applied."));
                                                                                         }
                                                                                     }
@@ -403,7 +403,7 @@ public class RaidCommands {
 
     private int reload(CommandContext<ServerCommandSource> ctx) {
         nr.reloadConfig();
-        if (nr.loaded_properly) {
+        if (nr.loadedProperly) {
             if (ctx.getSource().isExecutedByPlayer()) {
                 if (ctx.getSource().getPlayer() != null) {
                     ctx.getSource().getPlayer().sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("reload_command"))));
@@ -430,7 +430,7 @@ public class RaidCommands {
     }
 
     private int checkbanned(CommandContext<ServerCommandSource> ctx, String type) {
-        if (nr.loaded_properly) {
+        if (nr.loadedProperly) {
             if (ctx.getSource().isExecutedByPlayer()) {
                 ServerPlayerEntity player = ctx.getSource().getPlayer();
                 if (player != null) {
@@ -452,7 +452,7 @@ public class RaidCommands {
                             String boss_id = StringArgumentType.getString(ctx, "boss");
                             boss = nr.bossesConfig().getBoss(boss_id);
                             if (boss != null) {
-                                category = nr.bossesConfig().getCategory(boss.category_id());
+                                category = nr.bossesConfig().getCategory(boss.categoryId());
                                 gui = nr.guisConfig().boss_contraband_gui;
                             } else {
                                 return 0;
@@ -463,66 +463,66 @@ public class RaidCommands {
                         }
                     }
                     String title = gui.title;
-                    String pokemon_item_name = gui.banned_pokemon_button.item_name();
-                    List<String> pokemon_item_lore = gui.banned_pokemon_button.item_lore();
-                    String move_item_name = gui.banned_moves_button.item_name();
-                    List<String> move_item_lore = gui.banned_moves_button.item_lore();
-                    String ability_item_name = gui.banned_abilities_button.item_name();
-                    List<String> ability_item_lore = gui.banned_abilities_button.item_lore();
-                    String held_item_name = gui.banned_held_items_button.item_name();
-                    List<String> held_item_lore = gui.banned_held_items_button.item_lore();
-                    String bag_item_name = gui.banned_bag_items_button.item_name();
-                    List<String> bag_item_lore = gui.banned_bag_items_button.item_lore();
-                    String background_item_name = gui.background_button.item_name();
-                    List<String> background_item_lore = gui.background_button.item_lore();
-                    String close_item_name = gui.close_button.item_name();
-                    List<String> close_item_lore = gui.close_button.item_lore();
+                    String pokemon_item_name = gui.bannedPokemonButton.itemName();
+                    List<String> pokemon_item_lore = gui.bannedPokemonButton.itemLore();
+                    String move_item_name = gui.bannedMovesButton.itemName();
+                    List<String> move_item_lore = gui.bannedMovesButton.itemLore();
+                    String ability_item_name = gui.bannedAbilitiesButton.itemName();
+                    List<String> ability_item_lore = gui.bannedAbilitiesButton.itemLore();
+                    String held_item_name = gui.bannedHeldItemsButton.itemName();
+                    List<String> held_item_lore = gui.bannedHeldItemsButton.itemLore();
+                    String bag_item_name = gui.bannedBagItemsButton.itemName();
+                    List<String> bag_item_lore = gui.bannedBagItemsButton.itemLore();
+                    String background_item_name = gui.backgroundButton.itemName();
+                    List<String> background_item_lore = gui.backgroundButton.itemLore();
+                    String close_item_name = gui.closeButton.itemName();
+                    List<String> close_item_lore = gui.closeButton.itemLore();
 
                     if (category != null) {
                         title = gui.title.replaceAll("%category%", category.name());
-                        pokemon_item_name = gui.banned_pokemon_button.item_name().replaceAll("%category%", category.name());
+                        pokemon_item_name = gui.bannedPokemonButton.itemName().replaceAll("%category%", category.name());
                         List<String> lore = new ArrayList<>();
                         for (String line : pokemon_item_lore) {
                             lore.add(line.replaceAll("%category%", category.name()));
                         }
                         pokemon_item_lore = lore;
 
-                        move_item_name = gui.banned_moves_button.item_name().replaceAll("%category%", category.name());
+                        move_item_name = gui.bannedMovesButton.itemName().replaceAll("%category%", category.name());
                         lore = new ArrayList<>();
                         for (String line : move_item_lore) {
                             lore.add(line.replaceAll("%category%", category.name()));
                         }
                         move_item_lore = lore;
 
-                        ability_item_name = gui.banned_abilities_button.item_name().replaceAll("%category%", category.name());
+                        ability_item_name = gui.bannedAbilitiesButton.itemName().replaceAll("%category%", category.name());
                         lore = new ArrayList<>();
                         for (String line : ability_item_lore) {
                             lore.add(line.replaceAll("%category%", category.name()));
                         }
                         ability_item_lore = lore;
 
-                        held_item_name = gui.banned_held_items_button.item_name().replaceAll("%category%", category.name());
+                        held_item_name = gui.bannedHeldItemsButton.itemName().replaceAll("%category%", category.name());
                         lore = new ArrayList<>();
                         for (String line : held_item_lore) {
                             lore.add(line.replaceAll("%category%", category.name()));
                         }
                         held_item_lore = lore;
 
-                        bag_item_name = gui.banned_bag_items_button.item_name().replaceAll("%category%", category.name());
+                        bag_item_name = gui.bannedBagItemsButton.itemName().replaceAll("%category%", category.name());
                         lore = new ArrayList<>();
                         for (String line : bag_item_lore) {
                             lore.add(line.replaceAll("%category%", category.name()));
                         }
                         bag_item_lore = lore;
 
-                        background_item_name = gui.background_button.item_name().replaceAll("%category%", category.name());
+                        background_item_name = gui.backgroundButton.itemName().replaceAll("%category%", category.name());
                         lore = new ArrayList<>();
                         for (String line : background_item_lore) {
                             lore.add(line.replaceAll("%category%", category.name()));
                         }
                         background_item_lore = lore;
 
-                        close_item_name = gui.close_button.item_name().replaceAll("%category%", category.name());
+                        close_item_name = gui.closeButton.itemName().replaceAll("%category%", category.name());
                         lore = new ArrayList<>();
                         for (String line : close_item_lore) {
                             lore.add(line.replaceAll("%category%", category.name()));
@@ -582,7 +582,7 @@ public class RaidCommands {
                     }
 
                     SimpleGui main_gui;
-                    if (gui.use_hopper_gui) {
+                    if (gui.useHopperGui) {
                         main_gui = new SimpleGui(ScreenHandlerType.HOPPER, player, false);
                     } else {
                         main_gui = new SimpleGui(GuiUtils.getScreenSize(gui.rows), player, false);
@@ -594,7 +594,7 @@ public class RaidCommands {
                         lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                     }
                     for (Integer slot : gui.pokemonSlots()) {
-                        Item item = Registries.ITEM.get(Identifier.of(gui.banned_pokemon_button.item()));
+                        Item item = Registries.ITEM.get(Identifier.of(gui.bannedPokemonButton.item()));
                         Boss finalBoss = boss;
                         Category finalCategory = category;
                         GuiElement element = new GuiElementBuilder(item)
@@ -602,7 +602,7 @@ public class RaidCommands {
                                 .setLore(lore)
                                 .setCallback(clickType -> {
                                     main_gui.close();
-                                    openContrabandGui(ctx, player, gui.banned_pokemon, "pokemon", 1, finalBoss, finalCategory);
+                                    openContrabandGui(ctx, player, gui.bannedPokemon, "pokemon", 1, finalBoss, finalCategory);
                                 })
                                 .build();
                         main_gui.setSlot(slot, element);
@@ -613,7 +613,7 @@ public class RaidCommands {
                         lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                     }
                     for (Integer slot : gui.moveSlots()) {
-                        Item item = Registries.ITEM.get(Identifier.of(gui.banned_moves_button.item()));
+                        Item item = Registries.ITEM.get(Identifier.of(gui.bannedMovesButton.item()));
                         Boss finalBoss1 = boss;
                         Category finalCategory1 = category;
                         GuiElement element = new GuiElementBuilder(item)
@@ -621,7 +621,7 @@ public class RaidCommands {
                                 .setLore(lore)
                                 .setCallback(clickType -> {
                                     main_gui.close();
-                                    openContrabandGui(ctx, player, gui.banned_moves, "move", 1, finalBoss1, finalCategory1);
+                                    openContrabandGui(ctx, player, gui.bannedMoves, "move", 1, finalBoss1, finalCategory1);
                                 })
                                 .build();
                         main_gui.setSlot(slot, element);
@@ -632,7 +632,7 @@ public class RaidCommands {
                         lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                     }
                     for (Integer slot : gui.abilitySlots()) {
-                        Item item = Registries.ITEM.get(Identifier.of(gui.banned_abilities_button.item()));
+                        Item item = Registries.ITEM.get(Identifier.of(gui.bannedAbilitiesButton.item()));
                         Boss finalBoss2 = boss;
                         Category finalCategory2 = category;
                         GuiElement element = new GuiElementBuilder(item)
@@ -640,7 +640,7 @@ public class RaidCommands {
                                 .setLore(lore)
                                 .setCallback(clickType -> {
                                     main_gui.close();
-                                    openContrabandGui(ctx, player, gui.banned_abilities, "ability", 1, finalBoss2, finalCategory2);
+                                    openContrabandGui(ctx, player, gui.bannedAbilities, "ability", 1, finalBoss2, finalCategory2);
                                 })
                                 .build();
                         main_gui.setSlot(slot, element);
@@ -651,7 +651,7 @@ public class RaidCommands {
                         lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                     }
                     for (Integer slot : gui.heldItemSlots()) {
-                        Item item = Registries.ITEM.get(Identifier.of(gui.banned_held_items_button.item()));
+                        Item item = Registries.ITEM.get(Identifier.of(gui.bannedHeldItemsButton.item()));
                         Boss finalBoss3 = boss;
                         Category finalCategory3 = category;
                         GuiElement element = new GuiElementBuilder(item)
@@ -659,7 +659,7 @@ public class RaidCommands {
                                 .setLore(lore)
                                 .setCallback(clickType -> {
                                     main_gui.close();
-                                    openContrabandGui(ctx, player, gui.banned_held_items, "held_item", 1, finalBoss3, finalCategory3);
+                                    openContrabandGui(ctx, player, gui.bannedHeldItems, "held_item", 1, finalBoss3, finalCategory3);
                                 })
                                 .build();
                         main_gui.setSlot(slot, element);
@@ -670,7 +670,7 @@ public class RaidCommands {
                         lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                     }
                     for (Integer slot : gui.bagItemSlots()) {
-                        Item item = Registries.ITEM.get(Identifier.of(gui.banned_bag_items_button.item()));
+                        Item item = Registries.ITEM.get(Identifier.of(gui.bannedBagItemsButton.item()));
                         Boss finalBoss4 = boss;
                         Category finalCategory4 = category;
                         GuiElement element = new GuiElementBuilder(item)
@@ -678,7 +678,7 @@ public class RaidCommands {
                                 .setLore(lore)
                                 .setCallback(clickType -> {
                                     main_gui.close();
-                                    openContrabandGui(ctx, player, gui.banned_bag_items, "bag_item", 1, finalBoss4, finalCategory4);
+                                    openContrabandGui(ctx, player, gui.bannedBagItems, "bag_item", 1, finalBoss4, finalCategory4);
                                 })
                                 .build();
                         main_gui.setSlot(slot, element);
@@ -689,7 +689,7 @@ public class RaidCommands {
                         lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                     }
                     for (Integer slot : gui.backgroundButtonSlots()) {
-                        Item item = Registries.ITEM.get(Identifier.of(gui.background_button.item()));
+                        Item item = Registries.ITEM.get(Identifier.of(gui.backgroundButton.item()));
                         GuiElement element = new GuiElementBuilder(item)
                                 .setName(TextUtils.deserialize(TextUtils.parse(background_item_name)))
                                 .setLore(lore)
@@ -703,7 +703,7 @@ public class RaidCommands {
                         lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                     }
                     for (Integer slot : gui.closeButtonSlots()) {
-                        Item item = Registries.ITEM.get(Identifier.of(gui.close_button.item()));
+                        Item item = Registries.ITEM.get(Identifier.of(gui.closeButton.item()));
                         GuiElement element = new GuiElementBuilder(item)
                                 .setName(TextUtils.deserialize(TextUtils.parse(close_item_name)))
                                 .setLore(lore)
@@ -723,72 +723,72 @@ public class RaidCommands {
         Map<ItemStack, String> display_items = new HashMap<>();
         if (type.equalsIgnoreCase("pokemon")) {
             if (boss != null && category != null) {
-                for (Species species : boss.raid_details().banned_pokemon()) {
-                    display_items.put(PokemonItem.from(species), TextUtils.parse(gui.display_button.item_name().replaceAll("%pokemon%", species.getName()).replaceAll("%category%", category.name()), boss));
+                for (Species species : boss.raidDetails().bannedPokemon()) {
+                    display_items.put(PokemonItem.from(species), TextUtils.parse(gui.displayButton.itemName().replaceAll("%pokemon%", species.getName()).replaceAll("%category%", category.name()), boss));
                 }
             } else if (category != null) {
-                for (Species species : category.banned_pokemon()) {
-                    display_items.put(PokemonItem.from(species), TextUtils.parse(gui.display_button.item_name().replaceAll("%pokemon%", species.getName()).replaceAll("%category%", category.name())));
+                for (Species species : category.bannedPokemon()) {
+                    display_items.put(PokemonItem.from(species), TextUtils.parse(gui.displayButton.itemName().replaceAll("%pokemon%", species.getName()).replaceAll("%category%", category.name())));
                 }
             } else {
                 for (Species species : nr.config().global_banned_pokemon) {
-                    display_items.put(PokemonItem.from(species), TextUtils.parse(gui.display_button.item_name().replaceAll("%pokemon%", species.getName())));
+                    display_items.put(PokemonItem.from(species), TextUtils.parse(gui.displayButton.itemName().replaceAll("%pokemon%", species.getName())));
                 }
             }
         } else if (type.equalsIgnoreCase("move")) {
             if (boss != null && category != null) {
-                for (Move move : boss.raid_details().banned_moves()) {
-                    display_items.put(Registries.ITEM.get(Identifier.of(gui.display_button.item())).getDefaultStack(), TextUtils.parse(gui.display_button.item_name().replaceAll("%move%", move.getDisplayName().getString()).replaceAll("%category%", category.name()), boss));
+                for (Move move : boss.raidDetails().bannedMoves()) {
+                    display_items.put(Registries.ITEM.get(Identifier.of(gui.displayButton.item())).getDefaultStack(), TextUtils.parse(gui.displayButton.itemName().replaceAll("%move%", move.getDisplayName().getString()).replaceAll("%category%", category.name()), boss));
                 }
             } else if (category != null) {
-                for (Move move : category.banned_moves()) {
-                    display_items.put(Registries.ITEM.get(Identifier.of(gui.display_button.item())).getDefaultStack(), TextUtils.parse(gui.display_button.item_name().replaceAll("%move%", move.getDisplayName().getString()).replaceAll("%category%", category.name())));
+                for (Move move : category.bannedMoves()) {
+                    display_items.put(Registries.ITEM.get(Identifier.of(gui.displayButton.item())).getDefaultStack(), TextUtils.parse(gui.displayButton.itemName().replaceAll("%move%", move.getDisplayName().getString()).replaceAll("%category%", category.name())));
                 }
             } else {
                 for (Move move : nr.config().global_banned_moves) {
-                    display_items.put(Registries.ITEM.get(Identifier.of(gui.display_button.item())).getDefaultStack(), TextUtils.parse(gui.display_button.item_name().replaceAll("%move%", move.getDisplayName().getString())));
+                    display_items.put(Registries.ITEM.get(Identifier.of(gui.displayButton.item())).getDefaultStack(), TextUtils.parse(gui.displayButton.itemName().replaceAll("%move%", move.getDisplayName().getString())));
                 }
             }
         } else if (type.equalsIgnoreCase("ability")) {
             if (boss != null && category != null) {
-                for (Ability ability : boss.raid_details().banned_abilities()) {
-                    display_items.put(Registries.ITEM.get(Identifier.of(gui.display_button.item())).getDefaultStack(), TextUtils.parse(gui.display_button.item_name().replaceAll("%ability%", MiscUtilsKt.asTranslated(ability.getDisplayName()).getString()).replaceAll("%category%", category.name()), boss));
+                for (Ability ability : boss.raidDetails().bannedAbilities()) {
+                    display_items.put(Registries.ITEM.get(Identifier.of(gui.displayButton.item())).getDefaultStack(), TextUtils.parse(gui.displayButton.itemName().replaceAll("%ability%", MiscUtilsKt.asTranslated(ability.getDisplayName()).getString()).replaceAll("%category%", category.name()), boss));
                 }
             } else if (category != null) {
-                for (Ability ability : category.banned_abilities()) {
-                    display_items.put(Registries.ITEM.get(Identifier.of(gui.display_button.item())).getDefaultStack(), TextUtils.parse(gui.display_button.item_name().replaceAll("%ability%", MiscUtilsKt.asTranslated(ability.getDisplayName()).getString()).replaceAll("%category%", category.name())));
+                for (Ability ability : category.bannedAbilities()) {
+                    display_items.put(Registries.ITEM.get(Identifier.of(gui.displayButton.item())).getDefaultStack(), TextUtils.parse(gui.displayButton.itemName().replaceAll("%ability%", MiscUtilsKt.asTranslated(ability.getDisplayName()).getString()).replaceAll("%category%", category.name())));
                 }
             } else {
                 for (Ability ability : nr.config().global_banned_abilities) {
-                    display_items.put(Registries.ITEM.get(Identifier.of(gui.display_button.item())).getDefaultStack(), TextUtils.parse(gui.display_button.item_name().replaceAll("%ability%", MiscUtilsKt.asTranslated(ability.getDisplayName()).getString())));
+                    display_items.put(Registries.ITEM.get(Identifier.of(gui.displayButton.item())).getDefaultStack(), TextUtils.parse(gui.displayButton.itemName().replaceAll("%ability%", MiscUtilsKt.asTranslated(ability.getDisplayName()).getString())));
                 }
             }
         } else if (type.equalsIgnoreCase("held_item")) {
             if (boss != null && category != null) {
-                for (Item item : boss.raid_details().banned_held_items()) {
-                    display_items.put(item.getDefaultStack(), TextUtils.parse(gui.display_button.item_name().replaceAll("%item%", item.getName().getString()).replaceAll("%category%", category.name()), boss));
+                for (Item item : boss.raidDetails().bannedHeldItems()) {
+                    display_items.put(item.getDefaultStack(), TextUtils.parse(gui.displayButton.itemName().replaceAll("%item%", item.getName().getString()).replaceAll("%category%", category.name()), boss));
                 }
             } else if (category != null) {
-                for (Item item : category.banned_held_items()) {
-                    display_items.put(item.getDefaultStack(), TextUtils.parse(gui.display_button.item_name().replaceAll("%item%", item.getName().getString()).replaceAll("%category%", category.name())));
+                for (Item item : category.bannedHeldItems()) {
+                    display_items.put(item.getDefaultStack(), TextUtils.parse(gui.displayButton.itemName().replaceAll("%item%", item.getName().getString()).replaceAll("%category%", category.name())));
                 }
             } else {
                 for (Item item : nr.config().global_banned_held_items) {
-                    display_items.put(item.getDefaultStack(), TextUtils.parse(gui.display_button.item_name().replaceAll("%item%", item.getName().getString())));
+                    display_items.put(item.getDefaultStack(), TextUtils.parse(gui.displayButton.itemName().replaceAll("%item%", item.getName().getString())));
                 }
             }
         } else if (type.equalsIgnoreCase("bag_item")) {
             if (boss != null && category != null) {
-                for (Item item : boss.raid_details().banned_bag_items()) {
-                    display_items.put(item.getDefaultStack(), TextUtils.parse(gui.display_button.item_name().replaceAll("%item%", item.getName().getString()).replaceAll("%category%", category.name()), boss));
+                for (Item item : boss.raidDetails().bannedBagItems()) {
+                    display_items.put(item.getDefaultStack(), TextUtils.parse(gui.displayButton.itemName().replaceAll("%item%", item.getName().getString()).replaceAll("%category%", category.name()), boss));
                 }
             } else if (category != null) {
-                for (Item item : category.banned_bag_items()) {
-                    display_items.put(item.getDefaultStack(), TextUtils.parse(gui.display_button.item_name().replaceAll("%item%", item.getName().getString()).replaceAll("%category%", category.name())));
+                for (Item item : category.bannedBagItems()) {
+                    display_items.put(item.getDefaultStack(), TextUtils.parse(gui.displayButton.itemName().replaceAll("%item%", item.getName().getString()).replaceAll("%category%", category.name())));
                 }
             } else {
                 for (Item item : nr.config().global_banned_bag_items) {
-                    display_items.put(item.getDefaultStack(), TextUtils.parse(gui.display_button.item_name().replaceAll("%item%", item.getName().getString())));
+                    display_items.put(item.getDefaultStack(), TextUtils.parse(gui.displayButton.itemName().replaceAll("%item%", item.getName().getString())));
                 }
             }
         }
@@ -813,7 +813,7 @@ public class RaidCommands {
             for (Integer slot : gui.displaySlots()) {
                 if (index < display_items.size()) {
                     List<Text> lore = new ArrayList<>();
-                    for (String line : gui.display_button.item_lore()) {
+                    for (String line : gui.displayButton.itemLore()) {
                         if (category != null) {
                             line = line.replaceAll("%category%", category.name());
                         }
@@ -824,7 +824,7 @@ public class RaidCommands {
                     }
 
                     ItemStack item = display_items.keySet().stream().toList().get(index);
-                    item.applyChanges(gui.display_button.item_data());
+                    item.applyChanges(gui.displayButton.itemData());
                     GuiElement element = new GuiElementBuilder(item)
                             .setName(TextUtils.deserialize(display_items.values().stream().toList().get(index)))
                             .setLore(lore)
@@ -832,10 +832,10 @@ public class RaidCommands {
                     page_entry.getValue().setSlot(slot, element);
                     index++;
                 } else {
-                    ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(gui.background_button.item())));
-                    item.applyChanges(gui.background_button.item_data());
+                    ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(gui.backgroundButton.item())));
+                    item.applyChanges(gui.backgroundButton.itemData());
                     List<Text> lore = new ArrayList<>();
-                    for (String line : gui.background_button.item_lore()) {
+                    for (String line : gui.backgroundButton.itemLore()) {
                         if (category != null) {
                             line = line.replaceAll("%category%", category.name());
                         }
@@ -845,7 +845,7 @@ public class RaidCommands {
                         lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                     }
 
-                    String name = TextUtils.parse(gui.background_button.item_name());
+                    String name = TextUtils.parse(gui.backgroundButton.itemName());
                     if (category != null) {
                         name = name.replaceAll("%category%", category.name());
                     }
@@ -863,10 +863,10 @@ public class RaidCommands {
 
             if (page_entry.getKey() < page_total) {
                 for (Integer slot : gui.nextButtonSlots()) {
-                    ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(gui.next_button.item())));
-                    item.applyChanges(gui.next_button.item_data());
+                    ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(gui.nextButton.item())));
+                    item.applyChanges(gui.nextButton.itemData());
                     List<Text> lore = new ArrayList<>();
-                    for (String line : gui.next_button.item_lore()) {
+                    for (String line : gui.nextButton.itemLore()) {
                         if (category != null) {
                             line = line.replaceAll("%category%", category.name());
                         }
@@ -876,7 +876,7 @@ public class RaidCommands {
                         lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                     }
 
-                    String name = TextUtils.parse(gui.next_button.item_name());
+                    String name = TextUtils.parse(gui.nextButton.itemName());
                     if (category != null) {
                         name = name.replaceAll("%category%", category.name());
                     }
@@ -898,10 +898,10 @@ public class RaidCommands {
 
             if (page_entry.getKey() > 1) {
                 for (Integer slot : gui.previousButtonSlots()) {
-                    ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(gui.previous_button.item())));
-                    item.applyChanges(gui.previous_button.item_data());
+                    ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(gui.previousButton.item())));
+                    item.applyChanges(gui.previousButton.itemData());
                     List<Text> lore = new ArrayList<>();
-                    for (String line : gui.previous_button.item_lore()) {
+                    for (String line : gui.previousButton.itemLore()) {
                         if (category != null) {
                             line = line.replaceAll("%category%", category.name());
                         }
@@ -911,7 +911,7 @@ public class RaidCommands {
                         lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                     }
 
-                    String name = TextUtils.parse(gui.previous_button.item_name());
+                    String name = TextUtils.parse(gui.previousButton.itemName());
                     if (category != null) {
                         name = name.replaceAll("%category%", category.name());
                     }
@@ -932,10 +932,10 @@ public class RaidCommands {
             }
 
             for (Integer slot : gui.closeButtonSlots()) {
-                ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(gui.close_button.item())));
-                item.applyChanges(gui.close_button.item_data());
+                ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(gui.closeButton.item())));
+                item.applyChanges(gui.closeButton.itemData());
                 List<Text> lore = new ArrayList<>();
-                for (String line : gui.close_button.item_lore()) {
+                for (String line : gui.closeButton.itemLore()) {
                     if (category != null) {
                         line = line.replaceAll("%category%", category.name());
                     }
@@ -945,7 +945,7 @@ public class RaidCommands {
                     lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                 }
 
-                String name = TextUtils.parse(gui.close_button.item_name());
+                String name = TextUtils.parse(gui.closeButton.itemName());
                 if (category != null) {
                     name = name.replaceAll("%category%", category.name());
                 }
@@ -971,10 +971,10 @@ public class RaidCommands {
             }
 
             for (Integer slot : gui.backgroundButtonSlots()) {
-                ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(gui.background_button.item())));
-                item.applyChanges(gui.background_button.item_data());
+                ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(gui.backgroundButton.item())));
+                item.applyChanges(gui.backgroundButton.itemData());
                 List<Text> lore = new ArrayList<>();
-                for (String line : gui.background_button.item_lore()) {
+                for (String line : gui.backgroundButton.itemLore()) {
                     if (category != null) {
                         line = line.replaceAll("%category%", category.name());
                     }
@@ -984,7 +984,7 @@ public class RaidCommands {
                     lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                 }
 
-                String name = TextUtils.parse(gui.background_button.item_name());
+                String name = TextUtils.parse(gui.backgroundButton.itemName());
                 if (category != null) {
                     name = name.replaceAll("%category%", category.name());
                 }
@@ -1032,17 +1032,17 @@ public class RaidCommands {
         int total_players = IntegerArgumentType.getInteger(ctx, "total-players");
 
         Boss boss_info = nr.bossesConfig().getBoss(boss);
-        Category raidBoss_category = nr.bossesConfig().getCategory(boss_info.category_id());
+        Category raidBoss_category = nr.bossesConfig().getCategory(boss_info.categoryId());
 
         List<DistributionSection> category_rewards = new ArrayList<>(raidBoss_category.rewards());
-        List<DistributionSection> boss_rewards = new ArrayList<>(boss_info.raid_details().rewards());
+        List<DistributionSection> boss_rewards = new ArrayList<>(boss_info.raidDetails().rewards());
 
         List<Place> overridden_placements = new ArrayList<>();
 
         for (DistributionSection boss_reward : boss_rewards) {
             List<Place> places = boss_reward.places();
             for (Place place : places) {
-                if (place.override_category_reward()) {
+                if (place.overrideCategoryReward()) {
                     overridden_placements.add(place);
                 }
             }
@@ -1120,13 +1120,13 @@ public class RaidCommands {
                         }
 
                         if (!no_more_rewards.containsKey(player) || (duplicate_placement_exists && place.place().equalsIgnoreCase(no_more_rewards.get(player)))) {
-                            int rolls = new Random().nextInt(reward.min_rolls(), reward.max_rolls() + 1);
+                            int rolls = new Random().nextInt(reward.minRolls(), reward.maxRolls() + 1);
                             List<UUID> distributed_pools = new ArrayList<>();
                             for (int i = 0; i < rolls; i++) {
                                 Map.Entry<?, Double> pool_entry = RandomUtils.getRandomEntry(reward.pools());
                                 if (pool_entry != null) {
                                     RewardPool pool = (RewardPool) pool_entry.getKey();
-                                    if (reward.allow_duplicates() || !distributed_pools.contains(pool.uuid())) {
+                                    if (reward.allowDuplicates() || !distributed_pools.contains(pool.uuid())) {
                                         pool.distributeRewards(player);
                                         distributed_pools.add(pool.uuid());
                                     } else {
@@ -1141,7 +1141,7 @@ public class RaidCommands {
                 }
 
                 for (ServerPlayerEntity player : players_to_reward) {
-                    if (!place.allow_other_rewards() && !no_more_rewards.containsKey(player)) {
+                    if (!place.allowOtherRewards() && !no_more_rewards.containsKey(player)) {
                         no_more_rewards.put(player, place.place());
                     }
                 }
@@ -1152,10 +1152,10 @@ public class RaidCommands {
     }
 
     private int skipphase(CommandContext<ServerCommandSource> ctx) {
-        if (nr.loaded_properly) {
+        if (nr.loadedProperly) {
             int id = IntegerArgumentType.getInteger(ctx, "id");
-            if (nr.active_raids().containsKey(id)) {
-                Raid raid = nr.active_raids().get(id);
+            if (nr.activeRaids().containsKey(id)) {
+                Raid raid = nr.activeRaids().get(id);
                 List<Task> tasks = raid.getTasks().entrySet().stream().findFirst().orElseThrow().getValue();
                 raid.removeTask(raid.getTasks().entrySet().stream().findFirst().orElseThrow().getKey());
                 for (Task task : tasks) {
@@ -1167,16 +1167,16 @@ public class RaidCommands {
     }
 
     public int start(Boss boss_info, ServerPlayerEntity player, ItemStack starting_item) {
-        if (nr.loaded_properly) {
+        if (nr.loadedProperly) {
             if (!nr.server().getPlayerManager().getPlayerList().isEmpty() || nr.config().run_raids_with_no_players) {
                 if (boss_info != null) {
-                    Map<String, Double> spawn_locations = boss_info.spawn_locations();
+                    Map<String, Double> spawn_locations = boss_info.spawnLocations();
                     Map<String, Double> valid_locations = new HashMap<>();
 
                     for (String key : spawn_locations.keySet()) {
                         boolean valid_spawn = true;
-                        for (Raid raid : nr.active_raids().values()) {
-                            if (raid.raidBoss_location().id().equalsIgnoreCase(key)) {
+                        for (Raid raid : nr.activeRaids().values()) {
+                            if (raid.raidBossLocation().id().equalsIgnoreCase(key)) {
                                 valid_spawn = false;
                                 break;
                             }
@@ -1208,13 +1208,13 @@ public class RaidCommands {
                     if (spawn_location != null) {
                         if (!nr.config().use_queue_system) {
                             nr.logInfo("[RAIDS] Starting raid.");
-                            nr.add_raid(new Raid(boss_info, spawn_location, (player != null) ? player.getUuid() : null, starting_item));
+                            nr.addRaid(new Raid(boss_info, spawn_location, (player != null) ? player.getUuid() : null, starting_item));
                         } else {
                             nr.logInfo("[RAIDS] Adding queue raid.");
-                            nr.add_queue_item(new QueueItem(UUID.randomUUID(), boss_info, spawn_location, (player != null) ? player.getUuid() : null, starting_item));
+                            nr.addQueueItem(new QueueItem(UUID.randomUUID(), boss_info, spawn_location, (player != null) ? player.getUuid() : null, starting_item));
 
-                            if (nr.active_raids().isEmpty()) {
-                                nr.init_next_raid();
+                            if (nr.activeRaids().isEmpty()) {
+                                nr.initNextRaid();
                             } else {
                                 if (player != null) {
                                     player.sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("added_to_queue"), boss_info)));
@@ -1235,16 +1235,16 @@ public class RaidCommands {
     }
 
     private int stop(CommandContext<ServerCommandSource> ctx) {
-        if (nr.loaded_properly) {
+        if (nr.loadedProperly) {
             int id = IntegerArgumentType.getInteger(ctx, "id");
-            if (nr.active_raids().containsKey(id)) {
+            if (nr.activeRaids().containsKey(id)) {
                 if (ctx.getSource().isExecutedByPlayer()) {
                     if (ctx.getSource().getPlayer() != null) {
-                        ctx.getSource().getPlayer().sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("raid_stopped"), nr.active_raids().get(id))));
+                        ctx.getSource().getPlayer().sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("raid_stopped"), nr.activeRaids().get(id))));
                     }
                 }
-                nr.active_raids().get(id).stop();
-                nr.remove_raid(nr.active_raids().get(id));
+                nr.activeRaids().get(id).stop();
+                nr.removeRaid(nr.activeRaids().get(id));
                 return 1;
             }
         }
@@ -1252,7 +1252,7 @@ public class RaidCommands {
     }
 
     public int give(ServerPlayerEntity source_player, ServerPlayerEntity target_player, String item_type, String boss_name, String category, String key, int amount) {
-        if (nr.loaded_properly) {
+        if (nr.loadedProperly) {
             ItemStack item_to_give;
             NbtCompound custom_data = new NbtCompound();
             ComponentMap.Builder component_builder = ComponentMap.builder();
@@ -1275,11 +1275,11 @@ public class RaidCommands {
                             source_player.sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("give_command_invalid_category").replaceAll("%category%", category), source_player, target_player, amount, item_type)));
                             return 0;
                         }
-                        pass = cat.category_pass();
+                        pass = cat.categoryPass();
                     }
-                    item_name = TextUtils.deserialize(TextUtils.parse(pass.pass_name(), source_player, target_player, amount, item_type));
+                    item_name = TextUtils.deserialize(TextUtils.parse(pass.passName(), source_player, target_player, amount, item_type));
                     List<Text> lore_text = new ArrayList<>();
-                    for (String lore_line : pass.pass_lore()) {
+                    for (String lore_line : pass.passLore()) {
                         lore_text.add(TextUtils.deserialize(TextUtils.parse(lore_line, source_player, target_player, amount, item_type)));
                     }
                     lore = new LoreComponent(lore_text);
@@ -1297,11 +1297,11 @@ public class RaidCommands {
                         }
                         boss = nr.bossesConfig().getRandomBoss(category_id);
                     }
-                    boss_id = boss.boss_id();
-                    pass = boss.item_settings().pass();
-                    item_name = TextUtils.deserialize(TextUtils.parse(TextUtils.parse(pass.pass_name(), boss), source_player, target_player, amount, item_type));
+                    boss_id = boss.bossId();
+                    pass = boss.itemSettings().pass();
+                    item_name = TextUtils.deserialize(TextUtils.parse(TextUtils.parse(pass.passName(), boss), source_player, target_player, amount, item_type));
                     List<Text> lore_text = new ArrayList<>();
-                    for (String lore_line : pass.pass_lore()) {
+                    for (String lore_line : pass.passLore()) {
                         lore_text.add(TextUtils.deserialize(TextUtils.parse(TextUtils.parse(lore_line, boss), source_player, target_player, amount, item_type)));
                     }
                     lore = new LoreComponent(lore_text);
@@ -1313,18 +1313,18 @@ public class RaidCommands {
                         source_player.sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("give_command_invalid_boss").replaceAll("%boss%", boss_name), source_player, target_player, amount, item_type)));
                         return 0;
                     }
-                    pass = boss.item_settings().pass();
-                    item_name = TextUtils.deserialize(TextUtils.parse(TextUtils.parse(pass.pass_name(), boss), source_player, target_player, amount, item_type));
+                    pass = boss.itemSettings().pass();
+                    item_name = TextUtils.deserialize(TextUtils.parse(TextUtils.parse(pass.passName(), boss), source_player, target_player, amount, item_type));
                     List<Text> lore_text = new ArrayList<>();
-                    for (String lore_line : pass.pass_lore()) {
+                    for (String lore_line : pass.passLore()) {
                         lore_text.add(TextUtils.deserialize(TextUtils.parse(TextUtils.parse(lore_line, boss), source_player, target_player, amount, item_type)));
                     }
                     lore = new LoreComponent(lore_text);
                 }
 
-                item_to_give = new ItemStack(pass.pass_item(), 1);
-                if (pass.pass_data() != null) {
-                    item_to_give.applyChanges(pass.pass_data());
+                item_to_give = new ItemStack(pass.passItem(), 1);
+                if (pass.passData() != null) {
+                    item_to_give.applyChanges(pass.passData());
                 }
                 item_to_give.applyComponentsFrom(ComponentMap.builder().add(DataComponentTypes.MAX_STACK_SIZE, 1).build());
                 custom_data.putString("raid_item", "raid_pass");
@@ -1346,11 +1346,11 @@ public class RaidCommands {
                             source_player.sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("give_command_invalid_category").replaceAll("%category%", category), source_player, target_player, amount, item_type)));
                             return 0;
                         }
-                        voucher = cat.category_choice_voucher();
+                        voucher = cat.categoryChoiceVoucher();
                     }
-                    item_name = TextUtils.deserialize(TextUtils.parse(voucher.voucher_name(), source_player, target_player, amount, item_type));
+                    item_name = TextUtils.deserialize(TextUtils.parse(voucher.voucherName(), source_player, target_player, amount, item_type));
                     List<Text> lore_text = new ArrayList<>();
-                    for (String lore_line : voucher.voucher_lore()) {
+                    for (String lore_line : voucher.voucherLore()) {
                         lore_text.add(TextUtils.deserialize(TextUtils.parse(lore_line, source_player, target_player, amount, item_type)));
                     }
                     lore = new LoreComponent(lore_text);
@@ -1366,11 +1366,11 @@ public class RaidCommands {
                             source_player.sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("give_command_invalid_category").replaceAll("%category%", category), source_player, target_player, amount, item_type)));
                             return 0;
                         }
-                        voucher = cat.category_random_voucher();
+                        voucher = cat.categoryRandomVoucher();
                     }
-                    item_name = TextUtils.deserialize(TextUtils.parse(voucher.voucher_name(), source_player, target_player, amount, item_type));
+                    item_name = TextUtils.deserialize(TextUtils.parse(voucher.voucherName(), source_player, target_player, amount, item_type));
                     List<Text> lore_text = new ArrayList<>();
-                    for (String lore_line : voucher.voucher_lore()) {
+                    for (String lore_line : voucher.voucherLore()) {
                         lore_text.add(TextUtils.deserialize(TextUtils.parse(lore_line, source_player, target_player, amount, item_type)));
                     }
                     lore = new LoreComponent(lore_text);
@@ -1382,18 +1382,18 @@ public class RaidCommands {
                         source_player.sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("give_command_invalid_boss").replaceAll("%boss%", boss_name), source_player, target_player, amount, item_type)));
                         return 0;
                     }
-                    voucher = boss.item_settings().voucher();
-                    item_name = TextUtils.deserialize(TextUtils.parse(TextUtils.parse(voucher.voucher_name(), boss), source_player, target_player, amount, item_type));
+                    voucher = boss.itemSettings().voucher();
+                    item_name = TextUtils.deserialize(TextUtils.parse(TextUtils.parse(voucher.voucherName(), boss), source_player, target_player, amount, item_type));
                     List<Text> lore_text = new ArrayList<>();
-                    for (String lore_line : voucher.voucher_lore()) {
+                    for (String lore_line : voucher.voucherLore()) {
                         lore_text.add(TextUtils.deserialize(TextUtils.parse(TextUtils.parse(lore_line, boss), source_player, target_player, amount, item_type)));
                     }
                     lore = new LoreComponent(lore_text);
                 }
 
-                item_to_give = new ItemStack(voucher.voucher_item(), 1);
-                if (voucher.voucher_data() != null) {
-                    item_to_give.applyChanges(voucher.voucher_data());
+                item_to_give = new ItemStack(voucher.voucherItem(), 1);
+                if (voucher.voucherData() != null) {
+                    item_to_give.applyChanges(voucher.voucherData());
                 }
                 item_to_give.applyComponentsFrom(ComponentMap.builder().add(DataComponentTypes.MAX_STACK_SIZE, 1).build());
                 custom_data.putString("raid_item", "raid_voucher");
@@ -1415,9 +1415,9 @@ public class RaidCommands {
                             }
                             return 0;
                         }
-                        item_name = TextUtils.deserialize(TextUtils.parse(raid_pokeball.ball_name(), source_player, target_player, amount, item_type));
+                        item_name = TextUtils.deserialize(TextUtils.parse(raid_pokeball.ballName(), source_player, target_player, amount, item_type));
                         List<Text> lore_text = new ArrayList<>();
-                        for (String lore_line : raid_pokeball.ball_lore()) {
+                        for (String lore_line : raid_pokeball.ballLore()) {
                             lore_text.add(TextUtils.deserialize(TextUtils.parse(lore_line, source_player, target_player, amount, item_type)));
                         }
                         lore = new LoreComponent(lore_text);
@@ -1431,16 +1431,16 @@ public class RaidCommands {
                             return 0;
                         }
                         boss_id = boss_name;
-                        raid_pokeball = boss.item_settings().getRaidBall(key);
+                        raid_pokeball = boss.itemSettings().getRaidBall(key);
                         if (raid_pokeball == null) {
                             if (source_player != null) {
                                 source_player.sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("give_command_invalid_pokeball").replaceAll("%pokeball%", key), source_player, target_player, amount, item_type)));
                             }
                             return 0;
                         }
-                        item_name = TextUtils.deserialize(TextUtils.parse(TextUtils.parse(raid_pokeball.ball_name(), boss), source_player, target_player, amount, item_type));
+                        item_name = TextUtils.deserialize(TextUtils.parse(TextUtils.parse(raid_pokeball.ballName(), boss), source_player, target_player, amount, item_type));
                         List<Text> lore_text = new ArrayList<>();
-                        for (String lore_line : raid_pokeball.ball_lore()) {
+                        for (String lore_line : raid_pokeball.ballLore()) {
                             lore_text.add(TextUtils.deserialize(TextUtils.parse(TextUtils.parse(lore_line, boss), source_player, target_player, amount, item_type)));
                         }
                         lore = new LoreComponent(lore_text);
@@ -1463,9 +1463,9 @@ public class RaidCommands {
                             }
                             return 0;
                         }
-                        item_name = TextUtils.deserialize(TextUtils.parse(raid_pokeball.ball_name(), source_player, target_player, amount, item_type));
+                        item_name = TextUtils.deserialize(TextUtils.parse(raid_pokeball.ballName(), source_player, target_player, amount, item_type));
                         List<Text> lore_text = new ArrayList<>();
-                        for (String lore_line : raid_pokeball.ball_lore()) {
+                        for (String lore_line : raid_pokeball.ballLore()) {
                             lore_text.add(TextUtils.deserialize(TextUtils.parse(lore_line, source_player, target_player, amount, item_type)));
                         }
                         lore = new LoreComponent(lore_text);
@@ -1475,13 +1475,13 @@ public class RaidCommands {
                     }
                 }
 
-                item_to_give = new ItemStack(raid_pokeball.ball_item(), amount);
+                item_to_give = new ItemStack(raid_pokeball.ballItem(), amount);
                 custom_data.putString("raid_item", "raid_ball");
                 custom_data.putUuid("owner_uuid", target_player.getUuid());
                 custom_data.putString("raid_boss", boss_id);
                 custom_data.putString("raid_category", category_id);
-                if (raid_pokeball.ball_data() != null) {
-                    item_to_give.applyChanges(raid_pokeball.ball_data());
+                if (raid_pokeball.ballData() != null) {
+                    item_to_give.applyChanges(raid_pokeball.ballData());
                 }
             }
 
@@ -1518,16 +1518,16 @@ public class RaidCommands {
     }
 
     private int list(CommandContext<ServerCommandSource> ctx) {
-        if (nr.loaded_properly) {
+        if (nr.loadedProperly) {
             ServerPlayerEntity player = ctx.getSource().getPlayer();
             if (player != null) {
-                if (nr.active_raids().isEmpty()) {
+                if (nr.activeRaids().isEmpty()) {
                     player.sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("no_active_raids"))));
                     return 0;
                 }
 
                 Map<Integer, SimpleGui> pages = new HashMap<>();
-                int page_total = GuiUtils.getPageTotal(nr.active_raids().size(), nr.guisConfig().raid_list_gui.displaySlotTotal());
+                int page_total = GuiUtils.getPageTotal(nr.activeRaids().size(), nr.guisConfig().raid_list_gui.displaySlotTotal());
                 for (int i = 1; i <= page_total; i++) {
                     SimpleGui gui = new SimpleGui(GuiUtils.getScreenSize(nr.guisConfig().raid_list_gui.rows), player, false);
                     gui.setTitle(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().raid_list_gui.title)));
@@ -1537,32 +1537,32 @@ public class RaidCommands {
                 int index = 0;
                 for (Map.Entry<Integer, SimpleGui> page_entry : pages.entrySet()) {
                     for (Integer slot : nr.guisConfig().raid_list_gui.displaySlots()) {
-                        if (nr.active_raids().containsKey(index + 1)) {
-                            Raid raid = nr.active_raids().get(index + 1);
+                        if (nr.activeRaids().containsKey(index + 1)) {
+                            Raid raid = nr.activeRaids().get(index + 1);
                             List<Text> lore = new ArrayList<>();
 
-                            if (!raid.raidBoss_category().require_pass() && raid.stage() == 1) {
-                                for (String line : nr.guisConfig().raid_list_gui.joinable_lore) {
+                            if (!raid.raidBossCategory().requirePass() && raid.stage() == 1) {
+                                for (String line : nr.guisConfig().raid_list_gui.joinableLore) {
                                     lore.add(TextUtils.deserialize(TextUtils.parse(line, raid)));
                                 }
                             } else if (raid.stage() != 1) {
-                                for (String line : nr.guisConfig().raid_list_gui.in_progress_lore) {
+                                for (String line : nr.guisConfig().raid_list_gui.inProgressLore) {
                                     lore.add(TextUtils.deserialize(TextUtils.parse(line, raid)));
                                 }
                             } else {
-                                for (String line : nr.guisConfig().raid_list_gui.requires_pass_lore) {
+                                for (String line : nr.guisConfig().raid_list_gui.requiresPassLore) {
                                     lore.add(TextUtils.deserialize(TextUtils.parse(line, raid)));
                                 }
                             }
 
-                            ItemStack item = PokemonItem.from(raid.raidBoss_pokemon());
-                            item.applyChanges(nr.guisConfig().raid_list_gui.display_data);
+                            ItemStack item = PokemonItem.from(raid.raidBossPokemon());
+                            item.applyChanges(nr.guisConfig().raid_list_gui.displayData);
                             GuiElement element = new GuiElementBuilder(item)
-                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().raid_list_gui.display_name, raid)))
+                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().raid_list_gui.displayName, raid)))
                                     .setLore(lore)
                                     .setCallback((num, clickType, slotActionType) -> {
                                         if (clickType.isLeft) {
-                                            if (raid.participating_players().size() < raid.max_players() || Permissions.check(player, "novaraids.override") || raid.max_players() == -1) {
+                                            if (raid.participatingPlayers().size() < raid.maxPlayers() || Permissions.check(player, "novaraids.override") || raid.maxPlayers() == -1) {
                                                 if (raid.addPlayer(player.getUuid(), false)) {
                                                     player.sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("joined_raid"), raid)));
                                                 }
@@ -1575,14 +1575,14 @@ public class RaidCommands {
                             page_entry.getValue().setSlot(slot, element);
                             index++;
                         } else {
-                            ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().raid_list_gui.background_button.item())));
-                            item.applyChanges(nr.guisConfig().raid_list_gui.background_button.item_data());
+                            ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().raid_list_gui.backgroundButton.item())));
+                            item.applyChanges(nr.guisConfig().raid_list_gui.backgroundButton.itemData());
                             List<Text> lore = new ArrayList<>();
-                            for (String line : nr.guisConfig().raid_list_gui.background_button.item_lore()) {
+                            for (String line : nr.guisConfig().raid_list_gui.backgroundButton.itemLore()) {
                                 lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                             }
                             GuiElement element = new GuiElementBuilder(item)
-                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().raid_list_gui.background_button.item_name())))
+                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().raid_list_gui.backgroundButton.itemName())))
                                     .setLore(lore)
                                     .build();
                             page_entry.getValue().setSlot(slot, element);
@@ -1591,14 +1591,14 @@ public class RaidCommands {
 
                     if (page_entry.getKey() < page_total) {
                         for (Integer slot : nr.guisConfig().raid_list_gui.nextButtonSlots()) {
-                            ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().raid_list_gui.next_button.item())));
-                            item.applyChanges(nr.guisConfig().raid_list_gui.next_button.item_data());
+                            ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().raid_list_gui.nextButton.item())));
+                            item.applyChanges(nr.guisConfig().raid_list_gui.nextButton.itemData());
                             List<Text> lore = new ArrayList<>();
-                            for (String line : nr.guisConfig().raid_list_gui.next_button.item_lore()) {
+                            for (String line : nr.guisConfig().raid_list_gui.nextButton.itemLore()) {
                                 lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                             }
                             GuiElement element = new GuiElementBuilder(item)
-                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().raid_list_gui.next_button.item_name())))
+                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().raid_list_gui.nextButton.itemName())))
                                     .setLore(lore)
                                     .setCallback(clickType -> {
                                         page_entry.getValue().close();
@@ -1611,14 +1611,14 @@ public class RaidCommands {
 
                     if (page_entry.getKey() > 1) {
                         for (Integer slot : nr.guisConfig().raid_list_gui.previousButtonSlots()) {
-                            ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().raid_list_gui.previous_button.item())));
-                            item.applyChanges(nr.guisConfig().raid_list_gui.previous_button.item_data());
+                            ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().raid_list_gui.previousButton.item())));
+                            item.applyChanges(nr.guisConfig().raid_list_gui.previousButton.itemData());
                             List<Text> lore = new ArrayList<>();
-                            for (String line : nr.guisConfig().raid_list_gui.previous_button.item_lore()) {
+                            for (String line : nr.guisConfig().raid_list_gui.previousButton.itemLore()) {
                                 lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                             }
                             GuiElement element = new GuiElementBuilder(item)
-                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().raid_list_gui.previous_button.item_name())))
+                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().raid_list_gui.previousButton.itemName())))
                                     .setLore(lore)
                                     .setCallback(clickType -> {
                                         page_entry.getValue().close();
@@ -1630,14 +1630,14 @@ public class RaidCommands {
                     }
 
                     for (Integer slot : nr.guisConfig().raid_list_gui.closeButtonSlots()) {
-                        ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().raid_list_gui.close_button.item())));
-                        item.applyChanges(nr.guisConfig().raid_list_gui.close_button.item_data());
+                        ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().raid_list_gui.closeButton.item())));
+                        item.applyChanges(nr.guisConfig().raid_list_gui.closeButton.itemData());
                         List<Text> lore = new ArrayList<>();
-                        for (String line : nr.guisConfig().raid_list_gui.close_button.item_lore()) {
+                        for (String line : nr.guisConfig().raid_list_gui.closeButton.itemLore()) {
                             lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                         }
                         GuiElement element = new GuiElementBuilder(item)
-                                .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().raid_list_gui.close_button.item_name())))
+                                .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().raid_list_gui.closeButton.itemName())))
                                 .setLore(lore)
                                 .setCallback(clickType -> page_entry.getValue().close())
                                 .build();
@@ -1645,14 +1645,14 @@ public class RaidCommands {
                     }
 
                     for (Integer slot : nr.guisConfig().raid_list_gui.backgroundButtonSlots()) {
-                        ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().raid_list_gui.background_button.item())));
-                        item.applyChanges(nr.guisConfig().raid_list_gui.background_button.item_data());
+                        ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().raid_list_gui.backgroundButton.item())));
+                        item.applyChanges(nr.guisConfig().raid_list_gui.backgroundButton.itemData());
                         List<Text> lore = new ArrayList<>();
-                        for (String line : nr.guisConfig().raid_list_gui.background_button.item_lore()) {
+                        for (String line : nr.guisConfig().raid_list_gui.backgroundButton.itemLore()) {
                             lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                         }
                         GuiElement element = new GuiElementBuilder(item)
-                                .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().raid_list_gui.background_button.item_name())))
+                                .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().raid_list_gui.backgroundButton.itemName())))
                                 .setLore(lore)
                                 .build();
                         page_entry.getValue().setSlot(slot, element);
@@ -1665,16 +1665,16 @@ public class RaidCommands {
     }
 
     private int queue(CommandContext<ServerCommandSource> ctx, int page_to_open) {
-        if (nr.loaded_properly) {
+        if (nr.loadedProperly) {
             ServerPlayerEntity player = ctx.getSource().getPlayer();
             if (player != null) {
-                if (nr.queued_raids().isEmpty()) {
+                if (nr.queuedRaids().isEmpty()) {
                     player.sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("no_queued_raids"))));
                     return 0;
                 }
 
                 Map<Integer, SimpleGui> pages = new HashMap<>();
-                int page_total = GuiUtils.getPageTotal(nr.queued_raids().size(), nr.guisConfig().queue_gui.displaySlotTotal());
+                int page_total = GuiUtils.getPageTotal(nr.queuedRaids().size(), nr.guisConfig().queue_gui.displaySlotTotal());
                 for (int i = 1; i <= page_total; i++) {
                     SimpleGui gui = new SimpleGui(GuiUtils.getScreenSize(nr.guisConfig().queue_gui.rows), player, false);
                     gui.setTitle(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().queue_gui.title)));
@@ -1684,33 +1684,33 @@ public class RaidCommands {
                 int index = 0;
                 for (Map.Entry<Integer, SimpleGui> page_entry : pages.entrySet()) {
                     for (Integer slot : nr.guisConfig().raid_list_gui.displaySlots()) {
-                        if (index < nr.queued_raids().size()) {
-                            Boss boss = nr.queued_raids().stream().toList().get(index).boss_info();
+                        if (index < nr.queuedRaids().size()) {
+                            Boss boss = nr.queuedRaids().stream().toList().get(index).bossInfo();
 
                             List<Text> lore = new ArrayList<>();
                             if (Permissions.check(player, "novaraids.cancelqueue", 4)) {
-                                for (String line : nr.guisConfig().queue_gui.cancel_lore) {
+                                for (String line : nr.guisConfig().queue_gui.cancelLore) {
                                     lore.add(TextUtils.deserialize(TextUtils.parse(line, boss)));
                                 }
                             } else {
-                                for (String line : nr.guisConfig().queue_gui.default_lore) {
+                                for (String line : nr.guisConfig().queue_gui.defaultLore) {
                                     lore.add(TextUtils.deserialize(TextUtils.parse(line, boss)));
                                 }
                             }
 
                             ItemStack item = PokemonItem.from(boss.pokemonDetails().createPokemon());
-                            item.applyChanges(nr.guisConfig().queue_gui.display_data);
+                            item.applyChanges(nr.guisConfig().queue_gui.displayData);
                             int finalIndex = index;
                             GuiElement element = new GuiElementBuilder(item)
-                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().queue_gui.display_name, boss)))
+                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().queue_gui.displayName, boss)))
                                     .setLore(lore)
                                     .setCallback((num, clickType, slotActionType) -> {
                                         if (clickType.isRight) {
                                             if (Permissions.check(player, "novaraids.cancelqueue", 4)) {
                                                 page_entry.getValue().close();
-                                                nr.queued_raids().stream().toList().get(finalIndex).cancel_item();
+                                                nr.queuedRaids().stream().toList().get(finalIndex).cancel_item();
                                                 player.sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("queue_item_cancelled"), boss)));
-                                                nr.queued_raids().remove(nr.queued_raids().stream().toList().get(finalIndex));
+                                                nr.queuedRaids().remove(nr.queuedRaids().stream().toList().get(finalIndex));
                                                 queue(ctx, page_entry.getKey());
                                             }
                                         }
@@ -1718,14 +1718,14 @@ public class RaidCommands {
                             page_entry.getValue().setSlot(slot, element);
                             index++;
                         } else {
-                            ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().queue_gui.background_button.item())));
-                            item.applyChanges(nr.guisConfig().queue_gui.background_button.item_data());
+                            ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().queue_gui.backgroundButton.item())));
+                            item.applyChanges(nr.guisConfig().queue_gui.backgroundButton.itemData());
                             List<Text> lore = new ArrayList<>();
-                            for (String line : nr.guisConfig().queue_gui.background_button.item_lore()) {
+                            for (String line : nr.guisConfig().queue_gui.backgroundButton.itemLore()) {
                                 lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                             }
                             GuiElement element = new GuiElementBuilder(item)
-                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().queue_gui.background_button.item_name())))
+                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().queue_gui.backgroundButton.itemName())))
                                     .setLore(lore)
                                     .build();
                             page_entry.getValue().setSlot(slot, element);
@@ -1734,14 +1734,14 @@ public class RaidCommands {
 
                     if (page_entry.getKey() < page_total) {
                         for (Integer slot : nr.guisConfig().queue_gui.nextButtonSlots()) {
-                            ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().queue_gui.next_button.item())));
-                            item.applyChanges(nr.guisConfig().queue_gui.next_button.item_data());
+                            ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().queue_gui.nextButton.item())));
+                            item.applyChanges(nr.guisConfig().queue_gui.nextButton.itemData());
                             List<Text> lore = new ArrayList<>();
-                            for (String line : nr.guisConfig().queue_gui.next_button.item_lore()) {
+                            for (String line : nr.guisConfig().queue_gui.nextButton.itemLore()) {
                                 lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                             }
                             GuiElement element = new GuiElementBuilder(item)
-                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().queue_gui.next_button.item_name())))
+                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().queue_gui.nextButton.itemName())))
                                     .setLore(lore)
                                     .setCallback(clickType -> {
                                         page_entry.getValue().close();
@@ -1754,14 +1754,14 @@ public class RaidCommands {
 
                     if (page_entry.getKey() > 1) {
                         for (Integer slot : nr.guisConfig().queue_gui.previousButtonSlots()) {
-                            ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().queue_gui.previous_button.item())));
-                            item.applyChanges(nr.guisConfig().queue_gui.previous_button.item_data());
+                            ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().queue_gui.previousButton.item())));
+                            item.applyChanges(nr.guisConfig().queue_gui.previousButton.itemData());
                             List<Text> lore = new ArrayList<>();
-                            for (String line : nr.guisConfig().queue_gui.previous_button.item_lore()) {
+                            for (String line : nr.guisConfig().queue_gui.previousButton.itemLore()) {
                                 lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                             }
                             GuiElement element = new GuiElementBuilder(item)
-                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().queue_gui.previous_button.item_name())))
+                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().queue_gui.previousButton.itemName())))
                                     .setLore(lore)
                                     .setCallback(clickType -> {
                                         page_entry.getValue().close();
@@ -1773,14 +1773,14 @@ public class RaidCommands {
                     }
 
                     for (Integer slot : nr.guisConfig().queue_gui.closeButtonSlots()) {
-                        ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().queue_gui.close_button.item())));
-                        item.applyChanges(nr.guisConfig().queue_gui.close_button.item_data());
+                        ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().queue_gui.closeButton.item())));
+                        item.applyChanges(nr.guisConfig().queue_gui.closeButton.itemData());
                         List<Text> lore = new ArrayList<>();
-                        for (String line : nr.guisConfig().queue_gui.close_button.item_lore()) {
+                        for (String line : nr.guisConfig().queue_gui.closeButton.itemLore()) {
                             lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                         }
                         GuiElement element = new GuiElementBuilder(item)
-                                .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().queue_gui.close_button.item_name())))
+                                .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().queue_gui.closeButton.itemName())))
                                 .setLore(lore)
                                 .setCallback(clickType -> page_entry.getValue().close())
                                 .build();
@@ -1788,14 +1788,14 @@ public class RaidCommands {
                     }
 
                     for (Integer slot : nr.guisConfig().queue_gui.backgroundButtonSlots()) {
-                        ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().queue_gui.background_button.item())));
-                        item.applyChanges(nr.guisConfig().queue_gui.background_button.item_data());
+                        ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().queue_gui.backgroundButton.item())));
+                        item.applyChanges(nr.guisConfig().queue_gui.backgroundButton.itemData());
                         List<Text> lore = new ArrayList<>();
-                        for (String line : nr.guisConfig().queue_gui.background_button.item_lore()) {
+                        for (String line : nr.guisConfig().queue_gui.backgroundButton.itemLore()) {
                             lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                         }
                         GuiElement element = new GuiElementBuilder(item)
-                                .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().queue_gui.background_button.item_name())))
+                                .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().queue_gui.backgroundButton.itemName())))
                                 .setLore(lore)
                                 .build();
                         page_entry.getValue().setSlot(slot, element);
