@@ -80,7 +80,7 @@ public class BattleManager {
             pokemon.setScaleModifier(1.0f);
         }
 
-        if (!settings.featuresOverride().isEmpty()) {
+        if (!settings.keepFeatures()) {
             PokemonProperties.Companion.parse(settings.featuresOverride()).apply(pokemon);
         }
 
@@ -166,6 +166,7 @@ public class BattleManager {
 
     public static void invokeBattle(Raid raid, ServerPlayerEntity player) {
         Pokemon pokemon = raid.bossInfo().pokemonDetails().createPokemon();
+        pokemon.setFeatures(raid.raidBossPokemonUncatchable().getFeatures());
         pokemon.getCustomProperties().add(UncatchableProperty.INSTANCE.uncatchable());
         pokemon.setAbility$common(raid.raidBossPokemonUncatchable().getAbility());
         pokemon.setGender(raid.raidBossPokemonUncatchable().getGender());

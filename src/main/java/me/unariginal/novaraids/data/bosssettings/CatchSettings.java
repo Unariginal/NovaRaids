@@ -6,6 +6,7 @@ import java.util.List;
 
 public record CatchSettings(Species speciesOverride,
                             int levelOverride,
+                            boolean keepFeatures,
                             String featuresOverride,
                             boolean keepScale,
                             boolean keepHeldItem,

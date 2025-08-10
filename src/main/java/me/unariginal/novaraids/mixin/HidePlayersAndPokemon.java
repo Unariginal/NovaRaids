@@ -26,11 +26,10 @@ public class HidePlayersAndPokemon {
             if (pokemon != null) {
                 if (pokemon.getPersistentData().contains("raid_entity")
                         && pokemon.getPersistentData().contains("boss_clone")
-                        && pokemon.getPersistentData().getBoolean("raid_entity")
-                        && pokemon.getPersistentData().getBoolean("boss_clone")) {
+                        && pokemon.getPersistentData().contains("catch_encounter")
+                        && !pokemon.getPersistentData().getBoolean("catch_encounter")) {
                     if (!NovaRaids.INSTANCE.debug) {
                         cir.setReturnValue(false);
-                        return;
                     }
                 }
             }
@@ -53,7 +52,6 @@ public class HidePlayersAndPokemon {
                                     if (battle != null) {
                                         if (!battle.getPlayers().contains(spectator)) {
                                             cir.setReturnValue(false);
-                                            return;
                                         }
                                     }
                                 }

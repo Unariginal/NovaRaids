@@ -12,10 +12,7 @@ import com.cobblemon.mod.common.api.pokemon.Natures;
 import com.cobblemon.mod.common.api.pokemon.PokemonSpecies;
 import com.cobblemon.mod.common.api.pokemon.stats.Stats;
 import com.cobblemon.mod.common.pokemon.*;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import com.mojang.serialization.JsonOps;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.bosssettings.*;
@@ -280,7 +277,7 @@ public class BossesConfig {
         categoryChoiceVoucherObject.addProperty("voucher_name", choiceVoucherName);
 
         if (categoryChoiceVoucherObject.has("voucher_lore"))
-            choiceVoucherLore = categoryChoiceVoucherObject.get("voucher_lore").getAsJsonArray().asList().stream().map(JsonElement::toString).toList();
+            choiceVoucherLore = categoryChoiceVoucherObject.get("voucher_lore").getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList();
         JsonArray choiceLoreArray = new JsonArray();
         for (String line : choiceVoucherLore) {
             choiceLoreArray.add(line);
@@ -313,7 +310,7 @@ public class BossesConfig {
         categoryRandomVoucherObject.addProperty("voucher_name", randomVoucherName);
 
         if (categoryRandomVoucherObject.has("voucher_lore"))
-            randomVoucherLore = categoryRandomVoucherObject.get("voucher_lore").getAsJsonArray().asList().stream().map(JsonElement::toString).toList();
+            randomVoucherLore = categoryRandomVoucherObject.get("voucher_lore").getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList();
         JsonArray randomLoreArray = new JsonArray();
         for (String line : randomVoucherLore) {
             randomLoreArray.add(line);
@@ -346,7 +343,7 @@ public class BossesConfig {
         categoryPassObject.addProperty("pass_name", passName);
 
         if (categoryPassObject.has("pass_lore"))
-            passLore = categoryPassObject.get("pass_lore").getAsJsonArray().asList().stream().map(JsonElement::toString).toList();
+            passLore = categoryPassObject.get("pass_lore").getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList();
         JsonArray passLoreArray = new JsonArray();
         for (String line : passLore) {
             passLoreArray.add(line);
@@ -354,7 +351,7 @@ public class BossesConfig {
         categoryPassObject.add("pass_lore", passLoreArray);
 
         if (categoryPassObject.has("pass_data"))
-            passData = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, categoryPassObject.get("voucher_data")).getOrThrow().getFirst();
+            passData = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, categoryPassObject.get("pass_data")).getOrThrow().getFirst();
         categoryPassObject.add("pass_data", ComponentChanges.CODEC.encode(passData, JsonOps.INSTANCE, new JsonObject()).getOrThrow());
 
         itemSettings.add("category_pass", categoryPassObject);
@@ -381,7 +378,7 @@ public class BossesConfig {
             ballObject.addProperty("pokeball_name", pokeballName);
 
             if (ballObject.has("pokeball_lore"))
-                pokeballLore = ballObject.get("pokeball_lore").getAsJsonArray().asList().stream().map(JsonElement::toString).toList();
+                pokeballLore = ballObject.get("pokeball_lore").getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList();
             JsonArray pokeballLoreArray = new JsonArray();
             for (String line : pokeballLore) {
                 pokeballLoreArray.add(line);
@@ -395,8 +392,15 @@ public class BossesConfig {
             categoryBalls.add(new RaidBall(id, pokeball, pokeballName, pokeballLore, pokeballData));
         }
 
+        newRoot.add("item_settings", itemSettings);
+
         // TODO: Fix distribution for new config parsing style thingy
-        List<DistributionSection> rewards = ConfigHelper.getDistributionSections(root, "", true);
+        List<DistributionSection> rewards = List.of();
+        JsonArray rewardDistributionArray = new JsonArray();
+        if (root.has("reward_distribution"))
+            rewards = ConfigHelper.getDistributionSections(root, "", true);
+        newRoot.add("reward_distribution", rewardDistributionArray);
+
         categories.add(new Category(
                 categoryId,
                 categoryName,
@@ -418,14 +422,19 @@ public class BossesConfig {
                 categoryBalls,
                 rewards
         ));
+
+        file.delete();
+        file.createNewFile();
+        Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+        Writer writer = new FileWriter(file);
+        gson.toJson(newRoot, writer);
+        writer.close();
     }
 
     public void loadBoss(String category_name, File file) throws IOException, NullPointerException, UnsupportedOperationException {
         JsonObject root = JsonParser.parseReader(new FileReader(file)).getAsJsonObject();
         JsonObject newRoot = new JsonObject();
         String fileName = file.getName().substring(0, file.getName().indexOf(".json"));
-
-        String location = category_name + "/bosses/" + fileName;
 
         String bossId = fileName;
         if (root.has("boss_id"))
@@ -463,10 +472,10 @@ public class BossesConfig {
             pokemonDetails = root.getAsJsonObject("pokemon_details");
 
         if (pokemonDetails.has("species"))
-            species = PokemonSpecies.INSTANCE.getByName(pokemonDetails.get("species").getAsString());
+            species = PokemonSpecies.INSTANCE.getByName(pokemonDetails.get("species").getAsString().toLowerCase());
 
         if (species == null) {
-            NovaRaids.LOGGER.warn("[NovaRaids] Invalid species: {}. Using default (bulbasaur)", pokemonDetails.get("species").getAsString());
+            NovaRaids.LOGGER.warn("[NovaRaids] Invalid species: {}. Using default (bulbasaur)", pokemonDetails.get("species").getAsString().toLowerCase());
             species = PokemonSpecies.INSTANCE.getByName("bulbasaur");
         }
 
@@ -475,11 +484,14 @@ public class BossesConfig {
             species = PokemonSpecies.INSTANCE.random();
         }
 
-        pokemonDetails.addProperty("species", species.getName());
+        pokemonDetails.addProperty("species", species.getResourceIdentifier().getPath());
 
         if (pokemonDetails.has("level"))
             level = pokemonDetails.get("level").getAsInt();
         pokemonDetails.addProperty("level", level);
+
+        if (pokemonDetails.has("form"))
+            pokemonDetails.remove("form");
 
         JsonArray featuresArray = new JsonArray();
         if (pokemonDetails.has("features")) {
@@ -577,7 +589,7 @@ public class BossesConfig {
             natureObject.addProperty("weight", entry.getValue());
             naturesArray.add(natureObject);
         }
-        pokemonDetails.add("natures", abilitiesArray);
+        pokemonDetails.add("natures", naturesArray);
         pokemonDetails.remove("nature");
 
         JsonArray gendersArray = new JsonArray();
@@ -589,8 +601,8 @@ public class BossesConfig {
 
         for (JsonElement genderElement : gendersArray) {
             JsonObject genderObject = genderElement.getAsJsonObject();
-            if (!genderObject.has("nature")) continue;
-            String genderStr = genderObject.get("nature").getAsString();
+            if (!genderObject.has("gender")) continue;
+            String genderStr = genderObject.get("gender").getAsString();
             double weight = 1.0;
             if (genderObject.has("weight"))
                 weight = genderObject.get("weight").getAsDouble();
@@ -890,7 +902,7 @@ public class BossesConfig {
             ballObject.addProperty("pokeball_name", pokeballName);
 
             if (ballObject.has("pokeball_lore"))
-                pokeballLore = ballObject.get("pokeball_lore").getAsJsonArray().asList().stream().map(JsonElement::toString).toList();
+                pokeballLore = ballObject.get("pokeball_lore").getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList();
             JsonArray pokeballLoreArray = new JsonArray();
             for (String line : pokeballLore) {
                 pokeballLoreArray.add(line);
@@ -932,7 +944,7 @@ public class BossesConfig {
         String fightBossbar = "fight_phase_example";
         String preCatchBossbar = "pre_catch_phase_example";
         String catchBossbar = "catch_phase_example";
-        List<DistributionSection> rewards;
+        List<DistributionSection> rewards = List.of();
 
         JsonObject raidDetailsObject = new JsonObject();
         if (root.has("raid_details"))
@@ -1057,7 +1069,12 @@ public class BossesConfig {
         raidDetailsObject.add("bossbars", bossbarsObject);
 
         // TODO: The thingy
-        rewards = ConfigHelper.getDistributionSections(raidDetailsObject, location, false);
+        JsonArray rewardDistributionArray = new JsonArray();
+        if (raidDetailsObject.has("reward_distribution"))
+            rewards = ConfigHelper.getDistributionSections(raidDetailsObject, "", false);
+        raidDetailsObject.add("reward_distribution", rewardDistributionArray);
+
+        newRoot.add("raid_details", raidDetailsObject);
 
         RaidDetails raidDetails = new RaidDetails(
                 minimumLevel,
@@ -1083,7 +1100,7 @@ public class BossesConfig {
         // Catch Settings
         Species speciesOverride;
         int levelOverride = 1;
-        boolean keepFeatures = true;
+        boolean keepFeatures = false;
         String featuresOverride = "";
         boolean keepScale = false;
         boolean keepHeldItem = false;
@@ -1099,20 +1116,24 @@ public class BossesConfig {
         if (root.has("catch_settings"))
             catchSettingsObject = root.getAsJsonObject("catch_settings");
 
-        String speciesOverrideString = species.getName();
+        String speciesOverrideString = species.getResourceIdentifier().getPath();
         if (catchSettingsObject.has("species_override"))
             speciesOverrideString = catchSettingsObject.get("species_override").getAsString();
-        speciesOverride = PokemonSpecies.INSTANCE.getByName(speciesOverrideString);
+        speciesOverride = PokemonSpecies.INSTANCE.getByName(speciesOverrideString.toLowerCase());
 
         if (speciesOverride == null) {
             speciesOverride = species;
-            NovaRaids.LOGGER.warn("[NovaRaids] Unknown species for catch override: {}. In boss {}. Using boss species ({})", speciesOverrideString, bossId, species.getName());
+            if (!speciesOverrideString.isEmpty())
+                NovaRaids.LOGGER.warn("[NovaRaids] Unknown species for catch override: {}. In boss {}. Using boss species ({})", speciesOverrideString, bossId, species.getName());
         }
-        catchSettingsObject.addProperty("species_override", speciesOverride.getName());
+        catchSettingsObject.addProperty("species_override", speciesOverride.getResourceIdentifier().getPath());
 
         if (catchSettingsObject.has("level_override"))
             levelOverride = catchSettingsObject.get("level_override").getAsInt();
         catchSettingsObject.addProperty("level_override", levelOverride);
+
+        if (catchSettingsObject.has("form_override"))
+            catchSettingsObject.remove("form_override");
 
         if (catchSettingsObject.has("keep_features"))
             keepFeatures = catchSettingsObject.get("keep_features").getAsBoolean();
@@ -1187,9 +1208,10 @@ public class BossesConfig {
 
         newRoot.add("catch_settings", catchSettingsObject);
 
-        CatchSettings catch_settings = new CatchSettings(
+        CatchSettings catchSettings = new CatchSettings(
                 speciesOverride,
                 levelOverride,
+                keepFeatures,
                 featuresOverride,
                 keepScale,
                 keepHeldItem,
@@ -1215,8 +1237,15 @@ public class BossesConfig {
                 locations,
                 itemSettings,
                 raidDetails,
-                catch_settings
+                catchSettings
         ));
+
+        file.delete();
+        file.createNewFile();
+        Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+        Writer writer = new FileWriter(file);
+        gson.toJson(newRoot, writer);
+        writer.close();
     }
 
     public Boss getRandomBoss(String category) {

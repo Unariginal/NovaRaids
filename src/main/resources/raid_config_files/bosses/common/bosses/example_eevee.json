@@ -5,8 +5,12 @@
   "pokemon_details": {
     "species": "eevee",
     "level": 50,
-    "form": "normal",
-    "features": "",
+    "features": [
+      {
+        "feature": "",
+        "weight": 1
+      }
+    ],
     "ability": [
       {
         "ability": "adaptability",
@@ -194,7 +198,7 @@
   "catch_settings": {
     "species_override": "",
     "level_override": 1,
-    "form_override": "",
+
     "features_override": "",
     "keep_scale": false,
     "keep_held_item": false,
