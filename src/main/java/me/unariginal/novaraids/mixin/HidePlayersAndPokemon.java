@@ -26,8 +26,7 @@ public class HidePlayersAndPokemon {
             if (pokemon != null) {
                 if (pokemon.getPersistentData().contains("raid_entity")
                         && pokemon.getPersistentData().contains("boss_clone")
-                        && pokemon.getPersistentData().contains("catch_encounter")
-                        && !pokemon.getPersistentData().getBoolean("catch_encounter")) {
+                        && pokemon.getPersistentData().contains("battle_clone")) {
                     if (!NovaRaids.INSTANCE.debug) {
                         cir.setReturnValue(false);
                     }

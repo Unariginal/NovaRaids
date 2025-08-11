@@ -148,7 +148,7 @@ public class BattleManager {
         pokemon.setLevel(settings.levelOverride());
 
         PokemonEntity bossClone = pokemon.sendOut(raid.raidBossLocation().world(), player.getPos().offset(player.getFacing(), 1), null, entity -> {
-            entity.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 999999, 9999, false, false));
+            entity.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, -1, 9999, false, false));
             entity.setNoGravity(true);
             entity.setMovementSpeed(0.0f);
             entity.setDrops(new DropTable());
@@ -174,17 +174,17 @@ public class BattleManager {
         NbtCompound data = new NbtCompound();
         data.putBoolean("raid_entity", true);
         data.putBoolean("boss_clone", true);
-        data.putBoolean("catch_encounter", false);
+        data.putBoolean("battle_clone", true);
         pokemon.setPersistentData$common(data);
         pokemon.setShiny(false);
         pokemon.setScaleModifier(0.1f);
 
         PokemonEntity bossClone = pokemon.sendOut(raid.raidBossLocation().world(), raid.raidBossLocation().pos(), null, entity -> {
-            entity.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 999999, 9999, false, false));
+            entity.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, -1, 9999, false, false));
             entity.setNoGravity(true);
             entity.setAiDisabled(true);
             entity.setMovementSpeed(0.0f);
-            entity.setDrops(null);
+            entity.setDrops(new DropTable());
             return Unit.INSTANCE;
         });
 

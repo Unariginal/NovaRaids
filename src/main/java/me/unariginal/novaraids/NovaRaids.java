@@ -33,7 +33,7 @@ public class NovaRaids implements ModInitializer {
     private GuisConfig guisConfig;
     public boolean loadedProperly = true;
 
-    public boolean debug = true;
+    public boolean debug = false;
     private MinecraftServer server;
     private FabricServerAudiences audience;
     private RaidCommands raidCommands;

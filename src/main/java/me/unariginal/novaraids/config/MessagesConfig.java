@@ -22,21 +22,20 @@ public class MessagesConfig {
     public Map<String, String> messages = new HashMap<>();
 
     public MessagesConfig() {
-        // Shut up I know there are better ways to do this *but I don't wanna*
-        messages.put("start_pre_phase", "%prefix% A raid is starting against %boss.form% %boss.species%!");
-        messages.put("start_fight_phase", "%prefix% Time to fight %boss.form% %boss.species% (%boss.maxhp% HP)!");
-        messages.put("boss_defeated", "%prefix% %boss.form% %boss.species% has been defeated in %raid.defeat_time%!");
-        messages.put("catch_phase_warning", "%prefix% Prepare to catch %boss.form% %boss.species%");
-        messages.put("start_catch_phase", "%prefix% Time to catch %boss.form% %boss.species%!");
+        messages.put("start_pre_phase", "%prefix% A raid is starting against %boss.name%!");
+        messages.put("start_fight_phase", "%prefix% Time to fight %boss.name% (%boss.maxhp% HP)!");
+        messages.put("boss_defeated", "%prefix% %boss.name% has been defeated in %raid.defeat_time%!");
+        messages.put("catch_phase_warning", "%prefix% Prepare to catch %boss.name%");
+        messages.put("start_catch_phase", "%prefix% Time to catch %boss.name%!");
         messages.put("catch_phase_end", "%prefix% Catch phase completed!");
-        messages.put("raid_end", "%prefix% The %boss.form% %boss.species% raid has finished.");
-        messages.put("out_of_time", "%prefix% %boss.form% %boss.species% was not defeated in time!");
+        messages.put("raid_end", "%prefix% The %boss.name% raid has finished.");
+        messages.put("out_of_time", "%prefix% %boss.name% was not defeated in time!");
         messages.put("not_enough_players", "%prefix% There wasn't enough players to start the raid!");
         messages.put("player_damage_report", "%prefix% %raid.player% did %raid.player.damage% to the boss!");
         messages.put("no_active_raids", "%prefix% There are no active raids!");
         messages.put("no_queued_raids", "%prefix% There are no queued raids!");
         messages.put("no_available_locations", "%prefix% Failed to start raid. All possible locations are busy.");
-        messages.put("joined_raid", "%prefix% You've successfully joined the %boss.form% %boss.species% raid!");
+        messages.put("joined_raid", "%prefix% You've successfully joined the %boss.name% raid!");
         messages.put("warning_no_pass", "%prefix% This raid requires a pass to join!");
         messages.put("warning_already_joined_raid", "%prefix% You've already joined a raid!");
         messages.put("warning_no_pass_needed", "%prefix% You don't need a pass for this raid!");
@@ -57,11 +56,11 @@ public class MessagesConfig {
         messages.put("warning_raid_pokeball_outside_raid", "%prefix% You can't use raid pokeballs outside of a raid!");
         messages.put("warning_not_catch_phase", "%prefix% You can only use this during the catch phase!");
         messages.put("warning_deny_normal_pokeball", "%prefix% You can only use raid pokeballs in a raid!");
-        messages.put("used_voucher", "%prefix% You've successfully started a raid for %boss.form% %boss.species%!");
-        messages.put("queue_item_cancelled", "%prefix% You've cancelled the queue for %boss.form% %boss.species%!");
-        messages.put("added_to_queue", "%prefix% %boss.form% %boss.species% has been added to the queue!");
+        messages.put("used_voucher", "%prefix% You've successfully started a raid for %boss.name%!");
+        messages.put("queue_item_cancelled", "%prefix% You've cancelled the queue for %boss.name%!");
+        messages.put("added_to_queue", "%prefix% %boss.name% has been added to the queue!");
         messages.put("reload_command", "%prefix% Reloaded!");
-        messages.put("raid_stopped", "%prefix% You've stopped the raid against %boss.form% %boss.species%!");
+        messages.put("raid_stopped", "%prefix% You've stopped the raid against %boss.name%!");
         messages.put("give_command_invalid_category", "%prefix% Category %category% does not exist!");
         messages.put("give_command_invalid_pokeball", "%prefix% Pokeball %pokeball% does not exist!");
         messages.put("give_command_invalid_boss", "%prefix% Boss %boss% does not exist!");

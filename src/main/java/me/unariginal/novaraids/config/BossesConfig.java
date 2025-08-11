@@ -709,11 +709,11 @@ public class BossesConfig {
 
         if (evsObject.has("sp_atk"))
             evs.set(Stats.SPECIAL_ATTACK, Math.clamp(evsObject.get("sp_atk").getAsInt(), 0, EVs.MAX_STAT_VALUE));
-        evsObject.addProperty("sp_atk", evs.get(Stats.SPEED));
+        evsObject.addProperty("sp_atk", evs.get(Stats.SPECIAL_ATTACK));
 
         if (evsObject.has("sp_def"))
             evs.set(Stats.SPECIAL_DEFENCE, Math.clamp(evsObject.get("sp_def").getAsInt(), 0, EVs.MAX_STAT_VALUE));
-        evsObject.addProperty("sp_def", evs.get(Stats.SPEED));
+        evsObject.addProperty("sp_def", evs.get(Stats.SPECIAL_DEFENCE));
 
         if (evsObject.has("spd"))
             evs.set(Stats.SPEED, Math.clamp(evsObject.get("spd").getAsInt(), 0, EVs.MAX_STAT_VALUE));
