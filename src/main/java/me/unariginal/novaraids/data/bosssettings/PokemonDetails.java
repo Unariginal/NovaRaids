@@ -28,6 +28,7 @@ public record PokemonDetails(
         Item heldItem,
         ComponentChanges heldItemData,
         List<MoveTemplate> moves,
+        int friendship,
         IVs ivs,
         EVs evs) {
 
@@ -84,6 +85,8 @@ public record PokemonDetails(
         for (int i = 0; i < moves.size(); i++) {
             pokemon.getMoveSet().setMove(i, moves.get(i).create());
         }
+
+        pokemon.setFriendship(friendship, true);
 
         for (Map.Entry<? extends Stat, ? extends Integer> iv : ivs) {
             pokemon.setIV(iv.getKey(), iv.getValue());

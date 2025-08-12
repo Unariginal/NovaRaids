@@ -4,6 +4,7 @@
   "package": "me.unariginal.novaraids.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "BattleEndMixin",
     "HidePlayersAndPokemon",
     "PreventDrops",
     "PreventHeldItems"

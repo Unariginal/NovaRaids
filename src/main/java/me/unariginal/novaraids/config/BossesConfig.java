@@ -464,6 +464,7 @@ public class BossesConfig {
         Item heldItem = Items.AIR;
         ComponentChanges heldItemData = ComponentChanges.EMPTY;
         List<MoveTemplate> moves = new ArrayList<>();
+        int friendship = 50;
         IVs ivs = IVs.createRandomIVs(0);
         EVs evs = EVs.createEmpty();
 
@@ -598,7 +599,6 @@ public class BossesConfig {
         else if (pokemonDetails.has("gender"))
             gendersArray = pokemonDetails.get("gender").getAsJsonArray();
 
-
         for (JsonElement genderElement : gendersArray) {
             JsonObject genderObject = genderElement.getAsJsonObject();
             if (!genderObject.has("gender")) continue;
@@ -661,6 +661,10 @@ public class BossesConfig {
         }
         pokemonDetails.add("moves", jsonMoveArray);
 
+        if (pokemonDetails.has("friendship"))
+            friendship = pokemonDetails.get("friendship").getAsInt();
+        pokemonDetails.addProperty("friendship", friendship);
+
         JsonObject ivsObject = new JsonObject();
         if (pokemonDetails.has("ivs"))
             ivsObject = pokemonDetails.get("ivs").getAsJsonObject();
@@ -679,11 +683,11 @@ public class BossesConfig {
 
         if (ivsObject.has("sp_atk"))
             ivs.set(Stats.SPECIAL_ATTACK, Math.clamp(ivsObject.get("sp_atk").getAsInt(), 0, IVs.MAX_VALUE));
-        ivsObject.addProperty("sp_atk", ivs.get(Stats.ATTACK));
+        ivsObject.addProperty("sp_atk", ivs.get(Stats.SPECIAL_ATTACK));
 
         if (ivsObject.has("sp_def"))
             ivs.set(Stats.SPECIAL_DEFENCE, Math.clamp(ivsObject.get("sp_def").getAsInt(), 0, IVs.MAX_VALUE));
-        ivsObject.addProperty("sp_def", ivs.get(Stats.SPEED));
+        ivsObject.addProperty("sp_def", ivs.get(Stats.SPECIAL_DEFENCE));
 
         if (ivsObject.has("spd"))
             ivs.set(Stats.SPEED, Math.clamp(ivsObject.get("spd").getAsInt(), 0, IVs.MAX_VALUE));
@@ -736,6 +740,7 @@ public class BossesConfig {
                 heldItem,
                 heldItemData,
                 moves,
+                friendship,
                 ivs,
                 evs
         );
@@ -1110,6 +1115,7 @@ public class BossesConfig {
         boolean randomizeNature = true;
         boolean randomizeAbility = true;
         boolean resetMoves = true;
+        int friendshipOverride = 50;
         List<CatchPlacement> catchPlacements = new ArrayList<>();
 
         JsonObject catchSettingsObject = new JsonObject();
@@ -1175,6 +1181,10 @@ public class BossesConfig {
             resetMoves = catchSettingsObject.get("reset_moves").getAsBoolean();
         catchSettingsObject.addProperty("reset_moves", resetMoves);
 
+        if (catchSettingsObject.has("friendship_override"))
+            friendshipOverride = catchSettingsObject.get("friendship_override").getAsInt();
+        catchSettingsObject.addProperty("friendship_override", friendshipOverride);
+
         JsonArray placementsArray = new JsonArray();
         if (catchSettingsObject.has("places"))
             placementsArray = catchSettingsObject.getAsJsonArray("places");
@@ -1193,13 +1203,13 @@ public class BossesConfig {
                 requireDamage = placeObject.get("require_damage").getAsBoolean();
             placeObject.addProperty("require_damage", requireDamage);
 
-            if (placeObject.has("shinyChance"))
-                shinyChance = placeObject.get("shinyChance").getAsDouble();
-            placeObject.addProperty("shinyChance", shinyChance);
+            if (placeObject.has("shiny_chance"))
+                shinyChance = placeObject.get("shiny_chance").getAsDouble();
+            placeObject.addProperty("shiny_chance", shinyChance);
 
-            if (placeObject.has("minPerfectIVs"))
-                minPerfectIVs = placeObject.get("minPerfectIVs").getAsInt();
-            placeObject.addProperty("minPerfectIVs", minPerfectIVs);
+            if (placeObject.has("min_perfect_ivs"))
+                minPerfectIVs = placeObject.get("min_perfect_ivs").getAsInt();
+            placeObject.addProperty("min_perfect_ivs", minPerfectIVs);
 
             catchPlacements.add(new CatchPlacement(placeStr, requireDamage, shinyChance, minPerfectIVs));
         }
@@ -1221,6 +1231,7 @@ public class BossesConfig {
                 randomizeNature,
                 randomizeAbility,
                 resetMoves,
+                friendshipOverride,
                 catchPlacements
         );
 

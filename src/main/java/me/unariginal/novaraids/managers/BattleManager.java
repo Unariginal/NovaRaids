@@ -145,6 +145,8 @@ public class BattleManager {
             }
         }
 
+        pokemon.setFriendship(settings.friendshipOverride(), true);
+
         pokemon.setLevel(settings.levelOverride());
 
         PokemonEntity bossClone = pokemon.sendOut(raid.raidBossLocation().world(), player.getPos().offset(player.getFacing(), 1), null, entity -> {

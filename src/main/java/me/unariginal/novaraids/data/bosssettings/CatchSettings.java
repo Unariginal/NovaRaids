@@ -16,4 +16,5 @@ public record CatchSettings(Species speciesOverride,
                             boolean randomizeNature,
                             boolean randomizeAbility,
                             boolean resetMoves,
+                            int friendshipOverride,
                             List<CatchPlacement> catchPlacements) {}

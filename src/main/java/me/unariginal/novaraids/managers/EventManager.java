@@ -6,10 +6,8 @@ import com.cobblemon.mod.common.api.Priority;
 import com.cobblemon.mod.common.api.battles.model.PokemonBattle;
 import com.cobblemon.mod.common.api.battles.model.actor.BattleActor;
 import com.cobblemon.mod.common.api.events.CobblemonEvents;
-import com.cobblemon.mod.common.battles.ActiveBattlePokemon;
 import com.cobblemon.mod.common.battles.actor.PlayerBattleActor;
 import com.cobblemon.mod.common.battles.actor.PokemonBattleActor;
-import com.cobblemon.mod.common.battles.pokemon.BattlePokemon;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.item.PokeBallItem;
 import com.cobblemon.mod.common.item.PokemonItem;
@@ -169,51 +167,6 @@ public class EventManager {
                     }
                 }
             }
-            return Unit.INSTANCE;
-        });
-
-        CobblemonEvents.BATTLE_VICTORY.subscribe(Priority.HIGHEST, event -> {
-            ServerPlayerEntity player = null;
-            PokemonBattle battle = event.getBattle();
-            int damage = 0;
-            for (BattleActor actor : battle.getActors()) {
-                if (actor instanceof PokemonBattleActor pokemonBattleActor) {
-                    Pokemon pokemon = pokemonBattleActor.getPokemon().getOriginalPokemon();
-                    if (pokemon.getPersistentData().contains("boss_clone") && pokemon.getPersistentData().contains("catch_encounter")) {
-                        if (pokemon.getPersistentData().getBoolean("boss_clone") && !pokemon.getPersistentData().getBoolean("catch_encounter")) {
-                            damage = Math.abs(pokemon.getCurrentHealth() - pokemon.getMaxHealth());
-                        } else {
-                            return Unit.INSTANCE;
-                        }
-                    }
-                } else if (actor instanceof PlayerBattleActor playerBattleActor) {
-                    player = playerBattleActor.getEntity();
-                    if (!playerBattleActor.getActivePokemon().isEmpty()) {
-                        for (ActiveBattlePokemon activeBattlePokemon : playerBattleActor.getActivePokemon()) {
-                            BattlePokemon battlePokemon = activeBattlePokemon.getBattlePokemon();
-                            if (battlePokemon != null) {
-                                battlePokemon.getOriginalPokemon().recall();
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (player != null) {
-                for (Raid raid : nr.activeRaids().values()) {
-                    if (raid.participatingPlayers().contains(player.getUuid())) {
-                        if (damage > raid.currentHealth()) {
-                            damage = raid.currentHealth();
-                        }
-
-                        raid.applyDamage(damage);
-                        raid.updatePlayerDamage(player.getUuid(), damage);
-                        raid.participatingBroadcast(TextUtils.deserialize(TextUtils.parse(messages.getMessage("player_damage_report"), raid, player, damage, -1)));
-                        break;
-                    }
-                }
-            }
-
             return Unit.INSTANCE;
         });
 
