@@ -750,6 +750,7 @@ public class BossesConfig {
         int baseHealth = 1000;
         int healthIncreasePerPlayer = 0;
         boolean applyGlowing = false;
+        int aiSkillLevel = 3;
         Map<String, Double> locations = new HashMap<>();
 
         JsonObject bossDetails = new JsonObject();
@@ -771,6 +772,10 @@ public class BossesConfig {
         if (bossDetails.has("apply_glowing"))
             applyGlowing = bossDetails.get("apply_glowing").getAsBoolean();
         bossDetails.addProperty("apply_glowing", applyGlowing);
+
+        if (bossDetails.has("ai_skill_level"))
+            aiSkillLevel = bossDetails.get("ai_skill_level").getAsInt();
+        bossDetails.addProperty("ai_skill_level", aiSkillLevel);
 
         JsonArray locationsArray = new JsonArray();
         if (bossDetails.has("locations"))
@@ -1245,6 +1250,7 @@ public class BossesConfig {
                 baseHealth,
                 healthIncreasePerPlayer,
                 applyGlowing,
+                aiSkillLevel,
                 locations,
                 itemSettings,
                 raidDetails,

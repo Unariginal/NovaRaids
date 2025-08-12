@@ -9,8 +9,11 @@ import com.cobblemon.mod.common.api.pokemon.Natures;
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
 import com.cobblemon.mod.common.api.pokemon.stats.Stat;
 import com.cobblemon.mod.common.api.storage.party.PartyStore;
-import com.cobblemon.mod.common.battles.BattleBuilder;
-import com.cobblemon.mod.common.battles.BattleFormat;
+import com.cobblemon.mod.common.battles.*;
+import com.cobblemon.mod.common.battles.actor.PlayerBattleActor;
+import com.cobblemon.mod.common.battles.actor.PokemonBattleActor;
+import com.cobblemon.mod.common.battles.ai.StrongBattleAI;
+import com.cobblemon.mod.common.battles.pokemon.BattlePokemon;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.pokemon.EVs;
 import com.cobblemon.mod.common.pokemon.Gender;
@@ -23,11 +26,9 @@ import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class BattleManager {
@@ -158,11 +159,10 @@ public class BattleManager {
         });
 
         PartyStore party = Cobblemon.INSTANCE.getStorage().getParty(player);
-        UUID leadingPokemon = getLeadingPokemon(party);
 
-        if (bossClone != null && leadingPokemon != null) {
+        if (bossClone != null) {
             raid.addClone(bossClone, player);
-            BattleBuilder.INSTANCE.pve(player, bossClone, leadingPokemon, BattleFormat.Companion.getGEN_9_SINGLES(), false, raid.bossInfo().raidDetails().healPartyOnChallenge(), Cobblemon.config.getDefaultFleeDistance(), party);
+            pveOverride(player, bossClone, null, BattleFormat.Companion.getGEN_9_SINGLES(), false, raid.bossInfo().raidDetails().healPartyOnChallenge(), Cobblemon.config.getDefaultFleeDistance(), party, raid.bossInfo().aiSkillLevel());
         }
     }
 
@@ -191,11 +191,68 @@ public class BattleManager {
         });
 
         PartyStore party = Cobblemon.INSTANCE.getStorage().getParty(player);
-        UUID leadingPokemon = getLeadingPokemon(party);
 
-        if (bossClone != null && leadingPokemon != null) {
+        if (bossClone != null) {
             raid.addClone(bossClone, player);
-            BattleBuilder.INSTANCE.pve(player, bossClone, leadingPokemon, BattleFormat.Companion.getGEN_9_SINGLES(), false, raid.bossInfo().raidDetails().healPartyOnChallenge(), Cobblemon.config.getDefaultFleeDistance(), party);
+            pveOverride(player, bossClone, null, BattleFormat.Companion.getGEN_9_SINGLES(), false, raid.bossInfo().raidDetails().healPartyOnChallenge(), Cobblemon.config.getDefaultFleeDistance(), party, raid.bossInfo().aiSkillLevel());
+        }
+    }
+
+    private static BattleStartResult pveOverride(ServerPlayerEntity player, PokemonEntity pokemonEntity, @Nullable UUID leadingPokemon, BattleFormat battleFormat, boolean cloneParties, boolean healFirst, float fleeDistance, PartyStore party, int skill) {
+        List<BattlePokemon> playerTeam = party.toBattleTeam(cloneParties, healFirst, leadingPokemon);
+        playerTeam.sort((pokemon1, pokemon2) -> Boolean.compare(pokemon1.getHealth() <= 0, pokemon2.getHealth() <= 0));
+        PlayerBattleActor playerActor = new PlayerBattleActor(player.getUuid(), playerTeam);
+        PokemonBattleActor wildActor = new PokemonBattleActor(pokemonEntity.getPokemon().getUuid(), new BattlePokemon(pokemonEntity.getPokemon(), pokemonEntity.getPokemon(), pEntity -> Unit.INSTANCE), fleeDistance, new StrongBattleAI(skill));
+        ErroredBattleStart errors = new ErroredBattleStart();
+
+        if (!playerTeam.isEmpty() && playerTeam.getFirst().getHealth() <= 0) {
+            errors.getParticipantErrors().get(playerActor).add(
+                    BattleStartError.Companion.insufficientPokemon(
+                            player,
+                            battleFormat.getBattleType().getSlotsPerActor(),
+                            playerActor.getPokemonList().size()
+                    )
+            );
+        }
+
+        if (playerActor.getPokemonList().size() < battleFormat.getBattleType().getSlotsPerActor()) {
+            errors.getParticipantErrors().get(playerActor).add(
+                    BattleStartError.Companion.insufficientPokemon(
+                            player,
+                            battleFormat.getBattleType().getSlotsPerActor(),
+                            playerActor.getPokemonList().size()
+                    )
+            );
+        }
+
+        if (playerActor.getPokemonList().stream().anyMatch(pokemon -> {
+            if (pokemon.getEntity() != null) {
+                return pokemon.getEntity().isBusy();
+            }
+            return false;
+        })) {
+            errors.getParticipantErrors().get(playerActor).add(BattleStartError.Companion.targetIsBusy(player.getDisplayName() != null ? player.getDisplayName() : player.getName()));
+        }
+
+        if (BattleRegistry.INSTANCE.getBattleByParticipatingPlayer(player) != null) {
+            errors.getParticipantErrors().get(playerActor).add(BattleStartError.Companion.alreadyInBattle(playerActor));
+        }
+
+        if (pokemonEntity.getBattleId() != null) {
+            errors.getParticipantErrors().get(wildActor).add(BattleStartError.Companion.alreadyInBattle(wildActor));
+        }
+
+        playerActor.setBattleTheme(pokemonEntity.getBattleTheme());
+
+        if (errors.isEmpty()) {
+            return BattleRegistry.INSTANCE.startBattle(battleFormat, new BattleSide(playerActor), new BattleSide(wildActor), true).ifSuccessful(pokemonBattle -> {
+                if (!cloneParties) {
+                    pokemonEntity.setBattleId(pokemonBattle.getBattleId());
+                }
+                return Unit.INSTANCE;
+            });
+        } else {
+            return errors;
         }
     }
 }
