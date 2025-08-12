@@ -32,17 +32,6 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class BattleManager {
-    private static UUID getLeadingPokemon(PartyStore party) {
-        UUID leadingPokemon = null;
-        for (Pokemon pokemon : party) {
-            if (!pokemon.isFainted()) {
-                leadingPokemon = pokemon.getUuid();
-                break;
-            }
-        }
-        return leadingPokemon;
-    }
-
     public static boolean checkRate(float shinyRate) {
         if (shinyRate >= 1) {
             return (kotlin.random.Random.Default.nextFloat() < (1 / shinyRate));

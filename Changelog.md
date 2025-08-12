@@ -1,3 +1,34 @@
+# Nova Raids Beta v0.3.1 *(Patch Update)*
+## Config Changes
+- Most config properties will now automatically generate and fill the file with default values if they've been left out.
+- Added `friendship` to boss.json/pokemon_details. (default: 50)
+- Added `friendship_override` to boss.json/catch_settings. (default: 50)
+- Removed `form` from boss.json/pokemon_details.
+- Changed `features` in boss.json/pokemon_details to a weighted list. Previous features will automatically transfer to this new format.
+  - New format:
+  ```json
+  "features": [
+    {
+      "feature": "mega_evolution=mega",
+      "weight": 5.0
+    }
+  ]
+  ```
+- Added `keep_features` to boss.json/catch_settings. (default: false)
+- Added `ai_skill_level` to boss.json/boss_details. This is a value from 0 to 5, 0 is random AI, 5 is the best AI. (default: 3)
+
+## Bug Fixes
+- Locations in other worlds will no longer make the timer count down past 0.
+- Multiverse worlds now work with locations.
+- NovaRaids will now load in singleplayer.
+- Battles now stop properly to avoid issues such as trick item stealing, and mega evolution not reverting.
+- Boss clones will now (properly) disappear when debug is false.
+- Webhooks follow the config now for automatically deleting.
+- If a border radius is less than 30, and Pokémon are set to be visible in config.json, they will get teleported to the border radius instead of being locked at 30.
+- If a player deals damage to the boss, but loses the battle, the damage they dealt will be registered rather than it being 0.
+- The `species_override` catch setting is now functional
+- More soon
+
 # Nova Raids Beta v0.3.0 - The Customization Update!
 
 If I missed anything... whoops :) I did my best
