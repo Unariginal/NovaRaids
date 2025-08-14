@@ -1,11 +1,9 @@
 package me.unariginal.novaraids.config;
 
-import com.cobblemon.mod.common.CobblemonItems;
 import com.cobblemon.mod.common.api.Priority;
 import com.cobblemon.mod.common.api.abilities.Abilities;
 import com.cobblemon.mod.common.api.abilities.Ability;
 import com.cobblemon.mod.common.api.abilities.AbilityTemplate;
-import com.cobblemon.mod.common.api.moves.Move;
 import com.cobblemon.mod.common.api.moves.MoveTemplate;
 import com.cobblemon.mod.common.api.moves.Moves;
 import com.cobblemon.mod.common.api.pokemon.Natures;
@@ -15,6 +13,7 @@ import com.cobblemon.mod.common.pokemon.*;
 import com.google.gson.*;
 import com.mojang.serialization.JsonOps;
 import me.unariginal.novaraids.NovaRaids;
+import me.unariginal.novaraids.data.Contraband;
 import me.unariginal.novaraids.data.bosssettings.*;
 import me.unariginal.novaraids.data.Category;
 import me.unariginal.novaraids.data.items.Pass;
@@ -40,11 +39,8 @@ public class BossesConfig {
         try {
             loadBosses();
         } catch (IOException | NullPointerException | UnsupportedOperationException e) {
-            nr.loadedProperly = false;
-            nr.logError("[RAIDS] Failed to load bosses folder. " + e.getMessage());
-            for (StackTraceElement element : e.getStackTrace()) {
-                nr.logError("  " + element.toString());
-            }
+            NovaRaids.LOADED = false;
+            NovaRaids.LOGGER.error("[RAIDS] Failed to load bosses folder.", e);
         }
     }
 
@@ -113,25 +109,20 @@ public class BossesConfig {
     }
 
     public void loadSettings(String categoryId, File file) throws IOException, NullPointerException, UnsupportedOperationException {
-        JsonObject root = JsonParser.parseReader(new FileReader(file)).getAsJsonObject();
-        JsonObject newRoot = new JsonObject();
+        JsonObject root = new JsonObject();
+        if (file.exists()) root = JsonParser.parseReader(new FileReader(file)).getAsJsonObject();
 
         String categoryName = categoryId;
         if (root.has("category_name"))
             categoryName = root.get("category_name").getAsString();
-        newRoot.addProperty("category_name", categoryName);
-
+        root.remove("category_name");
+        root.addProperty("category_name", categoryName);
 
         //------- Raid Details Section -------//
 
         boolean requirePass = false;
         int minPlayers = 0;
         int maxPlayers = -1;
-        List<Species> bannedSpecies = new ArrayList<>();
-        List<Move> bannedMoves = new ArrayList<>();
-        List<Ability> bannedAbilities = new ArrayList<>();
-        List<Item> bannedHeldItems = new ArrayList<>();
-        List<Item> bannedBagItems = new ArrayList<>();
         String setupBossbar = "setup_phase_example";
         String fightBossbar = "fight_phase_example";
         String preCatchBossbar = "pre_catch_phase_example";
@@ -143,6 +134,7 @@ public class BossesConfig {
 
         if (raidDetails.has("require_pass"))
             requirePass = raidDetails.get("require_pass").getAsBoolean();
+        raidDetails.remove("require_pass");
         raidDetails.addProperty("require_pass", requirePass);
 
         JsonObject playerCount = new JsonObject();
@@ -151,77 +143,25 @@ public class BossesConfig {
 
         if (playerCount.has("min"))
             minPlayers = playerCount.get("min").getAsInt();
+        playerCount.remove("min");
         playerCount.addProperty("min", minPlayers);
 
         if (playerCount.has("max"))
             maxPlayers = playerCount.get("max").getAsInt();
+        playerCount.remove("max");
         playerCount.addProperty("max", maxPlayers);
 
+        raidDetails.remove("player_count");
         raidDetails.add("player_count", playerCount);
 
-        JsonObject contraband = new JsonObject();
+        JsonObject contrabandObject = new JsonObject();
         if (raidDetails.has("contraband"))
-            contraband = raidDetails.get("contraband").getAsJsonObject();
+            contrabandObject = raidDetails.get("contraband").getAsJsonObject();
 
-        JsonArray bannedPokemonJsonArray = new JsonArray();
-        List<String> bannedPokemonRaw = new ArrayList<>();
-        if (contraband.has("banned_pokemon"))
-            bannedPokemonRaw = contraband.getAsJsonArray("banned_pokemon").asList().stream().map(JsonElement::getAsString).toList();
-        for (String pokemon : bannedPokemonRaw) {
-            Species species = PokemonSpecies.INSTANCE.getByName(pokemon);
-            if (species != null) bannedSpecies.add(species);
-            else NovaRaids.LOGGER.warn("[NovaRaids] Contraband species {} not found in !{}", pokemon, file.getPath());
-            bannedPokemonJsonArray.add(pokemon);
-        }
-        contraband.add("banned_pokemon", bannedPokemonJsonArray);
+        Contraband contraband = ConfigHelper.getContraband(contrabandObject, file.getName());
 
-        JsonArray bannedMovesJsonArray = new JsonArray();
-        List<String> bannedMovesRaw = new ArrayList<>();
-        if (contraband.has("banned_moves"))
-            bannedMovesRaw = contraband.getAsJsonArray("banned_moves").asList().stream().map(JsonElement::getAsString).toList();
-        for (String move : bannedMovesRaw) {
-            MoveTemplate template = Moves.INSTANCE.getByName(move);
-            if (template != null) bannedMoves.add(template.create());
-            else NovaRaids.LOGGER.warn("[NovaRaids] Contraband move {} not found in !{}", move, file.getPath());
-            bannedMovesJsonArray.add(move);
-        }
-        contraband.add("banned_moves", bannedMovesJsonArray);
-
-        JsonArray bannedAbilitiesJsonArray = new JsonArray();
-        List<String> bannedAbilitiesRaw = new ArrayList<>();
-        if (contraband.has("banned_abilities"))
-            bannedAbilitiesRaw = contraband.getAsJsonArray("banned_abilities").asList().stream().map(JsonElement::getAsString).toList();
-        for (String ability : bannedAbilitiesRaw) {
-            AbilityTemplate abilityTemplate = Abilities.INSTANCE.get(ability);
-            if (abilityTemplate != null) bannedAbilities.add(abilityTemplate.create(false, Priority.LOWEST));
-            else NovaRaids.LOGGER.warn("[NovaRaids] Contraband ability {} not found in !{}", ability, file.getPath());
-            bannedAbilitiesJsonArray.add(ability);
-        }
-        contraband.add("banned_abilities", bannedAbilitiesJsonArray);
-
-        JsonArray bannedHeldItemsJsonArray = new JsonArray();
-        List<String> bannedHeldItemsRaw = new ArrayList<>();
-        if (contraband.has("banned_held_items"))
-            bannedHeldItemsRaw = contraband.getAsJsonArray("banned_held_items").asList().stream().map(JsonElement::getAsString).toList();
-        for (String item : bannedHeldItemsRaw) {
-            Item bannedItem = Registries.ITEM.get(Identifier.of(item));
-            bannedHeldItems.add(bannedItem);
-            bannedHeldItemsJsonArray.add(item);
-        }
-        contraband.add("banned_held_items", bannedHeldItemsJsonArray);
-
-        JsonArray bannedBagItemsJsonArray = new JsonArray();
-        List<String> bannedBagItemsRaw = new ArrayList<>();
-        if (contraband.has("banned_bag_items"))
-            bannedBagItemsRaw = contraband.getAsJsonArray("banned_bag_items").asList().stream().map(JsonElement::getAsString).toList();
-        for (String item : bannedBagItemsRaw) {
-            Item bannedItem = Registries.ITEM.get(Identifier.of(item));
-            bannedBagItems.add(bannedItem);
-            bannedBagItemsJsonArray.add(item);
-        }
-        contraband.add("banned_bag_items", bannedBagItemsJsonArray);
-
-        raidDetails.add("contraband", contraband);
+        raidDetails.remove("contraband");
+        raidDetails.add("contraband", contraband.contrabandObject());
 
         JsonObject bossbars = new JsonObject();
         if (raidDetails.has("bossbars"))
@@ -229,32 +169,32 @@ public class BossesConfig {
 
         if (bossbars.has("setup"))
             setupBossbar = bossbars.get("setup").getAsString();
+        bossbars.remove("setup");
         bossbars.addProperty("setup", setupBossbar);
 
         if (bossbars.has("fight"))
             fightBossbar = bossbars.get("fight").getAsString();
+        bossbars.remove("fight");
         bossbars.addProperty("fight", fightBossbar);
 
         if (bossbars.has("pre_catch"))
             preCatchBossbar = bossbars.get("pre_catch").getAsString();
+        bossbars.remove("pre_catch");
         bossbars.addProperty("pre_catch", preCatchBossbar);
 
         if (bossbars.has("catch"))
             catchBossbar = bossbars.get("catch").getAsString();
+        bossbars.remove("catch");
         bossbars.addProperty("catch", catchBossbar);
 
+        raidDetails.remove("bossbars");
         raidDetails.add("bossbars", bossbars);
 
-        newRoot.add("raid_details", raidDetails);
+        root.remove("raid_details");
+        root.add("raid_details", raidDetails);
 
 
         //------- Item Settings Section -------//
-
-        Voucher categoryChoiceVoucher = nr.config().global_choice_voucher;
-        Voucher categoryRandomVoucher = nr.config().global_random_voucher;
-        Pass categoryPass = nr.config().global_pass;
-        List<RaidBall> categoryBalls = new ArrayList<>();
-
         JsonObject itemSettings = new JsonObject();
         if (root.has("item_settings"))
             itemSettings = root.getAsJsonObject("item_settings");
@@ -263,143 +203,53 @@ public class BossesConfig {
         if (itemSettings.has("category_choice_voucher"))
             categoryChoiceVoucherObject = itemSettings.getAsJsonObject("category_choice_voucher");
 
-        Item choiceVoucherItem = categoryChoiceVoucher.voucherItem();
-        String choiceVoucherName = categoryChoiceVoucher.voucherName();
-        List<String> choiceVoucherLore = categoryChoiceVoucher.voucherLore();
-        ComponentChanges choiceVoucherData = categoryChoiceVoucher.voucherData();
+        Voucher categoryChoiceVoucher = ConfigHelper.getVoucher(categoryChoiceVoucherObject);
 
-        if (categoryChoiceVoucherObject.has("voucher_item"))
-            choiceVoucherItem = Registries.ITEM.get(Identifier.of(categoryChoiceVoucherObject.get("voucher_item").getAsString()));
-        categoryChoiceVoucherObject.addProperty("voucher_item", Registries.ITEM.getId(choiceVoucherItem).toString());
-
-        if (categoryChoiceVoucherObject.has("voucher_name"))
-            choiceVoucherName = categoryChoiceVoucherObject.get("voucher_name").getAsString();
-        categoryChoiceVoucherObject.addProperty("voucher_name", choiceVoucherName);
-
-        if (categoryChoiceVoucherObject.has("voucher_lore"))
-            choiceVoucherLore = categoryChoiceVoucherObject.get("voucher_lore").getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList();
-        JsonArray choiceLoreArray = new JsonArray();
-        for (String line : choiceVoucherLore) {
-            choiceLoreArray.add(line);
-        }
-        categoryChoiceVoucherObject.add("voucher_lore", choiceLoreArray);
-
-        if (categoryChoiceVoucherObject.has("voucher_data"))
-            choiceVoucherData = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, categoryChoiceVoucherObject.get("voucher_data")).getOrThrow().getFirst();
-        categoryChoiceVoucherObject.add("voucher_data", ComponentChanges.CODEC.encode(choiceVoucherData, JsonOps.INSTANCE, new JsonObject()).getOrThrow());
-
-        itemSettings.add("category_choice_voucher", categoryChoiceVoucherObject);
-
-        categoryChoiceVoucher = new Voucher(choiceVoucherItem, choiceVoucherName, choiceVoucherLore, choiceVoucherData);
+        itemSettings.remove("category_choice_voucher");
+        itemSettings.add("category_choice_voucher", categoryChoiceVoucher.voucherObject());
 
         JsonObject categoryRandomVoucherObject = new JsonObject();
         if (itemSettings.has("category_random_voucher"))
             categoryRandomVoucherObject = itemSettings.getAsJsonObject("category_random_voucher");
 
-        Item randomVoucherItem = categoryRandomVoucher.voucherItem();
-        String randomVoucherName = categoryRandomVoucher.voucherName();
-        List<String> randomVoucherLore = categoryRandomVoucher.voucherLore();
-        ComponentChanges randomVoucherData = categoryRandomVoucher.voucherData();
+        Voucher categoryRandomVoucher = ConfigHelper.getVoucher(categoryRandomVoucherObject);
 
-        if (categoryRandomVoucherObject.has("voucher_item"))
-            randomVoucherItem = Registries.ITEM.get(Identifier.of(categoryRandomVoucherObject.get("voucher_item").getAsString()));
-        categoryRandomVoucherObject.addProperty("voucher_item", Registries.ITEM.getId(randomVoucherItem).toString());
-
-        if (categoryRandomVoucherObject.has("voucher_name"))
-            randomVoucherName = categoryRandomVoucherObject.get("voucher_name").getAsString();
-        categoryRandomVoucherObject.addProperty("voucher_name", randomVoucherName);
-
-        if (categoryRandomVoucherObject.has("voucher_lore"))
-            randomVoucherLore = categoryRandomVoucherObject.get("voucher_lore").getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList();
-        JsonArray randomLoreArray = new JsonArray();
-        for (String line : randomVoucherLore) {
-            randomLoreArray.add(line);
-        }
-        categoryRandomVoucherObject.add("voucher_lore", randomLoreArray);
-
-        if (categoryRandomVoucherObject.has("voucher_data"))
-            randomVoucherData = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, categoryRandomVoucherObject.get("voucher_data")).getOrThrow().getFirst();
-        categoryRandomVoucherObject.add("voucher_data", ComponentChanges.CODEC.encode(randomVoucherData, JsonOps.INSTANCE, new JsonObject()).getOrThrow());
-
-        itemSettings.add("category_random_voucher", categoryRandomVoucherObject);
-
-        categoryRandomVoucher = new Voucher(randomVoucherItem, randomVoucherName, randomVoucherLore, randomVoucherData);
+        itemSettings.remove("category_random_voucher");
+        itemSettings.add("category_random_voucher", categoryChoiceVoucher.voucherObject());
 
         JsonObject categoryPassObject = new JsonObject();
         if (itemSettings.has("category_pass"))
             categoryPassObject = itemSettings.getAsJsonObject("category_pass");
 
-        Item passItem = categoryPass.passItem();
-        String passName = categoryPass.passName();
-        List<String> passLore = categoryPass.passLore();
-        ComponentChanges passData = categoryPass.passData();
+        Pass categoryPass = ConfigHelper.getPass(categoryPassObject);
 
-        if (categoryPassObject.has("pass_item"))
-            passItem = Registries.ITEM.get(Identifier.of(categoryPassObject.get("pass_item").getAsString()));
-        categoryPassObject.addProperty("pass_item", Registries.ITEM.getId(passItem).toString());
-
-        if (categoryPassObject.has("pass_name"))
-            passName = categoryPassObject.get("pass_name").getAsString();
-        categoryPassObject.addProperty("pass_name", passName);
-
-        if (categoryPassObject.has("pass_lore"))
-            passLore = categoryPassObject.get("pass_lore").getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList();
-        JsonArray passLoreArray = new JsonArray();
-        for (String line : passLore) {
-            passLoreArray.add(line);
-        }
-        categoryPassObject.add("pass_lore", passLoreArray);
-
-        if (categoryPassObject.has("pass_data"))
-            passData = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, categoryPassObject.get("pass_data")).getOrThrow().getFirst();
-        categoryPassObject.add("pass_data", ComponentChanges.CODEC.encode(passData, JsonOps.INSTANCE, new JsonObject()).getOrThrow());
-
-        itemSettings.add("category_pass", categoryPassObject);
-
-        categoryPass = new Pass(passItem, passName, passLore, passData);
+        itemSettings.remove("category_pass");
+        itemSettings.add("category_pass", categoryPass.passObject());
 
         JsonObject raidBalls = new JsonObject();
         if (itemSettings.has("raid_balls"))
             raidBalls = itemSettings.getAsJsonObject("raid_balls");
 
-        for (String id : raidBalls.keySet()) {
-            JsonObject ballObject = raidBalls.getAsJsonObject(id);
-            Item pokeball = CobblemonItems.POKE_BALL;
-            String pokeballName = "<red> " + categoryId + " Raid Ball";
-            List<String> pokeballLore = List.of("<gray>Use this to try and catch " + categoryId + " bosses!");
-            ComponentChanges pokeballData = ComponentChanges.EMPTY;
+        List<RaidBall> categoryBalls = ConfigHelper.getRaidBalls(raidBalls);
 
-            if (ballObject.has("pokeball"))
-                pokeball = Registries.ITEM.get(Identifier.of(ballObject.get("pokeball").getAsString()));
-            ballObject.addProperty("pokeball", Registries.ITEM.getId(pokeball).toString());
-
-            if (ballObject.has("pokeball_name"))
-                pokeballName = ballObject.get("pokeball_name").getAsString();
-            ballObject.addProperty("pokeball_name", pokeballName);
-
-            if (ballObject.has("pokeball_lore"))
-                pokeballLore = ballObject.get("pokeball_lore").getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList();
-            JsonArray pokeballLoreArray = new JsonArray();
-            for (String line : pokeballLore) {
-                pokeballLoreArray.add(line);
-            }
-            ballObject.add("pokeball_lore", pokeballLoreArray);
-
-            if (ballObject.has("pokeball_data"))
-                pokeballData = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, ballObject.get("pokeball_data")).getOrThrow().getFirst();
-            ballObject.add("pokeball_data", ComponentChanges.CODEC.encode(pokeballData, JsonOps.INSTANCE, new JsonObject()).getOrThrow());
-
-            categoryBalls.add(new RaidBall(id, pokeball, pokeballName, pokeballLore, pokeballData));
+        for (RaidBall raidBall : categoryBalls) {
+            raidBalls.remove(raidBall.id());
+            raidBalls.add(raidBall.id(), raidBall.raidBallObject());
         }
 
-        newRoot.add("item_settings", itemSettings);
+        itemSettings.remove("raid_balls");
+        itemSettings.add("raid_balls", raidBalls);
+
+        root.remove("item_settings");
+        root.add("item_settings", itemSettings);
 
         // TODO: Fix distribution for new config parsing style thingy
         List<DistributionSection> rewards = List.of();
         JsonArray rewardDistributionArray = new JsonArray();
         if (root.has("reward_distribution"))
             rewards = ConfigHelper.getDistributionSections(root, "", true);
-        newRoot.add("reward_distribution", rewardDistributionArray);
+        root.remove("reward_distribution");
+        root.add("reward_distribution", rewardDistributionArray);
 
         categories.add(new Category(
                 categoryId,
@@ -407,11 +257,7 @@ public class BossesConfig {
                 requirePass,
                 minPlayers,
                 maxPlayers,
-                bannedSpecies,
-                bannedMoves,
-                bannedAbilities,
-                bannedHeldItems,
-                bannedBagItems,
+                contraband,
                 setupBossbar,
                 fightBossbar,
                 preCatchBossbar,
@@ -427,32 +273,35 @@ public class BossesConfig {
         file.createNewFile();
         Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
         Writer writer = new FileWriter(file);
-        gson.toJson(newRoot, writer);
+        gson.toJson(root, writer);
         writer.close();
     }
 
     public void loadBoss(String category_name, File file) throws IOException, NullPointerException, UnsupportedOperationException {
-        JsonObject root = JsonParser.parseReader(new FileReader(file)).getAsJsonObject();
-        JsonObject newRoot = new JsonObject();
+        JsonObject root = new JsonObject();
+        if (file.exists()) root = JsonParser.parseReader(new FileReader(file)).getAsJsonObject();
+
         String fileName = file.getName().substring(0, file.getName().indexOf(".json"));
 
         String bossId = fileName;
         if (root.has("boss_id"))
             bossId = root.get("boss_id").getAsString();
-        newRoot.addProperty("boss_id", bossId);
+        root.remove(bossId);
+        root.addProperty("boss_id", bossId);
 
         double globalWeight = 1;
         if (root.has("global_weight"))
             globalWeight = root.get("global_weight").getAsDouble();
-        newRoot.addProperty("global_weight", globalWeight);
+        root.remove("global_weight");
+        root.addProperty("global_weight", globalWeight);
 
         double categoryWeight = 1;
         if (root.has("category_weight"))
             categoryWeight = root.get("category_weight").getAsDouble();
-        newRoot.addProperty("category_weight", categoryWeight);
+        root.remove("category_weight");
+        root.addProperty("category_weight", categoryWeight);
 
         // Pokemon Details
-
         Species species = null;
         int level = 50;
         Map<String, Double> features = new HashMap<>();
@@ -485,10 +334,12 @@ public class BossesConfig {
             species = PokemonSpecies.INSTANCE.random();
         }
 
+        pokemonDetails.remove("species");
         pokemonDetails.addProperty("species", species.getResourceIdentifier().getPath());
 
         if (pokemonDetails.has("level"))
             level = pokemonDetails.get("level").getAsInt();
+        pokemonDetails.remove("level");
         pokemonDetails.addProperty("level", level);
 
         if (pokemonDetails.has("form"))
@@ -520,10 +371,16 @@ public class BossesConfig {
         featuresArray = new JsonArray();
         for (Map.Entry<String, Double> entry : features.entrySet()) {
             JsonObject featureObject = new JsonObject();
+
+            featureObject.remove("feature");
             featureObject.addProperty("feature", entry.getKey());
+
+            featureObject.remove("weight");
             featureObject.addProperty("weight", entry.getValue());
+
             featuresArray.add(featureObject);
         }
+        pokemonDetails.remove("features");
         pokemonDetails.add("features", featuresArray);
 
         JsonArray abilitiesArray = new JsonArray();
@@ -556,6 +413,7 @@ public class BossesConfig {
             abilityObject.addProperty("weight", entry.getValue());
             abilitiesArray.add(abilityObject);
         }
+        pokemonDetails.remove("abilities");
         pokemonDetails.add("abilities", abilitiesArray);
         pokemonDetails.remove("ability");
 
@@ -564,7 +422,6 @@ public class BossesConfig {
             naturesArray = pokemonDetails.get("natures").getAsJsonArray();
         else if (pokemonDetails.has("nature"))
             naturesArray = pokemonDetails.get("nature").getAsJsonArray();
-
 
         for (JsonElement natureElement : naturesArray) {
             JsonObject natureObject = natureElement.getAsJsonObject();
@@ -590,6 +447,7 @@ public class BossesConfig {
             natureObject.addProperty("weight", entry.getValue());
             naturesArray.add(natureObject);
         }
+        pokemonDetails.remove("natures");
         pokemonDetails.add("natures", naturesArray);
         pokemonDetails.remove("nature");
 
@@ -624,23 +482,28 @@ public class BossesConfig {
             genderObject.addProperty("weight", entry.getValue());
             gendersArray.add(genderObject);
         }
+        pokemonDetails.remove("genders");
         pokemonDetails.add("genders", gendersArray);
         pokemonDetails.remove("gender");
 
         if (pokemonDetails.has("shiny"))
             shiny = pokemonDetails.get("shiny").getAsBoolean();
+        pokemonDetails.remove("shiny");
         pokemonDetails.addProperty("shiny", shiny);
 
         if (pokemonDetails.has("scale"))
             scale = pokemonDetails.get("scale").getAsInt();
+        pokemonDetails.remove("scale");
         pokemonDetails.addProperty("scale", scale);
 
         if (pokemonDetails.has("held_item"))
             heldItem = Registries.ITEM.get(Identifier.of(pokemonDetails.get("held_item").getAsString()));
+        pokemonDetails.remove("held_item");
         pokemonDetails.addProperty("held_item", heldItem.equals(Items.AIR) ? "" : Registries.ITEM.getId(heldItem).toString());
 
         if (pokemonDetails.has("held_item_data"))
             heldItemData = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, pokemonDetails.get("held_item_data")).getOrThrow().getFirst();
+        pokemonDetails.remove("held_item_data");
         pokemonDetails.add("held_item_data", ComponentChanges.CODEC.encode(heldItemData, JsonOps.INSTANCE, new JsonObject()).getOrThrow());
 
         List<String> movesArray = new ArrayList<>();
@@ -659,10 +522,12 @@ public class BossesConfig {
         for (MoveTemplate move : moves) {
             jsonMoveArray.add(move.getName());
         }
+        pokemonDetails.remove("moves");
         pokemonDetails.add("moves", jsonMoveArray);
 
         if (pokemonDetails.has("friendship"))
             friendship = pokemonDetails.get("friendship").getAsInt();
+        pokemonDetails.remove("friendship");
         pokemonDetails.addProperty("friendship", friendship);
 
         JsonObject ivsObject = new JsonObject();
@@ -671,28 +536,35 @@ public class BossesConfig {
 
         if (ivsObject.has("hp"))
             ivs.set(Stats.HP, Math.clamp(ivsObject.get("hp").getAsInt(), 0, IVs.MAX_VALUE));
+        ivsObject.remove("hp");
         ivsObject.addProperty("hp", ivs.get(Stats.HP));
 
         if (ivsObject.has("atk"))
             ivs.set(Stats.ATTACK, Math.clamp(ivsObject.get("atk").getAsInt(), 0, IVs.MAX_VALUE));
+        ivsObject.remove("atk");
         ivsObject.addProperty("atk", ivs.get(Stats.ATTACK));
 
         if (ivsObject.has("def"))
             ivs.set(Stats.DEFENCE, Math.clamp(ivsObject.get("def").getAsInt(), 0, IVs.MAX_VALUE));
+        ivsObject.remove("def");
         ivsObject.addProperty("def", ivs.get(Stats.DEFENCE));
 
         if (ivsObject.has("sp_atk"))
             ivs.set(Stats.SPECIAL_ATTACK, Math.clamp(ivsObject.get("sp_atk").getAsInt(), 0, IVs.MAX_VALUE));
+        ivsObject.remove("sp_atk");
         ivsObject.addProperty("sp_atk", ivs.get(Stats.SPECIAL_ATTACK));
 
         if (ivsObject.has("sp_def"))
             ivs.set(Stats.SPECIAL_DEFENCE, Math.clamp(ivsObject.get("sp_def").getAsInt(), 0, IVs.MAX_VALUE));
+        ivsObject.remove("sp_def");
         ivsObject.addProperty("sp_def", ivs.get(Stats.SPECIAL_DEFENCE));
 
         if (ivsObject.has("spd"))
             ivs.set(Stats.SPEED, Math.clamp(ivsObject.get("spd").getAsInt(), 0, IVs.MAX_VALUE));
+        ivsObject.remove("spd");
         ivsObject.addProperty("spd", ivs.get(Stats.SPEED));
 
+        pokemonDetails.remove("ivs");
         pokemonDetails.add("ivs", ivsObject);
 
         JsonObject evsObject = new JsonObject();
@@ -701,32 +573,39 @@ public class BossesConfig {
 
         if (evsObject.has("hp"))
             evs.set(Stats.HP, Math.clamp(evsObject.get("hp").getAsInt(), 0, EVs.MAX_STAT_VALUE));
+        evsObject.remove("hp");
         evsObject.addProperty("hp", evs.get(Stats.HP));
 
         if (evsObject.has("atk"))
             evs.set(Stats.ATTACK, Math.clamp(evsObject.get("atk").getAsInt(), 0, EVs.MAX_STAT_VALUE));
+        evsObject.remove("atk");
         evsObject.addProperty("atk", evs.get(Stats.ATTACK));
 
         if (evsObject.has("def"))
             evs.set(Stats.DEFENCE, Math.clamp(evsObject.get("def").getAsInt(), 0, EVs.MAX_STAT_VALUE));
+        evsObject.remove("def");
         evsObject.addProperty("def", evs.get(Stats.DEFENCE));
 
         if (evsObject.has("sp_atk"))
             evs.set(Stats.SPECIAL_ATTACK, Math.clamp(evsObject.get("sp_atk").getAsInt(), 0, EVs.MAX_STAT_VALUE));
+        evsObject.remove("sp_atk");
         evsObject.addProperty("sp_atk", evs.get(Stats.SPECIAL_ATTACK));
 
         if (evsObject.has("sp_def"))
             evs.set(Stats.SPECIAL_DEFENCE, Math.clamp(evsObject.get("sp_def").getAsInt(), 0, EVs.MAX_STAT_VALUE));
+        evsObject.remove("sp_def");
         evsObject.addProperty("sp_def", evs.get(Stats.SPECIAL_DEFENCE));
 
         if (evsObject.has("spd"))
             evs.set(Stats.SPEED, Math.clamp(evsObject.get("spd").getAsInt(), 0, EVs.MAX_STAT_VALUE));
+        evsObject.remove("spd");
         evsObject.addProperty("spd", evs.get(Stats.SPEED));
 
+        pokemonDetails.remove("evs");
         pokemonDetails.add("evs", evsObject);
 
-        newRoot.add("pokemon_details", pokemonDetails);
-
+        root.remove("pokemon_details");
+        root.add("pokemon_details", pokemonDetails);
 
         PokemonDetails pokemonInfo = new PokemonDetails(
                 species,
@@ -759,22 +638,27 @@ public class BossesConfig {
 
         if (bossDetails.has("display_name"))
             displayName = bossDetails.get("display_name").getAsString();
+        bossDetails.remove("display_name");
         bossDetails.addProperty("display_name", displayName);
 
         if (bossDetails.has("base_health"))
             baseHealth = bossDetails.get("base_health").getAsInt();
+        bossDetails.remove("base_health");
         bossDetails.addProperty("base_health", baseHealth);
 
         if (bossDetails.has("health_increase_per_player"))
             healthIncreasePerPlayer = bossDetails.get("health_increase_per_player").getAsInt();
+        bossDetails.remove("health_increase_per_player");
         bossDetails.addProperty("health_increase_per_player", healthIncreasePerPlayer);
 
         if (bossDetails.has("apply_glowing"))
             applyGlowing = bossDetails.get("apply_glowing").getAsBoolean();
+        bossDetails.remove("apply_glowing");
         bossDetails.addProperty("apply_glowing", applyGlowing);
 
         if (bossDetails.has("ai_skill_level"))
             aiSkillLevel = bossDetails.get("ai_skill_level").getAsInt();
+        bossDetails.remove("ai_skill_level");
         bossDetails.addProperty("ai_skill_level", aiSkillLevel);
 
         JsonArray locationsArray = new JsonArray();
@@ -784,10 +668,18 @@ public class BossesConfig {
         for (JsonElement locationElement : locationsArray) {
             JsonObject locationObject = locationElement.getAsJsonObject();
             if (!locationObject.has("location")) continue;
+
+            String location = locationObject.get("location").getAsString();
+            locationObject.remove("location");
+            locationObject.addProperty("location", location);
+
             double weight = 1.0;
             if (locationObject.has("weight"))
                 weight = locationObject.get("weight").getAsDouble();
-            locations.put(locationObject.get("location").getAsString(), weight);
+            locationObject.remove("weight");
+            locationObject.addProperty("weight", weight);
+
+            locations.put(location, weight);
         }
 
         if (locations.isEmpty()) {
@@ -807,16 +699,15 @@ public class BossesConfig {
             locationObject.addProperty("weight", entry.getValue());
             locationsArray.add(locationObject);
         }
+        bossDetails.remove("locations");
         bossDetails.add("locations", locationsArray);
 
-        newRoot.add("boss_details", bossDetails);
+        root.remove("boss_details");
+        root.add("boss_details", bossDetails);
 
         // Item Settings
         boolean allowGlobalPokeballs = true;
         boolean allowCategoryPokeballs = true;
-        Voucher bossVoucher = nr.config().default_voucher;
-        Pass bossPass = nr.config().default_pass;
-        List<RaidBall> bossBalls = new ArrayList<>();
 
         JsonObject itemSettingsObject = new JsonObject();
         if (root.has("item_settings"))
@@ -824,109 +715,48 @@ public class BossesConfig {
 
         if (itemSettingsObject.has("allow_global_pokeballs"))
             allowGlobalPokeballs = itemSettingsObject.get("allow_global_pokeballs").getAsBoolean();
+        itemSettingsObject.remove("allow_global_pokeballs");
         itemSettingsObject.addProperty("allow_global_pokeballs", allowGlobalPokeballs);
 
         if (itemSettingsObject.has("allow_category_pokeballs"))
             allowCategoryPokeballs = itemSettingsObject.get("allow_category_pokeballs").getAsBoolean();
+        itemSettingsObject.remove("allow_category_pokeballs");
         itemSettingsObject.addProperty("allow_category_pokeballs", allowCategoryPokeballs);
-
-        Item voucherItem = nr.config().default_voucher.voucherItem();
-        String voucherName = nr.config().default_voucher.voucherName();
-        List<String> voucherLore = nr.config().default_voucher.voucherLore();
-        ComponentChanges voucherData = nr.config().default_voucher.voucherData();
 
         JsonObject bossVoucherObject = new JsonObject();
         if (itemSettingsObject.has("boss_voucher"))
             bossVoucherObject = itemSettingsObject.get("boss_voucher").getAsJsonObject();
 
-        if (bossVoucherObject.has("voucher_item"))
-            voucherItem = Registries.ITEM.get(Identifier.of(bossVoucherObject.get("voucher_item").getAsString()));
-        bossVoucherObject.addProperty("voucher_item", Registries.ITEM.getId(voucherItem).toString());
+        Voucher bossVoucher = ConfigHelper.getVoucher(bossVoucherObject);
 
-        if (bossVoucherObject.has("voucher_name"))
-            voucherName = bossVoucherObject.get("voucher_name").getAsString();
-        bossVoucherObject.addProperty("voucher_name", voucherName);
-
-        if (bossVoucherObject.has("voucher_lore"))
-            voucherLore = bossVoucherObject.getAsJsonArray("voucher_lore").asList().stream().map(JsonElement::getAsString).toList();
-        JsonArray voucherLoreArray = new JsonArray();
-        for (String line : voucherLore) {
-            voucherLoreArray.add(line);
-        }
-        bossVoucherObject.add("voucher_lore", voucherLoreArray);
-
-        if (bossVoucherObject.has("voucher_data"))
-            voucherData = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, bossVoucherObject.get("voucher_data")).getOrThrow().getFirst();
-        bossVoucherObject.add("voucher_data", ComponentChanges.CODEC.encode(voucherData, JsonOps.INSTANCE, new JsonObject()).getOrThrow());
-
-        itemSettingsObject.add("boss_voucher", bossVoucherObject);
-
-        Item passItem = nr.config().default_pass.passItem();
-        String passName = nr.config().default_pass.passName();
-        List<String> passLore = nr.config().default_pass.passLore();
-        ComponentChanges passData = nr.config().default_pass.passData();
+        itemSettingsObject.remove("boss_voucher");
+        itemSettingsObject.add("boss_voucher", bossVoucher.voucherObject());
 
         JsonObject bossPassObject = new JsonObject();
         if (itemSettingsObject.has("boss_pass"))
             bossPassObject = itemSettingsObject.get("boss_pass").getAsJsonObject();
 
-        if (bossPassObject.has("pass_item"))
-            passItem = Registries.ITEM.get(Identifier.of(bossPassObject.get("pass_item").getAsString()));
-        bossPassObject.addProperty("pass_item", Registries.ITEM.getId(passItem).toString());
+        Pass bossPass = ConfigHelper.getPass(bossPassObject);
 
-        if (bossPassObject.has("pass_name"))
-            passName = bossPassObject.get("pass_name").getAsString();
-        bossPassObject.addProperty("pass_name", passName);
-
-        if (bossPassObject.has("pass_lore"))
-            passLore = bossPassObject.getAsJsonArray("pass_lore").asList().stream().map(JsonElement::getAsString).toList();
-        JsonArray passLoreArray = new JsonArray();
-        for (String line : passLore) {
-            passLoreArray.add(line);
-        }
-        bossPassObject.add("pass_lore", passLoreArray);
-
-        if (bossPassObject.has("pass_data"))
-            passData = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, bossPassObject.get("pass_data")).getOrThrow().getFirst();
-        bossPassObject.add("pass_data", ComponentChanges.CODEC.encode(passData, JsonOps.INSTANCE, new JsonObject()).getOrThrow());
-
-        itemSettingsObject.add("boss_pass", bossPassObject);
+        itemSettingsObject.remove("boss_pass");
+        itemSettingsObject.add("boss_pass", bossPass.passObject());
 
         JsonObject raidBalls = new JsonObject();
         if (itemSettingsObject.has("raid_balls"))
             raidBalls = itemSettingsObject.getAsJsonObject("raid_balls");
 
-        for (String id : raidBalls.keySet()) {
-            JsonObject ballObject = raidBalls.getAsJsonObject(id);
-            Item pokeball = CobblemonItems.POKE_BALL;
-            String pokeballName = "<red> " + bossId + " Raid Ball";
-            List<String> pokeballLore = List.of("<gray>Use this to try and catch " + bossId);
-            ComponentChanges pokeballData = ComponentChanges.EMPTY;
+        List<RaidBall> bossBalls = ConfigHelper.getRaidBalls(raidBalls);
 
-            if (ballObject.has("pokeball"))
-                pokeball = Registries.ITEM.get(Identifier.of(ballObject.get("pokeball").getAsString()));
-            ballObject.addProperty("pokeball", Registries.ITEM.getId(pokeball).toString());
-
-            if (ballObject.has("pokeball_name"))
-                pokeballName = ballObject.get("pokeball_name").getAsString();
-            ballObject.addProperty("pokeball_name", pokeballName);
-
-            if (ballObject.has("pokeball_lore"))
-                pokeballLore = ballObject.get("pokeball_lore").getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList();
-            JsonArray pokeballLoreArray = new JsonArray();
-            for (String line : pokeballLore) {
-                pokeballLoreArray.add(line);
-            }
-            ballObject.add("pokeball_lore", pokeballLoreArray);
-
-            if (ballObject.has("pokeball_data"))
-                pokeballData = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, ballObject.get("pokeball_data")).getOrThrow().getFirst();
-            ballObject.add("pokeball_data", ComponentChanges.CODEC.encode(pokeballData, JsonOps.INSTANCE, new JsonObject()).getOrThrow());
-
-            bossBalls.add(new RaidBall(id, pokeball, pokeballName, pokeballLore, pokeballData));
+        for (RaidBall raidBall : bossBalls) {
+            raidBalls.remove(raidBall.id());
+            raidBalls.add(raidBall.id(), raidBall.raidBallObject());
         }
 
-        newRoot.add("item_settings", itemSettingsObject);
+        itemSettingsObject.remove("raid_balls");
+        itemSettingsObject.add("raid_balls", raidBalls);
+
+        root.remove("item_settings");
+        root.add("item_settings", itemSettingsObject);
 
         ItemSettings itemSettings = new ItemSettings(
                 allowGlobalPokeballs,
@@ -945,11 +775,6 @@ public class BossesConfig {
         int preCatchPhaseTime = -1;
         int catchPhaseTime = -1;
         boolean healPartyOnChallenge = false;
-        List<Species> bannedSpecies = new ArrayList<>();
-        List<Move> bannedMoves = new ArrayList<>();
-        List<Ability> bannedAbilities = new ArrayList<>();
-        List<Item> bannedHeldItems = new ArrayList<>();
-        List<Item> bannedBagItems = new ArrayList<>();
         String setupBossbar = "setup_phase_example";
         String fightBossbar = "fight_phase_example";
         String preCatchBossbar = "pre_catch_phase_example";
@@ -962,99 +787,52 @@ public class BossesConfig {
 
         if (raidDetailsObject.has("minimum_level"))
             minimumLevel = raidDetailsObject.get("minimum_level").getAsInt();
+        raidDetailsObject.remove("minimum_level");
         raidDetailsObject.addProperty("minimum_level", minimumLevel);
 
         if (raidDetailsObject.has("maximum_level"))
             maximumLevel = raidDetailsObject.get("maximum_level").getAsInt();
+        raidDetailsObject.remove("maximum_level");
         raidDetailsObject.addProperty("maximum_level", maximumLevel);
 
         if (raidDetailsObject.has("setup_phase_time"))
             setupPhaseTime = raidDetailsObject.get("setup_phase_time").getAsInt();
+        raidDetailsObject.remove("setup_phase_time");
         raidDetailsObject.addProperty("setup_phase_time", setupPhaseTime);
 
         if (raidDetailsObject.has("fight_phase_time"))
             fightPhaseTime = raidDetailsObject.get("fight_phase_time").getAsInt();
+        raidDetailsObject.remove("fight_phase_time");
         raidDetailsObject.addProperty("fight_phase_time", fightPhaseTime);
 
         if (raidDetailsObject.has("do_catch_phase"))
             doCatchPhase = raidDetailsObject.get("do_catch_phase").getAsBoolean();
+        raidDetailsObject.remove("do_catch_phase");
         raidDetailsObject.addProperty("do_catch_phase", doCatchPhase);
 
         if (raidDetailsObject.has("pre_catch_phase_time"))
             preCatchPhaseTime = raidDetailsObject.get("pre_catch_phase_time").getAsInt();
+        raidDetailsObject.remove("pre_catch_phase_time");
         raidDetailsObject.addProperty("pre_catch_phase_time", preCatchPhaseTime);
 
         if (raidDetailsObject.has("catch_phase_time"))
             catchPhaseTime = raidDetailsObject.get("catch_phase_time").getAsInt();
+        raidDetailsObject.remove("catch_phase_time");
         raidDetailsObject.addProperty("catch_phase_time", catchPhaseTime);
 
         if (raidDetailsObject.has("heal_party_on_challenge"))
             healPartyOnChallenge = raidDetailsObject.get("heal_party_on_challenge").getAsBoolean();
+        raidDetailsObject.remove("heal_party_on_challenge");
         raidDetailsObject.addProperty("heal_party_on_challenge", healPartyOnChallenge);
 
         JsonObject contrabandObject = new JsonObject();
         if (raidDetailsObject.has("contraband"))
             contrabandObject = raidDetailsObject.get("contraband").getAsJsonObject();
 
-        JsonArray bannedPokemonJsonArray = new JsonArray();
-        List<String> bannedPokemonRaw = new ArrayList<>();
-        if (contrabandObject.has("banned_pokemon"))
-            bannedPokemonRaw = contrabandObject.getAsJsonArray("banned_pokemon").asList().stream().map(JsonElement::getAsString).toList();
-        for (String pokemon : bannedPokemonRaw) {
-            Species speciesParsed = PokemonSpecies.INSTANCE.getByName(pokemon);
-            if (speciesParsed != null) bannedSpecies.add(speciesParsed);
-            else NovaRaids.LOGGER.warn("[NovaRaids] Contraband species {} not found in !{}", pokemon, file.getPath());
-            bannedPokemonJsonArray.add(pokemon);
-        }
-        contrabandObject.add("banned_pokemon", bannedPokemonJsonArray);
+        Contraband contraband = ConfigHelper.getContraband(contrabandObject, file.getName());
 
-        JsonArray bannedMovesJsonArray = new JsonArray();
-        List<String> bannedMovesRaw = new ArrayList<>();
-        if (contrabandObject.has("banned_moves"))
-            bannedMovesRaw = contrabandObject.getAsJsonArray("banned_moves").asList().stream().map(JsonElement::getAsString).toList();
-        for (String move : bannedMovesRaw) {
-            MoveTemplate template = Moves.INSTANCE.getByName(move);
-            if (template != null) bannedMoves.add(template.create());
-            else NovaRaids.LOGGER.warn("[NovaRaids] Contraband move {} not found in !{}", move, file.getPath());
-            bannedMovesJsonArray.add(move);
-        }
-        contrabandObject.add("banned_moves", bannedMovesJsonArray);
-
-        JsonArray bannedAbilitiesJsonArray = new JsonArray();
-        List<String> bannedAbilitiesRaw = new ArrayList<>();
-        if (contrabandObject.has("banned_abilities"))
-            bannedAbilitiesRaw = contrabandObject.getAsJsonArray("banned_abilities").asList().stream().map(JsonElement::getAsString).toList();
-        for (String ability : bannedAbilitiesRaw) {
-            AbilityTemplate abilityTemplate = Abilities.INSTANCE.get(ability);
-            if (abilityTemplate != null) bannedAbilities.add(abilityTemplate.create(false, Priority.LOWEST));
-            else NovaRaids.LOGGER.warn("[NovaRaids] Contraband ability {} not found in !{}", ability, file.getPath());
-            bannedAbilitiesJsonArray.add(ability);
-        }
-        contrabandObject.add("banned_abilities", bannedAbilitiesJsonArray);
-
-        JsonArray bannedHeldItemsJsonArray = new JsonArray();
-        List<String> bannedHeldItemsRaw = new ArrayList<>();
-        if (contrabandObject.has("banned_held_items"))
-            bannedHeldItemsRaw = contrabandObject.getAsJsonArray("banned_held_items").asList().stream().map(JsonElement::getAsString).toList();
-        for (String item : bannedHeldItemsRaw) {
-            Item bannedItem = Registries.ITEM.get(Identifier.of(item));
-            bannedHeldItems.add(bannedItem);
-            bannedHeldItemsJsonArray.add(item);
-        }
-        contrabandObject.add("banned_held_items", bannedHeldItemsJsonArray);
-
-        JsonArray bannedBagItemsJsonArray = new JsonArray();
-        List<String> bannedBagItemsRaw = new ArrayList<>();
-        if (contrabandObject.has("banned_bag_items"))
-            bannedBagItemsRaw = contrabandObject.getAsJsonArray("banned_bag_items").asList().stream().map(JsonElement::getAsString).toList();
-        for (String item : bannedBagItemsRaw) {
-            Item bannedItem = Registries.ITEM.get(Identifier.of(item));
-            bannedBagItems.add(bannedItem);
-            bannedBagItemsJsonArray.add(item);
-        }
-        contrabandObject.add("banned_bag_items", bannedBagItemsJsonArray);
-
-        raidDetailsObject.add("contraband", contrabandObject);
+        raidDetailsObject.remove("contraband");
+        raidDetailsObject.add("contraband", contraband.contrabandObject());
 
         JsonObject bossbarsObject = new JsonObject();
         if (raidDetailsObject.has("bossbars"))
@@ -1062,29 +840,36 @@ public class BossesConfig {
 
         if (bossbarsObject.has("setup"))
             setupBossbar = bossbarsObject.get("setup").getAsString();
+        bossbarsObject.remove("setup");
         bossbarsObject.addProperty("setup", setupBossbar);
 
         if (bossbarsObject.has("fight"))
             fightBossbar = bossbarsObject.get("fight").getAsString();
+        bossbarsObject.remove("fight");
         bossbarsObject.addProperty("fight", fightBossbar);
 
         if (bossbarsObject.has("pre_catch"))
             preCatchBossbar = bossbarsObject.get("pre_catch").getAsString();
+        bossbarsObject.remove("pre_catch");
         bossbarsObject.addProperty("pre_catch", preCatchBossbar);
 
         if (bossbarsObject.has("catch"))
             catchBossbar = bossbarsObject.get("catch").getAsString();
+        bossbarsObject.remove("catch");
         bossbarsObject.addProperty("catch", catchBossbar);
 
+        raidDetailsObject.add("bossbars", bossbarsObject);
         raidDetailsObject.add("bossbars", bossbarsObject);
 
         // TODO: The thingy
         JsonArray rewardDistributionArray = new JsonArray();
         if (raidDetailsObject.has("reward_distribution"))
             rewards = ConfigHelper.getDistributionSections(raidDetailsObject, "", false);
+        raidDetailsObject.remove("reward_distribution");
         raidDetailsObject.add("reward_distribution", rewardDistributionArray);
 
-        newRoot.add("raid_details", raidDetailsObject);
+        root.remove("raid_details");
+        root.add("raid_details", raidDetailsObject);
 
         RaidDetails raidDetails = new RaidDetails(
                 minimumLevel,
@@ -1095,11 +880,7 @@ public class BossesConfig {
                 preCatchPhaseTime,
                 catchPhaseTime,
                 healPartyOnChallenge,
-                bannedSpecies,
-                bannedMoves,
-                bannedAbilities,
-                bannedHeldItems,
-                bannedBagItems,
+                contraband,
                 setupBossbar,
                 fightBossbar,
                 preCatchBossbar,
@@ -1137,10 +918,12 @@ public class BossesConfig {
             if (!speciesOverrideString.isEmpty())
                 NovaRaids.LOGGER.warn("[NovaRaids] Unknown species for catch override: {}. In boss {}. Using boss species ({})", speciesOverrideString, bossId, species.getName());
         }
+        catchSettingsObject.remove("species_override");
         catchSettingsObject.addProperty("species_override", speciesOverride.getResourceIdentifier().getPath());
 
         if (catchSettingsObject.has("level_override"))
             levelOverride = catchSettingsObject.get("level_override").getAsInt();
+        catchSettingsObject.remove("level_override");
         catchSettingsObject.addProperty("level_override", levelOverride);
 
         if (catchSettingsObject.has("form_override"))
@@ -1148,46 +931,57 @@ public class BossesConfig {
 
         if (catchSettingsObject.has("keep_features"))
             keepFeatures = catchSettingsObject.get("keep_features").getAsBoolean();
+        catchSettingsObject.remove("keep_features");
         catchSettingsObject.addProperty("keep_features", keepFeatures);
 
         if (catchSettingsObject.has("features_override"))
             featuresOverride = catchSettingsObject.get("features_override").getAsString();
+        catchSettingsObject.remove("features_override");
         catchSettingsObject.addProperty("features_override", featuresOverride);
 
         if (catchSettingsObject.has("keep_scale"))
             keepScale = catchSettingsObject.get("keep_scale").getAsBoolean();
+        catchSettingsObject.remove("keep_scale");
         catchSettingsObject.addProperty("keep_scale", keepScale);
 
         if (catchSettingsObject.has("keep_held_item"))
             keepHeldItem = catchSettingsObject.get("keep_held_item").getAsBoolean();
+        catchSettingsObject.remove("keep_held_item");
         catchSettingsObject.addProperty("keep_held_item", keepHeldItem);
 
         if (catchSettingsObject.has("randomize_ivs"))
             randomizeIVs = catchSettingsObject.get("randomize_ivs").getAsBoolean();
+        catchSettingsObject.remove("randomize_ivs");
         catchSettingsObject.addProperty("randomize_ivs", randomizeIVs);
 
         if (catchSettingsObject.has("keep_evs"))
             keepEVs = catchSettingsObject.get("keep_evs").getAsBoolean();
+        catchSettingsObject.remove("keep_evs");
         catchSettingsObject.addProperty("keep_evs", keepEVs);
 
         if (catchSettingsObject.has("randomize_gender"))
             randomizeGender = catchSettingsObject.get("randomize_gender").getAsBoolean();
+        catchSettingsObject.remove("randomize_gender");
         catchSettingsObject.addProperty("randomize_gender", randomizeGender);
 
         if (catchSettingsObject.has("randomize_nature"))
             randomizeNature = catchSettingsObject.get("randomize_nature").getAsBoolean();
+        catchSettingsObject.remove("randomize_nature");
         catchSettingsObject.addProperty("randomize_nature", randomizeNature);
 
         if (catchSettingsObject.has("randomize_ability"))
             randomizeAbility = catchSettingsObject.get("randomize_ability").getAsBoolean();
+        catchSettingsObject.remove("randomize_ability");
         catchSettingsObject.addProperty("randomize_ability", randomizeAbility);
 
         if (catchSettingsObject.has("reset_moves"))
             resetMoves = catchSettingsObject.get("reset_moves").getAsBoolean();
+        catchSettingsObject.remove("reset_moves");
         catchSettingsObject.addProperty("reset_moves", resetMoves);
 
         if (catchSettingsObject.has("friendship_override"))
             friendshipOverride = catchSettingsObject.get("friendship_override").getAsInt();
+        catchSettingsObject.remove("friendship_override");
         catchSettingsObject.addProperty("friendship_override", friendshipOverride);
 
         JsonArray placementsArray = new JsonArray();
@@ -1219,9 +1013,23 @@ public class BossesConfig {
             catchPlacements.add(new CatchPlacement(placeStr, requireDamage, shinyChance, minPerfectIVs));
         }
 
+        placementsArray = new JsonArray();
+        for (CatchPlacement placement : catchPlacements) {
+            JsonObject placeObject = new JsonObject();
+            placeObject.addProperty("place", placement.place());
+            placeObject.addProperty("require_damage", placement.requireDamage());
+            placeObject.addProperty("shiny_chance", placement.shinyChance());
+            placeObject.addProperty("shiny_chance", placement.shinyChance());
+            placementsArray.add(placeObject);
+        }
+
+        catchSettingsObject.remove("places");
+        catchSettingsObject.add("places", placementsArray);
+
         if (catchPlacements.isEmpty()) catchPlacements.add(new CatchPlacement("participating", true, 8192, 0));
 
-        newRoot.add("catch_settings", catchSettingsObject);
+        root.remove("catch_settings");
+        root.add("catch_settings", catchSettingsObject);
 
         CatchSettings catchSettings = new CatchSettings(
                 speciesOverride,
@@ -1261,7 +1069,7 @@ public class BossesConfig {
         file.createNewFile();
         Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
         Writer writer = new FileWriter(file);
-        gson.toJson(newRoot, writer);
+        gson.toJson(root, writer);
         writer.close();
     }
 

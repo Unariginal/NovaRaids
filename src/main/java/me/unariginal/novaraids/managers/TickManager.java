@@ -227,7 +227,7 @@ public class TickManager {
     }
 
     public static void fixPlayerPokemon() throws ConcurrentModificationException {
-        if (!nr.config().hide_other_pokemon_in_raid) {
+        if (!nr.config().hideOtherPokemonInRaid) {
             for (Raid raid : nr.activeRaids().values()) {
                 if (raid.stage() == 2) {
                     for (UUID playerUUID : raid.participatingPlayers()) {

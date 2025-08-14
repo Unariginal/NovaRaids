@@ -406,7 +406,7 @@ public class EventManager {
                                     }
                                 }
                             }
-                        } else if (customData.copyNbt().getString("raid_item").equals("raid_voucher") && nr.config().vouchers_enabled) {
+                        } else if (customData.copyNbt().getString("raid_item").equals("raid_voucher") && nr.config().vouchersEnabled) {
                             String bossName = customData.copyNbt().getString("raid_boss");
                             String category = customData.copyNbt().getString("raid_category");
                             if (bossName.equalsIgnoreCase("*")) {
@@ -569,7 +569,7 @@ public class EventManager {
                                     player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("used_voucher"), boss)));
                                 }
                             }
-                        } else if (customData.copyNbt().getString("raid_item").equals("raid_ball") && nr.config().raid_balls_enabled) {
+                        } else if (customData.copyNbt().getString("raid_item").equals("raid_ball") && nr.config().raidBallsEnabled) {
                             boolean canThrow = false;
 
                             if (customData.contains("owner_uuid")) {
@@ -641,7 +641,7 @@ public class EventManager {
                     }
                 }
 
-                if (isPokeball(itemStack) && nr.config().raid_balls_enabled) {
+                if (isPokeball(itemStack) && nr.config().raidBallsEnabled) {
                     for (Raid raid : nr.activeRaids().values()) {
                         if (raid.participatingPlayers().contains(player.getUuid())) {
                             player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_deny_normal_pokeball"))));
@@ -652,9 +652,9 @@ public class EventManager {
 
                 for (Raid raid : nr.activeRaids().values()) {
                     if (raid.participatingPlayers().contains(player.getUuid())) {
-                        List<Item> bannedBagItems = nr.config().global_banned_bag_items;
-                        bannedBagItems.addAll(raid.bossInfo().raidDetails().bannedBagItems());
-                        bannedBagItems.addAll(raid.raidBossCategory().bannedBagItems());
+                        List<Item> bannedBagItems = nr.config().globalContraband.bannedBagItems();
+                        bannedBagItems.addAll(raid.bossInfo().raidDetails().contraband().bannedBagItems());
+                        bannedBagItems.addAll(raid.raidBossCategory().contraband().bannedBagItems());
                         if (bannedBagItems.contains(itemStack.getItem())) {
                             player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_banned_bag_item").replaceAll("%banned.bag_item%", itemStack.getItem().getName().getString()), raid)));
                             return TypedActionResult.fail(itemStack);

@@ -68,7 +68,7 @@ public class RaidCommands {
                                             CommandManager.argument("boss", StringArgumentType.string())
                                                     .suggests(new BossSuggestions())
                                                     .executes(ctx -> {
-                                                        if (nr.loadedProperly) {
+                                                        if (NovaRaids.LOADED) {
                                                             return start(nr.bossesConfig().getBoss(StringArgumentType.getString(ctx, "boss")), ctx.getSource().getPlayer(), null);
                                                         } else {
                                                             return 0;
@@ -78,7 +78,7 @@ public class RaidCommands {
                                     .then(
                                             CommandManager.literal("random")
                                                     .executes(ctx -> {
-                                                        if (nr.loadedProperly) {
+                                                        if (NovaRaids.LOADED) {
                                                             return start(nr.bossesConfig().getRandomBoss(), ctx.getSource().getPlayer(), null);
                                                         } else {
                                                             return 0;
@@ -88,7 +88,7 @@ public class RaidCommands {
                                                             CommandManager.argument("category", StringArgumentType.string())
                                                                     .suggests(new CategorySuggestions())
                                                                     .executes(ctx -> {
-                                                                        if (nr.loadedProperly) {
+                                                                        if (NovaRaids.LOADED) {
                                                                             String categoryStr = StringArgumentType.getString(ctx, "category");
                                                                             Boss boss = nr.bossesConfig().getRandomBoss(categoryStr);
 
@@ -175,7 +175,7 @@ public class RaidCommands {
                                                                                                     .then(
                                                                                                             CommandManager.argument("pokeball", StringArgumentType.string())
                                                                                                                     .suggests((ctx, builder) -> {
-                                                                                                                        if (nr.loadedProperly) {
+                                                                                                                        if (NovaRaids.LOADED) {
                                                                                                                             Boss boss = nr.bossesConfig().getBoss(StringArgumentType.getString(ctx, "boss"));
                                                                                                                             if (boss != null) {
                                                                                                                                 for (RaidBall ball : boss.itemSettings().raidBalls()) {
@@ -200,7 +200,7 @@ public class RaidCommands {
                                                                                                     .then(
                                                                                                             CommandManager.argument("pokeball", StringArgumentType.string())
                                                                                                                     .suggests((ctx, builder) -> {
-                                                                                                                        if (nr.loadedProperly) {
+                                                                                                                        if (NovaRaids.LOADED) {
                                                                                                                             Category cat = nr.bossesConfig().getCategory(StringArgumentType.getString(ctx, "category"));
                                                                                                                             if (cat != null) {
                                                                                                                                 for (RaidBall ball : cat.categoryBalls()) {
@@ -222,8 +222,8 @@ public class RaidCommands {
                                                                                     .then(
                                                                                             CommandManager.argument("pokeball", StringArgumentType.string())
                                                                                                     .suggests((ctx, builder) -> {
-                                                                                                        if (nr.loadedProperly) {
-                                                                                                            for (RaidBall ball : nr.config().raid_balls) {
+                                                                                                        if (NovaRaids.LOADED) {
+                                                                                                            for (RaidBall ball : nr.config().raidBalls) {
                                                                                                                 builder.suggest(ball.id());
                                                                                                             }
                                                                                                         }
@@ -250,7 +250,7 @@ public class RaidCommands {
                                     .then(
                                             CommandManager.argument("id", IntegerArgumentType.integer(1))
                                                     .executes(ctx -> {
-                                                        if (nr.loadedProperly) {
+                                                        if (NovaRaids.LOADED) {
                                                             if (ctx.getSource().isExecutedByPlayer()) {
                                                                 ServerPlayerEntity player = ctx.getSource().getPlayer();
                                                                 if (player != null) {
@@ -275,7 +275,7 @@ public class RaidCommands {
                             CommandManager.literal("leave")
                                     .requires(Permissions.require("novaraids.leave", 4))
                                     .executes(ctx -> {
-                                        if (nr.loadedProperly) {
+                                        if (NovaRaids.LOADED) {
                                             if (ctx.getSource().isExecutedByPlayer()) {
                                                 for (Raid raid : nr.activeRaids().values()) {
                                                     ServerPlayerEntity player = ctx.getSource().getPlayer();
@@ -371,7 +371,7 @@ public class RaidCommands {
                                                     .then(
                                                             CommandManager.argument("amount", IntegerArgumentType.integer(1))
                                                                     .executes(ctx -> {
-                                                                        if (nr.loadedProperly) {
+                                                                        if (NovaRaids.LOADED) {
                                                                             int id = IntegerArgumentType.getInteger(ctx, "id");
                                                                             if (nr.activeRaids().containsKey(id)) {
                                                                                 Raid raid = nr.activeRaids().get(id);
@@ -403,7 +403,7 @@ public class RaidCommands {
 
     private int reload(CommandContext<ServerCommandSource> ctx) {
         nr.reloadConfig();
-        if (nr.loadedProperly) {
+        if (NovaRaids.LOADED) {
             if (ctx.getSource().isExecutedByPlayer()) {
                 if (ctx.getSource().getPlayer() != null) {
                     ctx.getSource().getPlayer().sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("reload_command"))));
@@ -430,7 +430,7 @@ public class RaidCommands {
     }
 
     private int checkbanned(CommandContext<ServerCommandSource> ctx, String type) {
-        if (nr.loadedProperly) {
+        if (NovaRaids.LOADED) {
             if (ctx.getSource().isExecutedByPlayer()) {
                 ServerPlayerEntity player = ctx.getSource().getPlayer();
                 if (player != null) {
@@ -723,71 +723,71 @@ public class RaidCommands {
         Map<ItemStack, String> display_items = new HashMap<>();
         if (type.equalsIgnoreCase("pokemon")) {
             if (boss != null && category != null) {
-                for (Species species : boss.raidDetails().bannedPokemon()) {
+                for (Species species : boss.raidDetails().contraband().bannedPokemon()) {
                     display_items.put(PokemonItem.from(species), TextUtils.parse(gui.displayButton.itemName().replaceAll("%pokemon%", species.getName()).replaceAll("%category%", category.name()), boss));
                 }
             } else if (category != null) {
-                for (Species species : category.bannedPokemon()) {
+                for (Species species : category.contraband().bannedPokemon()) {
                     display_items.put(PokemonItem.from(species), TextUtils.parse(gui.displayButton.itemName().replaceAll("%pokemon%", species.getName()).replaceAll("%category%", category.name())));
                 }
             } else {
-                for (Species species : nr.config().global_banned_pokemon) {
+                for (Species species : nr.config().globalContraband.bannedPokemon()) {
                     display_items.put(PokemonItem.from(species), TextUtils.parse(gui.displayButton.itemName().replaceAll("%pokemon%", species.getName())));
                 }
             }
         } else if (type.equalsIgnoreCase("move")) {
             if (boss != null && category != null) {
-                for (Move move : boss.raidDetails().bannedMoves()) {
+                for (Move move : boss.raidDetails().contraband().bannedMoves()) {
                     display_items.put(Registries.ITEM.get(Identifier.of(gui.displayButton.item())).getDefaultStack(), TextUtils.parse(gui.displayButton.itemName().replaceAll("%move%", move.getDisplayName().getString()).replaceAll("%category%", category.name()), boss));
                 }
             } else if (category != null) {
-                for (Move move : category.bannedMoves()) {
+                for (Move move : category.contraband().bannedMoves()) {
                     display_items.put(Registries.ITEM.get(Identifier.of(gui.displayButton.item())).getDefaultStack(), TextUtils.parse(gui.displayButton.itemName().replaceAll("%move%", move.getDisplayName().getString()).replaceAll("%category%", category.name())));
                 }
             } else {
-                for (Move move : nr.config().global_banned_moves) {
+                for (Move move : nr.config().globalContraband.bannedMoves()) {
                     display_items.put(Registries.ITEM.get(Identifier.of(gui.displayButton.item())).getDefaultStack(), TextUtils.parse(gui.displayButton.itemName().replaceAll("%move%", move.getDisplayName().getString())));
                 }
             }
         } else if (type.equalsIgnoreCase("ability")) {
             if (boss != null && category != null) {
-                for (Ability ability : boss.raidDetails().bannedAbilities()) {
+                for (Ability ability : boss.raidDetails().contraband().bannedAbilities()) {
                     display_items.put(Registries.ITEM.get(Identifier.of(gui.displayButton.item())).getDefaultStack(), TextUtils.parse(gui.displayButton.itemName().replaceAll("%ability%", MiscUtilsKt.asTranslated(ability.getDisplayName()).getString()).replaceAll("%category%", category.name()), boss));
                 }
             } else if (category != null) {
-                for (Ability ability : category.bannedAbilities()) {
+                for (Ability ability : category.contraband().bannedAbilities()) {
                     display_items.put(Registries.ITEM.get(Identifier.of(gui.displayButton.item())).getDefaultStack(), TextUtils.parse(gui.displayButton.itemName().replaceAll("%ability%", MiscUtilsKt.asTranslated(ability.getDisplayName()).getString()).replaceAll("%category%", category.name())));
                 }
             } else {
-                for (Ability ability : nr.config().global_banned_abilities) {
+                for (Ability ability : nr.config().globalContraband.bannedAbilities()) {
                     display_items.put(Registries.ITEM.get(Identifier.of(gui.displayButton.item())).getDefaultStack(), TextUtils.parse(gui.displayButton.itemName().replaceAll("%ability%", MiscUtilsKt.asTranslated(ability.getDisplayName()).getString())));
                 }
             }
         } else if (type.equalsIgnoreCase("held_item")) {
             if (boss != null && category != null) {
-                for (Item item : boss.raidDetails().bannedHeldItems()) {
+                for (Item item : boss.raidDetails().contraband().bannedHeldItems()) {
                     display_items.put(item.getDefaultStack(), TextUtils.parse(gui.displayButton.itemName().replaceAll("%item%", item.getName().getString()).replaceAll("%category%", category.name()), boss));
                 }
             } else if (category != null) {
-                for (Item item : category.bannedHeldItems()) {
+                for (Item item : category.contraband().bannedHeldItems()) {
                     display_items.put(item.getDefaultStack(), TextUtils.parse(gui.displayButton.itemName().replaceAll("%item%", item.getName().getString()).replaceAll("%category%", category.name())));
                 }
             } else {
-                for (Item item : nr.config().global_banned_held_items) {
+                for (Item item : nr.config().globalContraband.bannedHeldItems()) {
                     display_items.put(item.getDefaultStack(), TextUtils.parse(gui.displayButton.itemName().replaceAll("%item%", item.getName().getString())));
                 }
             }
         } else if (type.equalsIgnoreCase("bag_item")) {
             if (boss != null && category != null) {
-                for (Item item : boss.raidDetails().bannedBagItems()) {
+                for (Item item : boss.raidDetails().contraband().bannedBagItems()) {
                     display_items.put(item.getDefaultStack(), TextUtils.parse(gui.displayButton.itemName().replaceAll("%item%", item.getName().getString()).replaceAll("%category%", category.name()), boss));
                 }
             } else if (category != null) {
-                for (Item item : category.bannedBagItems()) {
+                for (Item item : category.contraband().bannedBagItems()) {
                     display_items.put(item.getDefaultStack(), TextUtils.parse(gui.displayButton.itemName().replaceAll("%item%", item.getName().getString()).replaceAll("%category%", category.name())));
                 }
             } else {
-                for (Item item : nr.config().global_banned_bag_items) {
+                for (Item item : nr.config().globalContraband.bannedBagItems()) {
                     display_items.put(item.getDefaultStack(), TextUtils.parse(gui.displayButton.itemName().replaceAll("%item%", item.getName().getString())));
                 }
             }
@@ -1152,7 +1152,7 @@ public class RaidCommands {
     }
 
     private int skipphase(CommandContext<ServerCommandSource> ctx) {
-        if (nr.loadedProperly) {
+        if (NovaRaids.LOADED) {
             int id = IntegerArgumentType.getInteger(ctx, "id");
             if (nr.activeRaids().containsKey(id)) {
                 Raid raid = nr.activeRaids().get(id);
@@ -1167,8 +1167,8 @@ public class RaidCommands {
     }
 
     public int start(Boss boss_info, ServerPlayerEntity player, ItemStack starting_item) {
-        if (nr.loadedProperly) {
-            if (!nr.server().getPlayerManager().getPlayerList().isEmpty() || nr.config().run_raids_with_no_players) {
+        if (NovaRaids.LOADED) {
+            if (!nr.server().getPlayerManager().getPlayerList().isEmpty() || nr.config().runRaidsWithNoPlayers) {
                 if (boss_info != null) {
                     Map<String, Double> spawn_locations = boss_info.spawnLocations();
                     Map<String, Double> valid_locations = new HashMap<>();
@@ -1206,7 +1206,7 @@ public class RaidCommands {
                     }
 
                     if (spawn_location != null) {
-                        if (!nr.config().use_queue_system) {
+                        if (!nr.config().useQueueSystem) {
                             nr.logInfo("[RAIDS] Starting raid.");
                             nr.addRaid(new Raid(boss_info, spawn_location, (player != null) ? player.getUuid() : null, starting_item));
                         } else {
@@ -1235,7 +1235,7 @@ public class RaidCommands {
     }
 
     private int stop(CommandContext<ServerCommandSource> ctx) {
-        if (nr.loadedProperly) {
+        if (NovaRaids.LOADED) {
             int id = IntegerArgumentType.getInteger(ctx, "id");
             if (nr.activeRaids().containsKey(id)) {
                 if (ctx.getSource().isExecutedByPlayer()) {
@@ -1252,7 +1252,7 @@ public class RaidCommands {
     }
 
     public int give(ServerPlayerEntity source_player, ServerPlayerEntity target_player, String item_type, String boss_name, String category, String key, int amount) {
-        if (nr.loadedProperly) {
+        if (NovaRaids.LOADED) {
             ItemStack item_to_give;
             NbtCompound custom_data = new NbtCompound();
             ComponentMap.Builder component_builder = ComponentMap.builder();
@@ -1267,7 +1267,7 @@ public class RaidCommands {
                     boss_id = "*";
                     if (category == null) {
                         category_id = "*";
-                        pass = nr.config().global_pass;
+                        pass = nr.config().globalPass;
                     } else {
                         category_id = category;
                         Category cat = nr.bossesConfig().getCategory(category_id);
@@ -1338,7 +1338,7 @@ public class RaidCommands {
                     boss_id = "*";
                     if (category == null) {
                         category_id = "*";
-                        voucher = nr.config().global_choice_voucher;
+                        voucher = nr.config().globalChoiceVoucher;
                     } else {
                         category_id = category;
                         Category cat = nr.bossesConfig().getCategory(category_id);
@@ -1358,7 +1358,7 @@ public class RaidCommands {
                     boss_id = "random";
                     if (category == null) {
                         category_id = "null";
-                        voucher = nr.config().global_random_voucher;
+                        voucher = nr.config().globalRandomVoucher;
                     } else {
                         category_id = category;
                         Category cat = nr.bossesConfig().getCategory(category_id);
@@ -1518,7 +1518,7 @@ public class RaidCommands {
     }
 
     private int list(CommandContext<ServerCommandSource> ctx) {
-        if (nr.loadedProperly) {
+        if (NovaRaids.LOADED) {
             ServerPlayerEntity player = ctx.getSource().getPlayer();
             if (player != null) {
                 if (nr.activeRaids().isEmpty()) {
@@ -1665,7 +1665,7 @@ public class RaidCommands {
     }
 
     private int queue(CommandContext<ServerCommandSource> ctx, int page_to_open) {
-        if (nr.loadedProperly) {
+        if (NovaRaids.LOADED) {
             ServerPlayerEntity player = ctx.getSource().getPlayer();
             if (player != null) {
                 if (nr.queuedRaids().isEmpty()) {

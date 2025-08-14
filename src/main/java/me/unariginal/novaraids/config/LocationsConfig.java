@@ -1,6 +1,7 @@
 package me.unariginal.novaraids.config;
 
-import com.google.gson.JsonElement;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import me.unariginal.novaraids.NovaRaids;
@@ -22,11 +23,8 @@ public class LocationsConfig {
         try {
             loadLocations();
         } catch (IOException | NullPointerException | UnsupportedOperationException e) {
-            nr.loadedProperly = false;
-            nr.logError("[RAIDS] Failed to load locations file. " + e.getMessage());
-            for (StackTraceElement element : e.getStackTrace()) {
-                nr.logError("  " + element.toString());
-            }
+            NovaRaids.LOADED = false;
+            NovaRaids.LOGGER.error("[RAIDS] Failed to load locations file.", e);
         }
     }
 
@@ -37,135 +35,133 @@ public class LocationsConfig {
         }
 
         File file = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/locations.json").toFile();
-        if (file.createNewFile()) {
-            InputStream stream = NovaRaids.class.getResourceAsStream("/raid_config_files/locations.json");
-            assert stream != null;
-            OutputStream out = new FileOutputStream(file);
 
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = stream.read(buffer)) > 0) {
-                out.write(buffer, 0, length);
-            }
-
-            stream.close();
-            out.close();
-        }
-
-        JsonElement root = JsonParser.parseReader(new FileReader(file));
-        assert root != null;
-        JsonObject config = root.getAsJsonObject();
-
-        String location = "locations";
+        JsonObject root = new JsonObject();
+        if (file.exists()) root = JsonParser.parseReader(new FileReader(file)).getAsJsonObject();
 
         List<Location> locations = new ArrayList<>();
-        for (String key : config.keySet()) {
-            JsonObject location_object = config.getAsJsonObject(key);
+        for (String key : root.keySet()) {
+            JsonObject locationObject = root.getAsJsonObject(key);
             String name = key;
-            double x;
-            double y;
-            double z;
+            double x = 0, y = 100, z = 0;
             ServerWorld world = nr.server().getOverworld();
-            int border_radius;
-            int boss_pushback_radius;
-            float boss_facing_direction;
-            boolean use_join_location = false;
-            double join_x = 0;
-            double join_y = 0;
-            double join_z = 0;
+            int borderRadius = 30;
+            int bossPushbackRadius = 5;
+            float bossFacingDirection = 0;
+            boolean useJoinLocation = false;
+            double joinX = 0;
+            double joinY = 100;
+            double joinZ = 0;
             float yaw = 0;
             float pitch = 0;
 
-            if (ConfigHelper.checkProperty(location_object, "x_pos", location)) {
-                x = location_object.get("x_pos").getAsDouble();
-            } else {
-                continue;
-            }
-            if (ConfigHelper.checkProperty(location_object, "y_pos", location)) {
-                y = location_object.get("y_pos").getAsDouble();
-            } else {
-                continue;
-            }
-            if (ConfigHelper.checkProperty(location_object, "z_pos", location)) {
-                z = location_object.get("z_pos").getAsDouble();
-            } else {
-                continue;
-            }
+            if (locationObject.has("x_pos"))
+                x = locationObject.get("x_pos").getAsDouble();
+            locationObject.remove("x_pos");
+            locationObject.addProperty("x_pos", x);
+
+            if (locationObject.has("y_pos"))
+                y = locationObject.get("y_pos").getAsDouble();
+            locationObject.remove("y_pos");
+            locationObject.addProperty("y_pos", y);
+
+            if (locationObject.has("z_pos"))
+                z = locationObject.get("z_pos").getAsDouble();
+            locationObject.remove("z_pos");
+            locationObject.addProperty("z_pos", z);
+
             Vec3d pos = new Vec3d(x, y, z);
 
-            if (ConfigHelper.checkProperty(location_object, "world", location)) {
-                String world_path = location_object.get("world").getAsString();
+            if (locationObject.has("world")) {
+                String worldPath = locationObject.get("world").getAsString();
                 boolean found = false;
                 for (ServerWorld w : nr.server().getWorlds()) {
                     String id = w.getRegistryKey().getValue().toString();
                     String path = w.getRegistryKey().getValue().getPath();
-                    if (id.equals(world_path) || path.equals(world_path)) {
+                    if (id.equals(worldPath) || path.equals(worldPath)) {
                         world = w;
                         found = true;
                         break;
                     }
                 }
                 if (!found) {
-                    nr.logError("[RAIDS] World " + world_path + " not found. Using overworld.");
+                    nr.logError("[NovaRaids] World " + worldPath + " not found. Using overworld.");
                 }
             }
+            locationObject.remove("world");
+            locationObject.addProperty("world", world.getRegistryKey().getValue().toString());
 
-            if (ConfigHelper.checkProperty(location_object, "name", location, false)) {
-                name = location_object.get("name").getAsString();
-            }
+            if (locationObject.has("name"))
+                name = locationObject.get("name").getAsString();
+            locationObject.remove("name");
+            locationObject.addProperty("name", name);
 
-            if (ConfigHelper.checkProperty(location_object, "border_radius", location)) {
-                border_radius = location_object.get("border_radius").getAsInt();
-            } else {
-                continue;
-            }
-            if (ConfigHelper.checkProperty(location_object, "boss_pushback_radius", location)) {
-                boss_pushback_radius = location_object.get("boss_pushback_radius").getAsInt();
-            } else {
-                continue;
-            }
-            if (ConfigHelper.checkProperty(location_object, "boss_facing_direction", location)) {
-                boss_facing_direction = location_object.get("boss_facing_direction").getAsFloat();
-            } else {
-                continue;
-            }
-            if (ConfigHelper.checkProperty(location_object, "use_join_location", location)) {
-                use_join_location = location_object.get("use_join_location").getAsBoolean();
-            }
-            if (use_join_location) {
-                if (ConfigHelper.checkProperty(location_object, "join_location", location)) {
-                    JsonObject join_location_object = location_object.get("join_location").getAsJsonObject();
-                    if (ConfigHelper.checkProperty(join_location_object, "x_pos", location)) {
-                        join_x = join_location_object.get("x_pos").getAsDouble();
-                    } else {
-                        continue;
-                    }
-                    if (ConfigHelper.checkProperty(join_location_object, "y_pos", location)) {
-                        join_y = join_location_object.get("y_pos").getAsDouble();
-                    } else {
-                        continue;
-                    }
-                    if (ConfigHelper.checkProperty(join_location_object, "z_pos", location)) {
-                        join_z = join_location_object.get("z_pos").getAsDouble();
-                    } else {
-                        continue;
-                    }
-                    if (ConfigHelper.checkProperty(join_location_object, "yaw", location)) {
-                        yaw = join_location_object.get("yaw").getAsFloat();
-                    } else {
-                        continue;
-                    }
-                    if (ConfigHelper.checkProperty(join_location_object, "pitch", location)) {
-                        pitch = join_location_object.get("pitch").getAsFloat();
-                    } else {
-                        continue;
-                    }
-                }
-            }
-            Vec3d join_pos = new Vec3d(join_x, join_y, join_z);
-            locations.add(new Location(key, name, pos, world, border_radius, boss_pushback_radius, boss_facing_direction, use_join_location, join_pos, yaw, pitch));
+            if (locationObject.has("border_radius"))
+                borderRadius = locationObject.get("border_radius").getAsInt();
+            locationObject.remove("border_radius");
+            locationObject.addProperty("border_radius", borderRadius);
+
+            if (locationObject.has("boss_pushback_radius"))
+                bossPushbackRadius = locationObject.get("boss_pushback_radius").getAsInt();
+            locationObject.remove("boss_pushback_radius");
+            locationObject.addProperty("boss_pushback_radius", bossPushbackRadius);
+
+            if (locationObject.has("boss_facing_direction"))
+                bossFacingDirection = locationObject.get("boss_facing_direction").getAsFloat();
+            locationObject.remove("boss_facing_direction");
+            locationObject.addProperty("boss_facing_direction", bossFacingDirection);
+
+            if (locationObject.has("use_join_location"))
+                useJoinLocation = locationObject.get("use_join_location").getAsBoolean();
+            locationObject.remove("use_join_location");
+            locationObject.addProperty("use_join_location", useJoinLocation);
+
+            JsonObject joinLocationObject = new JsonObject();
+            if (locationObject.has("join_location"))
+                joinLocationObject = locationObject.get("join_location").getAsJsonObject();
+
+            if (joinLocationObject.has("join_x"))
+                joinX = joinLocationObject.get("join_x").getAsDouble();
+            joinLocationObject.remove("join_x");
+            joinLocationObject.addProperty("join_x", joinX);
+
+            if (joinLocationObject.has("join_y"))
+                joinY = joinLocationObject.get("join_y").getAsDouble();
+            joinLocationObject.remove("join_y");
+            joinLocationObject.addProperty("join_y", joinY);
+
+            if (joinLocationObject.has("join_z"))
+                joinZ = joinLocationObject.get("join_z").getAsDouble();
+            joinLocationObject.remove("join_z");
+            joinLocationObject.addProperty("join_z", joinZ);
+
+            if (joinLocationObject.has("yaw"))
+                yaw = joinLocationObject.get("yaw").getAsFloat();
+            joinLocationObject.remove("yaw");
+            joinLocationObject.addProperty("yaw", yaw);
+
+            if (joinLocationObject.has("pitch"))
+                pitch = joinLocationObject.get("pitch").getAsFloat();
+            joinLocationObject.remove("pitch");
+            joinLocationObject.addProperty("pitch", pitch);
+
+            locationObject.remove("join_location");
+            locationObject.add("join_location", joinLocationObject);
+
+            root.remove(key);
+            root.add(key, locationObject);
+
+            Vec3d join_pos = new Vec3d(joinX, joinY, joinZ);
+            locations.add(new Location(key, name, pos, world, borderRadius, bossPushbackRadius, bossFacingDirection, useJoinLocation, join_pos, yaw, pitch));
         }
         this.locations = locations;
+
+        file.delete();
+        file.createNewFile();
+        Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+        Writer writer = new FileWriter(file);
+        gson.toJson(root, writer);
+        writer.close();
     }
 
     public Location getLocation(String key) {

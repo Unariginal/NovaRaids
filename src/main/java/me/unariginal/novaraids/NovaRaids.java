@@ -21,6 +21,7 @@ public class NovaRaids implements ModInitializer {
     private static final String MOD_ID = "novaraids";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
     public static NovaRaids INSTANCE;
+    public static boolean LOADED = true;
 
     private Config config;
     private LocationsConfig locationsConfig;
@@ -31,7 +32,6 @@ public class NovaRaids implements ModInitializer {
     private RewardPoolsConfig rewardPoolsConfig;
     private BossesConfig bossesConfig;
     private GuisConfig guisConfig;
-    public boolean loadedProperly = true;
 
     public boolean debug = false;
     private MinecraftServer server;
@@ -43,7 +43,7 @@ public class NovaRaids implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        LOGGER.info("[RAIDS] Loading..");
+        LOGGER.info("[NovaRaids] Loading..");
         INSTANCE = this;
 
         raidCommands = new RaidCommands();
@@ -54,20 +54,20 @@ public class NovaRaids implements ModInitializer {
             this.audience = FabricServerAudiences.of(server);
 
             reloadConfig();
-            if (loadedProperly) {
+            if (LOADED) {
                 EventManager.battleEvents();
                 EventManager.rightClickEvents();
                 EventManager.playerEvents();
                 EventManager.cobblemonEvents();
                 EventManager.capture_event();
             } else {
-                LOGGER.error("[RAIDS] Config did not load properly! Mod will not be loaded.");
+                LOGGER.error("[NovaRaids] Config did not load properly! Mod will not be loaded.");
             }
         });
 
         // Server tick loop
         ServerTickEvents.END_SERVER_TICK.register(server -> {
-            if (loadedProperly) {
+            if (LOADED) {
                 try {
                     TickManager.updateWebhooks();
                     TickManager.fixBossPositions();
@@ -78,7 +78,7 @@ public class NovaRaids implements ModInitializer {
                     TickManager.fixPlayerPokemon();
                     TickManager.scheduledRaids();
                 } catch (ConcurrentModificationException e) {
-                    logInfo("[RAIDS] Concurrent modification error!");
+                    logInfo("[NovaRaids] Concurrent modification error!");
                 }
                 for (Raid raid : activeRaids.values()) {
                     raid.removePlayers();
@@ -88,7 +88,7 @@ public class NovaRaids implements ModInitializer {
 
         // Clean up at server stop
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
-            if (loadedProperly) {
+            if (LOADED) {
                 for (QueueItem queue : queuedRaids) {
                     queue.cancel_item();
                 }
@@ -185,7 +185,7 @@ public class NovaRaids implements ModInitializer {
         if (!queuedRaids.contains(item)) {
             queuedRaids.add(item);
         } else {
-            logInfo("[RAIDS] Queue item already exists!");
+            logInfo("[NovaRaids] Queue item already exists!");
         }
     }
 
@@ -194,7 +194,7 @@ public class NovaRaids implements ModInitializer {
     }
 
     public void initNextRaid() {
-        if (config.use_queue_system) {
+        if (config.useQueueSystem) {
             if (!queuedRaids.isEmpty()) {
                 queuedRaids.remove().start_raid();
             }

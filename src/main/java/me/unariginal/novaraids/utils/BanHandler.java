@@ -25,18 +25,18 @@ public class BanHandler {
         // Party Check!
         PartyStore party = Cobblemon.INSTANCE.getStorage().getParty(player);
 
-        List<Species> bannedPokemon = new ArrayList<>(nr.config().global_banned_pokemon);
-        bannedPokemon.addAll(boss.raidDetails().bannedPokemon());
-        bannedPokemon.addAll(nr.bossesConfig().getCategory(boss.categoryId()).bannedPokemon());
-        List<Ability> bannedAbilities = new ArrayList<>(nr.config().global_banned_abilities);
-        bannedAbilities.addAll(boss.raidDetails().bannedAbilities());
-        bannedAbilities.addAll(nr.bossesConfig().getCategory(boss.categoryId()).bannedAbilities());
-        List<Move> bannedMoves = new ArrayList<>(nr.config().global_banned_moves);
-        bannedMoves.addAll(boss.raidDetails().bannedMoves());
-        bannedMoves.addAll(nr.bossesConfig().getCategory(boss.categoryId()).bannedMoves());
-        List<Item> bannedHeldItems = new ArrayList<>(nr.config().global_banned_held_items);
-        bannedHeldItems.addAll(boss.raidDetails().bannedHeldItems());
-        bannedHeldItems.addAll(nr.bossesConfig().getCategory(boss.categoryId()).bannedHeldItems());
+        List<Species> bannedPokemon = new ArrayList<>(nr.config().globalContraband.bannedPokemon());
+        bannedPokemon.addAll(boss.raidDetails().contraband().bannedPokemon());
+        bannedPokemon.addAll(nr.bossesConfig().getCategory(boss.categoryId()).contraband().bannedPokemon());
+        List<Ability> bannedAbilities = new ArrayList<>(nr.config().globalContraband.bannedAbilities());
+        bannedAbilities.addAll(boss.raidDetails().contraband().bannedAbilities());
+        bannedAbilities.addAll(nr.bossesConfig().getCategory(boss.categoryId()).contraband().bannedAbilities());
+        List<Move> bannedMoves = new ArrayList<>(nr.config().globalContraband.bannedMoves());
+        bannedMoves.addAll(boss.raidDetails().contraband().bannedMoves());
+        bannedMoves.addAll(nr.bossesConfig().getCategory(boss.categoryId()).contraband().bannedMoves());
+        List<Item> bannedHeldItems = new ArrayList<>(nr.config().globalContraband.bannedHeldItems());
+        bannedHeldItems.addAll(boss.raidDetails().contraband().bannedHeldItems());
+        bannedHeldItems.addAll(nr.bossesConfig().getCategory(boss.categoryId()).contraband().bannedHeldItems());
 
         for (Pokemon pokemon : party) {
             for (Species species : bannedPokemon) {
@@ -76,9 +76,9 @@ public class BanHandler {
 
         // Item Check!
         PlayerInventory inventory = player.getInventory();
-        List<Item> bannedBagItems = new ArrayList<>(nr.config().global_banned_bag_items);
-        bannedBagItems.addAll(boss.raidDetails().bannedBagItems());
-        bannedBagItems.addAll(nr.bossesConfig().getCategory(boss.categoryId()).bannedBagItems());
+        List<Item> bannedBagItems = new ArrayList<>(nr.config().globalContraband.bannedBagItems());
+        bannedBagItems.addAll(boss.raidDetails().contraband().bannedBagItems());
+        bannedBagItems.addAll(nr.bossesConfig().getCategory(boss.categoryId()).contraband().bannedBagItems());
         for (Item item : bannedBagItems) {
             for (int i = 0; i < inventory.size(); i++) {
                 if (inventory.getStack(i).getItem().equals(item)) {

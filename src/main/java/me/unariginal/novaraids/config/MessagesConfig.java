@@ -18,7 +18,7 @@ import java.util.*;
 
 public class MessagesConfig {
     public String prefix = "<dark_gray>[</dark_gray><color:#ffbf00>RAID<dark_gray>]</dark_gray>";
-    public String raid_start_command = "";
+    public String raidStartCommand = "";
     public Map<String, String> messages = new HashMap<>();
 
     public MessagesConfig() {
@@ -79,11 +79,8 @@ public class MessagesConfig {
         try {
             loadConfig();
         } catch (IOException | NullPointerException | UnsupportedOperationException e) {
-            NovaRaids.INSTANCE.loadedProperly = false;
-            NovaRaids.INSTANCE.logError("[RAIDS] Failed to load messages file. " + e.getMessage());
-            for (StackTraceElement element : e.getStackTrace()) {
-                NovaRaids.INSTANCE.logError("  " + element.toString());
-            }
+            NovaRaids.LOADED = false;
+            NovaRaids.LOGGER.error("[RAIDS] Failed to load messages file.", e);
         }
     }
 
@@ -116,7 +113,7 @@ public class MessagesConfig {
             prefix = config.get("prefix").getAsString();
         }
         if (ConfigHelper.checkProperty(config, "raid_start_command", "messages")) {
-            raid_start_command = config.get("raid_start_command").getAsString();
+            raidStartCommand = config.get("raid_start_command").getAsString();
         }
         if (ConfigHelper.checkProperty(config, "messages", "messages")) {
             JsonObject messages_object = config.get("messages").getAsJsonObject();
@@ -306,10 +303,10 @@ public class MessagesConfig {
     }
 
     public void execute_command(Raid raid) {
-        if (!raid_start_command.isEmpty()) {
+        if (!raidStartCommand.isEmpty()) {
             CommandManager cmdManager = Objects.requireNonNull(NovaRaids.INSTANCE.server()).getCommandManager();
             ServerCommandSource source = NovaRaids.INSTANCE.server().getCommandSource();
-            cmdManager.executeWithPrefix(source, TextUtils.parse(raid_start_command, raid));
+            cmdManager.executeWithPrefix(source, TextUtils.parse(raidStartCommand, raid));
         }
     }
 }

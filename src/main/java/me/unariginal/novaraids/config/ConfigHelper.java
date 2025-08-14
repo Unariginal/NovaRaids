@@ -1,16 +1,31 @@
 package me.unariginal.novaraids.config;
 
+import com.cobblemon.mod.common.CobblemonItems;
+import com.cobblemon.mod.common.api.Priority;
+import com.cobblemon.mod.common.api.abilities.Abilities;
+import com.cobblemon.mod.common.api.abilities.Ability;
+import com.cobblemon.mod.common.api.abilities.AbilityTemplate;
+import com.cobblemon.mod.common.api.moves.Move;
+import com.cobblemon.mod.common.api.moves.MoveTemplate;
+import com.cobblemon.mod.common.api.moves.Moves;
+import com.cobblemon.mod.common.api.pokemon.PokemonSpecies;
 import com.cobblemon.mod.common.api.pokemon.stats.Stats;
 import com.cobblemon.mod.common.pokemon.EVs;
 import com.cobblemon.mod.common.pokemon.IVs;
+import com.cobblemon.mod.common.pokemon.Species;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.JsonOps;
 import me.unariginal.novaraids.NovaRaids;
+import me.unariginal.novaraids.data.Contraband;
+import me.unariginal.novaraids.data.items.Pass;
+import me.unariginal.novaraids.data.items.RaidBall;
+import me.unariginal.novaraids.data.items.Voucher;
 import me.unariginal.novaraids.data.rewards.*;
 import net.minecraft.component.ComponentChanges;
 import net.minecraft.item.Item;
+import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
 
@@ -367,5 +382,224 @@ public class ConfigHelper {
 
     public static boolean checkProperty(JsonObject section, String property, String location) {
         return checkProperty(section, property, location, true);
+    }
+
+    public static Contraband getContraband(JsonObject contrabandObject, String fileName) {
+        List<Species> bannedPokemon = new ArrayList<>();
+        List<Move> bannedMoves = new ArrayList<>();
+        List<Ability> bannedAbilities = new ArrayList<>();
+        List<Item> bannedHeldItems = new ArrayList<>();
+        List<Item> bannedBagItems = new ArrayList<>();
+
+        JsonArray bannedPokemonArray = new JsonArray();
+        if (contrabandObject.has("banned_pokemon"))
+            bannedPokemonArray = contrabandObject.getAsJsonArray("banned_pokemon");
+
+        for (JsonElement pokemon : bannedPokemonArray) {
+            String speciesName = pokemon.getAsString();
+            Species species = PokemonSpecies.INSTANCE.getByName(speciesName);
+            if (species == null) {
+                NovaRaids.LOGGER.error("[NovaRaids] Unknown species in {} contraband: {}", fileName, speciesName);
+                continue;
+            }
+            bannedPokemon.add(species);
+        }
+
+        bannedPokemonArray = new JsonArray();
+        for (Species species : bannedPokemon) {
+            bannedPokemonArray.add(species.resourceIdentifier.getPath());
+        }
+        contrabandObject.remove("banned_pokemon");
+        contrabandObject.add("banned_pokemon", bannedPokemonArray);
+
+        JsonArray bannedMovesArray = new JsonArray();
+        if (contrabandObject.has("banned_moves"))
+            bannedMovesArray = contrabandObject.getAsJsonArray("banned_moves");
+
+        for (JsonElement move : bannedMovesArray) {
+            String moveName = move.getAsString();
+            MoveTemplate moveTemplate = Moves.INSTANCE.getByName(moveName);
+            if (moveTemplate == null) {
+                NovaRaids.LOGGER.error("[NovaRaids] Unknown move in {} contraband: {}", fileName, moveName);
+                continue;
+            }
+            bannedMoves.add(moveTemplate.create());
+        }
+
+        bannedMovesArray = new JsonArray();
+        for (Move move : bannedMoves) {
+            bannedMovesArray.add(move.getTemplate().getName().toLowerCase());
+        }
+        contrabandObject.remove("banned_moves");
+        contrabandObject.add("banned_moves", bannedMovesArray);
+
+        JsonArray bannedAbilitiesArray = new JsonArray();
+        if (contrabandObject.has("banned_abilities"))
+            bannedAbilitiesArray = contrabandObject.getAsJsonArray("banned_abilities");
+
+        for (JsonElement ability : bannedAbilitiesArray) {
+            String abilityName = ability.getAsString();
+            AbilityTemplate abilityTemplate = Abilities.INSTANCE.get(abilityName);
+            if (abilityTemplate == null) {
+                NovaRaids.LOGGER.error("[NovaRaids] Unknown ability in {} contraband: {}", fileName, abilityName);
+                continue;
+            }
+            bannedAbilities.add(abilityTemplate.create(false, Priority.LOWEST));
+        }
+
+        bannedAbilitiesArray = new JsonArray();
+        for (Ability ability : bannedAbilities) {
+            bannedAbilitiesArray.add(ability.getTemplate().getName().toLowerCase());
+        }
+        contrabandObject.remove("banned_abilities");
+        contrabandObject.add("banned_abilities", bannedAbilitiesArray);
+
+        JsonArray bannedHeldItemsArray = new JsonArray();
+        if (contrabandObject.has("banned_held_items"))
+            bannedHeldItemsArray = contrabandObject.getAsJsonArray("banned_held_items");
+
+        for (JsonElement heldItemElement : bannedHeldItemsArray) {
+            String heldItemID = heldItemElement.getAsString();
+            Optional<Item> heldItem = Registries.ITEM.getOrEmpty(Identifier.of(heldItemID));
+            if (heldItem.isEmpty()) {
+                NovaRaids.LOGGER.error("[NovaRaids] Unknown held item in {} contraband: {}", fileName, heldItemID);
+                continue;
+            }
+            bannedHeldItems.add(heldItem.get());
+        }
+
+        bannedHeldItemsArray = new JsonArray();
+        for (Item heldItem : bannedHeldItems) {
+            bannedHeldItemsArray.add(Registries.ITEM.getId(heldItem).toString());
+        }
+        contrabandObject.remove("banned_held_items");
+        contrabandObject.add("banned_held_items", bannedHeldItemsArray);
+
+        JsonArray bannedBagItemsArray = new JsonArray();
+        if (contrabandObject.has("banned_bag_items"))
+            bannedBagItemsArray = contrabandObject.getAsJsonArray("banned_bag_items");
+
+        for (JsonElement bagItemElement : bannedBagItemsArray) {
+            String bagItemID = bagItemElement.getAsString();
+            Optional<Item> bagItem = Registries.ITEM.getOrEmpty(Identifier.of(bagItemID));
+            if (bagItem.isEmpty()) {
+                NovaRaids.LOGGER.error("[NovaRaids] Unknown bag item in {} contraband: {}", fileName, bagItemID);
+                continue;
+            }
+            bannedBagItems.add(bagItem.get());
+        }
+
+        bannedBagItemsArray = new JsonArray();
+        for (Item heldItem : bannedBagItems) {
+            bannedBagItemsArray.add(Registries.ITEM.getId(heldItem).toString());
+        }
+        contrabandObject.remove("banned_bag_items");
+        contrabandObject.add("banned_bag_items", bannedBagItemsArray);
+
+        return new Contraband(contrabandObject, bannedPokemon, bannedMoves, bannedAbilities, bannedHeldItems, bannedBagItems);
+    }
+
+    public static Voucher getVoucher(JsonObject voucherObject) {
+        Item voucherItem = Items.FEATHER;
+        String voucherName = "<aqua>Raid Voucher";
+        List<String> voucherLore = List.of("<gray>Use this to start a raid!");
+        ComponentChanges voucherData = ComponentChanges.EMPTY;
+
+        if (voucherObject.has("voucher_item"))
+            voucherItem = Registries.ITEM.get(Identifier.of(voucherObject.get("voucher_item").getAsString()));
+        voucherObject.remove("voucher_item");
+        voucherObject.addProperty("voucher_item", Registries.ITEM.getId(voucherItem).toString());
+
+        if (voucherObject.has("voucher_name"))
+            voucherName = voucherObject.get("voucher_name").getAsString();
+        voucherObject.remove("voucher_name");
+        voucherObject.addProperty("voucher_name", voucherName);
+
+        if (voucherObject.has("voucher_lore"))
+            voucherLore = voucherObject.get("voucher_lore").getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList();
+        JsonArray loreArray = new JsonArray();
+        for (String line : voucherLore) {
+            loreArray.add(line);
+        }
+        voucherObject.remove("voucher_lore");
+        voucherObject.add("voucher_lore", loreArray);
+
+        if (voucherObject.has("voucher_data"))
+            voucherData = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, voucherObject.get("voucher_data")).getOrThrow().getFirst();
+        voucherObject.remove("voucher_data");
+        voucherObject.add("voucher_data", ComponentChanges.CODEC.encode(voucherData, JsonOps.INSTANCE, new JsonObject()).getOrThrow());
+
+        return new Voucher(voucherObject, voucherItem, voucherName, voucherLore, voucherData);
+    }
+
+    public static Pass getPass(JsonObject passObject) {
+        Item passItem = Items.PAPER;
+        String passName = "<light_purple>Raid Pass";
+        List<String> passLore = List.of("<gray>Use this to join a raid!");
+        ComponentChanges passData = ComponentChanges.EMPTY;
+
+        if (passObject.has("pass_item"))
+            passItem = Registries.ITEM.get(Identifier.of(passObject.get("pass_item").getAsString()));
+        passObject.remove("pass_item");
+        passObject.addProperty("pass_item", Registries.ITEM.getId(passItem).toString());
+
+        if (passObject.has("pass_name"))
+            passName = passObject.get("pass_name").getAsString();
+        passObject.remove("pass_name");
+        passObject.addProperty("pass_name", passName);
+
+        if (passObject.has("pass_lore"))
+            passLore = passObject.get("pass_lore").getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList();
+        JsonArray passLoreArray = new JsonArray();
+        for (String line : passLore) {
+            passLoreArray.add(line);
+        }
+        passObject.remove("pass_lore");
+        passObject.add("pass_lore", passLoreArray);
+
+        if (passObject.has("pass_data"))
+            passData = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, passObject.get("pass_data")).getOrThrow().getFirst();
+        passObject.remove("pass_data");
+        passObject.add("pass_data", ComponentChanges.CODEC.encode(passData, JsonOps.INSTANCE, new JsonObject()).getOrThrow());
+
+        return new Pass(passObject, passItem, passName, passLore, passData);
+    }
+
+    public static List<RaidBall> getRaidBalls(JsonObject raidBallsObject) {
+        List<RaidBall> raidBalls = new ArrayList<>();
+        for (String raidBallID : raidBallsObject.keySet()) {
+            JsonObject ballObject = raidBallsObject.getAsJsonObject(raidBallID);
+            Item pokeball = CobblemonItems.POKE_BALL;
+            String pokeballName = "<red>Raid Ball";
+            List<String> pokeballLore = List.of("<gray>Use this to try and catch raid bosses!");
+            ComponentChanges pokeballData = ComponentChanges.EMPTY;
+
+            if (ballObject.has("pokeball"))
+                pokeball = Registries.ITEM.get(Identifier.of(ballObject.get("pokeball").getAsString()));
+            ballObject.remove("pokeball");
+            ballObject.addProperty("pokeball", Registries.ITEM.getId(pokeball).toString());
+
+            if (ballObject.has("pokeball_name"))
+                pokeballName = ballObject.get("pokeball_name").getAsString();
+            ballObject.remove("pokeball_name");
+            ballObject.addProperty("pokeball_name", pokeballName);
+
+            if (ballObject.has("pokeball_lore"))
+                pokeballLore = ballObject.get("pokeball_lore").getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList();
+            JsonArray pokeballLoreArray = new JsonArray();
+            for (String line : pokeballLore) {
+                pokeballLoreArray.add(line);
+            }
+            ballObject.remove("pokeball_lore");
+            ballObject.add("pokeball_lore", pokeballLoreArray);
+
+            if (ballObject.has("pokeball_data"))
+                pokeballData = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, ballObject.get("pokeball_data")).getOrThrow().getFirst();
+            ballObject.remove("pokeball_data");
+            ballObject.add("pokeball_data", ComponentChanges.CODEC.encode(pokeballData, JsonOps.INSTANCE, new JsonObject()).getOrThrow());
+
+            raidBalls.add(new RaidBall(ballObject, raidBallID, pokeball, pokeballName, pokeballLore, pokeballData));
+        }
+        return raidBalls;
     }
 }
