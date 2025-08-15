@@ -40,7 +40,7 @@ public class BossesConfig {
             loadBosses();
         } catch (IOException | NullPointerException | UnsupportedOperationException e) {
             NovaRaids.LOADED = false;
-            NovaRaids.LOGGER.error("[RAIDS] Failed to load bosses folder.", e);
+            NovaRaids.LOGGER.error("[NovaRaids] Failed to load bosses folder.", e);
         }
     }
 
@@ -243,11 +243,15 @@ public class BossesConfig {
         root.remove("item_settings");
         root.add("item_settings", itemSettings);
 
-        // TODO: Fix distribution for new config parsing style thingy
-        List<DistributionSection> rewards = List.of();
+        List<DistributionSection> rewards = new ArrayList<>();
         JsonArray rewardDistributionArray = new JsonArray();
         if (root.has("reward_distribution"))
-            rewards = ConfigHelper.getDistributionSections(root, "", true);
+            rewards = ConfigHelper.getDistributionSections(root, true);
+
+        for (DistributionSection distributionSection : rewards) {
+            rewardDistributionArray.add(distributionSection.distributionObject());
+        }
+
         root.remove("reward_distribution");
         root.add("reward_distribution", rewardDistributionArray);
 
@@ -861,10 +865,14 @@ public class BossesConfig {
         raidDetailsObject.add("bossbars", bossbarsObject);
         raidDetailsObject.add("bossbars", bossbarsObject);
 
-        // TODO: The thingy
         JsonArray rewardDistributionArray = new JsonArray();
         if (raidDetailsObject.has("reward_distribution"))
-            rewards = ConfigHelper.getDistributionSections(raidDetailsObject, "", false);
+            rewards = ConfigHelper.getDistributionSections(raidDetailsObject, false);
+
+        for (DistributionSection distributionSection : rewards) {
+            rewardDistributionArray.add(distributionSection.distributionObject());
+        }
+
         raidDetailsObject.remove("reward_distribution");
         raidDetailsObject.add("reward_distribution", rewardDistributionArray);
 

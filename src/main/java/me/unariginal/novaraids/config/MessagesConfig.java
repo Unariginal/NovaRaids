@@ -1,9 +1,6 @@
 package me.unariginal.novaraids.config;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.FieldData;
 import me.unariginal.novaraids.managers.Raid;
@@ -15,6 +12,7 @@ import net.minecraft.server.command.ServerCommandSource;
 
 import java.io.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class MessagesConfig {
     public String prefix = "<dark_gray>[</dark_gray><color:#ffbf00>RAID<dark_gray>]</dark_gray>";
@@ -91,201 +89,316 @@ public class MessagesConfig {
         }
 
         File file = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/messages.json").toFile();
-        if (file.createNewFile()) {
-            InputStream stream = NovaRaids.class.getResourceAsStream("/raid_config_files/messages.json");
-            assert stream != null;
-            OutputStream out = new FileOutputStream(file);
+        JsonObject config = new JsonObject();
+        if (file.exists()) config = JsonParser.parseReader(new FileReader(file)).getAsJsonObject();
 
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = stream.read(buffer)) > 0) {
-                out.write(buffer, 0, length);
-            }
-
-            stream.close();
-            out.close();
-        }
-
-        JsonElement root = JsonParser.parseReader(new FileReader(file));
-        assert root != null;
-        JsonObject config = root.getAsJsonObject();
-        if (ConfigHelper.checkProperty(config, "prefix", "messages")) {
+        if (config.has("prefix"))
             prefix = config.get("prefix").getAsString();
-        }
-        if (ConfigHelper.checkProperty(config, "raid_start_command", "messages")) {
+        config.remove("prefix");
+        config.addProperty("prefix", prefix);
+
+        if (config.has("raid_start_command"))
             raidStartCommand = config.get("raid_start_command").getAsString();
-        }
-        if (ConfigHelper.checkProperty(config, "messages", "messages")) {
-            JsonObject messages_object = config.get("messages").getAsJsonObject();
-            for (Map.Entry<String, String> message : messages.entrySet()) {
-                if (ConfigHelper.checkProperty(messages_object, message.getKey(), "messages")) {
-                    messages.put(message.getKey(), messages_object.get(message.getKey()).getAsString());
-                }
-            }
-        }
-        if (ConfigHelper.checkProperty(config, "discord", "messages")) {
-            JsonObject discord_object = config.get("discord").getAsJsonObject();
-            if (ConfigHelper.checkProperty(discord_object, "webhook_toggle", "messages")) {
-                WebhookHandler.webhookToggle = discord_object.get("webhook_toggle").getAsBoolean();
-            }
-            if (ConfigHelper.checkProperty(discord_object, "webhook_url", "messages")) {
-                WebhookHandler.webhookUrl = discord_object.get("webhook_url").getAsString();
-            }
-            if (ConfigHelper.checkProperty(discord_object, "webhook_username", "messages")) {
-                WebhookHandler.webhookUsername = discord_object.get("webhook_username").getAsString();
-            }
-            if (ConfigHelper.checkProperty(discord_object, "webhook_avatar_url", "messages")) {
-                WebhookHandler.webhookAvatarUrl = discord_object.get("webhook_avatar_url").getAsString();
-            }
-            if (ConfigHelper.checkProperty(discord_object, "role_ping", "messages")) {
-                WebhookHandler.rolePing = discord_object.get("role_ping").getAsString();
-            }
+        config.remove("raid_start_command");
+        config.addProperty("raid_start_command", raidStartCommand);
 
-            if (ConfigHelper.checkProperty(discord_object, "webhook_update_rate_seconds", "messages")) {
-                WebhookHandler.webhookUpdateRateSeconds = discord_object.get("webhook_update_rate_seconds").getAsInt();
-            }
+        JsonObject messagesObject = new JsonObject();
+        if (config.has("messages"))
+            messagesObject = config.getAsJsonObject("messages");
 
-            if (ConfigHelper.checkProperty(discord_object, "delete_if_no_fight_phase", "messages")) {
-                WebhookHandler.deleteIfNoFightPhase = discord_object.get("delete_if_no_fight_phase").getAsBoolean();
-            }
-
-            if (ConfigHelper.checkProperty(discord_object, "raid_start", "messages")) {
-                JsonObject raid_start_object = discord_object.get("raid_start").getAsJsonObject();
-                if (ConfigHelper.checkProperty(raid_start_object, "enabled", "messages")) {
-                    WebhookHandler.startEmbedEnabled = raid_start_object.get("enabled").getAsBoolean();
-                }
-                if (WebhookHandler.startEmbedEnabled) {
-                    if (ConfigHelper.checkProperty(raid_start_object, "embed_title", "messages")) {
-                        WebhookHandler.startEmbedTitle = raid_start_object.get("embed_title").getAsString();
-                    }
-                    if (ConfigHelper.checkProperty(raid_start_object, "fields", "messages")) {
-                        JsonArray raid_start_fields_array = raid_start_object.get("fields").getAsJsonArray();
-                        List<FieldData> fields = new ArrayList<>();
-                        for (JsonElement field_element : raid_start_fields_array) {
-                            JsonObject field_object = field_element.getAsJsonObject();
-                            fields.add(getFieldData(field_object));
-                        }
-                        WebhookHandler.startEmbedFields = fields;
-                    }
-                }
-            }
-            if (ConfigHelper.checkProperty(discord_object, "raid_running", "messages")) {
-                JsonObject raid_running_object = discord_object.get("raid_running").getAsJsonObject();
-                if (ConfigHelper.checkProperty(raid_running_object, "enabled", "messages")) {
-                    WebhookHandler.runningEmbedEnabled = raid_running_object.get("enabled").getAsBoolean();
-                }
-                if (WebhookHandler.runningEmbedEnabled) {
-                    boolean has_leaderboard = false;
-                    if (ConfigHelper.checkProperty(raid_running_object, "embed_title", "messages")) {
-                        WebhookHandler.runningEmbedTitle = raid_running_object.get("embed_title").getAsString();
-                    }
-                    if (ConfigHelper.checkProperty(raid_running_object, "fields", "messages")) {
-                        JsonArray raid_running_fields_array = raid_running_object.get("fields").getAsJsonArray();
-                        List<FieldData> fields = new ArrayList<>();
-                        for (JsonElement field_element : raid_running_fields_array) {
-                            JsonObject field_object = field_element.getAsJsonObject();
-                            FieldData fieldData = getFieldData(field_object);
-                            fields.add(fieldData);
-                            if (fieldData.insertLeaderboardAfter()) {
-                                has_leaderboard = true;
-                            }
-                        }
-                        WebhookHandler.runningEmbedFields = fields;
-                    }
-                    if (has_leaderboard) {
-                        if (ConfigHelper.checkProperty(raid_running_object, "leaderboard_field_layout", "messages")) {
-                            JsonObject leaderboard_field_object = raid_running_object.get("leaderboard_field_layout").getAsJsonObject();
-                            FieldData leaderboard_field = getFieldData(leaderboard_field_object);
-                            WebhookHandler.runningEmbedLeaderboardField = new FieldData(leaderboard_field.inline(), leaderboard_field.name(), leaderboard_field.value(), false);
-                        }
-                    }
-                }
-            }
-            if (ConfigHelper.checkProperty(discord_object, "raid_end", "messages")) {
-                JsonObject raid_end_object = discord_object.get("raid_end").getAsJsonObject();
-                if (ConfigHelper.checkProperty(raid_end_object, "enabled", "messages")) {
-                    WebhookHandler.endEmbedEnabled = raid_end_object.get("enabled").getAsBoolean();
-                }
-                if (WebhookHandler.endEmbedEnabled) {
-                    boolean has_leaderboard = false;
-                    if (ConfigHelper.checkProperty(raid_end_object, "embed_title", "messages")) {
-                        WebhookHandler.endEmbedTitle = raid_end_object.get("embed_title").getAsString();
-                    }
-                    if (ConfigHelper.checkProperty(raid_end_object, "fields", "messages")) {
-                        JsonArray raid_end_fields_array = raid_end_object.get("fields").getAsJsonArray();
-                        List<FieldData> fields = new ArrayList<>();
-                        for (JsonElement field_element : raid_end_fields_array) {
-                            JsonObject field_object = field_element.getAsJsonObject();
-                            FieldData fieldData = getFieldData(field_object);
-                            fields.add(fieldData);
-                            if (fieldData.insertLeaderboardAfter()) {
-                                has_leaderboard = true;
-                            }
-                        }
-                        WebhookHandler.endEmbedFields = fields;
-                    }
-                    if (has_leaderboard) {
-                        if (ConfigHelper.checkProperty(raid_end_object, "leaderboard_field_layout", "messages")) {
-                            JsonObject leaderboard_field_object = raid_end_object.get("leaderboard_field_layout").getAsJsonObject();
-                            FieldData leaderboard_field = getFieldData(leaderboard_field_object);
-                            WebhookHandler.endEmbedLeaderboardField = new FieldData(leaderboard_field.inline(), leaderboard_field.name(), leaderboard_field.value(), false);
-                        }
-                    }
-                }
-            }
-            if (ConfigHelper.checkProperty(discord_object, "raid_failed", "messages")) {
-                JsonObject raid_failed_object = discord_object.get("raid_failed").getAsJsonObject();
-                if (ConfigHelper.checkProperty(raid_failed_object, "enabled", "messages")) {
-                    WebhookHandler.failedEmbedEnabled = raid_failed_object.get("enabled").getAsBoolean();
-                }
-                if (WebhookHandler.failedEmbedEnabled) {
-                    boolean has_leaderboard = false;
-                    if (ConfigHelper.checkProperty(raid_failed_object, "embed_title", "messages")) {
-                        WebhookHandler.failedEmbedTitle = raid_failed_object.get("embed_title").getAsString();
-                    }
-                    if (ConfigHelper.checkProperty(raid_failed_object, "fields", "messages")) {
-                        JsonArray raid_end_fields_array = raid_failed_object.get("fields").getAsJsonArray();
-                        List<FieldData> fields = new ArrayList<>();
-                        for (JsonElement field_element : raid_end_fields_array) {
-                            JsonObject field_object = field_element.getAsJsonObject();
-                            FieldData fieldData = getFieldData(field_object);
-                            fields.add(fieldData);
-                            if (fieldData.insertLeaderboardAfter()) {
-                                has_leaderboard = true;
-                            }
-                        }
-                        WebhookHandler.failedEmbedFields = fields;
-                    }
-                    if (has_leaderboard) {
-                        if (ConfigHelper.checkProperty(raid_failed_object, "leaderboard_field_layout", "messages")) {
-                            JsonObject leaderboard_field_object = raid_failed_object.get("leaderboard_field_layout").getAsJsonObject();
-                            FieldData leaderboard_field = getFieldData(leaderboard_field_object);
-                            WebhookHandler.failedEmbedLeaderboardField = new FieldData(leaderboard_field.inline(), leaderboard_field.name(), leaderboard_field.value(), false);
-                        }
-                    }
-                }
-            }
+        for (String messageKey : messages.keySet()) {
+            if (messagesObject.has(messageKey))
+                messages.put(messageKey, messagesObject.get(messageKey).getAsString());
+            messagesObject.remove(messageKey);
+            messagesObject.addProperty(messageKey, messages.get(messageKey));
         }
+
+        config.remove("messages");
+        config.add("messages", messagesObject);
+
+        JsonObject webhookObject = new JsonObject();
+        if (config.has("discord"))
+            webhookObject = config.getAsJsonObject("discord");
+
+        if (webhookObject.has("webhook_toggle"))
+            WebhookHandler.webhookToggle = webhookObject.get("webhook_toggle").getAsBoolean();
+        webhookObject.remove("webhook_toggle");
+        webhookObject.addProperty("webhook_toggle", WebhookHandler.webhookToggle);
+
+        JsonArray blacklistedCategories = new JsonArray();
+        if (webhookObject.has("blacklisted_categories"))
+            WebhookHandler.blacklistedCategories = webhookObject.getAsJsonArray("blacklisted_categories").asList().stream().map(JsonElement::getAsString).toList();
+
+        for (String category : WebhookHandler.blacklistedCategories) {
+            blacklistedCategories.add(category);
+        }
+
+        webhookObject.remove("blacklisted_categories");
+        webhookObject.add("blacklisted_categories", blacklistedCategories);
+
+        JsonArray blacklistedBosses = new JsonArray();
+        if (webhookObject.has("blacklisted_bosses"))
+            WebhookHandler.blacklistedBosses = webhookObject.getAsJsonArray("blacklisted_bosses").asList().stream().map(JsonElement::getAsString).toList();
+
+        for (String category : WebhookHandler.blacklistedBosses) {
+            blacklistedBosses.add(category);
+        }
+
+        webhookObject.remove("blacklisted_bosses");
+        webhookObject.add("blacklisted_bosses", blacklistedBosses);
+
+        if (webhookObject.has("webhook_url"))
+            WebhookHandler.webhookUrl = webhookObject.get("webhook_url").getAsString();
+        webhookObject.remove("webhook_url");
+        webhookObject.addProperty("webhook_url", WebhookHandler.webhookUrl);
+
+        if (webhookObject.has("webhook_username"))
+            WebhookHandler.webhookUsername = webhookObject.get("webhook_username").getAsString();
+        webhookObject.remove("webhook_username");
+        webhookObject.addProperty("webhook_username", WebhookHandler.webhookUsername);
+
+        if (webhookObject.has("webhook_avatar_url"))
+            WebhookHandler.webhookAvatarUrl = webhookObject.get("webhook_avatar_url").getAsString();
+        webhookObject.remove("webhook_avatar_url");
+        webhookObject.addProperty("webhook_avatar_url", WebhookHandler.webhookAvatarUrl);
+
+        if (webhookObject.has("role_ping"))
+            WebhookHandler.rolePing = webhookObject.get("role_ping").getAsString();
+        webhookObject.remove("role_ping");
+        webhookObject.addProperty("role_ping", WebhookHandler.rolePing);
+
+        if (webhookObject.has("webhook_update_rate_seconds"))
+            WebhookHandler.webhookUpdateRateSeconds = webhookObject.get("webhook_update_rate_seconds").getAsInt();
+        webhookObject.remove("webhook_update_rate_seconds");
+        webhookObject.addProperty("webhook_update_rate_seconds", WebhookHandler.webhookUpdateRateSeconds);
+
+        if (webhookObject.has("delete_if_no_fight_phase"))
+            WebhookHandler.deleteIfNoFightPhase = webhookObject.get("delete_if_no_fight_phase").getAsBoolean();
+        webhookObject.remove("delete_if_no_fight_phase");
+        webhookObject.addProperty("delete_if_no_fight_phase", WebhookHandler.deleteIfNoFightPhase);
+
+        // Raid Start Embed
+        JsonObject raidStartObject = new JsonObject();
+        if (webhookObject.has("raid_start"))
+            raidStartObject = webhookObject.get("raid_start").getAsJsonObject();
+
+        if (raidStartObject.has("enabled"))
+            WebhookHandler.startEmbedEnabled = raidStartObject.get("enabled").getAsBoolean();
+        raidStartObject.remove("enabled");
+        raidStartObject.addProperty("enabled", WebhookHandler.startEmbedEnabled);
+
+        if (raidStartObject.has("embed_title"))
+            WebhookHandler.startEmbedTitle = raidStartObject.get("embed_title").getAsString();
+        raidStartObject.remove("embed_title");
+        raidStartObject.addProperty("embed_title", WebhookHandler.startEmbedTitle);
+
+        JsonArray raidStartFieldsArray = new JsonArray();
+        if (raidStartObject.has("fields"))
+            raidStartFieldsArray = raidStartObject.get("fields").getAsJsonArray();
+
+        List<FieldData> raidStartFields = new ArrayList<>();
+        for (JsonElement fieldElement : raidStartFieldsArray) {
+            JsonObject fieldObject = fieldElement.getAsJsonObject();
+            raidStartFields.add(getFieldData(fieldObject, false));
+        }
+
+        WebhookHandler.startEmbedFields = raidStartFields;
+
+        raidStartFieldsArray = new JsonArray();
+        for (FieldData fieldData : raidStartFields) {
+            raidStartFieldsArray.add(fieldData.fieldObject());
+        }
+
+        raidStartObject.remove("fields");
+        raidStartObject.add("fields", raidStartFieldsArray);
+
+        webhookObject.remove("raid_start");
+        webhookObject.add("raid_start", raidStartObject);
+
+        // Raid Running Embed
+        JsonObject raidRunningObject = new JsonObject();
+        if (webhookObject.has("raid_running"))
+            raidRunningObject = webhookObject.get("raid_running").getAsJsonObject();
+
+        if (raidRunningObject.has("enabled"))
+            WebhookHandler.runningEmbedEnabled = raidRunningObject.get("enabled").getAsBoolean();
+        raidRunningObject.remove("enabled");
+        raidRunningObject.addProperty("enabled", WebhookHandler.runningEmbedEnabled);
+
+        if (raidRunningObject.has("embed_title"))
+            WebhookHandler.runningEmbedTitle = raidRunningObject.get("embed_title").getAsString();
+        raidRunningObject.remove("embed_title");
+        raidRunningObject.addProperty("embed_title", WebhookHandler.runningEmbedTitle);
+
+        JsonArray raidRunningFieldsArray = new JsonArray();
+        if (raidRunningObject.has("fields"))
+            raidRunningFieldsArray = raidRunningObject.get("fields").getAsJsonArray();
+
+        List<FieldData> raidRunningFields = new ArrayList<>();
+        for (JsonElement fieldElement : raidRunningFieldsArray) {
+            JsonObject fieldObject = fieldElement.getAsJsonObject();
+            raidRunningFields.add(getFieldData(fieldObject, true));
+        }
+
+        WebhookHandler.runningEmbedFields = raidRunningFields;
+
+        raidRunningFieldsArray = new JsonArray();
+        for (FieldData fieldData : raidRunningFields) {
+            raidRunningFieldsArray.add(fieldData.fieldObject());
+        }
+
+        raidRunningObject.remove("fields");
+        raidRunningObject.add("fields", raidRunningFieldsArray);
+
+        JsonObject leaderboardFieldObject = new JsonObject();
+        if (raidRunningObject.has("leaderboard_field_layout"))
+            leaderboardFieldObject = raidRunningObject.get("leaderboard_field_layout").getAsJsonObject();
+
+        WebhookHandler.runningEmbedLeaderboardField = getFieldData(leaderboardFieldObject, false);
+        leaderboardFieldObject = WebhookHandler.runningEmbedLeaderboardField.fieldObject();
+
+        raidRunningObject.remove("leaderboard_field_layout");
+        raidRunningObject.add("leaderboard_field_layout", leaderboardFieldObject);
+
+        webhookObject.remove("raid_running");
+        webhookObject.add("raid_running", raidRunningObject);
+
+        // Raid End Embed
+        JsonObject raidEndObject = new JsonObject();
+        if (webhookObject.has("raid_end"))
+            raidEndObject = webhookObject.get("raid_end").getAsJsonObject();
+
+        if (raidEndObject.has("enabled"))
+            WebhookHandler.endEmbedEnabled = raidEndObject.get("enabled").getAsBoolean();
+        raidEndObject.remove("enabled");
+        raidEndObject.addProperty("enabled", WebhookHandler.endEmbedEnabled);
+
+        if (raidEndObject.has("embed_title"))
+            WebhookHandler.endEmbedTitle = raidEndObject.get("embed_title").getAsString();
+        raidEndObject.remove("embed_title");
+        raidEndObject.addProperty("embed_title", WebhookHandler.endEmbedTitle);
+
+        JsonArray raidEndFieldsArray = new JsonArray();
+        if (raidEndObject.has("fields"))
+            raidEndFieldsArray = raidEndObject.get("fields").getAsJsonArray();
+
+        List<FieldData> raidEndFields = new ArrayList<>();
+        for (JsonElement fieldElement : raidEndFieldsArray) {
+            JsonObject fieldObject = fieldElement.getAsJsonObject();
+            raidEndFields.add(getFieldData(fieldObject, true));
+        }
+
+        WebhookHandler.endEmbedFields = raidEndFields;
+
+        raidEndFieldsArray = new JsonArray();
+        for (FieldData fieldData : raidEndFields) {
+            raidEndFieldsArray.add(fieldData.fieldObject());
+        }
+
+        raidEndObject.remove("fields");
+        raidEndObject.add("fields", raidEndFieldsArray);
+
+        leaderboardFieldObject = new JsonObject();
+        if (raidEndObject.has("leaderboard_field_layout"))
+            leaderboardFieldObject = raidEndObject.get("leaderboard_field_layout").getAsJsonObject();
+
+        WebhookHandler.endEmbedLeaderboardField = getFieldData(leaderboardFieldObject, false);
+        leaderboardFieldObject = WebhookHandler.endEmbedLeaderboardField.fieldObject();
+
+        raidEndObject.remove("leaderboard_field_layout");
+        raidEndObject.add("leaderboard_field_layout", leaderboardFieldObject);
+
+        webhookObject.remove("raid_end");
+        webhookObject.add("raid_end", raidEndObject);
+
+        // Raid Failed Embed
+        JsonObject raidFailedObject = new JsonObject();
+        if (webhookObject.has("raid_failed"))
+            raidFailedObject = webhookObject.get("raid_failed").getAsJsonObject();
+
+        if (raidFailedObject.has("enabled"))
+            WebhookHandler.failedEmbedEnabled = raidFailedObject.get("enabled").getAsBoolean();
+        raidFailedObject.remove("enabled");
+        raidFailedObject.addProperty("enabled", WebhookHandler.failedEmbedEnabled);
+
+        if (raidFailedObject.has("embed_title"))
+            WebhookHandler.failedEmbedTitle = raidFailedObject.get("embed_title").getAsString();
+        raidFailedObject.remove("embed_title");
+        raidFailedObject.addProperty("embed_title", WebhookHandler.failedEmbedTitle);
+
+        JsonArray raidFailedFieldsArray = new JsonArray();
+        if (raidFailedObject.has("fields"))
+            raidFailedFieldsArray = raidFailedObject.get("fields").getAsJsonArray();
+
+        List<FieldData> raidFailedFields = new ArrayList<>();
+        for (JsonElement fieldElement : raidFailedFieldsArray) {
+            JsonObject fieldObject = fieldElement.getAsJsonObject();
+            raidFailedFields.add(getFieldData(fieldObject, true));
+        }
+
+        WebhookHandler.failedEmbedFields = raidFailedFields;
+
+        raidFailedFieldsArray = new JsonArray();
+        for (FieldData fieldData : raidFailedFields) {
+            raidFailedFieldsArray.add(fieldData.fieldObject());
+        }
+
+        raidFailedObject.remove("fields");
+        raidFailedObject.add("fields", raidFailedFieldsArray);
+
+        leaderboardFieldObject = new JsonObject();
+        if (raidFailedObject.has("leaderboard_field_layout"))
+            leaderboardFieldObject = raidFailedObject.get("leaderboard_field_layout").getAsJsonObject();
+
+        WebhookHandler.failedEmbedLeaderboardField = getFieldData(leaderboardFieldObject, false);
+        leaderboardFieldObject = WebhookHandler.failedEmbedLeaderboardField.fieldObject();
+
+        raidFailedObject.remove("leaderboard_field_layout");
+        raidFailedObject.add("leaderboard_field_layout", leaderboardFieldObject);
+
+        webhookObject.remove("raid_failed");
+        webhookObject.add("raid_failed", raidFailedObject);
+
+        config.remove("discord");
+        config.add("discord", webhookObject);
+
+        file.delete();
+        file.createNewFile();
+        Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+        Writer writer = new FileWriter(file);
+        gson.toJson(config, writer);
+        writer.close();
     }
 
-    public FieldData getFieldData(JsonObject field_object) {
+    public FieldData getFieldData(JsonObject fieldObject, boolean hasLeaderboard) {
         boolean inline = false;
         String name = "";
         String value = "";
-        boolean insert_leaderboard_after = false;
-        if (ConfigHelper.checkProperty(field_object, "inline", "messages")) {
-            inline = field_object.get("inline").getAsBoolean();
+        boolean insertLeaderboardAfter = false;
+
+        if (fieldObject.has("inline"))
+            inline = fieldObject.get("inline").getAsBoolean();
+        fieldObject.remove("inline");
+        fieldObject.addProperty("inline", inline);
+
+        if (fieldObject.has("name"))
+            name = fieldObject.get("name").getAsString();
+        fieldObject.remove("name");
+        fieldObject.addProperty("name", name);
+
+        if (fieldObject.has("value"))
+            value = fieldObject.get("value").getAsString();
+        fieldObject.remove("value");
+        fieldObject.addProperty("value", value);
+
+        if (hasLeaderboard) {
+            if (fieldObject.has("insert_leaderboard_after"))
+                insertLeaderboardAfter = fieldObject.get("insert_leaderboard_after").getAsBoolean();
+            fieldObject.remove("insert_leaderboard_after");
+            fieldObject.addProperty("insert_leaderboard_after", insertLeaderboardAfter);
         }
-        if (ConfigHelper.checkProperty(field_object, "name", "messages")) {
-            name = field_object.get("name").getAsString();
-        }
-        if (ConfigHelper.checkProperty(field_object, "value", "messages")) {
-            value = field_object.get("value").getAsString();
-        }
-        if (ConfigHelper.checkProperty(field_object, "insert_leaderboard_after", "messages", false)) {
-            insert_leaderboard_after = field_object.get("insert_leaderboard_after").getAsBoolean();
-        }
-        return new FieldData(inline, name, value, insert_leaderboard_after);
+
+        return new FieldData(fieldObject, inline, name, value, insertLeaderboardAfter);
     }
 
     public String getMessage(String key) {

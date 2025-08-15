@@ -1,5 +1,6 @@
 package me.unariginal.novaraids.data.rewards;
 
+import com.google.gson.JsonObject;
 import net.minecraft.component.ComponentChanges;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -13,8 +14,8 @@ public class ItemReward extends Reward {
     private final int minCount;
     private final int maxCount;
 
-    public ItemReward(String name, Item item, ComponentChanges data, int minCount, int maxCount) {
-        super(name, "item");
+    public ItemReward(JsonObject rewardObject, String name, Item item, ComponentChanges data, int minCount, int maxCount) {
+        super(rewardObject, name, "item");
         this.item = item;
         this.data = data;
         this.minCount = minCount;

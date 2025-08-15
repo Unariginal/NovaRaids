@@ -14,6 +14,7 @@ import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
 import com.cobblemon.mod.common.api.pokemon.PokemonSpecies;
 import com.cobblemon.mod.common.api.storage.party.PlayerPartyStore;
 import com.cobblemon.mod.common.pokemon.*;
+import com.google.gson.JsonObject;
 import net.minecraft.component.ComponentChanges;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -28,7 +29,6 @@ public class PokemonReward extends Reward {
     private final int level;
     private final String ability;
     private final String nature;
-    private final String form;
     private final String features;
     private final String gender;
     private final boolean shiny;
@@ -39,13 +39,12 @@ public class PokemonReward extends Reward {
     private final IVs ivs;
     private final EVs evs;
 
-    public PokemonReward(String name, String species, int level, String ability, String nature, String form, String features, String gender, boolean shiny, float scale, String heldItem, ComponentChanges heldItemData, List<String> moveSet, IVs ivs, EVs evs) {
-        super(name, "pokemon");
+    public PokemonReward(JsonObject rewardObject, String name, String species, int level, String ability, String nature, String features, String gender, boolean shiny, float scale, String heldItem, ComponentChanges heldItemData, List<String> moveSet, IVs ivs, EVs evs) {
+        super(rewardObject, name, "pokemon");
         this.species = species;
         this.level = level;
         this.ability = ability;
         this.nature = nature;
-        this.form = form;
         this.features = features;
         this.gender = gender;
         this.shiny = shiny;
@@ -73,10 +72,6 @@ public class PokemonReward extends Reward {
 
     public Nature nature() {
         return Natures.INSTANCE.getNature(nature);
-    }
-
-    public FormData form() {
-        return species().getFormByName(form);
     }
 
     public PokemonProperties features() {
@@ -142,7 +137,6 @@ public class PokemonReward extends Reward {
         pokemon.setLevel(level());
         pokemon.updateAbility(ability());
         pokemon.setNature(nature());
-        pokemon.setForm(form());
         features().apply(pokemon);
         pokemon.setGender(gender());
         pokemon.setShiny(shiny());

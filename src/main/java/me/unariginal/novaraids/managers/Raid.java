@@ -164,7 +164,10 @@ public class Raid {
         broadcast(TextUtils.deserialize(TextUtils.parse(messages.getMessage("start_pre_phase"), this)));
         nr.messagesConfig().execute_command(this);
 
-        if (WebhookHandler.webhookToggle && WebhookHandler.startEmbedEnabled) {
+        if (WebhookHandler.webhookToggle &&
+                WebhookHandler.startEmbedEnabled &&
+                !WebhookHandler.blacklistedBosses.contains(bossInfo.bossId()) &&
+                !WebhookHandler.blacklistedCategories.contains(raidBossCategory.id())) {
             try {
                 webhook = WebhookHandler.sendStartRaidWebhook(this);
             } catch (ExecutionException | InterruptedException e) {

@@ -16,6 +16,8 @@
   ```
 - Added `keep_features` to boss.json/catch_settings. (default: false)
 - Added `ai_skill_level` to boss.json/boss_details. This is a value from 0 to 5, 0 is random AI, 5 is the best AI. (default: 3)
+- Added `blacklisted_categories` to messages.json/discord. These categories will not have webhook messages sent for them.
+- Added `blacklisted_bosses` to messages.json/discord. These bosses will not have webhook messages send for them.
 
 ## Bug Fixes
 - Locations in other worlds will no longer make the timer count down past 0.
@@ -27,7 +29,7 @@
 - If a border radius is less than 30, and Pokémon are set to be visible in config.json, they will get teleported to the border radius instead of being locked at 30.
 - If a player deals damage to the boss, but loses the battle, the damage they dealt will be registered rather than it being 0.
 - The `species_override` catch setting is now functional
-- More soon
+- More coming soon
 
 # Nova Raids Beta v0.3.0 - The Customization Update!
 
@@ -233,7 +235,7 @@ GUI Context Placeholders:
 - Each boss now gets their own phase timers, specified in this section.
 - `heal_party_on_challenge` will heal the player's party as they challenge the boss (will not heal if the party is all fainted).
 - Added a contraband section for boss-specific contraband.
-- Added a bossbars section to reference a bossbar for each phase for this boss, this will override the selected boss bars in the category settings.
+- Added a bossbars section to reference a bossbar for each phase for this boss; this will override the selected boss bars in the category settings.
 - Moved `rewards_override` section here, renamed to `reward_distribution`. More information in the `settings.json` changelog details.
 
 **Catch Settings Section Changes:**

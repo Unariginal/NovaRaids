@@ -81,10 +81,18 @@ public class BossbarsConfig {
             bossbarObject.remove("actionbar_text");
             bossbarObject.addProperty("actionbar_text", actionbar_text);
 
-            config.remove(key);
-            config.add(key, bossbarObject);
-
             bossbars.add(new BossbarData(key, bar_color, bar_style, text, use_actionbar, actionbar_text));
+        }
+
+        for (BossbarData data : bossbars) {
+            config.remove(data.name());
+            JsonObject bossBarObject = new JsonObject();
+            bossBarObject.addProperty("bar_color", data.barColor().name());
+            bossBarObject.addProperty("bar_style", data.barStyle().name());
+            bossBarObject.addProperty("bar_text", data.barText());
+            bossBarObject.addProperty("use_actionbar", data.useActionbar());
+            bossBarObject.addProperty("actionbar_text", data.actionbarText());
+            config.add(data.name(), bossBarObject);
         }
 
         file.delete();

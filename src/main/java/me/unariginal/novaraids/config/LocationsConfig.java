@@ -39,7 +39,7 @@ public class LocationsConfig {
         JsonObject root = new JsonObject();
         if (file.exists()) root = JsonParser.parseReader(new FileReader(file)).getAsJsonObject();
 
-        List<Location> locations = new ArrayList<>();
+        locations.clear();
         for (String key : root.keySet()) {
             JsonObject locationObject = root.getAsJsonObject(key);
             String name = key;
@@ -120,20 +120,20 @@ public class LocationsConfig {
             if (locationObject.has("join_location"))
                 joinLocationObject = locationObject.get("join_location").getAsJsonObject();
 
-            if (joinLocationObject.has("join_x"))
-                joinX = joinLocationObject.get("join_x").getAsDouble();
-            joinLocationObject.remove("join_x");
-            joinLocationObject.addProperty("join_x", joinX);
+            if (joinLocationObject.has("x_pos"))
+                joinX = joinLocationObject.get("x_pos").getAsDouble();
+            joinLocationObject.remove("x_pos");
+            joinLocationObject.addProperty("x_pos", joinX);
 
-            if (joinLocationObject.has("join_y"))
-                joinY = joinLocationObject.get("join_y").getAsDouble();
-            joinLocationObject.remove("join_y");
-            joinLocationObject.addProperty("join_y", joinY);
+            if (joinLocationObject.has("y_pos"))
+                joinY = joinLocationObject.get("y_pos").getAsDouble();
+            joinLocationObject.remove("y_pos");
+            joinLocationObject.addProperty("y_pos", joinY);
 
-            if (joinLocationObject.has("join_z"))
-                joinZ = joinLocationObject.get("join_z").getAsDouble();
-            joinLocationObject.remove("join_z");
-            joinLocationObject.addProperty("join_z", joinZ);
+            if (joinLocationObject.has("z_pos"))
+                joinZ = joinLocationObject.get("z_pos").getAsDouble();
+            joinLocationObject.remove("z_pos");
+            joinLocationObject.addProperty("z_pos", joinZ);
 
             if (joinLocationObject.has("yaw"))
                 yaw = joinLocationObject.get("yaw").getAsFloat();
@@ -148,13 +148,33 @@ public class LocationsConfig {
             locationObject.remove("join_location");
             locationObject.add("join_location", joinLocationObject);
 
-            root.remove(key);
-            root.add(key, locationObject);
-
             Vec3d join_pos = new Vec3d(joinX, joinY, joinZ);
             locations.add(new Location(key, name, pos, world, borderRadius, bossPushbackRadius, bossFacingDirection, useJoinLocation, join_pos, yaw, pitch));
         }
-        this.locations = locations;
+
+        for (Location location : locations) {
+            root.remove(location.id());
+
+            JsonObject locationObject = new JsonObject();
+            locationObject.addProperty("x_pos", location.pos().getX());
+            locationObject.addProperty("y_pos", location.pos().getY());
+            locationObject.addProperty("z_pos", location.pos().getZ());
+            locationObject.addProperty("world", location.world().getRegistryKey().getValue().toString());
+            locationObject.addProperty("name", location.name());
+            locationObject.addProperty("border_radius", location.borderRadius());
+            locationObject.addProperty("boss_pushback_radius", location.bossPushbackRadius());
+            locationObject.addProperty("boss_facing_direction", location.bossFacingDirection());
+            locationObject.addProperty("use_join_location", location.useSetJoinLocation());
+            JsonObject joinLocationObject = new JsonObject();
+            joinLocationObject.addProperty("x_pos", location.joinLocation().getX());
+            joinLocationObject.addProperty("y_pos", location.joinLocation().getY());
+            joinLocationObject.addProperty("z_pos", location.joinLocation().getZ());
+            joinLocationObject.addProperty("yaw", location.yaw());
+            joinLocationObject.addProperty("pitch", location.pitch());
+            locationObject.add("join_location", joinLocationObject);
+
+            root.add(location.id(), locationObject);
+        }
 
         file.delete();
         file.createNewFile();

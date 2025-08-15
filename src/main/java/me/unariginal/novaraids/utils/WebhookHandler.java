@@ -19,11 +19,12 @@ import me.unariginal.novaraids.data.FieldData;
 import me.unariginal.novaraids.managers.Raid;
 import net.minecraft.util.UserCache;
 
-
 public class WebhookHandler {
     private static final NovaRaids nr = NovaRaids.INSTANCE;
     private static final UserCache cache =  nr.server().getUserCache();
     public static boolean webhookToggle = false;
+    public static List<String> blacklistedCategories = new ArrayList<>();
+    public static List<String> blacklistedBosses = new ArrayList<>();
     public static String webhookUrl = "https://discord.com/api/webhooks/";
     public static String webhookUsername =  "Raid Alert!";
     public static String webhookAvatarUrl = "https://cdn.modrinth.com/data/MdwFAVRL/e54083a07bcd9436d1f8d2879b0d821a54588b9e.png";

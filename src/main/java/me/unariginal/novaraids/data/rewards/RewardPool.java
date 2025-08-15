@@ -1,45 +1,46 @@
 package me.unariginal.novaraids.data.rewards;
 
+import com.google.gson.JsonObject;
 import me.unariginal.novaraids.NovaRaids;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.*;
 
-public record RewardPool(UUID uuid, String name, boolean allowDuplicates, int minRolls, int maxRolls, Map<Reward, Double> rewards) {
+public record RewardPool(JsonObject poolObject, UUID uuid, String name, boolean allowDuplicates, int minRolls, int maxRolls, Map<Reward, Double> rewards) {
     public void distributeRewards(ServerPlayerEntity player) {
         List<String> appliedRewards = new ArrayList<>();
 
         int rolls = new Random().nextInt(minRolls(), maxRolls() + 1);
         for (int i = 0; i < rolls; i++) {
-            double total_weight = 0.0;
+            double totalWeight = 0.0;
             for (Reward reward : rewards().keySet()) {
                 if (allowDuplicates() || !appliedRewards.contains(reward.name)) {
-                    total_weight += rewards().get(reward);
+                    totalWeight += rewards().get(reward);
                 }
             }
 
-            if (total_weight > 0.0) {
-                double random_weight = new Random().nextDouble(total_weight);
-                total_weight = 0.0;
-                Reward to_give = null;
+            if (totalWeight > 0.0) {
+                double randomWeight = new Random().nextDouble(totalWeight);
+                totalWeight = 0.0;
+                Reward toGive = null;
                 for (Reward reward : rewards().keySet()) {
                     if (allowDuplicates() || !appliedRewards.contains(reward.name)) {
-                        total_weight += rewards().get(reward);
-                        if (random_weight < total_weight) {
-                            to_give = reward;
+                        totalWeight += rewards().get(reward);
+                        if (randomWeight < totalWeight) {
+                            toGive = reward;
                             break;
                         }
                     }
                 }
 
-                if (to_give != null) {
-                    to_give.applyReward(player);
-                    appliedRewards.add(to_give.name());
+                if (toGive != null) {
+                    toGive.applyReward(player);
+                    appliedRewards.add(toGive.name());
                 } else {
-                    NovaRaids.INSTANCE.logError("[RAIDS] Failed to distribute reward. No reward was found to give.");
+                    NovaRaids.INSTANCE.logError("[NovaRaids] Failed to distribute reward. No reward was found to give.");
                 }
             } else {
-                NovaRaids.INSTANCE.logError("[RAIDS] Reward pool total weight was zero. Possibly caused by a reward pool having more rolls than available rewards with duplicates disabled.");
+                NovaRaids.INSTANCE.logError("[NovaRaids] Reward pool total weight was zero. Possibly caused by a reward pool having more rolls than available rewards with duplicates disabled.");
             }
         }
     }

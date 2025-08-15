@@ -32,340 +32,395 @@ import net.minecraft.util.Identifier;
 import java.util.*;
 
 public class ConfigHelper {
-    public static List<DistributionSection> getDistributionSections(JsonObject config, String location, boolean isCategorySection) {
+    public static List<DistributionSection> getDistributionSections(JsonObject config, boolean isCategorySection) {
         List<DistributionSection> rewards = new ArrayList<>();
-        if (checkProperty(config, "reward_distribution", location)) {
-            JsonArray reward_distributions = config.getAsJsonArray("reward_distribution");
-            for (JsonElement reward_distribution : reward_distributions) {
-                JsonObject reward_distribution_object = reward_distribution.getAsJsonObject();
-                List<Place> places = new ArrayList<>();
-                if (checkProperty(reward_distribution_object, "places", location)) {
-                    JsonArray placesArray = reward_distribution_object.getAsJsonArray("places");
-                    for (JsonElement place_element : placesArray) {
-                        JsonObject place_object = place_element.getAsJsonObject();
-                        String place;
-                        if (checkProperty(place_object, "place", location)) {
-                            place = place_object.get("place").getAsString();
-                        } else {
-                            continue;
-                        }
-                        boolean require_damage;
-                        if (checkProperty(place_object, "require_damage", location)) {
-                            require_damage = place_object.get("require_damage").getAsBoolean();
-                        } else {
-                            continue;
-                        }
-                        boolean allow_other_rewards;
-                        if (checkProperty(place_object, "allow_other_rewards", location)) {
-                            allow_other_rewards = place_object.get("allow_other_rewards").getAsBoolean();
-                        } else {
-                            continue;
-                        }
-                        boolean override_category_rewards = false;
-                        if (place_object.has("override_category_rewards")) {
-                            override_category_rewards = place_object.get("override_category_rewards").getAsBoolean();
-                        }
-                        places.add(new Place(place, require_damage, allow_other_rewards, override_category_rewards));
-                    }
-                } else {
-                    continue;
-                }
-                boolean allow_duplicates;
-                int min_rolls;
-                int max_rolls;
-                Map<RewardPool, Double> reward_pools = new HashMap<>();
-                if (checkProperty(reward_distribution_object, "rewards", location)) {
-                    JsonObject rewards_object = reward_distribution_object.getAsJsonObject("rewards");
-                    if (checkProperty(rewards_object, "allow_duplicates", location)) {
-                        allow_duplicates = rewards_object.get("allow_duplicates").getAsBoolean();
-                    } else {
-                        continue;
-                    }
-                    if (checkProperty(rewards_object, "rolls", location)) {
-                        JsonObject rolls_object = rewards_object.getAsJsonObject("rolls");
-                        if (checkProperty(rolls_object, "min", location)) {
-                            min_rolls = rolls_object.get("min").getAsInt();
-                        } else {
-                            continue;
-                        }
-                        if (checkProperty(rolls_object, "max", location)) {
-                            max_rolls = rolls_object.get("max").getAsInt();
-                        } else {
-                            continue;
-                        }
-                    } else {
-                        continue;
-                    }
-                    if (checkProperty(rewards_object, "reward_pools", location)) {
-                        JsonArray reward_pools_array = rewards_object.getAsJsonArray("reward_pools");
-                        for (JsonElement reward_pool_element : reward_pools_array) {
-                            JsonObject reward_pool_object = reward_pool_element.getAsJsonObject();
-                            double weight;
-                            if (checkProperty(reward_pool_object, "weight", location)) {
-                                weight = reward_pool_object.get("weight").getAsDouble();
-                            } else {
-                                continue;
-                            }
 
-                            RewardPool pool;
-                            if (checkProperty(reward_pool_object, "pool_preset", location, false)) {
-                                String pool_preset = reward_pool_object.get("pool_preset").getAsString();
-                                pool = NovaRaids.INSTANCE.rewardPoolsConfig().getRewardPool(pool_preset);
-                            } else if (checkProperty(reward_pool_object, "pool", location, false)) {
-                                pool = getRewardPool(reward_pool_object.getAsJsonObject("pool"), "temp", location);
-                            } else {
-                                NovaRaids.INSTANCE.logError("[RAIDS] Invalid reward pool declaration at: " + location);
-                                continue;
-                            }
-                            if (pool == null) {
-                                continue;
-                            }
-                            reward_pools.put(pool, weight);
-                        }
-                    } else {
-                        continue;
-                    }
-                } else {
-                    continue;
+        JsonArray rewardDistributionArray = new JsonArray();
+        if (config.has("reward_distribution"))
+            rewardDistributionArray = config.getAsJsonArray("reward_distribution");
+
+        for (JsonElement distributionElement : rewardDistributionArray) {
+            JsonObject distributionObject = distributionElement.getAsJsonObject();
+
+            if (!distributionObject.has("places")) continue;
+
+            List<Place> places = new ArrayList<>();
+            JsonArray placesArray = new JsonArray();
+            for (JsonElement placeElement : distributionObject.get("places").getAsJsonArray()) {
+                JsonObject placeObject = placeElement.getAsJsonObject();
+
+                String place = "participating";
+                if (placeObject.has("place"))
+                    place = placeObject.get("place").getAsString();
+                placeObject.remove("place");
+                placeObject.addProperty("place", place);
+
+                boolean requireDamage = true;
+                if (placeObject.has("require_damage"))
+                    requireDamage = placeObject.get("require_damage").getAsBoolean();
+                placeObject.remove("require_damage");
+                placeObject.addProperty("require_damage", requireDamage);
+
+                boolean allowOtherRewards = true;
+                if (placeObject.has("allow_other_rewards"))
+                    allowOtherRewards = placeObject.get("allow_other_rewards").getAsBoolean();
+                placeObject.remove("allow_other_rewards");
+                placeObject.addProperty("allow_other_rewards", allowOtherRewards);
+
+                boolean overrideCategoryRewards = false;
+                if (!isCategorySection) {
+                    if (placeObject.has("override_category_rewards"))
+                        overrideCategoryRewards = placeObject.get("override_category_rewards").getAsBoolean();
+                    placeObject.remove("override_category_rewards");
+                    placeObject.addProperty("override_category_rewards", overrideCategoryRewards);
                 }
-                rewards.add(new DistributionSection(isCategorySection, places, allow_duplicates, min_rolls, max_rolls, reward_pools));
+
+                placesArray.add(placeObject);
+                places.add(new Place(place, requireDamage, allowOtherRewards, overrideCategoryRewards));
             }
+
+            distributionObject.remove("places");
+            distributionObject.add("places", placesArray);
+
+            JsonObject rewardsObject = new JsonObject();
+            if (distributionObject.has("rewards"))
+                rewardsObject = distributionObject.getAsJsonObject("rewards");
+
+            boolean allowDuplicates = true;
+            if (rewardsObject.has("allow_duplicates"))
+                allowDuplicates = rewardsObject.get("allow_duplicates").getAsBoolean();
+            rewardsObject.remove("allow_duplicates");
+            rewardsObject.addProperty("allow_duplicates", allowDuplicates);
+
+            JsonObject rollsObject = new JsonObject();
+            if (rewardsObject.has("rolls"))
+                rollsObject = rewardsObject.getAsJsonObject("rolls");
+
+            int minRolls = 1;
+            int maxRolls = 1;
+
+            if (rollsObject.has("min"))
+                minRolls = rollsObject.get("min").getAsInt();
+            rollsObject.remove("min");
+            rollsObject.addProperty("min", minRolls);
+            if (rollsObject.has("max"))
+                maxRolls = rollsObject.get("max").getAsInt();
+            rollsObject.remove("max");
+            rollsObject.addProperty("max", maxRolls);
+
+            rewardsObject.remove("rolls");
+            rewardsObject.add("rolls", rollsObject);
+
+            Map<RewardPool, Double> rewardPools = new HashMap<>();
+            JsonArray rewardPoolsArray = new JsonArray();
+            if (rewardsObject.has("reward_pools"))
+                rewardPoolsArray = rewardsObject.getAsJsonArray("reward_pools");
+
+            JsonArray newRewardPoolsArray = new JsonArray();
+            for (JsonElement rewardPoolElement : rewardPoolsArray) {
+                JsonObject rewardPoolObject = rewardPoolElement.getAsJsonObject();
+
+                double weight = 1;
+                if (rewardPoolObject.has("weight"))
+                    weight = rewardPoolObject.get("weight").getAsDouble();
+                rewardPoolObject.remove("weight");
+                rewardPoolObject.addProperty("weight", weight);
+
+                if (rewardPoolObject.has("pool_preset")) {
+                    String poolPreset = rewardPoolObject.get("pool_preset").getAsString();
+                    RewardPool pool = NovaRaids.INSTANCE.rewardPoolsConfig().getRewardPool(poolPreset);
+                    rewardPoolObject.remove("pool_preset");
+                    rewardPoolObject.addProperty("pool_preset", poolPreset);
+                    if (pool == null) continue;
+                    rewardPools.put(pool, weight);
+                } else if (rewardPoolObject.has("pool")) {
+                    JsonObject poolObject = rewardPoolObject.getAsJsonObject("pool");
+                    RewardPool pool = getRewardPool(poolObject, "temp");
+                    rewardPools.put(pool, weight);
+                    rewardPoolObject.remove("pool");
+                    rewardPoolObject.add("pool", pool.poolObject());
+                }
+
+                newRewardPoolsArray.add(rewardPoolObject);
+            }
+
+            rewardsObject.remove("reward_pools");
+            rewardsObject.add("reward_pools", newRewardPoolsArray);
+
+            distributionObject.remove("rewards");
+            distributionObject.add("rewards", rewardsObject);
+
+            rewards.add(new DistributionSection(distributionObject, isCategorySection, places, allowDuplicates, minRolls, maxRolls, rewardPools));
         }
         return rewards;
     }
 
-    public static RewardPool getRewardPool(JsonObject reward_pool_object, String name, String location) {
-        boolean allow_duplicates_pool;
-        if (checkProperty(reward_pool_object, "allow_duplicates", location)) {
-            allow_duplicates_pool = reward_pool_object.get("allow_duplicates").getAsBoolean();
-        } else {
-            return null;
-        }
-        int min_pool_rolls;
-        int max_pool_rolls;
-        if (checkProperty(reward_pool_object, "rolls", location)) {
-            JsonObject rolls_object = reward_pool_object.getAsJsonObject("rolls");
-            if (checkProperty(rolls_object, "min", location)) {
-                min_pool_rolls = rolls_object.get("min").getAsInt();
-            } else {
-                return null;
-            }
-            if (checkProperty(rolls_object, "max", location)) {
-                max_pool_rolls = rolls_object.get("max").getAsInt();
-            } else {
-                return null;
-            }
-        } else {
-            return null;
-        }
+    public static RewardPool getRewardPool(JsonObject rewardPoolObject, String name) {
+        boolean allowDuplicatesPool = true;
+        if (rewardPoolObject.has("allow_duplicates"))
+            allowDuplicatesPool = rewardPoolObject.get("allow_duplicates").getAsBoolean();
+        rewardPoolObject.remove("allow_duplicates");
+        rewardPoolObject.addProperty("allow_duplicates", allowDuplicatesPool);
+
+        int minPoolRolls = 1;
+        int maxPoolRolls = 1;
+        JsonObject rollsObject = new JsonObject();
+        if (rewardPoolObject.has("rolls"))
+            rollsObject = rewardPoolObject.getAsJsonObject("rolls");
+
+        if (rollsObject.has("min"))
+            minPoolRolls = rollsObject.get("min").getAsInt();
+        rollsObject.remove("min");
+        rollsObject.addProperty("min", minPoolRolls);
+
+        if (rollsObject.has("max"))
+            maxPoolRolls = rollsObject.get("max").getAsInt();
+        rollsObject.remove("max");
+        rollsObject.addProperty("max", maxPoolRolls);
+
+        rewardPoolObject.remove("rolls");
+        rewardPoolObject.add("rolls", rollsObject);
+
         Map<Reward, Double> rewardList = new HashMap<>();
-        if (checkProperty(reward_pool_object, "rewards", location)) {
-            JsonArray rewards_array = reward_pool_object.getAsJsonArray("rewards");
-            for (JsonElement reward_element : rewards_array) {
-                JsonObject reward_object = reward_element.getAsJsonObject();
-                double reward_weight;
-                if (checkProperty(reward_object, "weight", location)) {
-                    reward_weight = reward_object.get("weight").getAsDouble();
-                } else {
-                    continue;
-                }
-                Reward reward;
-                if (checkProperty(reward_object, "reward", location, false)) {
-                    JsonObject unset_reward_object = reward_object.getAsJsonObject("reward");
-                    reward = getReward(unset_reward_object, "temp", location);
-                    if (reward == null) {
-                        continue;
-                    }
-                    rewardList.put(reward, reward_weight);
-                } else if (checkProperty(reward_object, "reward_preset", location, false)) {
-                    String reward_preset = reward_object.get("reward_preset").getAsString();
-                    reward = NovaRaids.INSTANCE.rewardPresetsConfig().getReward(reward_preset);
-                    if (reward == null) {
-                        continue;
-                    }
-                    rewardList.put(reward, reward_weight);
-                } else {
-                    NovaRaids.INSTANCE.logError("[RAIDS] Invalid reward declaration at: " + location);
-                }
+        JsonArray rewardsArray = new JsonArray();
+        if (rewardPoolObject.has("rewards"))
+            rewardsArray = rewardPoolObject.getAsJsonArray("rewards");
+
+        JsonArray newRewardsArray = new JsonArray();
+        for (JsonElement rewardElement : rewardsArray) {
+            JsonObject rewardsObject = rewardElement.getAsJsonObject();
+
+            double rewardWeight = 1;
+            if (rewardsObject.has("weight"))
+                rewardWeight = rewardsObject.get("weight").getAsDouble();
+            rewardsObject.remove("weight");
+            rewardsObject.addProperty("weight", rewardWeight);
+
+            if (rewardsObject.has("reward")) {
+                JsonObject rewardObject = rewardsObject.getAsJsonObject("reward");
+                Reward reward = getReward(rewardObject, "temp");
+                if (reward == null) continue;
+                rewardsObject.remove("reward");
+                rewardsObject.add("reward", reward.rewardObject());
+                rewardList.put(reward, rewardWeight);
+            } else if (rewardsObject.has("reward_preset")) {
+                String rewardPreset = rewardsObject.get("reward_preset").getAsString();
+                Reward reward = NovaRaids.INSTANCE.rewardPresetsConfig().getReward(rewardPreset);
+                rewardsObject.remove("reward_preset");
+                rewardsObject.addProperty("reward_preset", rewardPreset);
+                if (reward == null) continue;
+                rewardList.put(reward, rewardWeight);
             }
-        } else {
-            return null;
+
+            newRewardsArray.add(rewardsObject);
         }
-        return new RewardPool(UUID.randomUUID(), name, allow_duplicates_pool, min_pool_rolls, max_pool_rolls, rewardList);
+        rewardPoolObject.remove("rewards");
+        rewardPoolObject.add("rewards", newRewardsArray);
+
+        return new RewardPool(rewardPoolObject, UUID.randomUUID(), name, allowDuplicatesPool, minPoolRolls, maxPoolRolls, rewardList);
     }
 
-    public static Reward getReward(JsonObject reward_object, String name, String location) {
-        String type;
-        if (checkProperty(reward_object, "type", location)) {
-            type = reward_object.get("type").getAsString();
-        } else {
-            return null;
-        }
+    public static Reward getReward(JsonObject rewardObject, String name) {
+        if (!rewardObject.has("type")) return null;
+        String type = rewardObject.get("type").getAsString();
+
         if (type.equalsIgnoreCase("item")) {
-            Item reward_item;
-            if (checkProperty(reward_object, "item", location)) {
-                reward_item = Registries.ITEM.get(Identifier.of(reward_object.get("item").getAsString()));
-            } else {
-                return null;
-            }
+            if (!rewardObject.has("item")) return null;
+            Item rewardItem = Registries.ITEM.get(Identifier.of(rewardObject.get("item").getAsString()));
+
             ComponentChanges item_data = ComponentChanges.EMPTY;
-            if (checkProperty(reward_object, "data", location)) {
-                JsonElement data = reward_object.getAsJsonObject("data");
-                if (data != null) {
-                    item_data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, data).getOrThrow().getFirst();
-                }
-            }
-            int count_min;
-            int count_max;
-            if (checkProperty(reward_object, "count", location)) {
-                JsonObject count_object = reward_object.getAsJsonObject("count");
-                if (checkProperty(count_object, "min", location)) {
-                    count_min = count_object.get("min").getAsInt();
-                } else {
-                    return null;
-                }
-                if (checkProperty(count_object, "max", location)) {
-                    count_max = count_object.get("max").getAsInt();
-                } else {
-                    return null;
-                }
-            } else {
-                return null;
-            }
-            return new ItemReward(name, reward_item, item_data, count_min, count_max);
+            if (rewardObject.has("data"))
+                item_data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, rewardObject.get("data")).getOrThrow().getFirst();
+            rewardObject.remove("data");
+            rewardObject.add("data", ComponentChanges.CODEC.encode(item_data, JsonOps.INSTANCE, new JsonObject()).getOrThrow());
+
+            int countMin = 1;
+            int countMax = 1;
+            JsonObject countObject = new JsonObject();
+            if (rewardObject.has("count"))
+                countObject = rewardObject.getAsJsonObject("count");
+
+            if (countObject.has("min"))
+                countMin = countObject.get("min").getAsInt();
+            countObject.remove("min");
+            countObject.addProperty("min", countMin);
+            if (countObject.has("max"))
+                countMax = countObject.get("max").getAsInt();
+            countObject.remove("max");
+            countObject.addProperty("max", countMax);
+
+            rewardObject.remove("count");
+            rewardObject.add("count", countObject);
+
+            return new ItemReward(rewardObject, name, rewardItem, item_data, countMin, countMax);
         } else if (type.equalsIgnoreCase("command")) {
-            List<String> commands;
-            if (checkProperty(reward_object, "commands", location)) {
-                commands = reward_object.getAsJsonArray("commands").asList().stream().map(JsonElement::getAsString).toList();
-            } else {
-                return null;
+            if (!rewardObject.has("commands")) return null;
+            List<String> commands = rewardObject.getAsJsonArray("commands").asList().stream().map(JsonElement::getAsString).toList();
+
+            JsonArray commandsArray = new JsonArray();
+            for (String command : commands) {
+                commandsArray.add(command);
             }
-            return new CommandReward(name, commands);
+            rewardObject.remove("commands");
+            rewardObject.add("commands", commandsArray);
+
+            return new CommandReward(rewardObject, name, commands);
         } else if (type.equalsIgnoreCase("pokemon")) {
-            if (checkProperty(reward_object, "pokemon", location)) {
-                JsonObject pokemon_object = reward_object.getAsJsonObject("pokemon");
-                String species;
-                if (checkProperty(pokemon_object, "species", location)) {
-                    species = pokemon_object.get("species").getAsString();
-                } else {
-                    return null;
-                }
-                int level;
-                if (checkProperty(pokemon_object, "level", location)) {
-                    level = pokemon_object.get("level").getAsInt();
-                } else {
-                    return null;
-                }
-                String ability;
-                if (checkProperty(pokemon_object, "ability", location)) {
-                    ability = pokemon_object.get("ability").getAsString();
-                } else {
-                    return null;
-                }
-                String nature;
-                if (checkProperty(pokemon_object, "nature", location)) {
-                    nature = pokemon_object.get("nature").getAsString();
-                } else {
-                    return null;
-                }
-                String form;
-                if (checkProperty(pokemon_object, "form", location)) {
-                    form = pokemon_object.get("form").getAsString();
-                } else {
-                    return null;
-                }
-                String features;
-                if (checkProperty(pokemon_object, "features", location)) {
-                    features = pokemon_object.get("features").getAsString();
-                } else {
-                    return null;
-                }
-                String gender;
-                if (checkProperty(pokemon_object, "gender", location)) {
-                    gender = pokemon_object.get("gender").getAsString();
-                } else {
-                    return null;
-                }
-                boolean shiny;
-                if (checkProperty(pokemon_object, "shiny", location)) {
-                    shiny = pokemon_object.get("shiny").getAsBoolean();
-                } else {
-                    return null;
-                }
-                float scale;
-                if (checkProperty(pokemon_object, "scale", location)) {
-                    scale = pokemon_object.get("scale").getAsFloat();
-                } else {
-                    return null;
-                }
-                String held_item;
-                if (checkProperty(pokemon_object, "held_item", location)) {
-                    held_item = pokemon_object.get("held_item").getAsString();
-                } else {
-                    return null;
-                }
-                ComponentChanges held_item_data = ComponentChanges.EMPTY;
-                if (checkProperty(pokemon_object, "held_item_data", location)) {
-                    JsonElement data = pokemon_object.getAsJsonObject("held_item_data");
-                    if (data != null) {
-                        held_item_data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, data).getOrThrow().getFirst();
-                    }
-                }
-                List<String> moves = new ArrayList<>();
-                if (checkProperty(pokemon_object, "moves", location)) {
-                    moves = pokemon_object.getAsJsonArray("moves").asList().stream().map(JsonElement::getAsString).toList();
-                }
-                if (moves.isEmpty()) {
-                    return null;
-                }
-                IVs ivs = IVs.createRandomIVs(0);
-                if (checkProperty(pokemon_object, "ivs", location)) {
-                    JsonObject ivs_object = pokemon_object.getAsJsonObject("ivs");
-                    if (checkProperty(ivs_object, "hp", location)) {
-                        ivs.set(Stats.HP, ivs_object.get("hp").getAsInt());
-                    }
-                    if (checkProperty(ivs_object, "atk", location)) {
-                        ivs.set(Stats.ATTACK, ivs_object.get("atk").getAsInt());
-                    }
-                    if (checkProperty(ivs_object, "def", location)) {
-                        ivs.set(Stats.DEFENCE, ivs_object.get("def").getAsInt());
-                    }
-                    if (checkProperty(ivs_object, "sp_atk", location)) {
-                        ivs.set(Stats.SPECIAL_ATTACK, ivs_object.get("sp_atk").getAsInt());
-                    }
-                    if (checkProperty(ivs_object, "sp_def", location)) {
-                        ivs.set(Stats.SPECIAL_DEFENCE, ivs_object.get("sp_def").getAsInt());
-                    }
-                    if (checkProperty(ivs_object, "spd", location)) {
-                        ivs.set(Stats.SPEED, ivs_object.get("spd").getAsInt());
-                    }
-                }
-                EVs evs = EVs.createEmpty();
-                if (checkProperty(pokemon_object, "evs", location)) {
-                    JsonObject evs_object = pokemon_object.getAsJsonObject("evs");
-                    if (checkProperty(evs_object, "hp", location)) {
-                        evs.set(Stats.HP, evs_object.get("hp").getAsInt());
-                    }
-                    if (checkProperty(evs_object, "atk", location)) {
-                        evs.set(Stats.ATTACK, evs_object.get("atk").getAsInt());
-                    }
-                    if (checkProperty(evs_object, "def", location)) {
-                        evs.set(Stats.DEFENCE, evs_object.get("def").getAsInt());
-                    }
-                    if (checkProperty(evs_object, "sp_atk", location)) {
-                        evs.set(Stats.SPECIAL_ATTACK, evs_object.get("sp_atk").getAsInt());
-                    }
-                    if (checkProperty(evs_object, "sp_def", location)) {
-                        evs.set(Stats.SPECIAL_DEFENCE, evs_object.get("sp_def").getAsInt());
-                    }
-                    if (checkProperty(evs_object, "spd", location)) {
-                        evs.set(Stats.SPEED, evs_object.get("spd").getAsInt());
-                    }
-                }
-                return new PokemonReward(name, species, level, ability, nature, form, features, gender, shiny, scale, held_item, held_item_data, moves, ivs, evs);
-            } else {
-                return null;
-            }
+            if (!rewardObject.has("pokemon")) return null;
+            JsonObject pokemonObject = rewardObject.getAsJsonObject("pokemon");
+
+            String species = "weedle";
+            if (pokemonObject.has("species"))
+                species = pokemonObject.get("species").getAsString();
+            pokemonObject.remove("species");
+            pokemonObject.addProperty("species", species);
+
+            int level = 1;
+            if (pokemonObject.has("level"))
+                level = pokemonObject.get("level").getAsInt();
+            pokemonObject.remove("level");
+            pokemonObject.addProperty("level", level);
+
+            String ability = "noability";
+            if (pokemonObject.has("ability"))
+                ability = pokemonObject.get("ability").getAsString();
+            pokemonObject.remove("ability");
+            pokemonObject.addProperty("ability", ability);
+
+            String nature = "serious";
+            if (pokemonObject.has("nature"))
+                nature = pokemonObject.get("nature").getAsString();
+            pokemonObject.remove("nature");
+            pokemonObject.addProperty("nature", nature);
+
+            pokemonObject.remove("form");
+
+            String features = "";
+            if (pokemonObject.has("features"))
+                features = pokemonObject.get("features").getAsString();
+            pokemonObject.remove("features");
+            pokemonObject.addProperty("features", features);
+
+            String gender = "male";
+            if (pokemonObject.has("gender"))
+                gender = pokemonObject.get("gender").getAsString();
+            pokemonObject.remove("gender");
+            pokemonObject.addProperty("gender", gender);
+
+            boolean shiny = false;
+            if (pokemonObject.has("shiny"))
+                shiny = pokemonObject.get("shiny").getAsBoolean();
+            pokemonObject.remove("shiny");
+            pokemonObject.addProperty("shiny", shiny);
+
+            float scale = 1.0F;
+            if (pokemonObject.has("scale"))
+                scale = pokemonObject.get("scale").getAsFloat();
+            pokemonObject.remove("scale");
+            pokemonObject.addProperty("scale", scale);
+
+            String heldItem = "";
+            if (pokemonObject.has("held_item"))
+                heldItem = pokemonObject.get("held_item").getAsString();
+            pokemonObject.remove("held_item");
+            pokemonObject.addProperty("held_item", heldItem);
+
+            ComponentChanges heldItemData = ComponentChanges.EMPTY;
+            if (pokemonObject.has("held_item_data"))
+                heldItemData = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, pokemonObject.get("held_item_data")).getOrThrow().getFirst();
+            pokemonObject.remove("held_item_data");
+            pokemonObject.add("held_item_data", ComponentChanges.CODEC.encode(heldItemData, JsonOps.INSTANCE, new JsonObject()).getOrThrow());
+
+            List<String> moves = List.of("tackle");
+            if (pokemonObject.has("moves"))
+                moves = pokemonObject.getAsJsonArray("moves").asList().stream().map(JsonElement::getAsString).toList();
+
+            JsonArray movesArray = new JsonArray();
+            for (String move : moves)
+                movesArray.add(move);
+            pokemonObject.remove("moves");
+            pokemonObject.add("moves", movesArray);
+
+            IVs ivs = IVs.createRandomIVs(0);
+            JsonObject ivsObject = new JsonObject();
+            if (pokemonObject.has("ivs"))
+                ivsObject = pokemonObject.getAsJsonObject("ivs");
+
+            if (ivsObject.has("hp"))
+                ivs.set(Stats.HP, Math.clamp(ivsObject.get("hp").getAsInt(), 0, IVs.MAX_VALUE));
+            ivsObject.remove("hp");
+            ivsObject.addProperty("hp", ivs.get(Stats.HP));
+
+            if (ivsObject.has("atk"))
+                ivs.set(Stats.ATTACK, Math.clamp(ivsObject.get("atk").getAsInt(), 0, IVs.MAX_VALUE));
+            ivsObject.remove("atk");
+            ivsObject.addProperty("atk", ivs.get(Stats.ATTACK));
+
+            if (ivsObject.has("def"))
+                ivs.set(Stats.DEFENCE, Math.clamp(ivsObject.get("def").getAsInt(), 0, IVs.MAX_VALUE));
+            ivsObject.remove("def");
+            ivsObject.addProperty("def", ivs.get(Stats.DEFENCE));
+
+            if (ivsObject.has("sp_atk"))
+                ivs.set(Stats.SPECIAL_ATTACK, Math.clamp(ivsObject.get("sp_atk").getAsInt(), 0, IVs.MAX_VALUE));
+            ivsObject.remove("sp_atk");
+            ivsObject.addProperty("sp_atk", ivs.get(Stats.SPECIAL_ATTACK));
+
+            if (ivsObject.has("sp_def"))
+                ivs.set(Stats.SPECIAL_DEFENCE, Math.clamp(ivsObject.get("sp_def").getAsInt(), 0, IVs.MAX_VALUE));
+            ivsObject.remove("sp_def");
+            ivsObject.addProperty("sp_def", ivs.get(Stats.SPECIAL_DEFENCE));
+
+            if (ivsObject.has("spd"))
+                ivs.set(Stats.SPEED, Math.clamp(ivsObject.get("spd").getAsInt(), 0, IVs.MAX_VALUE));
+            ivsObject.remove("spd");
+            ivsObject.addProperty("spd", ivs.get(Stats.SPEED));
+
+            pokemonObject.remove("ivs");
+            pokemonObject.add("ivs", ivsObject);
+
+            EVs evs = EVs.createEmpty();
+            JsonObject evsObject = new JsonObject();
+            if (pokemonObject.has("evs"))
+                evsObject = pokemonObject.getAsJsonObject("evs");
+
+            if (evsObject.has("hp"))
+                evs.set(Stats.HP, Math.clamp(evsObject.get("hp").getAsInt(), 0, EVs.MAX_STAT_VALUE));
+            evsObject.remove("hp");
+            evsObject.addProperty("hp", evs.get(Stats.HP));
+
+            if (evsObject.has("atk"))
+                evs.set(Stats.ATTACK, Math.clamp(evsObject.get("atk").getAsInt(), 0, EVs.MAX_STAT_VALUE));
+            evsObject.remove("atk");
+            evsObject.addProperty("atk", evs.get(Stats.ATTACK));
+
+            if (evsObject.has("def"))
+                evs.set(Stats.DEFENCE, Math.clamp(evsObject.get("def").getAsInt(), 0, EVs.MAX_STAT_VALUE));
+            evsObject.remove("def");
+            evsObject.addProperty("def", evs.get(Stats.DEFENCE));
+
+            if (evsObject.has("sp_atk"))
+                evs.set(Stats.SPECIAL_ATTACK, Math.clamp(evsObject.get("sp_atk").getAsInt(), 0, EVs.MAX_STAT_VALUE));
+            evsObject.remove("sp_atk");
+            evsObject.addProperty("sp_atk", evs.get(Stats.SPECIAL_ATTACK));
+
+            if (evsObject.has("sp_def"))
+                evs.set(Stats.SPECIAL_DEFENCE, Math.clamp(evsObject.get("sp_def").getAsInt(), 0, EVs.MAX_STAT_VALUE));
+            evsObject.remove("sp_def");
+            evsObject.addProperty("sp_def", evs.get(Stats.SPECIAL_DEFENCE));
+
+            if (evsObject.has("spd"))
+                evs.set(Stats.SPEED, Math.clamp(evsObject.get("spd").getAsInt(), 0, EVs.MAX_STAT_VALUE));
+            evsObject.remove("spd");
+            evsObject.addProperty("spd", evs.get(Stats.SPEED));
+
+            pokemonObject.remove("evs");
+            pokemonObject.add("evs", evsObject);
+
+            rewardObject.remove("pokemon");
+            rewardObject.add("pokemon", pokemonObject);
+
+            return new PokemonReward(rewardObject, name, species, level, ability, nature, features, gender, shiny, scale, heldItem, heldItemData, moves, ivs, evs);
         }
         return null;
     }

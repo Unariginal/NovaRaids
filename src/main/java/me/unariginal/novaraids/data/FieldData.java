@@ -1,4 +1,6 @@
 package me.unariginal.novaraids.data;
 
-public record FieldData(boolean inline, String name, String value, boolean insertLeaderboardAfter) {
+import com.google.gson.JsonObject;
+
+public record FieldData(JsonObject fieldObject, boolean inline, String name, String value, boolean insertLeaderboardAfter) {
 }
