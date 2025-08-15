@@ -176,6 +176,15 @@ public class Raid {
         }
 
         addTask(raidBossLocation.world(), phaseLength * 20L, this::fightPhase);
+
+        if (nr.config().vouchersJoinRaids) {
+            if (startedBy != null && startingItem != null) {
+                if (addPlayer(startedBy, true)) {
+                    ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(startedBy);
+                    if (player != null) player.sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("joined_raid"), this)));
+                }
+            }
+        }
     }
 
     public void fightPhase() {
@@ -510,9 +519,9 @@ public class Raid {
 
         Task task = new Task(world, executeTick, action);
         if (tasks.containsKey(executeTick)) {
-            List<Task> taskList = tasks.get(executeTick);
+            List<Task> taskList = new ArrayList<>(tasks.get(executeTick));
             taskList.add(task);
-            tasks.replace(executeTick, taskList);
+            tasks.put(executeTick, taskList);
         } else {
             tasks.put(executeTick, List.of(task));
         }

@@ -32,6 +32,7 @@ public class Config {
 
     // Item Settings
     public boolean vouchersEnabled = true;
+    public boolean vouchersJoinRaids = false;
     public Voucher defaultVoucher;
 
     public Voucher globalChoiceVoucher;
@@ -140,6 +141,10 @@ public class Config {
         voucherSettingsObject.remove("vouchers_enabled");
         voucherSettingsObject.addProperty("vouchers_enabled", vouchersEnabled);
 
+        if (voucherSettingsObject.has("join_raid_after_voucher_use"))
+            vouchersJoinRaids = voucherSettingsObject.get("join_raid_after_voucher_use").getAsBoolean();
+        voucherSettingsObject.remove("join_raid_after_voucher_use");
+        voucherSettingsObject.addProperty("join_raid_after_voucher_use", vouchersJoinRaids);
 
         JsonObject defaultVoucherObject = new JsonObject();
         if (voucherSettingsObject.has("default_voucher"))

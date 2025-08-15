@@ -421,7 +421,7 @@ public class RaidCommands {
         if (player != null) {
             player.sendMessage(TextUtils.deserialize("<gray><st><b><i>--------- <reset><red>Nova Raids <reset><gray><st><b><i>---------"));
             player.sendMessage(TextUtils.deserialize("<gray><b>Author: <reset><white>Unariginal <i>(Ariginal)"));
-            player.sendMessage(TextUtils.deserialize("<gray><b>Version: <reset><white>Beta v0.3.0"));
+            player.sendMessage(TextUtils.deserialize("<gray><b>Version: <reset><white>Beta v0.3.1"));
             player.sendMessage(TextUtils.deserialize("<gray><b><i><u><click:open_url:https://github.com/Unariginal/NovaRaids>Source"));
             player.sendMessage(TextUtils.deserialize("<gray><b><i><u><click:open_url:https://github.com/Unariginal/NovaRaids/wiki>Wiki"));
             player.sendMessage(TextUtils.deserialize("<gray><st><b><i>----------------------------"));
@@ -1133,7 +1133,7 @@ public class RaidCommands {
                                         i--;
                                     }
                                 } else {
-                                    nr.logError("[RAIDS] Pool was null!");
+                                    nr.logError("[NovaRaids] Pool was null!");
                                 }
                             }
                         }
@@ -1194,11 +1194,11 @@ public class RaidCommands {
                             spawn_location_string = (String) spawn_location_entry.getKey();
                             spawn_location = nr.locationsConfig().getLocation(spawn_location_string);
                         } else {
-                            nr.logError("[RAIDS] Location could not be found.");
+                            nr.logError("[NovaRaids] Location could not be found.");
                             return 0;
                         }
                     } else {
-                        nr.logInfo("[RAIDS] No valid spawn locations found. All possible locations are busy.");
+                        nr.logInfo("[NovaRaids] No valid spawn locations found. All possible locations are busy.");
                         if (player != null) {
                             player.sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("no_available_locations"), boss_info)));
                         }
@@ -1207,10 +1207,10 @@ public class RaidCommands {
 
                     if (spawn_location != null) {
                         if (!nr.config().useQueueSystem) {
-                            nr.logInfo("[RAIDS] Starting raid.");
+                            nr.logInfo("[NovaRaids] Starting raid.");
                             nr.addRaid(new Raid(boss_info, spawn_location, (player != null) ? player.getUuid() : null, starting_item));
                         } else {
-                            nr.logInfo("[RAIDS] Adding queue raid.");
+                            nr.logInfo("[NovaRaids] Adding queue raid.");
                             nr.addQueueItem(new QueueItem(UUID.randomUUID(), boss_info, spawn_location, (player != null) ? player.getUuid() : null, starting_item));
 
                             if (nr.activeRaids().isEmpty()) {
@@ -1222,12 +1222,12 @@ public class RaidCommands {
                             }
                         }
                     } else {
-                        nr.logError("[RAIDS] Location was null!");
+                        nr.logError("[NovaRaids] Location was null!");
                         return 0;
                     }
                     return 1;
                 }
-                nr.logError("[RAIDS] Boss was null!");
+                nr.logError("[NovaRaids] Boss was null!");
                 return 0;
             }
         }

@@ -183,7 +183,7 @@ public class BattleManager {
 
         if (bossClone != null) {
             raid.addClone(bossClone, player);
-            pveOverride(player, bossClone, null, BattleFormat.Companion.getGEN_9_SINGLES(), false, raid.bossInfo().raidDetails().healPartyOnChallenge(), Cobblemon.config.getDefaultFleeDistance(), party, raid.bossInfo().aiSkillLevel());
+            pveOverride(player, bossClone, null, BattleFormat.Companion.getGEN_9_SINGLES(), false, raid.bossInfo().raidDetails().healPartyOnChallenge(), raid.raidBossLocation().borderRadius() * 2, party, raid.bossInfo().aiSkillLevel());
         }
     }
 

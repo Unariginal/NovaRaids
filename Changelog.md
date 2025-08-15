@@ -18,10 +18,14 @@
 - Added `ai_skill_level` to boss.json/boss_details. This is a value from 0 to 5, 0 is random AI, 5 is the best AI. (default: 3)
 - Added `blacklisted_categories` to messages.json/discord. These categories will not have webhook messages sent for them.
 - Added `blacklisted_bosses` to messages.json/discord. These bosses will not have webhook messages send for them.
+- Added `bosses_have_infinite_pp` to config.json/raid_settings. Setting this to true will give all bosses moves 10,000 PP.
+- Added `automatic_battles` to config.json/raid_settings. Setting this to true will force players into another boss battle after a set delay.
+- Added `automatic_battle_delay_seconds` to config.json/raid_settings. This is the delay before the automatic battle is started, I recommend keeping this above 2 seconds, or it may not work.
+- Added `join_raid_after_voucher_use` to config.json/item_settings/voucher_settings. Setting this to true will have players automatically join the raid they start using a voucher.
 
 ## Bug Fixes
 - Locations in other worlds will no longer make the timer count down past 0.
-- Multiverse worlds now work with locations.
+- Multiverse worlds now work with locations (probably?).
 - NovaRaids will now load in singleplayer.
 - Battles now stop properly to avoid issues such as trick item stealing, and mega evolution not reverting.
 - Boss clones will now (properly) disappear when debug is false.
@@ -29,7 +33,9 @@
 - If a border radius is less than 30, and Pokémon are set to be visible in config.json, they will get teleported to the border radius instead of being locked at 30.
 - If a player deals damage to the boss, but loses the battle, the damage they dealt will be registered rather than it being 0.
 - The `species_override` catch setting is now functional
-- More coming soon
+- Players will no longer receive a catch encounter if they leave the raid
+- Pokemon will no longer receive EXP from raid bosses.
+- Boss battle's flee-distance is now set to the arena's border radius x 2, effectively preventing fleeing from boss battles.
 
 # Nova Raids Beta v0.3.0 - The Customization Update!
 
