@@ -94,8 +94,8 @@ public class Raid {
             startingItem.setCount(1);
         }
 
-        raidBossPokemon = bossInfo.pokemonDetails().createPokemon();
-        raidBossPokemonUncatchable = bossInfo.pokemonDetails().createPokemon();
+        raidBossPokemon = bossInfo.pokemonDetails().createPokemon(false);
+        raidBossPokemonUncatchable = bossInfo.pokemonDetails().createPokemon(false);
         raidBossPokemonUncatchable.getCustomProperties().add(UncatchableProperty.INSTANCE.uncatchable());
         raidBossEntity = generateBossEntity();
         raidBossEntity.setBodyYaw(raidBossLocation.bossFacingDirection());

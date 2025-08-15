@@ -40,7 +40,7 @@ public record PokemonDetails(
         return stack;
     }
 
-    public Pokemon createPokemon() {
+    public Pokemon createPokemon(boolean catchEncounter) {
         Pokemon pokemon = new Pokemon();
         pokemon.setSpecies(species);
         if (level <= 100) {
@@ -83,7 +83,10 @@ public record PokemonDetails(
         }
 
         for (int i = 0; i < moves.size(); i++) {
-            pokemon.getMoveSet().setMove(i, moves.get(i).create());
+            if (NovaRaids.INSTANCE.config().bossesHaveInfinitePP && !catchEncounter)
+                pokemon.getMoveSet().setMove(i, moves.get(i).create(10000));
+            else
+                pokemon.getMoveSet().setMove(i, moves.get(i).create());
         }
 
         pokemon.setFriendship(friendship, true);

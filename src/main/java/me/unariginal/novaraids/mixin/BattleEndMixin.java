@@ -8,6 +8,7 @@ import com.cobblemon.mod.common.battles.actor.PokemonBattleActor;
 import com.cobblemon.mod.common.battles.pokemon.BattlePokemon;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import me.unariginal.novaraids.NovaRaids;
+import me.unariginal.novaraids.managers.BattleManager;
 import me.unariginal.novaraids.managers.Raid;
 import me.unariginal.novaraids.utils.TextUtils;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -59,6 +60,13 @@ public class BattleEndMixin {
                         raid.applyDamage(damage);
                         raid.updatePlayerDamage(player.getUuid(), damage);
                         raid.participatingBroadcast(TextUtils.deserialize(TextUtils.parse(NovaRaids.INSTANCE.messagesConfig().getMessage("player_damage_report"), raid, player, damage, -1)));
+                    }
+
+                    if (NovaRaids.INSTANCE.config().automaticBattles) {
+                        if (raid.currentHealth() > 0) {
+                            ServerPlayerEntity finalPlayer = player;
+                            raid.addTask(player.getServerWorld(), NovaRaids.INSTANCE.config().automaticBattleDelay * 20L, () -> BattleManager.invokeBattle(raid, finalPlayer));
+                        }
                     }
                     break;
                 }

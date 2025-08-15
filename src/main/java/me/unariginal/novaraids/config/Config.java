@@ -25,6 +25,9 @@ public class Config {
     public boolean hideOtherCatchEncounters = true;
     public boolean hideOtherPlayersInRaid = false;
     public boolean hideOtherPokemonInRaid = false;
+    public boolean bossesHaveInfinitePP = false;
+    public boolean automaticBattles = false;
+    public int automaticBattleDelay = 2;
     public Contraband globalContraband;
 
     // Item Settings
@@ -96,6 +99,21 @@ public class Config {
             hideOtherPokemonInRaid = raidSettingsObject.get("hide_other_pokemon_in_raid").getAsBoolean();
         raidSettingsObject.remove("hide_other_pokemon_in_raid");
         raidSettingsObject.addProperty("hide_other_pokemon_in_raid", hideOtherPokemonInRaid);
+
+        if (raidSettingsObject.has("bosses_have_infinite_pp"))
+            bossesHaveInfinitePP = raidSettingsObject.get("bosses_have_infinite_pp").getAsBoolean();
+        raidSettingsObject.remove("bosses_have_infinite_pp");
+        raidSettingsObject.addProperty("bosses_have_infinite_pp", bossesHaveInfinitePP);
+
+        if (raidSettingsObject.has("automatic_battles"))
+            automaticBattles = raidSettingsObject.get("automatic_battles").getAsBoolean();
+        raidSettingsObject.remove("automatic_battles");
+        raidSettingsObject.addProperty("automatic_battles", automaticBattles);
+
+        if (raidSettingsObject.has("automatic_battle_delay_seconds"))
+            automaticBattleDelay = raidSettingsObject.get("automatic_battle_delay_seconds").getAsInt();
+        raidSettingsObject.remove("automatic_battle_delay_seconds");
+        raidSettingsObject.addProperty("automatic_battle_delay_seconds", automaticBattleDelay);
 
         JsonObject globalContrabandObject = new JsonObject();
         if (raidSettingsObject.has("global_contraband"))

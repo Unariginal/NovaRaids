@@ -41,7 +41,7 @@ public class BattleManager {
     }
 
     public static void invokeCatchEncounter(Raid raid, ServerPlayerEntity player, float shinyChance, int minPerfectIvs) {
-        Pokemon pokemon = raid.bossInfo().pokemonDetails().createPokemon();
+        Pokemon pokemon = raid.bossInfo().pokemonDetails().createPokemon(true);
         NbtCompound data = new NbtCompound();
         data.putBoolean("raid_entity", true);
         data.putBoolean("boss_clone", true);
@@ -156,7 +156,7 @@ public class BattleManager {
     }
 
     public static void invokeBattle(Raid raid, ServerPlayerEntity player) {
-        Pokemon pokemon = raid.bossInfo().pokemonDetails().createPokemon();
+        Pokemon pokemon = raid.bossInfo().pokemonDetails().createPokemon(false);
         pokemon.setFeatures(raid.raidBossPokemonUncatchable().getFeatures());
         pokemon.getCustomProperties().add(UncatchableProperty.INSTANCE.uncatchable());
         pokemon.setAbility$common(raid.raidBossPokemonUncatchable().getAbility());

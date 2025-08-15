@@ -74,9 +74,9 @@ public class TextUtils {
                 .replaceAll("%boss.level%", String.valueOf(boss.pokemonDetails().level()))
                 .replaceAll("%boss.minimum_level%", String.valueOf(boss.raidDetails().minimumLevel()))
                 .replaceAll("%boss.maximum_level%", String.valueOf(boss.raidDetails().maximumLevel()));
-        message = spaceReplace(message, "%boss.form%", !boss.pokemonDetails().createPokemon().getForm().getName().equalsIgnoreCase("normal"), boss.pokemonDetails().createPokemon().getForm().getName());
+        message = spaceReplace(message, "%boss.form%", !boss.pokemonDetails().createPokemon(false).getForm().getName().equalsIgnoreCase("normal"), boss.pokemonDetails().createPokemon(false).getForm().getName());
         message = message
-                .replaceAll("%boss.form%", boss.pokemonDetails().createPokemon().getForm().getName())
+                .replaceAll("%boss.form%", boss.pokemonDetails().createPokemon(false).getForm().getName())
                 .replaceAll("%boss.name%", boss.displayName());
 
         return message;

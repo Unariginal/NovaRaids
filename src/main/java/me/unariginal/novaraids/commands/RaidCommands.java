@@ -1698,7 +1698,7 @@ public class RaidCommands {
                                 }
                             }
 
-                            ItemStack item = PokemonItem.from(boss.pokemonDetails().createPokemon());
+                            ItemStack item = PokemonItem.from(boss.pokemonDetails().createPokemon(false));
                             item.applyChanges(nr.guisConfig().queue_gui.displayData);
                             int finalIndex = index;
                             GuiElement element = new GuiElementBuilder(item)
