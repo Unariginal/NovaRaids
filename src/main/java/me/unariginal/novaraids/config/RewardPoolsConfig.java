@@ -20,7 +20,7 @@ public class RewardPoolsConfig {
             loadConfig();
         } catch (IOException | NullPointerException | UnsupportedOperationException e) {
             NovaRaids.LOADED = false;
-            NovaRaids.INSTANCE.logError("[RAIDS] Failed to load reward pools file. " + e.getMessage());
+            NovaRaids.INSTANCE.logError("Failed to load reward pools file. " + e.getMessage());
             for (StackTraceElement element : e.getStackTrace()) {
                 NovaRaids.INSTANCE.logError("  " + element.toString());
             }

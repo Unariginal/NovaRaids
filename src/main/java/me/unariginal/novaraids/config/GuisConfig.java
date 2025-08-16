@@ -428,7 +428,7 @@ public class GuisConfig {
         try {
             loadGuis();
         } catch (IOException | NullPointerException | UnsupportedOperationException e) {
-            nr.LOADED = false;
+            NovaRaids.LOADED = false;
             nr.logError("[RAIDS] Failed to load gui files. " + e.getMessage());
             for (StackTraceElement element : e.getStackTrace()) {
                 nr.logError("  " + element.toString());

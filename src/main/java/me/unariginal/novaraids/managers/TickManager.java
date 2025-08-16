@@ -284,20 +284,20 @@ public class TickManager {
             boolean shouldExecute = false;
             if (schedule instanceof SpecificSchedule specificSchedule) {
                 if (setTimeBuffer.until(now, ChronoUnit.SECONDS) >= 1 && specificSchedule.isNextTime()) {
-                    nr.logInfo("[RAIDS] Attempting scheduled raid");
+                    nr.logInfo("Attempting scheduled raid");
                     setTimeBuffer = now;
                     shouldExecute = true;
                 }
             } else if (schedule instanceof RandomSchedule randomSchedule) {
                 if (setTimeBuffer.until(now, ChronoUnit.SECONDS) >= 1 && randomSchedule.isNextTime()) {
-                    nr.logInfo("[RAIDS] Attempting random raid");
+                    nr.logInfo("Attempting random raid");
                     setTimeBuffer = now;
                     randomSchedule.setNextRandom(now);
                     shouldExecute = true;
                 }
             } else if (schedule instanceof CronSchedule cronSchedule) {
                 if (setTimeBuffer.until(now, ChronoUnit.SECONDS) >= 1 && cronSchedule.isNextTime()) {
-                    nr.logInfo("[RAIDS] Attempting cron raid");
+                    nr.logInfo("Attempting cron raid");
                     setTimeBuffer = now;
                     cronSchedule.setNextExecution(now);
                     shouldExecute = true;
@@ -311,13 +311,13 @@ public class TickManager {
                         if (nr.bossesConfig().getCategory(scheduleBoss.id()) != null) {
                             totalWeight += scheduleBoss.weight();
                         } else {
-                            nr.logError("[RAIDS] Category " + scheduleBoss.id() + " does not exist. Skipping.");
+                            nr.logError("Category " + scheduleBoss.id() + " does not exist. Skipping.");
                         }
                     } else if (scheduleBoss.type().equalsIgnoreCase("boss")) {
                         if (nr.bossesConfig().getBoss(scheduleBoss.id()) != null) {
                             totalWeight += scheduleBoss.weight();
                         } else {
-                            nr.logError("[RAIDS] Boss " + scheduleBoss.id() + " does not exist. Skipping.");
+                            nr.logError("Boss " + scheduleBoss.id() + " does not exist. Skipping.");
                         }
                     }
                 }
@@ -335,7 +335,7 @@ public class TickManager {
                                         nr.raidCommands().start(boss, null, null);
                                         break;
                                     } else {
-                                        nr.logError("[RAIDS] Failed to start scheduled raid. Boss was null!");
+                                        nr.logError("Failed to start scheduled raid. Boss was null!");
                                     }
                                 }
                             }

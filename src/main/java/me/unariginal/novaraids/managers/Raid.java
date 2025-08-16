@@ -266,7 +266,7 @@ public class Raid {
         try {
             nr.config().writeResults(this);
         } catch (IOException | NoSuchElementException e) {
-            nr.logError("[RAIDS] Failed to write raid information to history file.");
+            nr.logError("Failed to write raid information to history file.");
         }
 
         if (WebhookHandler.webhookToggle && WebhookHandler.endEmbedEnabled && webhook != 0) {
@@ -497,7 +497,7 @@ public class Raid {
                                         i--;
                                     }
                                 } else {
-                                    nr.logError("[RAIDS] Pool was null!");
+                                    nr.logError("Pool was null!");
                                 }
                             }
                         }

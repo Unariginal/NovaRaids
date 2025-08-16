@@ -22,7 +22,7 @@ public class BossbarsConfig {
             loadConfig();
         } catch (IOException | NullPointerException | UnsupportedOperationException e) {
             NovaRaids.LOADED = false;
-            NovaRaids.LOGGER.error("[RAIDS] Failed to load bossbars file. ", e);
+            NovaRaids.LOGGER.error("Failed to load bossbars file. ", e);
         }
     }
 
@@ -48,7 +48,7 @@ public class BossbarsConfig {
                 bar_color = BossBar.Color.valueOf(color.toUpperCase());
             } catch (IllegalArgumentException e) {
                 bar_color = BossBar.Color.BLUE;
-                NovaRaids.INSTANCE.logError("[RAIDS] Invalid bossbar color: " + color);
+                NovaRaids.INSTANCE.logError("Invalid bossbar color: " + color);
             }
 
             String style = "progress";
@@ -62,7 +62,7 @@ public class BossbarsConfig {
                 bar_style = BossBar.Overlay.valueOf(style.toUpperCase());
             } catch (IllegalArgumentException e) {
                 bar_style = BossBar.Overlay.PROGRESS;
-                NovaRaids.INSTANCE.logError("[RAIDS] Invalid bossbar style: " + style);
+                NovaRaids.INSTANCE.logError("Invalid bossbar style: " + style);
             }
 
             String text = "<red>If you're seeing this message your config is wrong!";

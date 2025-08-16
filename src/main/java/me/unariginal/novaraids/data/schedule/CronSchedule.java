@@ -8,14 +8,13 @@ import com.cronutils.parser.CronParser;
 import me.unariginal.novaraids.NovaRaids;
 
 import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
 public class CronSchedule extends Schedule {
-    String expression;
-    ZonedDateTime nextExecution;
+    public String expression;
+    public ZonedDateTime nextExecution;
 
     public CronSchedule(String type, List<ScheduleBoss> bosses, String expression) {
         super(type, bosses);
@@ -49,10 +48,10 @@ public class CronSchedule extends Schedule {
             try {
                 this.nextExecution = nextExecution.orElseThrow();
             } catch (NullPointerException e) {
-                NovaRaids.INSTANCE.logError("[RAIDS] Cron Schedule's next execution time is null!");
+                NovaRaids.INSTANCE.logError("Cron Schedule's next execution time is null!");
             }
         } catch (IllegalArgumentException e) {
-            NovaRaids.INSTANCE.logError("[RAIDS] Cron Schedule's expression is invalid! " + e.getMessage());
+            NovaRaids.INSTANCE.logError("Cron Schedule's expression is invalid! " + e.getMessage());
             for (StackTraceElement el : e.getStackTrace()) {
                 NovaRaids.INSTANCE.logError("  " + el.toString());
             }

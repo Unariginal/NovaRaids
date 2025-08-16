@@ -24,7 +24,7 @@ public class LocationsConfig {
             loadLocations();
         } catch (IOException | NullPointerException | UnsupportedOperationException e) {
             NovaRaids.LOADED = false;
-            NovaRaids.LOGGER.error("[RAIDS] Failed to load locations file.", e);
+            NovaRaids.LOGGER.error("Failed to load locations file.", e);
         }
     }
 
@@ -85,7 +85,7 @@ public class LocationsConfig {
                     }
                 }
                 if (!found) {
-                    nr.logError("[NovaRaids] World " + worldPath + " not found. Using overworld.");
+                    nr.logError("World " + worldPath + " not found. Using overworld.");
                 }
             }
             locationObject.remove("world");

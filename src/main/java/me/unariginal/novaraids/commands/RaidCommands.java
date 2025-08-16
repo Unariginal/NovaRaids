@@ -403,15 +403,8 @@ public class RaidCommands {
 
     private int reload(CommandContext<ServerCommandSource> ctx) {
         nr.reloadConfig();
-        if (NovaRaids.LOADED) {
-            if (ctx.getSource().isExecutedByPlayer()) {
-                if (ctx.getSource().getPlayer() != null) {
-                    ctx.getSource().getPlayer().sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("reload_command"))));
-                }
-            } else {
-                ctx.getSource().sendMessage(Text.literal("[Raids] Config reloaded!"));
-            }
-        }
+        if (NovaRaids.LOADED)
+            ctx.getSource().sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("reload_command"))));
 
         return 1;
     }
@@ -1133,7 +1126,7 @@ public class RaidCommands {
                                         i--;
                                     }
                                 } else {
-                                    nr.logError("[NovaRaids] Pool was null!");
+                                    nr.logError("Pool was null!");
                                 }
                             }
                         }
@@ -1194,11 +1187,11 @@ public class RaidCommands {
                             spawn_location_string = (String) spawn_location_entry.getKey();
                             spawn_location = nr.locationsConfig().getLocation(spawn_location_string);
                         } else {
-                            nr.logError("[NovaRaids] Location could not be found.");
+                            nr.logError("Location could not be found.");
                             return 0;
                         }
                     } else {
-                        nr.logInfo("[NovaRaids] No valid spawn locations found. All possible locations are busy.");
+                        nr.logInfo("No valid spawn locations found. All possible locations are busy.");
                         if (player != null) {
                             player.sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("no_available_locations"), boss_info)));
                         }
@@ -1207,10 +1200,10 @@ public class RaidCommands {
 
                     if (spawn_location != null) {
                         if (!nr.config().useQueueSystem) {
-                            nr.logInfo("[NovaRaids] Starting raid.");
+                            nr.logInfo("Starting raid.");
                             nr.addRaid(new Raid(boss_info, spawn_location, (player != null) ? player.getUuid() : null, starting_item));
                         } else {
-                            nr.logInfo("[NovaRaids] Adding queue raid.");
+                            nr.logInfo("Adding queue raid.");
                             nr.addQueueItem(new QueueItem(UUID.randomUUID(), boss_info, spawn_location, (player != null) ? player.getUuid() : null, starting_item));
 
                             if (nr.activeRaids().isEmpty()) {
@@ -1222,12 +1215,12 @@ public class RaidCommands {
                             }
                         }
                     } else {
-                        nr.logError("[NovaRaids] Location was null!");
+                        nr.logError("Location was null!");
                         return 0;
                     }
                     return 1;
                 }
-                nr.logError("[NovaRaids] Boss was null!");
+                nr.logError("Boss was null!");
                 return 0;
             }
         }
@@ -1405,7 +1398,6 @@ public class RaidCommands {
                 String boss_id;
                 if (boss_name != null) {
                     if (boss_name.equalsIgnoreCase("*")) {
-//                        nr.logInfo("[Raids] this should be a global ball");
                         category_id = "*";
                         boss_id = "*";
                         raid_pokeball = nr.config().getRaidBall(key);
@@ -1422,11 +1414,10 @@ public class RaidCommands {
                         }
                         lore = new LoreComponent(lore_text);
                     } else {
-//                        nr.logInfo("[Raids] this should be a specific boss ball for " + boss_name);
                         category_id = "null";
                         Boss boss = nr.bossesConfig().getBoss(boss_name);
                         if (boss == null) {
-                            nr.logInfo("[Raids] the boss was null");
+                            nr.logInfo("The boss was null");
                             source_player.sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("give_command_invalid_boss").replaceAll("%boss%", boss_name), source_player, target_player, amount, item_type)));
                             return 0;
                         }
@@ -1447,11 +1438,10 @@ public class RaidCommands {
                     }
                 } else {
                     if (category != null) {
-//                        nr.logInfo("[Raids] this should be a specific category ball. " + category);
                         boss_id = "*";
                         Category cat = nr.bossesConfig().getCategory(category);
                         if (cat == null) {
-                            nr.logInfo("[Raids] category was null");
+                            nr.logInfo("Category was null");
                             source_player.sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("give_command_invalid_category").replaceAll("%category%", category), source_player, target_player, amount, item_type)));
                             return 0;
                         }

@@ -43,7 +43,6 @@ public class NovaRaids implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        LOGGER.info("[NovaRaids] Loading..");
         INSTANCE = this;
 
         raidCommands = new RaidCommands();
@@ -61,7 +60,7 @@ public class NovaRaids implements ModInitializer {
                 EventManager.cobblemonEvents();
                 EventManager.capture_event();
             } else {
-                LOGGER.error("[NovaRaids] Config did not load properly! Mod will not be loaded.");
+                LOGGER.error("Config did not load properly!");
             }
         });
 
@@ -78,7 +77,7 @@ public class NovaRaids implements ModInitializer {
                     TickManager.fixPlayerPokemon();
                     TickManager.scheduledRaids();
                 } catch (ConcurrentModificationException e) {
-                    logInfo("[NovaRaids] Concurrent modification error!");
+                    logInfo("Suppressing concurrent modification exception!");
                 }
                 for (Raid raid : activeRaids.values()) {
                     raid.removePlayers();
@@ -159,18 +158,18 @@ public class NovaRaids implements ModInitializer {
 
     public void logInfo(String message) {
         if (debug) {
-            logger().info(message);
+            logger().info("[NovaRaids] {}", message);
         }
     }
 
     public void logWarning(String message) {
         if (debug) {
-            logger().warn(message);
+            logger().warn("[NovaRaids] {}", message);
         }
     }
 
     public void logError(String message) {
-        logger().error(message);
+        logger().error("[NovaRaids] {}", message);
     }
 
     public Map<Integer, Raid> activeRaids() {
@@ -185,7 +184,7 @@ public class NovaRaids implements ModInitializer {
         if (!queuedRaids.contains(item)) {
             queuedRaids.add(item);
         } else {
-            logInfo("[NovaRaids] Queue item already exists!");
+            logInfo("Queue item already exists!");
         }
     }
 

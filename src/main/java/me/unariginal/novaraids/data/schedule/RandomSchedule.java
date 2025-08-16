@@ -7,9 +7,9 @@ import java.util.List;
 import java.util.Random;
 
 public class RandomSchedule extends Schedule {
-    int minBound;
-    int maxBound;
-    ZonedDateTime nextRandom;
+    public int minBound;
+    public int maxBound;
+    public ZonedDateTime nextRandom;
 
     public RandomSchedule(String type, List<ScheduleBoss> bosses, int minBound, int maxBound) {
         super(type, bosses);

@@ -4,7 +4,6 @@ import com.mojang.authlib.GameProfile;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.bosssettings.Boss;
 import me.unariginal.novaraids.managers.Raid;
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -13,17 +12,7 @@ public class TextUtils {
     private static final NovaRaids nr = NovaRaids.INSTANCE;
 
     public static Text deserialize(String text) {
-        Text toReturn = Text.empty();
-        try {
-            Component component = MiniMessage.miniMessage().deserialize("<!i>" + text);
-            toReturn = NovaRaids.INSTANCE.audience().toNative(component);
-        } catch (Exception e) {
-            nr.logError("[RAIDS] Error deserializing string: " + e.getMessage());
-            for (StackTraceElement ste : e.getStackTrace()) {
-                nr.logError("  " + ste.toString());
-            }
-        }
-        return toReturn;
+        return nr.audience().toNative(MiniMessage.miniMessage().deserialize("<!i>" + text));
     }
 
     public static String parse(String text) {

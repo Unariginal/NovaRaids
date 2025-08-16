@@ -37,10 +37,10 @@ public record RewardPool(JsonObject poolObject, UUID uuid, String name, boolean 
                     toGive.applyReward(player);
                     appliedRewards.add(toGive.name());
                 } else {
-                    NovaRaids.INSTANCE.logError("[NovaRaids] Failed to distribute reward. No reward was found to give.");
+                    NovaRaids.INSTANCE.logError("Failed to distribute reward. No reward was found to give.");
                 }
             } else {
-                NovaRaids.INSTANCE.logError("[NovaRaids] Reward pool total weight was zero. Possibly caused by a reward pool having more rolls than available rewards with duplicates disabled.");
+                NovaRaids.INSTANCE.logError("Reward pool total weight was zero. Possibly caused by a reward pool having more rolls than available rewards with duplicates disabled.");
             }
         }
     }

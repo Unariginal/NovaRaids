@@ -6,7 +6,7 @@ import java.time.LocalTime;
 import java.util.List;
 
 public class SpecificSchedule extends Schedule {
-    List<LocalTime> setTimes;
+    public List<LocalTime> setTimes;
 
     public SpecificSchedule(String type, List<ScheduleBoss> bosses, List<LocalTime> times) {
         super(type, bosses);
