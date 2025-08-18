@@ -33,14 +33,14 @@ public class Config {
     // Item Settings
     public boolean vouchersEnabled = true;
     public boolean vouchersJoinRaids = false;
-    public Voucher defaultVoucher;
+    public Voucher defaultVoucher = null;
 
     public Voucher globalChoiceVoucher;
 
     public Voucher globalRandomVoucher;
 
     public boolean passesEnabled = true;
-    public Pass defaultPass;
+    public Pass defaultPass = null;
 
     public Pass globalPass;
 
@@ -150,7 +150,7 @@ public class Config {
         if (voucherSettingsObject.has("default_voucher"))
             defaultVoucherObject = voucherSettingsObject.getAsJsonObject("default_voucher");
 
-        defaultVoucher = ConfigHelper.getVoucher(defaultVoucherObject);
+        defaultVoucher = ConfigHelper.getVoucher(defaultVoucherObject, null);
 
         voucherSettingsObject.remove("default_voucher");
         voucherSettingsObject.add("default_voucher", defaultVoucher.voucherObject());
@@ -159,7 +159,7 @@ public class Config {
         if (voucherSettingsObject.has("global_choice_voucher"))
             globalChoiceVoucherObject = voucherSettingsObject.getAsJsonObject("global_choice_voucher");
 
-        globalChoiceVoucher = ConfigHelper.getVoucher(globalChoiceVoucherObject);
+        globalChoiceVoucher = ConfigHelper.getVoucher(globalChoiceVoucherObject, defaultVoucher);
 
         voucherSettingsObject.remove("global_choice_voucher");
         voucherSettingsObject.add("global_choice_voucher", globalChoiceVoucher.voucherObject());
@@ -168,7 +168,7 @@ public class Config {
         if (voucherSettingsObject.has("global_random_voucher"))
             globalRandomVoucherObject = voucherSettingsObject.getAsJsonObject("global_random_voucher");
 
-        globalRandomVoucher = ConfigHelper.getVoucher(globalRandomVoucherObject);
+        globalRandomVoucher = ConfigHelper.getVoucher(globalRandomVoucherObject,defaultVoucher);
 
         voucherSettingsObject.remove("global_random_voucher");
         voucherSettingsObject.add("global_random_voucher", globalRandomVoucher.voucherObject());
@@ -189,7 +189,7 @@ public class Config {
         if (passSettingsObject.has("default_pass"))
             defaultPassObject = passSettingsObject.getAsJsonObject("default_pass");
 
-        defaultPass = ConfigHelper.getPass(defaultPassObject);
+        defaultPass = ConfigHelper.getPass(defaultPassObject, null);
 
         passSettingsObject.remove("default_pass");
         passSettingsObject.add("default_pass", defaultPass.passObject());
@@ -198,7 +198,7 @@ public class Config {
         if (passSettingsObject.has("global_pass"))
             globalPassObject = passSettingsObject.getAsJsonObject("global_pass");
 
-        globalPass = ConfigHelper.getPass(globalPassObject);
+        globalPass = ConfigHelper.getPass(globalPassObject, globalPass);
 
         passSettingsObject.remove("global_pass");
         passSettingsObject.add("global_pass", globalPass.passObject());

@@ -1,5 +1,7 @@
 package me.unariginal.novaraids.data.guis;
 
+import com.google.gson.JsonObject;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,7 +18,8 @@ public class ContrabandGui extends BaseGuiData {
     public GuiButton bannedBagItemsButton;
     public DisplayItemGui bannedBagItems;
 
-    public ContrabandGui(String title,
+    public ContrabandGui(JsonObject guiObject,
+                         String title,
                          int rows,
                          List<String> layout,
                          GuiButton backgroundButton,
@@ -34,7 +37,7 @@ public class ContrabandGui extends BaseGuiData {
                          DisplayItemGui bannedHeldItems,
                          GuiButton bannedBagItemsButton,
                          DisplayItemGui bannedBagItems) {
-        super(title, rows, layout, backgroundButton, closeButton, nextButton, previousButton);
+        super(guiObject, title, rows, layout, backgroundButton, closeButton, nextButton, previousButton);
         this.useHopperGui = useHopperGui;
         this.bannedPokemonButton = bannedPokemonButton;
         this.bannedPokemon = bannedPokemon;

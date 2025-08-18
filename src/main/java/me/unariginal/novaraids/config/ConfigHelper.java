@@ -425,20 +425,6 @@ public class ConfigHelper {
         return null;
     }
 
-    public static boolean checkProperty(JsonObject section, String property, String location, boolean report) {
-        if (section.has(property)) {
-            return true;
-        }
-        if (report) {
-            NovaRaids.INSTANCE.logError("[RAIDS] Missing " + property + " property in " + location + ".json. Using default value(s) or skipping.");
-        }
-        return false;
-    }
-
-    public static boolean checkProperty(JsonObject section, String property, String location) {
-        return checkProperty(section, property, location, true);
-    }
-
     public static Contraband getContraband(JsonObject contrabandObject, String fileName) {
         List<Species> bannedPokemon = new ArrayList<>();
         List<Move> bannedMoves = new ArrayList<>();
@@ -554,11 +540,11 @@ public class ConfigHelper {
         return new Contraband(contrabandObject, bannedPokemon, bannedMoves, bannedAbilities, bannedHeldItems, bannedBagItems);
     }
 
-    public static Voucher getVoucher(JsonObject voucherObject) {
-        Item voucherItem = Items.FEATHER;
-        String voucherName = "<aqua>Raid Voucher";
-        List<String> voucherLore = List.of("<gray>Use this to start a raid!");
-        ComponentChanges voucherData = ComponentChanges.EMPTY;
+    public static Voucher getVoucher(JsonObject voucherObject, Voucher defaultVoucher) {
+        Item voucherItem = defaultVoucher == null ? Items.FEATHER : defaultVoucher.voucherItem();
+        String voucherName = defaultVoucher == null ? "<aqua>Raid Voucher" : defaultVoucher.voucherName();
+        List<String> voucherLore = defaultVoucher == null ? List.of("<gray>Use this to start a raid!") : defaultVoucher.voucherLore();
+        ComponentChanges voucherData = defaultVoucher == null ? ComponentChanges.EMPTY : defaultVoucher.voucherData();
 
         if (voucherObject.has("voucher_item"))
             voucherItem = Registries.ITEM.get(Identifier.of(voucherObject.get("voucher_item").getAsString()));
@@ -587,11 +573,11 @@ public class ConfigHelper {
         return new Voucher(voucherObject, voucherItem, voucherName, voucherLore, voucherData);
     }
 
-    public static Pass getPass(JsonObject passObject) {
-        Item passItem = Items.PAPER;
-        String passName = "<light_purple>Raid Pass";
-        List<String> passLore = List.of("<gray>Use this to join a raid!");
-        ComponentChanges passData = ComponentChanges.EMPTY;
+    public static Pass getPass(JsonObject passObject, Pass defaultPass) {
+        Item passItem = defaultPass == null ? Items.PAPER : defaultPass.passItem();
+        String passName = defaultPass == null ? "<light_purple>Raid Pass" : defaultPass.passName();
+        List<String> passLore = defaultPass == null ? List.of("<gray>Use this to join a raid!") : defaultPass.passLore();
+        ComponentChanges passData = defaultPass == null ? ComponentChanges.EMPTY : defaultPass.passData();
 
         if (passObject.has("pass_item"))
             passItem = Registries.ITEM.get(Identifier.of(passObject.get("pass_item").getAsString()));

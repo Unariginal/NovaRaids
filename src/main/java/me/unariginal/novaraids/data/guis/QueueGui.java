@@ -1,5 +1,6 @@
 package me.unariginal.novaraids.data.guis;
 
+import com.google.gson.JsonObject;
 import net.minecraft.component.ComponentChanges;
 
 import java.util.ArrayList;
@@ -12,7 +13,8 @@ public class QueueGui extends BaseGuiData {
     public List<String> cancelLore;
     public ComponentChanges displayData;
 
-    public QueueGui(String title,
+    public QueueGui(JsonObject guiObject,
+                    String title,
                     int rows,
                     List<String> layout,
                     GuiButton backgroundButton,
@@ -24,7 +26,7 @@ public class QueueGui extends BaseGuiData {
                     List<String> defaultLore,
                     List<String> cancelLore,
                     ComponentChanges displayData) {
-        super(title, rows, layout, backgroundButton, closeButton, nextButton, previousButton);
+        super(guiObject, title, rows, layout, backgroundButton, closeButton, nextButton, previousButton);
         this.displaySymbol = displaySymbol;
         this.displayName = displayName;
         this.defaultLore = defaultLore;

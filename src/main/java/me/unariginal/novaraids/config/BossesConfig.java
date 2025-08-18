@@ -203,7 +203,7 @@ public class BossesConfig {
         if (itemSettings.has("category_choice_voucher"))
             categoryChoiceVoucherObject = itemSettings.getAsJsonObject("category_choice_voucher");
 
-        Voucher categoryChoiceVoucher = ConfigHelper.getVoucher(categoryChoiceVoucherObject);
+        Voucher categoryChoiceVoucher = ConfigHelper.getVoucher(categoryChoiceVoucherObject, nr.config().defaultVoucher);
 
         itemSettings.remove("category_choice_voucher");
         itemSettings.add("category_choice_voucher", categoryChoiceVoucher.voucherObject());
@@ -212,7 +212,7 @@ public class BossesConfig {
         if (itemSettings.has("category_random_voucher"))
             categoryRandomVoucherObject = itemSettings.getAsJsonObject("category_random_voucher");
 
-        Voucher categoryRandomVoucher = ConfigHelper.getVoucher(categoryRandomVoucherObject);
+        Voucher categoryRandomVoucher = ConfigHelper.getVoucher(categoryRandomVoucherObject, nr.config().defaultVoucher);
 
         itemSettings.remove("category_random_voucher");
         itemSettings.add("category_random_voucher", categoryChoiceVoucher.voucherObject());
@@ -221,7 +221,7 @@ public class BossesConfig {
         if (itemSettings.has("category_pass"))
             categoryPassObject = itemSettings.getAsJsonObject("category_pass");
 
-        Pass categoryPass = ConfigHelper.getPass(categoryPassObject);
+        Pass categoryPass = ConfigHelper.getPass(categoryPassObject, nr.config().defaultPass);
 
         itemSettings.remove("category_pass");
         itemSettings.add("category_pass", categoryPass.passObject());
@@ -731,7 +731,7 @@ public class BossesConfig {
         if (itemSettingsObject.has("boss_voucher"))
             bossVoucherObject = itemSettingsObject.get("boss_voucher").getAsJsonObject();
 
-        Voucher bossVoucher = ConfigHelper.getVoucher(bossVoucherObject);
+        Voucher bossVoucher = ConfigHelper.getVoucher(bossVoucherObject, nr.config().defaultVoucher);
 
         itemSettingsObject.remove("boss_voucher");
         itemSettingsObject.add("boss_voucher", bossVoucher.voucherObject());
@@ -740,7 +740,7 @@ public class BossesConfig {
         if (itemSettingsObject.has("boss_pass"))
             bossPassObject = itemSettingsObject.get("boss_pass").getAsJsonObject();
 
-        Pass bossPass = ConfigHelper.getPass(bossPassObject);
+        Pass bossPass = ConfigHelper.getPass(bossPassObject, nr.config().defaultPass);
 
         itemSettingsObject.remove("boss_pass");
         itemSettingsObject.add("boss_pass", bossPass.passObject());

@@ -1,12 +1,15 @@
 package me.unariginal.novaraids.data.guis;
 
+import com.google.gson.JsonObject;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class DisplayItemGui extends BaseGuiData {
     public GuiButton displayButton;
 
-    public DisplayItemGui(String title,
+    public DisplayItemGui(JsonObject guiObject,
+                          String title,
                           int rows,
                           List<String> layout,
                           GuiButton backgroundButton,
@@ -14,7 +17,7 @@ public class DisplayItemGui extends BaseGuiData {
                           GuiButton nextButton,
                           GuiButton previousButton,
                           GuiButton displayButton) {
-        super(title, rows, layout, backgroundButton, closeButton, nextButton, previousButton);
+        super(guiObject, title, rows, layout, backgroundButton, closeButton, nextButton, previousButton);
         this.displayButton = displayButton;
     }
 

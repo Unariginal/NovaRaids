@@ -1,8 +1,6 @@
 package me.unariginal.novaraids.config;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import com.mojang.serialization.JsonOps;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.guis.*;
@@ -13,9 +11,7 @@ import java.io.*;
 import java.util.List;
 
 public class GuisConfig {
-    private final NovaRaids nr = NovaRaids.INSTANCE;
-
-    public RaidListGui raid_list_gui = new RaidListGui(
+    public RaidListGui raidListGui = new RaidListGui(null,
             "Active Raids",
             6,
             List.of(
@@ -26,28 +22,28 @@ public class GuisConfig {
                     "#########",
                     "P___C___N"
             ),
-            new GuiButton(
+            new GuiButton(null,
                     "_",
                     "minecraft:air",
                     "",
                     List.of(),
                     ComponentChanges.EMPTY
             ),
-            new GuiButton(
+            new GuiButton(null,
                     "C",
                     "minecraft:barrier",
                     "Close",
                     List.of(),
                     ComponentChanges.EMPTY
             ),
-            new GuiButton(
+            new GuiButton(null,
                     "N",
                     "minecraft:arrow",
                     "Next",
                     List.of(),
                     ComponentChanges.EMPTY
             ),
-            new GuiButton(
+            new GuiButton(null,
                     "P",
                     "minecraft:arrow",
                     "Previous",
@@ -83,7 +79,7 @@ public class GuisConfig {
             ComponentChanges.EMPTY
     );
 
-    public QueueGui queue_gui = new QueueGui(
+    public QueueGui queueGui = new QueueGui(null,
             "Queued Raids",
             6,
             List.of(
@@ -94,10 +90,10 @@ public class GuisConfig {
                     "#########",
                     "P___C___N"
             ),
-            new GuiButton("_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
-            new GuiButton("C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
-            new GuiButton("N", "minecraft:arrow", "Next", List.of(), ComponentChanges.EMPTY),
-            new GuiButton("P", "minecraft:arrow", "Previous", List.of(), ComponentChanges.EMPTY),
+            new GuiButton(null, "_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
+            new GuiButton(null, "C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
+            new GuiButton(null, "N", "minecraft:arrow", "Next", List.of(), ComponentChanges.EMPTY),
+            new GuiButton(null, "P", "minecraft:arrow", "Previous", List.of(), ComponentChanges.EMPTY),
             "#",
             "<light_purple>%boss.id%",
             List.of(),
@@ -105,7 +101,8 @@ public class GuisConfig {
             ComponentChanges.EMPTY
     );
 
-    public DisplayItemGui voucher_gui = new DisplayItemGui(
+    public DisplayItemGui voucherGui = new DisplayItemGui(
+            null,
             "Pick A Raid",
             6,
             List.of(
@@ -116,14 +113,15 @@ public class GuisConfig {
                     "#########",
                     "P___C___N"
             ),
-            new GuiButton("_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
-            new GuiButton("C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
-            new GuiButton("N", "minecraft:arrow", "Next", List.of(), ComponentChanges.EMPTY),
-            new GuiButton("P", "minecraft:arrow", "Previous", List.of(), ComponentChanges.EMPTY),
-            new GuiButton("#", null, "<light_purple>%boss.id%", List.of(), ComponentChanges.EMPTY)
+            new GuiButton(null, "_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
+            new GuiButton(null, "C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
+            new GuiButton(null, "N", "minecraft:arrow", "Next", List.of(), ComponentChanges.EMPTY),
+            new GuiButton(null, "P", "minecraft:arrow", "Previous", List.of(), ComponentChanges.EMPTY),
+            new GuiButton(null, "#", null, "<light_purple>%boss.name%", List.of(), ComponentChanges.EMPTY)
     );
 
-    public DisplayItemGui pass_gui = new DisplayItemGui(
+    public DisplayItemGui passGui = new DisplayItemGui(
+            null,
             "Pick A Raid",
             6,
             List.of(
@@ -134,11 +132,11 @@ public class GuisConfig {
                     "#########",
                     "P___C___N"
             ),
-            new GuiButton("_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
-            new GuiButton("C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
-            new GuiButton("N", "minecraft:arrow", "Next", List.of(), ComponentChanges.EMPTY),
-            new GuiButton("P", "minecraft:arrow", "Previous", List.of(), ComponentChanges.EMPTY),
-            new GuiButton("#", null, "<light_purple>%boss.id%",
+            new GuiButton(null, "_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
+            new GuiButton(null, "C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
+            new GuiButton(null, "N", "minecraft:arrow", "Next", List.of(), ComponentChanges.EMPTY),
+            new GuiButton(null, "P", "minecraft:arrow", "Previous", List.of(), ComponentChanges.EMPTY),
+            new GuiButton(null, "#", null, "<light_purple>%boss.name%",
                     List.of(
                             "<gray>HP: %boss.currenthp%/%boss.maxhp%",
                             "<gray>Category: %raid.category%",
@@ -151,17 +149,18 @@ public class GuisConfig {
             )
     );
 
-    public ContrabandGui global_contraband_gui = new ContrabandGui(
+    public ContrabandGui globalContrabandGui = new ContrabandGui(null,
             "Global Raid Contraband",
             0,
             List.of("PMAHB"),
-            new GuiButton("_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
-            new GuiButton("C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
+            new GuiButton(null, "_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
+            new GuiButton(null, "C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
             null,
             null,
             true,
-            new GuiButton("P", "cobblemon:poke_ball", "<red>Banned Pokemon", List.of(), ComponentChanges.EMPTY),
-            new DisplayItemGui("Global Banned Pokemon", 6,
+            new GuiButton(null, "P", "cobblemon:poke_ball", "<red>Banned Pokemon", List.of(), ComponentChanges.EMPTY),
+            new DisplayItemGui(
+                    null,"Global Banned Pokemon", 6,
                     List.of(
                             "#########",
                             "#########",
@@ -170,14 +169,15 @@ public class GuisConfig {
                             "#########",
                             "P___C___N"
                     ),
-                    new GuiButton("_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("N", "minecraft:arrow", "Next", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("P", "minecraft:arrow", "Previous", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("#", null, "%form% %species%", List.of(), ComponentChanges.EMPTY)
+                    new GuiButton(null, "_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "N", "minecraft:arrow", "Next", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "P", "minecraft:arrow", "Previous", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "#", null, "%form% %species%", List.of(), ComponentChanges.EMPTY)
             ),
-            new GuiButton("M", "cobblemon:razor_claw", "<red>Banned Moves", List.of(), ComponentChanges.EMPTY),
-            new DisplayItemGui("Global Banned Moves", 6,
+            new GuiButton(null, "M", "cobblemon:razor_claw", "<red>Banned Moves", List.of(), ComponentChanges.EMPTY),
+            new DisplayItemGui(
+                    null,"Global Banned Moves", 6,
                     List.of(
                             "#########",
                             "#########",
@@ -186,14 +186,15 @@ public class GuisConfig {
                             "#########",
                             "P___C___N"
                     ),
-                    new GuiButton("_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("N", "minecraft:arrow", "Next", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("P", "minecraft:arrow", "Previous", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("#", "minecraft:paper", "%move%", List.of(), ComponentChanges.EMPTY)
+                    new GuiButton(null, "_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "N", "minecraft:arrow", "Next", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "P", "minecraft:arrow", "Previous", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "#", "minecraft:paper", "%move%", List.of(), ComponentChanges.EMPTY)
             ),
-            new GuiButton("A", "cobblemon:ability_patch", "<red>Banned Abilities", List.of(), ComponentChanges.EMPTY),
-            new DisplayItemGui("Global Banned Abilities", 6,
+            new GuiButton(null, "A", "cobblemon:ability_patch", "<red>Banned Abilities", List.of(), ComponentChanges.EMPTY),
+            new DisplayItemGui(
+                    null,"Global Banned Abilities", 6,
                     List.of(
                             "#########",
                             "#########",
@@ -202,14 +203,15 @@ public class GuisConfig {
                             "#########",
                             "P___C___N"
                     ),
-                    new GuiButton("_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("N", "minecraft:arrow", "Next", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("P", "minecraft:arrow", "Previous", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("#", "minecraft:nether_star", "%ability%", List.of(), ComponentChanges.EMPTY)
+                    new GuiButton(null, "_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "N", "minecraft:arrow", "Next", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "P", "minecraft:arrow", "Previous", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "#", "minecraft:nether_star", "%ability%", List.of(), ComponentChanges.EMPTY)
             ),
-            new GuiButton("H", "cobblemon:leftovers", "<red>Banned Held Items", List.of(), ComponentChanges.EMPTY),
-            new DisplayItemGui("Global Banned Held Items", 6,
+            new GuiButton(null, "H", "cobblemon:leftovers", "<red>Banned Held Items", List.of(), ComponentChanges.EMPTY),
+            new DisplayItemGui(
+                    null,"Global Banned Held Items", 6,
                     List.of(
                             "#########",
                             "#########",
@@ -218,14 +220,15 @@ public class GuisConfig {
                             "#########",
                             "P___C___N"
                     ),
-                    new GuiButton("_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("N", "minecraft:arrow", "Next", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("P", "minecraft:arrow", "Previous", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("#", null, "%item%", List.of(), ComponentChanges.EMPTY)
+                    new GuiButton(null, "_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "N", "minecraft:arrow", "Next", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "P", "minecraft:arrow", "Previous", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "#", null, "%item%", List.of(), ComponentChanges.EMPTY)
             ),
-            new GuiButton("B", "cobblemon:potion", "<red>Banned Bag Items", List.of(), ComponentChanges.EMPTY),
-            new DisplayItemGui("Global Banned Bag Items", 6,
+            new GuiButton(null, "B", "cobblemon:potion", "<red>Banned Bag Items", List.of(), ComponentChanges.EMPTY),
+            new DisplayItemGui(
+                    null,"Global Banned Bag Items", 6,
                     List.of(
                             "#########",
                             "#########",
@@ -234,25 +237,26 @@ public class GuisConfig {
                             "#########",
                             "P___C___N"
                     ),
-                    new GuiButton("_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("N", "minecraft:arrow", "Next", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("P", "minecraft:arrow", "Previous", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("#", null, "%item%", List.of(), ComponentChanges.EMPTY)
+                    new GuiButton(null, "_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "N", "minecraft:arrow", "Next", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "P", "minecraft:arrow", "Previous", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "#", null, "%item%", List.of(), ComponentChanges.EMPTY)
             )
     );
 
-    public ContrabandGui category_contraband_gui = new ContrabandGui(
+    public ContrabandGui categoryContrabandGui = new ContrabandGui(null,
             "%category% Raid Contraband",
             0,
             List.of("PMAHB"),
-            new GuiButton("_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
-            new GuiButton("C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
+            new GuiButton(null, "_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
+            new GuiButton(null, "C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
             null,
             null,
             true,
-            new GuiButton("P", "cobblemon:poke_ball", "<red>Banned Pokemon", List.of(), ComponentChanges.EMPTY),
-            new DisplayItemGui("%category% Banned Pokemon", 6,
+            new GuiButton(null, "P", "cobblemon:poke_ball", "<red>Banned Pokemon", List.of(), ComponentChanges.EMPTY),
+            new DisplayItemGui(
+                    null,"%category% Banned Pokemon", 6,
                     List.of(
                             "#########",
                             "#########",
@@ -261,14 +265,15 @@ public class GuisConfig {
                             "#########",
                             "P___C___N"
                     ),
-                    new GuiButton("_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("N", "minecraft:arrow", "Next", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("P", "minecraft:arrow", "Previous", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("#", null, "%form% %species%", List.of(), ComponentChanges.EMPTY)
+                    new GuiButton(null, "_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "N", "minecraft:arrow", "Next", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "P", "minecraft:arrow", "Previous", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "#", null, "%form% %species%", List.of(), ComponentChanges.EMPTY)
             ),
-            new GuiButton("M", "cobblemon:razor_claw", "<red>Banned Moves", List.of(), ComponentChanges.EMPTY),
-            new DisplayItemGui("%category% Banned Moves", 6,
+            new GuiButton(null, "M", "cobblemon:razor_claw", "<red>Banned Moves", List.of(), ComponentChanges.EMPTY),
+            new DisplayItemGui(
+                    null,"%category% Banned Moves", 6,
                     List.of(
                             "#########",
                             "#########",
@@ -277,14 +282,15 @@ public class GuisConfig {
                             "#########",
                             "P___C___N"
                     ),
-                    new GuiButton("_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("N", "minecraft:arrow", "Next", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("P", "minecraft:arrow", "Previous", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("#", "minecraft:paper", "%move%", List.of(), ComponentChanges.EMPTY)
+                    new GuiButton(null, "_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "N", "minecraft:arrow", "Next", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "P", "minecraft:arrow", "Previous", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "#", "minecraft:paper", "%move%", List.of(), ComponentChanges.EMPTY)
             ),
-            new GuiButton("A", "cobblemon:ability_patch", "<red>Banned Abilities", List.of(), ComponentChanges.EMPTY),
-            new DisplayItemGui("%category% Banned Abilities", 6,
+            new GuiButton(null, "A", "cobblemon:ability_patch", "<red>Banned Abilities", List.of(), ComponentChanges.EMPTY),
+            new DisplayItemGui(
+                    null,"%category% Banned Abilities", 6,
                     List.of(
                             "#########",
                             "#########",
@@ -293,14 +299,15 @@ public class GuisConfig {
                             "#########",
                             "P___C___N"
                     ),
-                    new GuiButton("_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("N", "minecraft:arrow", "Next", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("P", "minecraft:arrow", "Previous", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("#", "minecraft:nether_star", "%ability%", List.of(), ComponentChanges.EMPTY)
+                    new GuiButton(null, "_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "N", "minecraft:arrow", "Next", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "P", "minecraft:arrow", "Previous", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "#", "minecraft:nether_star", "%ability%", List.of(), ComponentChanges.EMPTY)
             ),
-            new GuiButton("H", "cobblemon:leftovers", "<red>Banned Held Items", List.of(), ComponentChanges.EMPTY),
-            new DisplayItemGui("%category% Banned Held Items", 6,
+            new GuiButton(null, "H", "cobblemon:leftovers", "<red>Banned Held Items", List.of(), ComponentChanges.EMPTY),
+            new DisplayItemGui(
+                    null,"%category% Banned Held Items", 6,
                     List.of(
                             "#########",
                             "#########",
@@ -309,14 +316,15 @@ public class GuisConfig {
                             "#########",
                             "P___C___N"
                     ),
-                    new GuiButton("_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("N", "minecraft:arrow", "Next", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("P", "minecraft:arrow", "Previous", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("#", null, "%item%", List.of(), ComponentChanges.EMPTY)
+                    new GuiButton(null, "_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "N", "minecraft:arrow", "Next", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "P", "minecraft:arrow", "Previous", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "#", null, "%item%", List.of(), ComponentChanges.EMPTY)
             ),
-            new GuiButton("B", "cobblemon:potion", "<red>Banned Bag Items", List.of(), ComponentChanges.EMPTY),
-            new DisplayItemGui("%category% Banned Bag Items", 6,
+            new GuiButton(null, "B", "cobblemon:potion", "<red>Banned Bag Items", List.of(), ComponentChanges.EMPTY),
+            new DisplayItemGui(
+                    null,"%category% Banned Bag Items", 6,
                     List.of(
                             "#########",
                             "#########",
@@ -325,25 +333,26 @@ public class GuisConfig {
                             "#########",
                             "P___C___N"
                     ),
-                    new GuiButton("_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("N", "minecraft:arrow", "Next", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("P", "minecraft:arrow", "Previous", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("#", null, "%item%", List.of(), ComponentChanges.EMPTY)
+                    new GuiButton(null, "_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "N", "minecraft:arrow", "Next", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "P", "minecraft:arrow", "Previous", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "#", null, "%item%", List.of(), ComponentChanges.EMPTY)
             )
     );
 
-    public ContrabandGui boss_contraband_gui = new ContrabandGui(
+    public ContrabandGui bossContrabandGui = new ContrabandGui(null,
             "%boss.id% Raid Contraband",
             0,
             List.of("PMAHB"),
-            new GuiButton("_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
-            new GuiButton("C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
+            new GuiButton(null, "_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
+            new GuiButton(null, "C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
             null,
             null,
             true,
-            new GuiButton("P", "cobblemon:poke_ball", "<red>Banned Pokemon", List.of(), ComponentChanges.EMPTY),
-            new DisplayItemGui("%boss.id% Banned Pokemon", 6,
+            new GuiButton(null, "P", "cobblemon:poke_ball", "<red>Banned Pokemon", List.of(), ComponentChanges.EMPTY),
+            new DisplayItemGui(
+                    null,"%boss.id% Banned Pokemon", 6,
                     List.of(
                             "#########",
                             "#########",
@@ -352,14 +361,15 @@ public class GuisConfig {
                             "#########",
                             "P___C___N"
                     ),
-                    new GuiButton("_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("N", "minecraft:arrow", "Next", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("P", "minecraft:arrow", "Previous", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("#", null, "%form% %species%", List.of(), ComponentChanges.EMPTY)
+                    new GuiButton(null, "_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "N", "minecraft:arrow", "Next", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "P", "minecraft:arrow", "Previous", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "#", null, "%form% %species%", List.of(), ComponentChanges.EMPTY)
             ),
-            new GuiButton("M", "cobblemon:razor_claw", "<red>Banned Moves", List.of(), ComponentChanges.EMPTY),
-            new DisplayItemGui("%boss.id% Banned Moves", 6,
+            new GuiButton(null, "M", "cobblemon:razor_claw", "<red>Banned Moves", List.of(), ComponentChanges.EMPTY),
+            new DisplayItemGui(
+                    null,"%boss.id% Banned Moves", 6,
                     List.of(
                             "#########",
                             "#########",
@@ -368,14 +378,15 @@ public class GuisConfig {
                             "#########",
                             "P___C___N"
                     ),
-                    new GuiButton("_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("N", "minecraft:arrow", "Next", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("P", "minecraft:arrow", "Previous", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("#", "minecraft:paper", "%move%", List.of(), ComponentChanges.EMPTY)
+                    new GuiButton(null, "_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "N", "minecraft:arrow", "Next", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "P", "minecraft:arrow", "Previous", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "#", "minecraft:paper", "%move%", List.of(), ComponentChanges.EMPTY)
             ),
-            new GuiButton("A", "cobblemon:ability_patch", "<red>Banned Abilities", List.of(), ComponentChanges.EMPTY),
-            new DisplayItemGui("%boss.id% Banned Abilities", 6,
+            new GuiButton(null, "A", "cobblemon:ability_patch", "<red>Banned Abilities", List.of(), ComponentChanges.EMPTY),
+            new DisplayItemGui(
+                    null,"%boss.id% Banned Abilities", 6,
                     List.of(
                             "#########",
                             "#########",
@@ -384,14 +395,15 @@ public class GuisConfig {
                             "#########",
                             "P___C___N"
                     ),
-                    new GuiButton("_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("N", "minecraft:arrow", "Next", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("P", "minecraft:arrow", "Previous", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("#", "minecraft:nether_star", "%ability%", List.of(), ComponentChanges.EMPTY)
+                    new GuiButton(null, "_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "N", "minecraft:arrow", "Next", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "P", "minecraft:arrow", "Previous", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "#", "minecraft:nether_star", "%ability%", List.of(), ComponentChanges.EMPTY)
             ),
-            new GuiButton("H", "cobblemon:leftovers", "<red>Banned Held Items", List.of(), ComponentChanges.EMPTY),
-            new DisplayItemGui("%boss.id% Banned Held Items", 6,
+            new GuiButton(null, "H", "cobblemon:leftovers", "<red>Banned Held Items", List.of(), ComponentChanges.EMPTY),
+            new DisplayItemGui(
+                    null,"%boss.id% Banned Held Items", 6,
                     List.of(
                             "#########",
                             "#########",
@@ -400,14 +412,16 @@ public class GuisConfig {
                             "#########",
                             "P___C___N"
                     ),
-                    new GuiButton("_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("N", "minecraft:arrow", "Next", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("P", "minecraft:arrow", "Previous", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("#", null, "%item%", List.of(), ComponentChanges.EMPTY)
+                    new GuiButton(null, "_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "N", "minecraft:arrow", "Next", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "P", "minecraft:arrow", "Previous", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "#", null, "%item%", List.of(), ComponentChanges.EMPTY)
             ),
-            new GuiButton("B", "cobblemon:potion", "<red>Banned Bag Items", List.of(), ComponentChanges.EMPTY),
-            new DisplayItemGui("%boss.id% Banned Bag Items", 6,
+            new GuiButton(null, "B", "cobblemon:potion", "<red>Banned Bag Items", List.of(), ComponentChanges.EMPTY),
+            new DisplayItemGui(
+                    null,
+                    "%boss.id% Banned Bag Items", 6,
                     List.of(
                             "#########",
                             "#########",
@@ -416,11 +430,11 @@ public class GuisConfig {
                             "#########",
                             "P___C___N"
                     ),
-                    new GuiButton("_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("N", "minecraft:arrow", "Next", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("P", "minecraft:arrow", "Previous", List.of(), ComponentChanges.EMPTY),
-                    new GuiButton("#", null, "%item%", List.of(), ComponentChanges.EMPTY)
+                    new GuiButton(null, "_", "minecraft:air", "", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "C", "minecraft:barrier", "Close", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "N", "minecraft:arrow", "Next", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "P", "minecraft:arrow", "Previous", List.of(), ComponentChanges.EMPTY),
+                    new GuiButton(null, "#", null, "%item%", List.of(), ComponentChanges.EMPTY)
             )
     );
 
@@ -429,10 +443,7 @@ public class GuisConfig {
             loadGuis();
         } catch (IOException | NullPointerException | UnsupportedOperationException e) {
             NovaRaids.LOADED = false;
-            nr.logError("[RAIDS] Failed to load gui files. " + e.getMessage());
-            for (StackTraceElement element : e.getStackTrace()) {
-                nr.logError("  " + element.toString());
-            }
+            NovaRaids.LOGGER.error("[NovaRaids] Failed to load gui files.", e);
         }
     }
 
@@ -448,358 +459,444 @@ public class GuisConfig {
         }
 
         File file = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/guis/raid_list.json").toFile();
-        if (file.createNewFile()) {
-            InputStream stream = NovaRaids.class.getResourceAsStream("/raid_config_files/guis/raid_list.json");
-            assert stream != null;
-            OutputStream out = new FileOutputStream(file);
-
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = stream.read(buffer)) > 0) {
-                out.write(buffer, 0, length);
-            }
-
-            stream.close();
-            out.close();
-        }
         loadRaidList(file);
 
+        file.delete();
+        file.createNewFile();
+        Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+        Writer writer = new FileWriter(file);
+        gson.toJson(raidListGui.guiObject, writer);
+        writer.close();
+
         file = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/guis/raid_queue.json").toFile();
-        if (file.createNewFile()) {
-            InputStream stream = NovaRaids.class.getResourceAsStream("/raid_config_files/guis/raid_queue.json");
-            assert stream != null;
-            OutputStream out = new FileOutputStream(file);
-
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = stream.read(buffer)) > 0) {
-                out.write(buffer, 0, length);
-            }
-
-            stream.close();
-            out.close();
-        }
         loadRaidQueue(file);
 
+        file.delete();
+        file.createNewFile();
+        gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+        writer = new FileWriter(file);
+        gson.toJson(queueGui.guiObject, writer);
+        writer.close();
+
         file = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/guis/raid_voucher.json").toFile();
-        if (file.createNewFile()) {
-            InputStream stream = NovaRaids.class.getResourceAsStream("/raid_config_files/guis/raid_voucher.json");
-            assert stream != null;
-            OutputStream out = new FileOutputStream(file);
-
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = stream.read(buffer)) > 0) {
-                out.write(buffer, 0, length);
-            }
-
-            stream.close();
-            out.close();
-        }
         loadRaidVoucher(file);
 
         file = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/guis/raid_pass.json").toFile();
-        if (file.createNewFile()) {
-            InputStream stream = NovaRaids.class.getResourceAsStream("/raid_config_files/guis/raid_pass.json");
-            assert stream != null;
-            OutputStream out = new FileOutputStream(file);
-
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = stream.read(buffer)) > 0) {
-                out.write(buffer, 0, length);
-            }
-
-            stream.close();
-            out.close();
-        }
         loadRaidPass(file);
 
         file = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/guis/global_contraband.json").toFile();
-        if (file.createNewFile()) {
-            InputStream stream = NovaRaids.class.getResourceAsStream("/raid_config_files/guis/global_contraband.json");
-            assert stream != null;
-            OutputStream out = new FileOutputStream(file);
+        globalContrabandGui = loadContrabandGui(file, globalContrabandGui);
 
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = stream.read(buffer)) > 0) {
-                out.write(buffer, 0, length);
-            }
-
-            stream.close();
-            out.close();
-        }
-        global_contraband_gui = loadContrabandGui(file, global_contraband_gui, "guis/global_contraband");
+        file.delete();
+        file.createNewFile();
+        gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+        writer = new FileWriter(file);
+        gson.toJson(globalContrabandGui.guiObject, writer);
+        writer.close();
 
         file = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/guis/category_contraband.json").toFile();
-        if (file.createNewFile()) {
-            InputStream stream = NovaRaids.class.getResourceAsStream("/raid_config_files/guis/category_contraband.json");
-            assert stream != null;
-            OutputStream out = new FileOutputStream(file);
+        categoryContrabandGui = loadContrabandGui(file, categoryContrabandGui);
 
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = stream.read(buffer)) > 0) {
-                out.write(buffer, 0, length);
-            }
-
-            stream.close();
-            out.close();
-        }
-        category_contraband_gui = loadContrabandGui(file, category_contraband_gui, "guis/category_contraband");
+        file.delete();
+        file.createNewFile();
+        gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+        writer = new FileWriter(file);
+        gson.toJson(categoryContrabandGui.guiObject, writer);
+        writer.close();
 
         file = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/guis/boss_contraband.json").toFile();
-        if (file.createNewFile()) {
-            InputStream stream = NovaRaids.class.getResourceAsStream("/raid_config_files/guis/boss_contraband.json");
-            assert stream != null;
-            OutputStream out = new FileOutputStream(file);
+        bossContrabandGui = loadContrabandGui(file, bossContrabandGui);
 
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = stream.read(buffer)) > 0) {
-                out.write(buffer, 0, length);
-            }
-
-            stream.close();
-            out.close();
-        }
-        boss_contraband_gui = loadContrabandGui(file, boss_contraband_gui, "guis/boss_contraband");
+        file.delete();
+        file.createNewFile();
+        gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+        writer = new FileWriter(file);
+        gson.toJson(bossContrabandGui.guiObject, writer);
+        writer.close();
     }
 
-    public ContrabandGui loadContrabandGui(File file, ContrabandGui gui, String location) throws IOException, NullPointerException, UnsupportedOperationException {
-        JsonElement root = JsonParser.parseReader(new FileReader(file));
-        assert root != null;
-        JsonObject config = root.getAsJsonObject();
+    public ContrabandGui loadContrabandGui(File file, ContrabandGui gui) throws IOException, NullPointerException, UnsupportedOperationException {
+        JsonObject config = new JsonObject();
+        if (file.exists()) config = JsonParser.parseReader(new FileReader(file)).getAsJsonObject();
 
-        if (ConfigHelper.checkProperty(config, "gui_title", location)) {
+        if (config.has("gui_title"))
             gui.title = config.get("gui_title").getAsString();
-        }
-        if (ConfigHelper.checkProperty(config, "use_hopper_gui", location)) {
+        config.remove("gui_title");
+        config.addProperty("gui_title", gui.title);
+        
+        if (config.has("use_hopper_gui"))
             gui.useHopperGui = config.get("use_hopper_gui").getAsBoolean();
-        }
-        if (ConfigHelper.checkProperty(config, "rows", location)) {
+        config.remove("use_hopper_gui");
+        config.addProperty("use_hopper_gui", gui.useHopperGui);
+        
+        if (config.has("rows"))
             gui.rows = config.get("rows").getAsInt();
-        }
-        if (ConfigHelper.checkProperty(config, "gui_layout", location)) {
-            gui.layout = config.getAsJsonArray("gui_layout").asList().stream().map(JsonElement::getAsString).toList();
-        }
+        config.remove("rows");
+        config.addProperty("rows", gui.rows);
 
-        gui.bannedPokemonButton = getButton(config, "banned_pokemon", location, gui.bannedPokemonButton);
-        gui.bannedPokemon = getBannedItemGui(config, "banned_pokemon", "pokemon_display_item", location, gui.bannedPokemon);
-        gui.bannedMovesButton = getButton(config, "banned_moves", location, gui.bannedMovesButton);
-        gui.bannedMoves = getBannedItemGui(config, "banned_moves", "move_display_item", location, gui.bannedMoves);
-        gui.bannedAbilitiesButton = getButton(config, "banned_abilities", location, gui.bannedAbilitiesButton);
-        gui.bannedAbilities = getBannedItemGui(config, "banned_abilities", "ability_display_item", location, gui.bannedAbilities);
-        gui.bannedHeldItemsButton = getButton(config, "banned_held_items", location, gui.bannedHeldItemsButton);
-        gui.bannedHeldItems = getBannedItemGui(config, "banned_held_items", "held_item_display_item", location, gui.bannedHeldItems);
-        gui.bannedBagItemsButton = getButton(config, "banned_bag_items", location, gui.bannedBagItemsButton);
-        gui.bannedBagItems = getBannedItemGui(config, "banned_bag_items", "bag_item_display_item", location, gui.bannedBagItems);
+        if (config.has("gui_layout"))
+            gui.layout = config.getAsJsonArray("gui_layout").asList().stream().map(JsonElement::getAsString).toList();
+        config.remove("gui_layout");
+        JsonArray guiLayoutArray = new JsonArray();
+        for (String layout : gui.layout) {
+            guiLayoutArray.add(layout);
+        }
+        config.add("gui_layout", guiLayoutArray);
+
+        gui.bannedPokemonButton = getButton(config, "banned_pokemon", gui.bannedPokemonButton);
+        config.remove("banned_pokemon");
+        config.add("banned_pokemon", gui.bannedPokemonButton.buttonObject());
+        gui.bannedPokemon = getDisplayItemGui(gui.bannedPokemonButton.buttonObject(), "pokemon_display_item", gui.bannedPokemon, true);
+
+        gui.bannedMovesButton = getButton(config, "banned_moves", gui.bannedMovesButton);
+        config.remove("banned_moves");
+        config.add("banned_moves", gui.bannedMovesButton.buttonObject());
+        gui.bannedMoves = getDisplayItemGui(gui.bannedMovesButton.buttonObject(), "move_display_item", gui.bannedMoves, true);
+
+        gui.bannedAbilitiesButton = getButton(config, "banned_abilities", gui.bannedAbilitiesButton);
+        config.remove("banned_abilities");
+        config.add("banned_abilities", gui.bannedAbilitiesButton.buttonObject());
+        gui.bannedAbilities = getDisplayItemGui(gui.bannedAbilitiesButton.buttonObject(), "ability_display_item", gui.bannedAbilities, true);
+
+        gui.bannedHeldItemsButton = getButton(config, "banned_held_items", gui.bannedHeldItemsButton);
+        config.remove("banned_held_items");
+        config.add("banned_held_items", gui.bannedHeldItemsButton.buttonObject());
+        gui.bannedHeldItems = getDisplayItemGui(gui.bannedHeldItemsButton.buttonObject(), "held_item_display_item", gui.bannedHeldItems, true);
+
+        gui.bannedBagItemsButton = getButton(config, "banned_bag_items", gui.bannedBagItemsButton);
+        config.remove("banned_bag_items");
+        config.add("banned_bag_items", gui.bannedBagItemsButton.buttonObject());
+        gui.bannedBagItems = getDisplayItemGui(gui.bannedBagItemsButton.buttonObject(), "bag_item_display_item", gui.bannedBagItems, true);
+
+        gui.backgroundButton = getButton(config, "background_item", gui.backgroundButton);
+        config.remove("background_item");
+        config.add("background_item", gui.backgroundButton.buttonObject());
+
+        gui.closeButton = getButton(config, "close_item", gui.closeButton);
+        config.remove("close_item");
+        config.add("close_item", gui.closeButton.buttonObject());
+
+        gui.guiObject = config;
 
         return gui;
     }
 
-    public DisplayItemGui getBannedItemGui(JsonObject config, String property, String display_item_property, String location, DisplayItemGui gui) throws NullPointerException, UnsupportedOperationException {
-        if (ConfigHelper.checkProperty(config, property, location)) {
-            JsonObject banned_section = config.getAsJsonObject(property);
-            if (ConfigHelper.checkProperty(banned_section, "gui_settings", location)) {
-                JsonObject gui_settings = banned_section.getAsJsonObject("gui_settings");
-                if (ConfigHelper.checkProperty(gui_settings, "gui_title", location)) {
-                    gui.title = gui_settings.get("gui_title").getAsString();
-                }
-                if (ConfigHelper.checkProperty(gui_settings, "rows", location)) {
-                    gui.rows = gui_settings.get("rows").getAsInt();
-                }
-                if (ConfigHelper.checkProperty(gui_settings, "gui_layout", location)) {
-                    gui.layout = gui_settings.getAsJsonArray("gui_layout").asList().stream().map(JsonElement::getAsString).toList();
-                }
-                gui.displayButton = getButton(gui_settings, display_item_property, location, gui.displayButton);
-                gui.backgroundButton = getButton(gui_settings, "background_item", location, gui.backgroundButton);
-                gui.previousButton = getButton(gui_settings, "previous_item", location, gui.previousButton);
-                gui.nextButton = getButton(gui_settings, "next_item", location, gui.nextButton);
-                gui.closeButton = getButton(gui_settings, "close_item", location, gui.closeButton);
-            }
+    public DisplayItemGui getDisplayItemGui(JsonObject config, String displayItemProperty, DisplayItemGui gui, boolean subGUI) throws NullPointerException, UnsupportedOperationException {
+        if (config == null) config = new JsonObject();
+
+        JsonObject guiSettingsObject = new JsonObject();
+        if (subGUI) {
+            if (config.has("gui_settings"))
+                guiSettingsObject = config.getAsJsonObject("gui_settings");
+        } else {
+            guiSettingsObject = config;
         }
+
+        if (guiSettingsObject.has("gui_title"))
+            gui.title = guiSettingsObject.get("gui_title").getAsString();
+        guiSettingsObject.remove("gui_title");
+        guiSettingsObject.addProperty("gui_title", gui.title);
+
+        if (guiSettingsObject.has("rows"))
+            gui.rows = guiSettingsObject.get("rows").getAsInt();
+        guiSettingsObject.remove("rows");
+        guiSettingsObject.addProperty("rows", gui.rows);
+
+        if (guiSettingsObject.has("gui_layout"))
+            gui.layout = guiSettingsObject.getAsJsonArray("gui_layout").asList().stream().map(JsonElement::getAsString).toList();
+        guiSettingsObject.remove("gui_layout");
+        JsonArray guiLayoutArray = new JsonArray();
+        for (String layout : gui.layout) {
+            guiLayoutArray.add(layout);
+        }
+        guiSettingsObject.add("gui_layout", guiLayoutArray);
+
+        gui.displayButton = getButton(guiSettingsObject, displayItemProperty, gui.displayButton);
+        guiSettingsObject.remove(displayItemProperty);
+        guiSettingsObject.add(displayItemProperty, gui.displayButton.buttonObject());
+
+        gui.backgroundButton = getButton(guiSettingsObject, "background_item", gui.backgroundButton);
+        guiSettingsObject.remove("background_item");
+        guiSettingsObject.add("background_item", gui.backgroundButton.buttonObject());
+
+        gui.previousButton = getButton(guiSettingsObject, "previous_item", gui.previousButton);
+        guiSettingsObject.remove("previous_item");
+        guiSettingsObject.add("previous_item", gui.previousButton.buttonObject());
+
+        gui.nextButton = getButton(guiSettingsObject, "next_item", gui.nextButton);
+        guiSettingsObject.remove("next_item");
+        guiSettingsObject.add("next_item", gui.nextButton.buttonObject());
+
+        gui.closeButton = getButton(guiSettingsObject, "close_item", gui.closeButton);
+        guiSettingsObject.remove("close_item");
+        guiSettingsObject.add("close_item", gui.closeButton.buttonObject());
+
+        gui.guiObject = guiSettingsObject;
+
         return gui;
     }
 
     public void loadRaidList(File file) throws IOException, NullPointerException, UnsupportedOperationException {
-        JsonElement root = JsonParser.parseReader(new FileReader(file));
-        assert root != null;
-        JsonObject config = root.getAsJsonObject();
-        
-        String location = "guis/raid_list";
-        
-        if (ConfigHelper.checkProperty(config, "gui_title", location)) {
-            raid_list_gui.title = config.get("gui_title").getAsString();
+        JsonObject config = new JsonObject();
+        if (file.exists()) config = JsonParser.parseReader(new FileReader(file)).getAsJsonObject();
+
+        if (config.has("gui_title"))
+            raidListGui.title = config.get("gui_title").getAsString();
+        config.remove("gui_title");
+        config.addProperty("gui_title", raidListGui.title);
+
+        if (config.has("rows"))
+            raidListGui.rows = config.get("rows").getAsInt();
+        config.remove("rows");
+        config.addProperty("rows", raidListGui.rows);
+
+        if (config.has("gui_layout"))
+            raidListGui.layout = config.getAsJsonArray("gui_layout").asList().stream().map(JsonElement::getAsString).toList();
+        config.remove("gui_layout");
+        JsonArray guiLayoutArray = new JsonArray();
+        for (String layout : raidListGui.layout) {
+            guiLayoutArray.add(layout);
         }
-        if (ConfigHelper.checkProperty(config, "rows", location)) {
-            raid_list_gui.rows = config.get("rows").getAsInt();
+        config.add("gui_layout", guiLayoutArray);
+
+        JsonObject raidDisplayItemObject = new JsonObject();
+        if (config.has("raid_display_item"))
+            raidDisplayItemObject = config.getAsJsonObject("raid_display_item");
+
+        if (raidDisplayItemObject.has("symbol"))
+            raidListGui.displaySymbol = raidDisplayItemObject.get("symbol").getAsString();
+        raidDisplayItemObject.remove("symbol");
+        raidDisplayItemObject.addProperty("symbol", raidListGui.displaySymbol);
+
+        if (raidDisplayItemObject.has("item_name"))
+            raidListGui.displayName = raidDisplayItemObject.get("item_name").getAsString();
+        raidDisplayItemObject.remove("item_name");
+        raidDisplayItemObject.addProperty("item_name", raidListGui.displayName);
+
+        JsonObject displayItemLoreObject = new JsonObject();
+        if (raidDisplayItemObject.has("item_lore"))
+            displayItemLoreObject = raidDisplayItemObject.get("item_lore").getAsJsonObject();
+
+        if (displayItemLoreObject.has("joinable"))
+            raidListGui.joinableLore = displayItemLoreObject.getAsJsonArray("joinable").asList().stream().map(JsonElement::getAsString).toList();
+        displayItemLoreObject.remove("joinable");
+        JsonArray displayItemLoreArray = new JsonArray();
+        for (String line : raidListGui.joinableLore) {
+            displayItemLoreArray.add(line);
         }
-        if (ConfigHelper.checkProperty(config, "gui_layout", location)) {
-            raid_list_gui.layout = config.getAsJsonArray("gui_layout").asList().stream().map(JsonElement::getAsString).toList();
+        displayItemLoreObject.add("joinable", displayItemLoreArray);
+
+        if (displayItemLoreObject.has("requires_pass"))
+            raidListGui.requiresPassLore = displayItemLoreObject.getAsJsonArray("requires_pass").asList().stream().map(JsonElement::getAsString).toList();
+        displayItemLoreObject.remove("requires_pass");
+        displayItemLoreArray = new JsonArray();
+        for (String line : raidListGui.requiresPassLore) {
+            displayItemLoreArray.add(line);
         }
-        if (ConfigHelper.checkProperty(config, "raid_display_item", location)) {
-            JsonObject raid_display_item = config.getAsJsonObject("raid_display_item");
-            if (ConfigHelper.checkProperty(raid_display_item, "symbol", location)) {
-                raid_list_gui.displaySymbol = raid_display_item.get("symbol").getAsString();
-            }
-            if (ConfigHelper.checkProperty(raid_display_item, "item_name", location)) {
-                raid_list_gui.displayName = raid_display_item.get("item_name").getAsString();
-            }
-            if (ConfigHelper.checkProperty(raid_display_item, "item_lore", location)) {
-                JsonObject item_lore = raid_display_item.getAsJsonObject("item_lore");
-                if (ConfigHelper.checkProperty(item_lore, "joinable", location)) {
-                    raid_list_gui.joinableLore = item_lore.getAsJsonArray("joinable").asList().stream().map(JsonElement::getAsString).toList();
-                }
-                if (ConfigHelper.checkProperty(item_lore, "requires_pass", location)) {
-                    raid_list_gui.requiresPassLore = item_lore.getAsJsonArray("requires_pass").asList().stream().map(JsonElement::getAsString).toList();
-                }
-                if (ConfigHelper.checkProperty(item_lore, "in_progress", location)) {
-                    raid_list_gui.inProgressLore = item_lore.getAsJsonArray("in_progress").asList().stream().map(JsonElement::getAsString).toList();
-                }
-            }
-            if (ConfigHelper.checkProperty(raid_display_item, "item_data", location, false)) {
-                JsonElement item_data = raid_display_item.get("item_data");
-                if (item_data != null) {
-                    raid_list_gui.displayData = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, item_data).getOrThrow().getFirst();
-                }
-            }
+        displayItemLoreObject.add("requires_pass", displayItemLoreArray);
+
+        if (displayItemLoreObject.has("in_progress"))
+            raidListGui.inProgressLore = displayItemLoreObject.getAsJsonArray("in_progress").asList().stream().map(JsonElement::getAsString).toList();
+        displayItemLoreObject.remove("in_progress");
+        displayItemLoreArray = new JsonArray();
+        for (String line : raidListGui.inProgressLore) {
+            displayItemLoreArray.add(line);
         }
-        raid_list_gui.closeButton = getButton(config, "close_item", location, raid_list_gui.closeButton);
-        raid_list_gui.nextButton = getButton(config, "next_item", location, raid_list_gui.nextButton);
-        raid_list_gui.previousButton = getButton(config, "previous_item", location, raid_list_gui.previousButton);
-        raid_list_gui.backgroundButton = getButton(config, "background_item", location, raid_list_gui.backgroundButton);
+        displayItemLoreObject.add("in_progress", displayItemLoreArray);
+
+        raidDisplayItemObject.remove("item_lore");
+        raidDisplayItemObject.add("item_lore", displayItemLoreObject);
+
+        if (raidDisplayItemObject.has("item_data"))
+            raidListGui.displayData = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, raidDisplayItemObject.get("item_data")).getOrThrow().getFirst();
+        raidDisplayItemObject.remove("item_data");
+        raidDisplayItemObject.add("item_data", ComponentChanges.CODEC.encode(raidListGui.displayData, JsonOps.INSTANCE, new JsonObject()).getOrThrow());
+
+        config.remove("raid_display_item");
+        config.add("raid_display_item", raidDisplayItemObject);
+
+        raidListGui.closeButton = getButton(config, "close_item", raidListGui.closeButton);
+        config.remove("close_item");
+        config.add("close_item", raidListGui.closeButton.buttonObject());
+
+        raidListGui.nextButton = getButton(config, "next_item", raidListGui.nextButton);
+        config.remove("next_item");
+        config.add("next_item", raidListGui.nextButton.buttonObject());
+
+        raidListGui.previousButton = getButton(config, "previous_item", raidListGui.previousButton);
+        config.remove("previous_item");
+        config.add("previous_item", raidListGui.previousButton.buttonObject());
+
+        raidListGui.backgroundButton = getButton(config, "background_item", raidListGui.backgroundButton);
+        config.remove("background_item");
+        config.add("background_item", raidListGui.backgroundButton.buttonObject());
+
+        raidListGui.guiObject = config;
     }
 
     public void loadRaidQueue(File file) throws IOException, NullPointerException, UnsupportedOperationException {
-        JsonElement root = JsonParser.parseReader(new FileReader(file));
-        assert root != null;
-        JsonObject config = root.getAsJsonObject();
+        JsonObject config = new JsonObject();
+        if (file.exists()) config = JsonParser.parseReader(new FileReader(file)).getAsJsonObject();
         
-        String location = "guis/raid_queue";
-        
-        if (ConfigHelper.checkProperty(config, "gui_title", location)) {
-            queue_gui.title = config.get("gui_title").getAsString();
-        }
-        if (ConfigHelper.checkProperty(config, "rows", location)) {
-            queue_gui.rows = config.get("rows").getAsInt();
-        }
-        if (ConfigHelper.checkProperty(config, "gui_layout", location)) {
-            queue_gui.layout = config.getAsJsonArray("gui_layout").asList().stream().map(JsonElement::getAsString).toList();
-        }
-        if (ConfigHelper.checkProperty(config, "raid_display_item", location)) {
-            JsonObject raid_display_item = config.getAsJsonObject("raid_display_item");
-            if (ConfigHelper.checkProperty(raid_display_item, "symbol", location)) {
-                queue_gui.displaySymbol = raid_display_item.get("symbol").getAsString();
-            }
-            if (ConfigHelper.checkProperty(raid_display_item, "item_name", location)) {
-                queue_gui.displayName = raid_display_item.get("item_name").getAsString();
-            }
-            if (ConfigHelper.checkProperty(raid_display_item, "item_lore", location)) {
-                JsonObject item_lore = raid_display_item.getAsJsonObject("item_lore");
-                if (ConfigHelper.checkProperty(item_lore, "default", location)) {
-                    queue_gui.defaultLore = item_lore.getAsJsonArray("default").asList().stream().map(JsonElement::getAsString).toList();
-                }
-                if (ConfigHelper.checkProperty(item_lore, "cancelable", location)) {
-                    queue_gui.cancelLore = item_lore.getAsJsonArray("cancelable").asList().stream().map(JsonElement::getAsString).toList();
-                }
-            }
-            if (ConfigHelper.checkProperty(raid_display_item, "item_data", location, false)) {
-                JsonElement item_data = raid_display_item.get("item_data");
-                if (item_data != null) {
-                    queue_gui.displayData = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, item_data).getOrThrow().getFirst();
-                }
-            }
-        }
+        if (config.has("gui_title"))
+            queueGui.title = config.get("gui_title").getAsString();
+        config.remove("gui_title");
+        config.addProperty("gui_title", queueGui.title);
 
-        queue_gui.backgroundButton = getButton(config, "background_item", location, queue_gui.backgroundButton);
-        queue_gui.nextButton = getButton(config, "next_item", location, queue_gui.nextButton);
-        queue_gui.previousButton = getButton(config, "previous_item", location, queue_gui.previousButton);
-        queue_gui.closeButton = getButton(config, "close_item", location, queue_gui.closeButton);
+        if (config.has("rows"))
+            queueGui.rows = config.get("rows").getAsInt();
+        config.remove("rows");
+        config.addProperty("rows", queueGui.rows);
+
+        if (config.has("gui_layout"))
+            queueGui.layout = config.getAsJsonArray("gui_layout").asList().stream().map(JsonElement::getAsString).toList();
+        config.remove("gui_layout");
+        JsonArray layoutArray = new JsonArray();
+        for (String layout : queueGui.layout) {
+            layoutArray.add(layout);
+        }
+        config.add("gui_layout", layoutArray);
+
+        JsonObject raidDisplayItemObject = new JsonObject();
+        if (config.has("raid_display_item"))
+            raidDisplayItemObject = config.getAsJsonObject("raid_display_item");
+
+        if (raidDisplayItemObject.has("symbol"))
+            queueGui.displaySymbol = raidDisplayItemObject.get("symbol").getAsString();
+        raidDisplayItemObject.remove("symbol");
+        raidDisplayItemObject.addProperty("symbol", queueGui.displaySymbol);
+
+        if (raidDisplayItemObject.has("item_name"))
+            queueGui.displayName = raidDisplayItemObject.get("item_name").getAsString();
+        raidDisplayItemObject.remove("item_name");
+        raidDisplayItemObject.addProperty("item_name", queueGui.displayName);
+
+        JsonObject displayItemLoreObject = new JsonObject();
+        if (raidDisplayItemObject.has("item_lore"))
+            displayItemLoreObject = raidDisplayItemObject.getAsJsonObject("item_lore");
+
+        if (displayItemLoreObject.has("default"))
+            queueGui.defaultLore = displayItemLoreObject.getAsJsonArray("default").asList().stream().map(JsonElement::getAsString).toList();
+        displayItemLoreObject.remove("default");
+        JsonArray loreArray = new JsonArray();
+        for (String lore : queueGui.defaultLore) {
+            loreArray.add(lore);
+        }
+        displayItemLoreObject.add("default", loreArray);
+
+        if (displayItemLoreObject.has("cancelable"))
+            queueGui.cancelLore = displayItemLoreObject.getAsJsonArray("cancelable").asList().stream().map(JsonElement::getAsString).toList();
+        displayItemLoreObject.remove("cancelable");
+        loreArray = new JsonArray();
+        for (String lore : queueGui.cancelLore) {
+            loreArray.add(lore);
+        }
+        displayItemLoreObject.add("cancelable", loreArray);
+
+        raidDisplayItemObject.remove("item_lore");
+        raidDisplayItemObject.add("item_lore", displayItemLoreObject);
+
+        if (raidDisplayItemObject.has("item_data"))
+            queueGui.displayData = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, raidDisplayItemObject.get("item_data")).getOrThrow().getFirst();
+        raidDisplayItemObject.remove("item_data");
+        raidDisplayItemObject.add("item_data", ComponentChanges.CODEC.encode(raidListGui.displayData, JsonOps.INSTANCE, new JsonObject()).getOrThrow());
+
+        config.remove("raid_display_item");
+        config.add("raid_display_item", raidDisplayItemObject);
+
+        queueGui.backgroundButton = getButton(config, "background_item", queueGui.backgroundButton);
+        config.remove("background_item");
+        config.add("background_item", queueGui.backgroundButton.buttonObject());
+
+        queueGui.nextButton = getButton(config, "next_item", queueGui.nextButton);
+        config.remove("next_item");
+        config.add("next_item", queueGui.nextButton.buttonObject());
+
+        queueGui.previousButton = getButton(config, "previous_item", queueGui.previousButton);
+        config.remove("previous_item");
+        config.add("previous_item", queueGui.previousButton.buttonObject());
+
+        queueGui.closeButton = getButton(config, "close_item", queueGui.closeButton);
+        config.remove("close_item");
+        config.add("close_item", queueGui.closeButton.buttonObject());
+
+        queueGui.guiObject = config;
     }
 
     public void loadRaidVoucher(File file) throws IOException, NullPointerException, UnsupportedOperationException {
-        JsonElement root = JsonParser.parseReader(new FileReader(file));
-        assert root != null;
-        JsonObject config = root.getAsJsonObject();
-        
-        String location = "guis/raid_voucher";
+        JsonObject config = new JsonObject();
+        if (file.exists()) config = JsonParser.parseReader(new FileReader(file)).getAsJsonObject();
 
-        if (ConfigHelper.checkProperty(config, "gui_title", location)) {
-            voucher_gui.title = config.get("gui_title").getAsString();
-        }
-        if (ConfigHelper.checkProperty(config, "rows", location)) {
-            voucher_gui.rows = config.get("rows").getAsInt();
-        }
-        if (ConfigHelper.checkProperty(config, "gui_layout", location)) {
-            voucher_gui.layout = config.getAsJsonArray("gui_layout").asList().stream().map(JsonElement::getAsString).toList();
-        }
-        voucher_gui.displayButton = getButton(config, "raid_display_item", location, voucher_gui.displayButton);
-        voucher_gui.backgroundButton = getButton(config, "background_item", location, voucher_gui.backgroundButton);
-        voucher_gui.nextButton = getButton(config, "next_item", location, voucher_gui.nextButton);
-        voucher_gui.previousButton = getButton(config, "previous_item", location, voucher_gui.previousButton);
-        voucher_gui.closeButton = getButton(config, "close_item", location, voucher_gui.closeButton);
+        voucherGui = getDisplayItemGui(config, "raid_display_item", voucherGui, false);
+
+        file.delete();
+        file.createNewFile();
+        Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+        Writer writer = new FileWriter(file);
+        gson.toJson(voucherGui.guiObject, writer);
+        writer.close();
     }
 
     public void loadRaidPass(File file) throws IOException, NullPointerException, UnsupportedOperationException {
-        JsonElement root = JsonParser.parseReader(new FileReader(file));
-        assert root != null;
-        JsonObject config = root.getAsJsonObject();
+        JsonObject config = new JsonObject();
+        if (file.exists()) config = JsonParser.parseReader(new FileReader(file)).getAsJsonObject();
 
-        String location = "guis/raid_pass";
+        passGui = getDisplayItemGui(config, "raid_display_item", passGui, false);
 
-        if (ConfigHelper.checkProperty(config, "gui_title", location)) {
-            pass_gui.title = config.get("gui_title").getAsString();
-        }
-        if (ConfigHelper.checkProperty(config, "rows", location)) {
-            pass_gui.rows = config.get("rows").getAsInt();
-        }
-        if (ConfigHelper.checkProperty(config, "gui_layout", location)) {
-            pass_gui.layout = config.getAsJsonArray("gui_layout").asList().stream().map(JsonElement::getAsString).toList();
-        }
-        pass_gui.displayButton = getButton(config, "raid_display_item", location, pass_gui.displayButton);
-        pass_gui.backgroundButton = getButton(config, "background_item", location, voucher_gui.backgroundButton);
-        pass_gui.nextButton = getButton(config, "next_item", location, voucher_gui.nextButton);
-        pass_gui.previousButton = getButton(config, "previous_item", location, voucher_gui.previousButton);
-        pass_gui.closeButton = getButton(config, "close_item", location, voucher_gui.closeButton);
+        file.delete();
+        file.createNewFile();
+        Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+        Writer writer = new FileWriter(file);
+        gson.toJson(passGui.guiObject, writer);
+        writer.close();
     }
 
-    public GuiButton getButton(JsonObject config, String button_property, String location, GuiButton button) throws NullPointerException, UnsupportedOperationException {
+    public GuiButton getButton(JsonObject config, String buttonProperty, GuiButton button) throws NullPointerException, UnsupportedOperationException {
         String symbol = button.symbol();
         String item = button.item();
-        String item_name = button.itemName();
-        List<String> item_lore = button.itemLore();
-        ComponentChanges item_data = button.itemData();
+        String itemName = button.itemName();
+        List<String> itemLore = button.itemLore();
+        ComponentChanges itemData = button.itemData();
 
-        if (ConfigHelper.checkProperty(config, button_property, location)) {
-            JsonObject button_item = config.getAsJsonObject(button_property);
-            if (ConfigHelper.checkProperty(button_item, "symbol", location)) {
-                symbol = button_item.get("symbol").getAsString();
-            }
-            if (ConfigHelper.checkProperty(button_item, "item", location, false)) {
-                item = button_item.get("item").getAsString();
-            }
-            if (ConfigHelper.checkProperty(button_item, "item_name", location)) {
-                item_name = button_item.get("item_name").getAsString();
-            }
-            if (ConfigHelper.checkProperty(button_item, "item_lore", location)) {
-                item_lore = button_item.getAsJsonArray("item_lore").asList().stream().map(JsonElement::getAsString).toList();
-            }
-            if (ConfigHelper.checkProperty(button_item, "item_data", location, false)) {
-                JsonElement item_data_element = button_item.get("item_data");
-                if (item_data_element != null) {
-                    item_data = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, item_data_element).getOrThrow().getFirst();
-                }
-            }
-        }
+        JsonObject buttonObject = new JsonObject();
+        if (config.has(buttonProperty))
+            buttonObject = config.getAsJsonObject(buttonProperty);
+
+        if (buttonObject.has("symbol"))
+            symbol = buttonObject.get("symbol").getAsString();
+        buttonObject.remove("symbol");
+        buttonObject.addProperty("symbol", symbol);
+
+        if (buttonObject.has("item"))
+            item = buttonObject.get("item").getAsString();
+        buttonObject.remove("item");
+        buttonObject.addProperty("item", item);
+
+        if (buttonObject.has("item_name"))
+            itemName = buttonObject.get("item_name").getAsString();
+        buttonObject.remove("item_name");
+        buttonObject.addProperty("item_name", itemName);
+
+        if (buttonObject.has("item_lore"))
+            itemLore = buttonObject.getAsJsonArray("item_lore").asList().stream().map(JsonElement::getAsString).toList();
+        buttonObject.remove("item_lore");
+        JsonArray itemLoreArray = new JsonArray();
+        for (String line : itemLore)
+            itemLoreArray.add(line);
+        buttonObject.add("item_lore", itemLoreArray);
+
+        if (buttonObject.has("item_data"))
+            itemData = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, buttonObject.get("item_data")).getOrThrow().getFirst();
+        buttonObject.remove("item_data");
+        buttonObject.add("item_data", ComponentChanges.CODEC.encode(itemData, JsonOps.INSTANCE, new JsonObject()).getOrThrow());
 
         return new GuiButton(
+                buttonObject,
                 symbol,
                 item,
-                item_name,
-                item_lore,
-                item_data
+                itemName,
+                itemLore,
+                itemData
         );
     }
 }

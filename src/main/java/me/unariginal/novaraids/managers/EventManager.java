@@ -242,28 +242,28 @@ public class EventManager {
                                 }
 
                                 Map<Integer, SimpleGui> pages = new HashMap<>();
-                                int page_total = GuiUtils.getPageTotal(joinableRaids.size(), nr.guisConfig().pass_gui.displaySlotTotal());
+                                int page_total = GuiUtils.getPageTotal(joinableRaids.size(), nr.guisConfig().passGui.displaySlotTotal());
                                 for (int i = 1; i <= page_total; i++) {
-                                    SimpleGui gui = new SimpleGui(GuiUtils.getScreenSize(nr.guisConfig().pass_gui.rows), player, false);
-                                    gui.setTitle(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().pass_gui.title)));
+                                    SimpleGui gui = new SimpleGui(GuiUtils.getScreenSize(nr.guisConfig().passGui.rows), player, false);
+                                    gui.setTitle(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().passGui.title)));
                                     pages.put(i, gui);
                                 }
 
                                 int index = 0;
                                 for (Map.Entry<Integer, SimpleGui> pageEntry : pages.entrySet()) {
-                                    for (Integer slot : nr.guisConfig().pass_gui.displaySlots()) {
+                                    for (Integer slot : nr.guisConfig().passGui.displaySlots()) {
                                         if (index < joinableRaids.size()) {
                                             Raid raid = joinableRaids.get(index);
 
                                             List<Text> lore = new ArrayList<>();
-                                            for (String line : nr.guisConfig().pass_gui.displayButton.itemLore()) {
+                                            for (String line : nr.guisConfig().passGui.displayButton.itemLore()) {
                                                 lore.add(TextUtils.deserialize(TextUtils.parse(line, raid)));
                                             }
 
                                             ItemStack item = PokemonItem.from(raid.raidBossPokemon());
-                                            item.applyChanges(nr.guisConfig().pass_gui.displayButton.itemData());
+                                            item.applyChanges(nr.guisConfig().passGui.displayButton.itemData());
                                             GuiElement element = new GuiElementBuilder(item)
-                                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().pass_gui.displayButton.itemName(), raid)))
+                                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().passGui.displayButton.itemName(), raid)))
                                                     .setLore(lore)
                                                     .setCallback((num, clickType, slotActionType) -> {
                                                         if (clickType.isLeft) {
@@ -292,14 +292,14 @@ public class EventManager {
                                             pageEntry.getValue().setSlot(slot, element);
                                             index++;
                                         } else {
-                                            ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().pass_gui.backgroundButton.item())));
-                                            item.applyChanges(nr.guisConfig().pass_gui.backgroundButton.itemData());
+                                            ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().passGui.backgroundButton.item())));
+                                            item.applyChanges(nr.guisConfig().passGui.backgroundButton.itemData());
                                             List<Text> lore = new ArrayList<>();
-                                            for (String line : nr.guisConfig().pass_gui.backgroundButton.itemLore()) {
+                                            for (String line : nr.guisConfig().passGui.backgroundButton.itemLore()) {
                                                 lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                                             }
                                             GuiElement element = new GuiElementBuilder(item)
-                                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().pass_gui.backgroundButton.itemName())))
+                                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().passGui.backgroundButton.itemName())))
                                                     .setLore(lore)
                                                     .build();
                                             pageEntry.getValue().setSlot(slot, element);
@@ -307,15 +307,15 @@ public class EventManager {
                                     }
 
                                     if (pageEntry.getKey() < page_total) {
-                                        for (Integer slot : nr.guisConfig().pass_gui.nextButtonSlots()) {
-                                            ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().pass_gui.nextButton.item())));
-                                            item.applyChanges(nr.guisConfig().pass_gui.nextButton.itemData());
+                                        for (Integer slot : nr.guisConfig().passGui.nextButtonSlots()) {
+                                            ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().passGui.nextButton.item())));
+                                            item.applyChanges(nr.guisConfig().passGui.nextButton.itemData());
                                             List<Text> lore = new ArrayList<>();
-                                            for (String line : nr.guisConfig().pass_gui.nextButton.itemLore()) {
+                                            for (String line : nr.guisConfig().passGui.nextButton.itemLore()) {
                                                 lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                                             }
                                             GuiElement element = new GuiElementBuilder(item)
-                                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().pass_gui.nextButton.itemName())))
+                                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().passGui.nextButton.itemName())))
                                                     .setLore(lore)
                                                     .setCallback(clickType -> {
                                                         pageEntry.getValue().close();
@@ -327,15 +327,15 @@ public class EventManager {
                                     }
 
                                     if (pageEntry.getKey() > 1) {
-                                        for (Integer slot : nr.guisConfig().pass_gui.previousButtonSlots()) {
-                                            ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().pass_gui.previousButton.item())));
-                                            item.applyChanges(nr.guisConfig().pass_gui.previousButton.itemData());
+                                        for (Integer slot : nr.guisConfig().passGui.previousButtonSlots()) {
+                                            ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().passGui.previousButton.item())));
+                                            item.applyChanges(nr.guisConfig().passGui.previousButton.itemData());
                                             List<Text> lore = new ArrayList<>();
-                                            for (String line : nr.guisConfig().pass_gui.previousButton.itemLore()) {
+                                            for (String line : nr.guisConfig().passGui.previousButton.itemLore()) {
                                                 lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                                             }
                                             GuiElement element = new GuiElementBuilder(item)
-                                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().pass_gui.previousButton.itemName())))
+                                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().passGui.previousButton.itemName())))
                                                     .setLore(lore)
                                                     .setCallback(clickType -> {
                                                         pageEntry.getValue().close();
@@ -346,30 +346,30 @@ public class EventManager {
                                         }
                                     }
 
-                                    for (Integer slot : nr.guisConfig().pass_gui.closeButtonSlots()) {
-                                        ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().pass_gui.closeButton.item())));
-                                        item.applyChanges(nr.guisConfig().pass_gui.closeButton.itemData());
+                                    for (Integer slot : nr.guisConfig().passGui.closeButtonSlots()) {
+                                        ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().passGui.closeButton.item())));
+                                        item.applyChanges(nr.guisConfig().passGui.closeButton.itemData());
                                         List<Text> lore = new ArrayList<>();
-                                        for (String line : nr.guisConfig().pass_gui.closeButton.itemLore()) {
+                                        for (String line : nr.guisConfig().passGui.closeButton.itemLore()) {
                                             lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                                         }
                                         GuiElement element = new GuiElementBuilder(item)
-                                                .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().pass_gui.closeButton.itemName())))
+                                                .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().passGui.closeButton.itemName())))
                                                 .setLore(lore)
                                                 .setCallback(clickType -> pageEntry.getValue().close())
                                                 .build();
                                         pageEntry.getValue().setSlot(slot, element);
                                     }
 
-                                    for (Integer slot : nr.guisConfig().pass_gui.backgroundButtonSlots()) {
-                                        ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().pass_gui.backgroundButton.item())));
-                                        item.applyChanges(nr.guisConfig().pass_gui.backgroundButton.itemData());
+                                    for (Integer slot : nr.guisConfig().passGui.backgroundButtonSlots()) {
+                                        ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().passGui.backgroundButton.item())));
+                                        item.applyChanges(nr.guisConfig().passGui.backgroundButton.itemData());
                                         List<Text> lore = new ArrayList<>();
-                                        for (String line : nr.guisConfig().pass_gui.backgroundButton.itemLore()) {
+                                        for (String line : nr.guisConfig().passGui.backgroundButton.itemLore()) {
                                             lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                                         }
                                         GuiElement element = new GuiElementBuilder(item)
-                                                .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().pass_gui.backgroundButton.itemName())))
+                                                .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().passGui.backgroundButton.itemName())))
                                                 .setLore(lore)
                                                 .build();
                                         pageEntry.getValue().setSlot(slot, element);
@@ -422,28 +422,28 @@ public class EventManager {
                                 }
 
                                 Map<Integer, SimpleGui> pages = new HashMap<>();
-                                int page_total = GuiUtils.getPageTotal(availableRaids.size(), nr.guisConfig().voucher_gui.displaySlotTotal());
+                                int page_total = GuiUtils.getPageTotal(availableRaids.size(), nr.guisConfig().voucherGui.displaySlotTotal());
                                 for (int i = 1; i <= page_total; i++) {
-                                    SimpleGui gui = new SimpleGui(GuiUtils.getScreenSize(nr.guisConfig().voucher_gui.rows), player, false);
-                                    gui.setTitle(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().voucher_gui.title)));
+                                    SimpleGui gui = new SimpleGui(GuiUtils.getScreenSize(nr.guisConfig().voucherGui.rows), player, false);
+                                    gui.setTitle(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().voucherGui.title)));
                                     pages.put(i, gui);
                                 }
 
                                 int index = 0;
                                 for (Map.Entry<Integer, SimpleGui> pageEntry : pages.entrySet()) {
-                                    for (Integer slot : nr.guisConfig().voucher_gui.displaySlots()) {
+                                    for (Integer slot : nr.guisConfig().voucherGui.displaySlots()) {
                                         if (index < availableRaids.size()) {
                                             Boss boss = availableRaids.get(index);
 
                                             List<Text> lore = new ArrayList<>();
-                                            for (String line : nr.guisConfig().voucher_gui.displayButton.itemLore()) {
+                                            for (String line : nr.guisConfig().voucherGui.displayButton.itemLore()) {
                                                 lore.add(TextUtils.deserialize(TextUtils.parse(line, boss)));
                                             }
 
                                             ItemStack item = PokemonItem.from(boss.pokemonDetails().createPokemon(false));
-                                            item.applyChanges(nr.guisConfig().voucher_gui.displayButton.itemData());
+                                            item.applyChanges(nr.guisConfig().voucherGui.displayButton.itemData());
                                             GuiElement element = new GuiElementBuilder(item)
-                                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().voucher_gui.displayButton.itemName(), boss)))
+                                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().voucherGui.displayButton.itemName(), boss)))
                                                     .setLore(lore)
                                                     .setCallback((num, clickType, slotActionType) -> {
                                                         if (clickType.isLeft) {
@@ -460,14 +460,14 @@ public class EventManager {
                                             pageEntry.getValue().setSlot(slot, element);
                                             index++;
                                         } else {
-                                            ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().voucher_gui.backgroundButton.item())));
-                                            item.applyChanges(nr.guisConfig().voucher_gui.backgroundButton.itemData());
+                                            ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().voucherGui.backgroundButton.item())));
+                                            item.applyChanges(nr.guisConfig().voucherGui.backgroundButton.itemData());
                                             List<Text> lore = new ArrayList<>();
-                                            for (String line : nr.guisConfig().voucher_gui.backgroundButton.itemLore()) {
+                                            for (String line : nr.guisConfig().voucherGui.backgroundButton.itemLore()) {
                                                 lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                                             }
                                             GuiElement element = new GuiElementBuilder(item)
-                                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().voucher_gui.backgroundButton.itemName())))
+                                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().voucherGui.backgroundButton.itemName())))
                                                     .setLore(lore)
                                                     .build();
                                             pageEntry.getValue().setSlot(slot, element);
@@ -475,15 +475,15 @@ public class EventManager {
                                     }
 
                                     if (pageEntry.getKey() < page_total) {
-                                        for (Integer slot : nr.guisConfig().voucher_gui.nextButtonSlots()) {
-                                            ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().voucher_gui.nextButton.item())));
-                                            item.applyChanges(nr.guisConfig().voucher_gui.nextButton.itemData());
+                                        for (Integer slot : nr.guisConfig().voucherGui.nextButtonSlots()) {
+                                            ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().voucherGui.nextButton.item())));
+                                            item.applyChanges(nr.guisConfig().voucherGui.nextButton.itemData());
                                             List<Text> lore = new ArrayList<>();
-                                            for (String line : nr.guisConfig().voucher_gui.nextButton.itemLore()) {
+                                            for (String line : nr.guisConfig().voucherGui.nextButton.itemLore()) {
                                                 lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                                             }
                                             GuiElement element = new GuiElementBuilder(item)
-                                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().voucher_gui.nextButton.itemName())))
+                                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().voucherGui.nextButton.itemName())))
                                                     .setLore(lore)
                                                     .setCallback(clickType -> {
                                                         pageEntry.getValue().close();
@@ -495,15 +495,15 @@ public class EventManager {
                                     }
 
                                     if (pageEntry.getKey() > 1) {
-                                        for (Integer slot : nr.guisConfig().voucher_gui.previousButtonSlots()) {
-                                            ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().voucher_gui.previousButton.item())));
-                                            item.applyChanges(nr.guisConfig().voucher_gui.previousButton.itemData());
+                                        for (Integer slot : nr.guisConfig().voucherGui.previousButtonSlots()) {
+                                            ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().voucherGui.previousButton.item())));
+                                            item.applyChanges(nr.guisConfig().voucherGui.previousButton.itemData());
                                             List<Text> lore = new ArrayList<>();
-                                            for (String line : nr.guisConfig().voucher_gui.previousButton.itemLore()) {
+                                            for (String line : nr.guisConfig().voucherGui.previousButton.itemLore()) {
                                                 lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                                             }
                                             GuiElement element = new GuiElementBuilder(item)
-                                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().voucher_gui.previousButton.itemName())))
+                                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().voucherGui.previousButton.itemName())))
                                                     .setLore(lore)
                                                     .setCallback(clickType -> {
                                                         pageEntry.getValue().close();
@@ -514,30 +514,30 @@ public class EventManager {
                                         }
                                     }
 
-                                    for (Integer slot : nr.guisConfig().voucher_gui.closeButtonSlots()) {
-                                        ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().voucher_gui.closeButton.item())));
-                                        item.applyChanges(nr.guisConfig().voucher_gui.closeButton.itemData());
+                                    for (Integer slot : nr.guisConfig().voucherGui.closeButtonSlots()) {
+                                        ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().voucherGui.closeButton.item())));
+                                        item.applyChanges(nr.guisConfig().voucherGui.closeButton.itemData());
                                         List<Text> lore = new ArrayList<>();
-                                        for (String line : nr.guisConfig().voucher_gui.closeButton.itemLore()) {
+                                        for (String line : nr.guisConfig().voucherGui.closeButton.itemLore()) {
                                             lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                                         }
                                         GuiElement element = new GuiElementBuilder(item)
-                                                .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().voucher_gui.closeButton.itemName())))
+                                                .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().voucherGui.closeButton.itemName())))
                                                 .setLore(lore)
                                                 .setCallback(clickType -> pageEntry.getValue().close())
                                                 .build();
                                         pageEntry.getValue().setSlot(slot, element);
                                     }
 
-                                    for (Integer slot : nr.guisConfig().voucher_gui.backgroundButtonSlots()) {
-                                        ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().voucher_gui.backgroundButton.item())));
-                                        item.applyChanges(nr.guisConfig().voucher_gui.backgroundButton.itemData());
+                                    for (Integer slot : nr.guisConfig().voucherGui.backgroundButtonSlots()) {
+                                        ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().voucherGui.backgroundButton.item())));
+                                        item.applyChanges(nr.guisConfig().voucherGui.backgroundButton.itemData());
                                         List<Text> lore = new ArrayList<>();
-                                        for (String line : nr.guisConfig().voucher_gui.backgroundButton.itemLore()) {
+                                        for (String line : nr.guisConfig().voucherGui.backgroundButton.itemLore()) {
                                             lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                                         }
                                         GuiElement element = new GuiElementBuilder(item)
-                                                .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().voucher_gui.backgroundButton.itemName())))
+                                                .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().voucherGui.backgroundButton.itemName())))
                                                 .setLore(lore)
                                                 .build();
                                         pageEntry.getValue().setSlot(slot, element);

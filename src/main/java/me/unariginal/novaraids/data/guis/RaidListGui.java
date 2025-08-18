@@ -1,5 +1,6 @@
 package me.unariginal.novaraids.data.guis;
 
+import com.google.gson.JsonObject;
 import net.minecraft.component.ComponentChanges;
 
 import java.util.ArrayList;
@@ -13,7 +14,8 @@ public class RaidListGui extends BaseGuiData {
     public List<String> inProgressLore;
     public ComponentChanges displayData;
 
-    public RaidListGui(String title,
+    public RaidListGui(JsonObject guiObject,
+                       String title,
                        int rows,
                        List<String> layout,
                        GuiButton backgroundButton,
@@ -26,7 +28,7 @@ public class RaidListGui extends BaseGuiData {
                        List<String> requiresPassLore,
                        List<String> inProgressLore,
                        ComponentChanges displayData) {
-        super(title, rows, layout, backgroundButton, closeButton, nextButton, previousButton);
+        super(guiObject, title, rows, layout, backgroundButton, closeButton, nextButton, previousButton);
         this.displaySymbol = displaySymbol;
         this.displayName = displayName;
         this.joinableLore = joinableLore;
