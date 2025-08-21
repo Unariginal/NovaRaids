@@ -1027,7 +1027,7 @@ public class BossesConfig {
             placeObject.addProperty("place", placement.place());
             placeObject.addProperty("require_damage", placement.requireDamage());
             placeObject.addProperty("shiny_chance", placement.shinyChance());
-            placeObject.addProperty("shiny_chance", placement.shinyChance());
+            placeObject.addProperty("min_perfect_ivs", placement.minPerfectIvs());
             placementsArray.add(placeObject);
         }
 
