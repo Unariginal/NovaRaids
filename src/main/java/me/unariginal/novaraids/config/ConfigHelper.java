@@ -608,6 +608,8 @@ public class ConfigHelper {
 
     public static List<RaidBall> getRaidBalls(JsonObject raidBallsObject) {
         List<RaidBall> raidBalls = new ArrayList<>();
+        if (raidBallsObject.isEmpty())
+            raidBallsObject.add("default", new JsonObject());
         for (String raidBallID : raidBallsObject.keySet()) {
             JsonObject ballObject = raidBallsObject.getAsJsonObject(raidBallID);
             Item pokeball = CobblemonItems.POKE_BALL;

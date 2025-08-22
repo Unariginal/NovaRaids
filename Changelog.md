@@ -22,6 +22,7 @@
 - Added `automatic_battles` to config.json/raid_settings. Setting this to true will force players into another boss battle after a set delay.
 - Added `automatic_battle_delay_seconds` to config.json/raid_settings. This is the delay before the automatic battle is started, I recommend keeping this above 2 seconds, or it may not work.
 - Added `join_raid_after_voucher_use` to config.json/item_settings/voucher_settings. Setting this to true will have players automatically join the raid they start using a voucher.
+- Added `player_linked_raid_balls` to config.json/item_settings/raid_ball_settings. Disabling this option will allow players to use other player's raid balls.
 
 ## Bug Fixes
 - Locations in other worlds will no longer make the timer count down past 0.

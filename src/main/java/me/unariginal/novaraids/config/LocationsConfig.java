@@ -24,7 +24,7 @@ public class LocationsConfig {
             loadLocations();
         } catch (IOException | NullPointerException | UnsupportedOperationException e) {
             NovaRaids.LOADED = false;
-            NovaRaids.LOGGER.error("Failed to load locations file.", e);
+            NovaRaids.LOGGER.error("[NovaRaids] Failed to load locations file.", e);
         }
     }
 
@@ -38,6 +38,12 @@ public class LocationsConfig {
 
         JsonObject root = new JsonObject();
         if (file.exists()) root = JsonParser.parseReader(new FileReader(file)).getAsJsonObject();
+
+        if (root.keySet().isEmpty()) {
+            JsonObject exampleLocationObject = new JsonObject();
+            exampleLocationObject.addProperty("name", "Example Location");
+            root.add("example_location", exampleLocationObject);
+        }
 
         locations.clear();
         for (String key : root.keySet()) {

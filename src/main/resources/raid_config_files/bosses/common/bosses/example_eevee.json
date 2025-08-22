@@ -8,10 +8,10 @@
     "features": [
       {
         "feature": "",
-        "weight": 1
+        "weight": 1.0
       }
     ],
-    "ability": [
+    "abilities": [
       {
         "ability": "adaptability",
         "weight": 4.5
@@ -21,23 +21,23 @@
         "weight": 13.0
       }
     ],
-    "nature": [
-      {
-        "nature": "jolly",
-        "weight": 1.2
-      },
+    "natures": [
       {
         "nature": "calm",
         "weight": 5.0
+      },
+      {
+        "nature": "jolly",
+        "weight": 1.2
       }
     ],
-    "gender": [
+    "genders": [
       {
-        "gender": "female",
+        "gender": "FEMALE",
         "weight": 12.5
       },
       {
-        "gender": "male",
+        "gender": "MALE",
         "weight": 87.5
       }
     ],
@@ -45,7 +45,13 @@
     "scale": 5.0,
     "held_item": "cobblemon:leftovers",
     "held_item_data": {},
-    "moves": ["bite", "tackle", "endure", "doubleedge"],
+    "moves": [
+      "bite",
+      "tackle",
+      "endure",
+      "doubleedge"
+    ],
+    "friendship": 50,
     "ivs": {
       "hp": 31,
       "atk": 31,
@@ -68,13 +74,10 @@
     "base_health": 1000,
     "health_increase_per_player": 500,
     "apply_glowing": true,
+    "ai_skill_level": 3,
     "locations": [
       {
         "location": "example_location",
-        "weight": 50.0
-      },
-      {
-        "location": "another_example_location",
         "weight": 50.0
       }
     ]
@@ -98,18 +101,28 @@
       "eevee_premier": {
         "pokeball": "cobblemon:premier_ball",
         "pokeball_name": "<red>Eevee Premier Raid Pokeball",
-        "pokeball_lore": ["<gray>Use this to try and catch %boss%!"],
+        "pokeball_lore": [
+          "<gray>Use this to try and catch %boss%!"
+        ],
         "pokeball_data": {}
       },
       "eevee_ultra": {
         "pokeball": "cobblemon:ultra_ball",
         "pokeball_name": "<red>Eevee Ultra Raid Pokeball",
-        "pokeball_lore": ["<gray>Use this to try and catch %boss%!"],
+        "pokeball_lore": [
+          "<gray>Use this to try and catch %boss%!"
+        ],
         "pokeball_data": {}
       }
     }
   },
   "raid_details": {
+    "bossbars": {
+      "setup": "setup_phase_example",
+      "fight": "fight_phase_example",
+      "pre_catch": "pre_catch_phase_example",
+      "catch": "catch_phase_example"
+    },
     "minimum_level": 25,
     "maximum_level": 100,
     "setup_phase_time": 30,
@@ -124,12 +137,6 @@
       "banned_abilities": [],
       "banned_held_items": [],
       "banned_bag_items": []
-    },
-    "bossbars": {
-      "setup": "setup_phase_example",
-      "fight": "fight_phase_example",
-      "pre_catch": "pre_catch_phase_example",
-      "catch": "catch_phase_example"
     },
     "reward_distribution": [
       {
@@ -148,10 +155,6 @@
             "max": 5
           },
           "reward_pools": [
-            {
-              "weight": 10.0,
-              "pool_preset": "pool_example_2"
-            },
             {
               "weight": 5.0,
               "pool": {
@@ -182,10 +185,6 @@
                         "say Command 2: Idk just for fun"
                       ]
                     }
-                  },
-                  {
-                    "weight": 5.0,
-                    "reward_preset": "pokemon_reward_example"
                   }
                 ]
               }
@@ -196,9 +195,9 @@
     ]
   },
   "catch_settings": {
-    "species_override": "",
+    "species_override": "eevee",
     "level_override": 1,
-
+    "keep_features": false,
     "features_override": "",
     "keep_scale": false,
     "keep_held_item": false,
@@ -208,6 +207,7 @@
     "randomize_nature": true,
     "randomize_ability": true,
     "reset_moves": true,
+    "friendship_override": 50,
     "places": [
       {
         "place": "participating",

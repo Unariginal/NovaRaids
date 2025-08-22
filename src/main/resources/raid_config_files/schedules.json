@@ -14,11 +14,6 @@
           "weight": 5.0
         },
         {
-          "type": "category",
-          "category": "rare",
-          "weight": 5.0
-        },
-        {
           "type": "boss",
           "boss_id": "example_eevee",
           "weight": 5.0
@@ -35,11 +30,6 @@
           "weight": 5.0
         },
         {
-          "type": "category",
-          "category": "rare",
-          "weight": 5.0
-        },
-        {
           "type": "boss",
           "boss_id": "example_eevee",
           "weight": 5.0
@@ -53,11 +43,6 @@
         {
           "type": "category",
           "category": "common",
-          "weight": 5.0
-        },
-        {
-          "type": "category",
-          "category": "rare",
           "weight": 5.0
         },
         {
@@ -83,11 +68,6 @@
         {
           "type": "category",
           "category": "common",
-          "weight": 5.0
-        },
-        {
-          "type": "category",
-          "category": "rare",
           "weight": 5.0
         },
         {

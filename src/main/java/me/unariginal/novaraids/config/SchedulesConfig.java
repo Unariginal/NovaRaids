@@ -19,14 +19,91 @@ public class SchedulesConfig {
     private final NovaRaids nr = NovaRaids.INSTANCE;
 
     public ZoneId zone = ZoneId.systemDefault();
-    public List<Schedule> schedules = new ArrayList<>();
+    public List<Schedule> schedules = new ArrayList<>(
+            List.of(
+                    new RandomSchedule(
+                            "random",
+                            List.of(
+                                    new ScheduleBoss(
+                                            "category",
+                                            "common",
+                                            5.0
+                                    ),
+                                    new ScheduleBoss(
+                                            "boss",
+                                            "example_eevee",
+                                            5.0
+                                    )
+                            ),
+                            1200,
+                            3600
+                    ),
+                    new CronSchedule(
+                            "cron",
+                            List.of(
+                                    new ScheduleBoss(
+                                            "category",
+                                            "common",
+                                            5.0
+                                    ),
+                                    new ScheduleBoss(
+                                            "boss",
+                                            "example_eevee",
+                                            5.0
+                                    )
+                            ),
+                            "0 30 * ? * *"
+                    ),
+                    new CronSchedule(
+                            "cron",
+                            List.of(
+                                    new ScheduleBoss(
+                                            "category",
+                                            "common",
+                                            5.0
+                                    ),
+                                    new ScheduleBoss(
+                                            "boss",
+                                            "example_eevee",
+                                            5.0
+                                    )
+                            ),
+                            "@hourly"
+                    ),
+                    new SpecificSchedule(
+                            "specific",
+                            List.of(
+                                    new ScheduleBoss(
+                                            "category",
+                                            "common",
+                                            5.0
+                                    ),
+                                    new ScheduleBoss(
+                                            "boss",
+                                            "example_eevee",
+                                            5.0
+                                    )
+                            ),
+                            List.of(
+                                    LocalTime.parse("00:00:00"),
+                                    LocalTime.parse("00:15:00"),
+                                    LocalTime.parse("00:30:00"),
+                                    LocalTime.parse("00:45:00"),
+                                    LocalTime.parse("01:00:00"),
+                                    LocalTime.parse("01:43:01"),
+                                    LocalTime.parse("01:54:32"),
+                                    LocalTime.parse("01:59:59")
+                            )
+                    )
+            )
+    );
 
     public SchedulesConfig() {
         try {
             loadSchedules();
         } catch (IOException | NullPointerException | UnsupportedOperationException | DateTimeException e) {
             NovaRaids.LOADED = false;
-            NovaRaids.LOGGER.error("Failed to load schedules file.", e);
+            NovaRaids.LOGGER.error("[NovaRaids] Failed to load schedules file.", e);
         }
     }
 
@@ -37,7 +114,8 @@ public class SchedulesConfig {
         }
 
         File file = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/schedules.json").toFile();
-        JsonObject config = JsonParser.parseReader(new FileReader(file)).getAsJsonObject();
+        JsonObject config = new JsonObject();
+        if (file.exists()) config = JsonParser.parseReader(new FileReader(file)).getAsJsonObject();
 
         String zoneIDRaw = "EST";
         if (config.has("timezone"))
@@ -60,6 +138,8 @@ public class SchedulesConfig {
         JsonArray schedulesArray = new JsonArray();
         if (config.has("schedules"))
             schedulesArray = config.getAsJsonArray("schedules");
+
+        if (!schedulesArray.isEmpty()) schedules.clear();
 
         for (JsonElement scheduleElement : schedulesArray) {
             JsonObject scheduleObject = scheduleElement.getAsJsonObject();

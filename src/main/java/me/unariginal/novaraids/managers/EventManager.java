@@ -46,7 +46,7 @@ public class EventManager {
     private static final NovaRaids nr = NovaRaids.INSTANCE;
     private static final MessagesConfig messages = nr.messagesConfig();
 
-    public static void capture_event() {
+    public static void captureEvent() {
         CobblemonEvents.THROWN_POKEBALL_HIT.subscribe(Priority.HIGHEST, event -> {
             PokemonEntity pokemonEntity = event.getPokemon();
             Pokemon pokemon = pokemonEntity.getPokemon();
@@ -572,7 +572,7 @@ public class EventManager {
                         } else if (customData.copyNbt().getString("raid_item").equals("raid_ball") && nr.config().raidBallsEnabled) {
                             boolean canThrow = false;
 
-                            if (customData.contains("owner_uuid")) {
+                            if (nr.config().playerLinkedRaidBalls && customData.contains("owner_uuid")) {
                                 if (!customData.copyNbt().getUuid("owner_uuid").equals(player.getUuid())) {
                                     player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_not_your_raid_pokeball"))));
                                     return TypedActionResult.fail(itemStack);

@@ -45,6 +45,7 @@ public class Config {
     public Pass globalPass;
 
     public boolean raidBallsEnabled = true;
+    public boolean playerLinkedRaidBalls = true;
     public List<RaidBall> raidBalls = new ArrayList<>();
 
     public Config() {
@@ -52,7 +53,7 @@ public class Config {
             loadConfig();
         } catch (IOException | NullPointerException | UnsupportedOperationException e) {
             NovaRaids.LOADED = false;
-            NovaRaids.LOGGER.error("[RAIDS] Failed to load config file.", e);
+            NovaRaids.LOGGER.error("[NovaRaids] Failed to load config file.", e);
         }
     }
 
@@ -214,6 +215,11 @@ public class Config {
             raidBallsEnabled = raidBallSettingsObject.get("raid_balls_enabled").getAsBoolean();
         raidBallSettingsObject.remove("raid_balls_enabled");
         raidBallSettingsObject.addProperty("raid_balls_enabled", raidBallsEnabled);
+
+        if (raidBallSettingsObject.has("player_linked_raid_balls"))
+            playerLinkedRaidBalls = raidBallSettingsObject.get("player_linked_raid_balls").getAsBoolean();
+        raidBallSettingsObject.remove("player_linked_raid_balls");
+        raidBallSettingsObject.addProperty("player_linked_raid_balls", playerLinkedRaidBalls);
 
         JsonObject globalRaidBallsObject = new JsonObject();
         if (raidBallSettingsObject.has("raid_balls"))

@@ -12,12 +12,11 @@ import net.minecraft.server.command.ServerCommandSource;
 
 import java.io.*;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class MessagesConfig {
     public String prefix = "<dark_gray>[</dark_gray><color:#ffbf00>RAID<dark_gray>]</dark_gray>";
     public String raidStartCommand = "";
-    public Map<String, String> messages = new HashMap<>();
+    public LinkedHashMap<String, String> messages = new LinkedHashMap<>();
 
     public MessagesConfig() {
         messages.put("start_pre_phase", "%prefix% A raid is starting against %boss.name%!");
@@ -78,7 +77,7 @@ public class MessagesConfig {
             loadConfig();
         } catch (IOException | NullPointerException | UnsupportedOperationException e) {
             NovaRaids.LOADED = false;
-            NovaRaids.LOGGER.error("[RAIDS] Failed to load messages file.", e);
+            NovaRaids.LOGGER.error("[NovaRaids] Failed to load messages file.", e);
         }
     }
 
@@ -202,6 +201,14 @@ public class MessagesConfig {
             raidStartFields.add(getFieldData(fieldObject, false));
         }
 
+        if (raidStartFields.isEmpty()) {
+            JsonObject fieldObject = new JsonObject();
+            fieldObject.addProperty("inline", false);
+            fieldObject.addProperty("name", "Players: %raid.player_count%/%raid.max_players%");
+            fieldObject.addProperty("value", "Join Now Using `%raid.join_method%`!");
+            raidStartFields.add(getFieldData(fieldObject, false));
+        }
+
         WebhookHandler.startEmbedFields = raidStartFields;
 
         raidStartFieldsArray = new JsonArray();
@@ -237,6 +244,21 @@ public class MessagesConfig {
         List<FieldData> raidRunningFields = new ArrayList<>();
         for (JsonElement fieldElement : raidRunningFieldsArray) {
             JsonObject fieldObject = fieldElement.getAsJsonObject();
+            raidRunningFields.add(getFieldData(fieldObject, true));
+        }
+
+        if (raidRunningFields.isEmpty()) {
+            JsonObject fieldObject = new JsonObject();
+            fieldObject.addProperty("inline", false);
+            fieldObject.addProperty("name", "Current Health");
+            fieldObject.addProperty("value", "%boss.currenthp%/%boss.maxhp% HP");
+            raidRunningFields.add(getFieldData(fieldObject, true));
+
+            fieldObject = new JsonObject();
+            fieldObject.addProperty("inline", false);
+            fieldObject.addProperty("name", "Current Leaderboard");
+            fieldObject.addProperty("value", "");
+            fieldObject.addProperty("insert_leaderboard_after", true);
             raidRunningFields.add(getFieldData(fieldObject, true));
         }
 
@@ -288,6 +310,15 @@ public class MessagesConfig {
             raidEndFields.add(getFieldData(fieldObject, true));
         }
 
+        if (raidEndFields.isEmpty()) {
+            JsonObject fieldObject = new JsonObject();
+            fieldObject.addProperty("inline", false);
+            fieldObject.addProperty("name", "------- Raid Results -------");
+            fieldObject.addProperty("value", "");
+            fieldObject.addProperty("insert_leaderboard_after", true);
+            raidEndFields.add(getFieldData(fieldObject, true));
+        }
+
         WebhookHandler.endEmbedFields = raidEndFields;
 
         raidEndFieldsArray = new JsonArray();
@@ -333,6 +364,15 @@ public class MessagesConfig {
         List<FieldData> raidFailedFields = new ArrayList<>();
         for (JsonElement fieldElement : raidFailedFieldsArray) {
             JsonObject fieldObject = fieldElement.getAsJsonObject();
+            raidFailedFields.add(getFieldData(fieldObject, true));
+        }
+
+        if (raidFailedFields.isEmpty()) {
+            JsonObject fieldObject = new JsonObject();
+            fieldObject.addProperty("inline", false);
+            fieldObject.addProperty("name", "Dealt %raid.total_damage%/%boss.maxhp% damage!");
+            fieldObject.addProperty("value", "");
+            fieldObject.addProperty("insert_leaderboard_after", false);
             raidFailedFields.add(getFieldData(fieldObject, true));
         }
 

@@ -58,7 +58,7 @@ public class NovaRaids implements ModInitializer {
                 EventManager.rightClickEvents();
                 EventManager.playerEvents();
                 EventManager.cobblemonEvents();
-                EventManager.capture_event();
+                EventManager.captureEvent();
             } else {
                 LOGGER.error("Config did not load properly!");
             }
@@ -162,12 +162,6 @@ public class NovaRaids implements ModInitializer {
         }
     }
 
-    public void logWarning(String message) {
-        if (debug) {
-            logger().warn("[NovaRaids] {}", message);
-        }
-    }
-
     public void logError(String message) {
         logger().error("[NovaRaids] {}", message);
     }
@@ -186,10 +180,6 @@ public class NovaRaids implements ModInitializer {
         } else {
             logInfo("Queue item already exists!");
         }
-    }
-
-    public void removeQueueItem(QueueItem item) {
-        queuedRaids.remove(item);
     }
 
     public void initNextRaid() {
