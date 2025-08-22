@@ -23,6 +23,8 @@
 - Added `automatic_battle_delay_seconds` to config.json/raid_settings. This is the delay before the automatic battle is started, I recommend keeping this above 2 seconds, or it may not work.
 - Added `join_raid_after_voucher_use` to config.json/item_settings/voucher_settings. Setting this to true will have players automatically join the raid they start using a voucher.
 - Added `player_linked_raid_balls` to config.json/item_settings/raid_ball_settings. Disabling this option will allow players to use other player's raid balls.
+- Added `override_category_distribution` to boss.json/raid_details. Enabling this setting will override the full category distribution section, instead of just an individual placement.
+- Renamed `override_category_rewards` in boss.json/raid_details/reward_distribution/places to `override_category_placement` to better fit its functionality.
 
 ## Bug Fixes
 - Locations in other worlds will no longer make the timer count down past 0.
@@ -37,6 +39,7 @@
 - Players will no longer receive a catch encounter if they leave the raid
 - Pokemon will no longer receive EXP from raid bosses.
 - Boss battle's flee-distance is now set to the arena's border radius x 2, effectively preventing fleeing from boss battles.
+- Catch encounters and rewards with the "participating" placement will now include.. participating players :)
 
 # Nova Raids Beta v0.3.0 - The Customization Update!
 

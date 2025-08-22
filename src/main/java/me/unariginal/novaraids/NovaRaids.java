@@ -89,7 +89,7 @@ public class NovaRaids implements ModInitializer {
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
             if (LOADED) {
                 for (QueueItem queue : queuedRaids) {
-                    queue.cancel_item();
+                    queue.cancelItem();
                 }
                 queuedRaids.clear();
 
@@ -185,7 +185,7 @@ public class NovaRaids implements ModInitializer {
     public void initNextRaid() {
         if (config.useQueueSystem) {
             if (!queuedRaids.isEmpty()) {
-                queuedRaids.remove().start_raid();
+                queuedRaids.remove().startRaid();
             }
         }
     }

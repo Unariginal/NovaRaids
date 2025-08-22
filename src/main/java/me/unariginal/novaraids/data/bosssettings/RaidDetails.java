@@ -18,5 +18,6 @@ public record RaidDetails(int minimumLevel,
                           String fightBossbar,
                           String preCatchBossbar,
                           String catchBossbar,
+                          boolean overrideCategoryDistribution,
                           List<DistributionSection> rewards) {
 }

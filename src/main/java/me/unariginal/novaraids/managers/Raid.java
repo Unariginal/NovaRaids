@@ -327,13 +327,18 @@ public class Raid {
                     }
                 }
             } else if (placement.place().equalsIgnoreCase("participating")) {
-                for (Map.Entry<String, Integer> entry : getDamageLeaderboard()) {
-                    ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(entry.getKey());
+                for (UUID participatingUUID : participatingPlayers) {
+                    ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(participatingUUID);
                     if (player != null) {
                         if (!alreadyCatching.contains(player)) {
-                            if (!placement.requireDamage() || (damageByPlayer.containsKey(player.getUuid()) && damageByPlayer.get(player.getUuid()) > 0) && participatingPlayers.contains(player.getUuid())) {
-                                playersToReward.add(player);
-                            }
+                            boolean valid = false;
+                            if (placement.requireDamage()) {
+                                if (damageByPlayer.containsKey(player.getUuid()) && damageByPlayer.get(player.getUuid()) > 0) {
+                                    valid = true;
+                                }
+                            } else valid = true;
+
+                            if (valid) playersToReward.add(player);
                         }
                     }
                 }
@@ -388,33 +393,35 @@ public class Raid {
         List<DistributionSection> categoryRewards = new ArrayList<>(raidBossCategory.rewards());
         List<DistributionSection> bossRewards = new ArrayList<>(bossInfo.raidDetails().rewards());
 
-        List<Place> overriddenPlacements = new ArrayList<>();
-
-        for (DistributionSection bossReward : bossRewards) {
-            List<Place> places = bossReward.places();
-            for (Place place : places) {
-                if (place.overrideCategoryReward()) {
-                    overriddenPlacements.add(place);
-                }
-            }
-        }
-
         List<DistributionSection> rewards = new ArrayList<>(bossRewards);
 
-        for (DistributionSection categoryReward : categoryRewards) {
-            boolean overridden = false;
-            List<Place> places = categoryReward.places();
-            outer:
-            for (Place place : places) {
-                for (Place overriddenPlacement : overriddenPlacements) {
-                    if (overriddenPlacement.place().equalsIgnoreCase(place.place())) {
-                        overridden = true;
-                        break outer;
+        if (!bossInfo.raidDetails().overrideCategoryDistribution()) {
+            List<Place> overriddenPlacements = new ArrayList<>();
+
+            for (DistributionSection bossReward : bossRewards) {
+                List<Place> places = bossReward.places();
+                for (Place place : places) {
+                    if (place.overrideCategoryReward()) {
+                        overriddenPlacements.add(place);
                     }
                 }
             }
-            if (!overridden) {
-                rewards.add(categoryReward);
+
+            for (DistributionSection categoryReward : categoryRewards) {
+                boolean overridden = false;
+                List<Place> places = categoryReward.places();
+                outer:
+                for (Place place : places) {
+                    for (Place overriddenPlacement : overriddenPlacements) {
+                        if (overriddenPlacement.place().equalsIgnoreCase(place.place())) {
+                            overridden = true;
+                            break outer;
+                        }
+                    }
+                }
+                if (!overridden) {
+                    rewards.add(categoryReward);
+                }
             }
         }
 
@@ -453,14 +460,17 @@ public class Raid {
                         }
                     }
                 } else if (place.place().equalsIgnoreCase("participating")) {
-                    for (Map.Entry<String, Integer> entry : getDamageLeaderboard()) {
-                        ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(entry.getKey());
+                    for (UUID participatingUUID : participatingPlayers) {
+                        ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(participatingUUID);
                         if (player != null) {
-                            if (damageByPlayer.containsKey(player.getUuid())) {
-                                if (!place.requireDamage() || damageByPlayer.get(player.getUuid()) > 0) {
-                                    playersToReward.add(player);
+                            boolean valid = false;
+                            if (place.requireDamage()) {
+                                if (damageByPlayer.containsKey(player.getUuid()) && damageByPlayer.get(player.getUuid()) > 0) {
+                                    valid = true;
                                 }
-                            }
+                            } else valid = true;
+
+                            if (valid) playersToReward.add(player);
                         }
                     }
                 }

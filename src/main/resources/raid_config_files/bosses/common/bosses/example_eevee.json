@@ -117,12 +117,6 @@
     }
   },
   "raid_details": {
-    "bossbars": {
-      "setup": "setup_phase_example",
-      "fight": "fight_phase_example",
-      "pre_catch": "pre_catch_phase_example",
-      "catch": "catch_phase_example"
-    },
     "minimum_level": 25,
     "maximum_level": 100,
     "setup_phase_time": 30,
@@ -138,6 +132,13 @@
       "banned_held_items": [],
       "banned_bag_items": []
     },
+    "bossbars": {
+      "setup": "setup_phase_example",
+      "fight": "fight_phase_example",
+      "pre_catch": "pre_catch_phase_example",
+      "catch": "catch_phase_example"
+    },
+    "override_category_distribution": false,
     "reward_distribution": [
       {
         "places": [
@@ -145,7 +146,7 @@
             "place": "1",
             "require_damage": true,
             "allow_other_rewards": false,
-            "override_category_rewards": true
+            "override_category_placement": true
           }
         ],
         "rewards": {

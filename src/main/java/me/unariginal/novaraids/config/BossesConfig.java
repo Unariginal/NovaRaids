@@ -783,6 +783,7 @@ public class BossesConfig {
         String fightBossbar = "fight_phase_example";
         String preCatchBossbar = "pre_catch_phase_example";
         String catchBossbar = "catch_phase_example";
+        boolean overrideCategoryDistribution = false;
         List<DistributionSection> rewards = List.of();
 
         JsonObject raidDetailsObject = new JsonObject();
@@ -865,6 +866,11 @@ public class BossesConfig {
         raidDetailsObject.add("bossbars", bossbarsObject);
         raidDetailsObject.add("bossbars", bossbarsObject);
 
+        if (raidDetailsObject.has("override_category_distribution"))
+            overrideCategoryDistribution = raidDetailsObject.get("override_category_distribution").getAsBoolean();
+        raidDetailsObject.remove("override_category_distribution");
+        raidDetailsObject.addProperty("override_category_distribution", overrideCategoryDistribution);
+
         JsonArray rewardDistributionArray = new JsonArray();
         if (raidDetailsObject.has("reward_distribution"))
             rewards = ConfigHelper.getDistributionSections(raidDetailsObject, false);
@@ -893,6 +899,7 @@ public class BossesConfig {
                 fightBossbar,
                 preCatchBossbar,
                 catchBossbar,
+                overrideCategoryDistribution,
                 rewards
         );
 
