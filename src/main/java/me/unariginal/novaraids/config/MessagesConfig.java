@@ -455,7 +455,7 @@ public class MessagesConfig {
         }
     }
 
-    public void execute_command(Raid raid) {
+    public void executeCommand(Raid raid) {
         if (!raidStartCommand.isEmpty()) {
             CommandManager cmdManager = Objects.requireNonNull(NovaRaids.INSTANCE.server()).getCommandManager();
             ServerCommandSource source = NovaRaids.INSTANCE.server().getCommandSource();
