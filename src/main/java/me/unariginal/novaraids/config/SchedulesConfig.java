@@ -12,6 +12,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeParseException;
+import java.time.zone.ZoneRulesException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -129,6 +130,13 @@ public class SchedulesConfig {
                 zone = ZoneId.ofOffset("UTC", ZoneOffset.of(ZoneId.SHORT_IDS.get(zoneIDRaw.toUpperCase())));
             } else {
                 zone = ZoneId.of(shortID);
+            }
+        } else {
+            try {
+                zone = ZoneId.of(zoneIDRaw);
+            } catch (DateTimeException e) {
+                zone = ZoneId.systemDefault();
+                NovaRaids.LOGGER.error("[NovaRaids] Failed to parse timezone id: {}. Using system default.", zoneIDRaw);
             }
         }
 

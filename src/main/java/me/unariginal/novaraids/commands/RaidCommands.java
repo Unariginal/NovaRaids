@@ -25,6 +25,10 @@ import me.unariginal.novaraids.data.items.Voucher;
 import me.unariginal.novaraids.data.rewards.DistributionSection;
 import me.unariginal.novaraids.data.rewards.Place;
 import me.unariginal.novaraids.data.rewards.RewardPool;
+import me.unariginal.novaraids.data.schedule.CronSchedule;
+import me.unariginal.novaraids.data.schedule.RandomSchedule;
+import me.unariginal.novaraids.data.schedule.Schedule;
+import me.unariginal.novaraids.data.schedule.SpecificSchedule;
 import me.unariginal.novaraids.managers.Raid;
 import me.unariginal.novaraids.utils.GuiUtils;
 import me.unariginal.novaraids.utils.RandomUtils;
@@ -47,6 +51,9 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.apache.commons.lang3.StringUtils;
 
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.*;
 
 public class RaidCommands {
@@ -398,6 +405,55 @@ public class RaidCommands {
                                                     )
                                     )
                     )
+                    .then(
+                            CommandManager.literal("schedule")
+                                    .requires(Permissions.require("novaraids.schedule", 4))
+                                    .executes(ctx -> {
+                                        for (Schedule schedule : nr.schedulesConfig().schedules) {
+                                            if (schedule instanceof SpecificSchedule specificSchedule) {
+                                                List<LocalTime> closestTimes = new ArrayList<>();
+
+                                                for (int i = 0; i < specificSchedule.setTimes.size(); i++) {
+                                                    LocalTime now = LocalTime.now(nr.schedulesConfig().zone);
+                                                    LocalTime closestTime = null;
+                                                    for (LocalTime time : specificSchedule.setTimes) {
+                                                        if (time.isAfter(now) || time.equals(now)) {
+                                                            if ((closestTime == null || time.isBefore(closestTime)) && !closestTimes.contains(time)) {
+                                                                closestTime = time;
+                                                            }
+                                                        }
+                                                    }
+
+                                                    if (closestTime == null) {
+                                                        now = LocalTime.of(0,0);
+                                                        for (LocalTime time : specificSchedule.setTimes) {
+                                                            if (time.isAfter(now) || time.equals(now)) {
+                                                                if ((closestTime == null || time.isBefore(closestTime)) && !closestTimes.contains(time)) {
+                                                                    closestTime = time;
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+
+                                                    closestTimes.add(closestTime);
+                                                }
+
+                                                ctx.getSource().sendMessage(TextUtils.deserialize("<red>Specific Schedule Nearest Times:"));
+                                                for (LocalTime time : closestTimes) {
+                                                    ctx.getSource().sendMessage(TextUtils.deserialize("<gray><i> - " + time.toString()));
+                                                }
+                                            } else if (schedule instanceof RandomSchedule randomSchedule) {
+                                                ctx.getSource().sendMessage(TextUtils.deserialize("<red>Random Schedule (<i>" + randomSchedule.minBound + "s - " + randomSchedule.maxBound + "s<!i>) Next Raid:"));
+                                                ctx.getSource().sendMessage(TextUtils.deserialize("<gray><i> - " + randomSchedule.nextRandom.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withZone(nr.schedulesConfig().zone))));
+                                            } else if (schedule instanceof CronSchedule cronSchedule) {
+                                                ctx.getSource().sendMessage(TextUtils.deserialize("<red>Cron Schedule (<i>" + cronSchedule.expression + "<!i>) Next Raid:"));
+                                                ctx.getSource().sendMessage(TextUtils.deserialize("<gray><i> - " + cronSchedule.nextExecution.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withZone(nr.schedulesConfig().zone))));
+                                            }
+                                            ctx.getSource().sendMessage(TextUtils.deserialize(""));
+                                        }
+                                        return 1;
+                                    })
+                    )
         ));
     }
 
@@ -405,7 +461,6 @@ public class RaidCommands {
         nr.reloadConfig();
         if (NovaRaids.LOADED)
             ctx.getSource().sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("reload_command"))));
-
         return 1;
     }
 
