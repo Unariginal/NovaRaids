@@ -1,4 +1,8 @@
 # Nova Raids Beta v0.3.1 *(Patch Update)*
+
+## Additions
+- Added `/raid schedule` command with the permission node `novaraids.schedule`. This allows the user to view the upcoming raid schedules.
+
 ## Config Changes
 - Most config properties will now automatically generate and fill the file with default values if they've been left out.
 - Added `friendship` to boss.json/pokemon_details. (default: 50)
@@ -40,6 +44,7 @@
 - Pokemon will no longer receive EXP from raid bosses.
 - Boss battle's flee-distance is now set to the arena's border radius x 2, effectively preventing fleeing from boss battles.
 - Catch encounters and rewards with the "participating" placement will now include.. participating players :)
+- Certain timezones will now properly parse for schedules
 
 # Nova Raids Beta v0.3.0 - The Customization Update!
 
