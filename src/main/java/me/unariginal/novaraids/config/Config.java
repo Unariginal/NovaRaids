@@ -26,6 +26,7 @@ public class Config {
     public boolean hideOtherPlayersInRaid = false;
     public boolean hideOtherPokemonInRaid = false;
     public boolean bossesHaveInfinitePP = false;
+    public boolean allowExperienceGain = false;
     public boolean automaticBattles = false;
     public int automaticBattleDelay = 2;
     public Contraband globalContraband;
@@ -106,6 +107,11 @@ public class Config {
             bossesHaveInfinitePP = raidSettingsObject.get("bosses_have_infinite_pp").getAsBoolean();
         raidSettingsObject.remove("bosses_have_infinite_pp");
         raidSettingsObject.addProperty("bosses_have_infinite_pp", bossesHaveInfinitePP);
+
+        if (raidSettingsObject.has("allow_experience_gain"))
+            allowExperienceGain = raidSettingsObject.get("allow_experience_gain").getAsBoolean();
+        raidSettingsObject.remove("allow_experience_gain");
+        raidSettingsObject.addProperty("allow_experience_gain", allowExperienceGain);
 
         if (raidSettingsObject.has("automatic_battles"))
             automaticBattles = raidSettingsObject.get("automatic_battles").getAsBoolean();

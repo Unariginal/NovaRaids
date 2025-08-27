@@ -66,6 +66,7 @@ public class Raid {
     private boolean clearToDelete = true;
     private final Map<UUID, Integer> damageByPlayer = new HashMap<>();
     private final List<UUID> latestDamage = new ArrayList<>();
+    private final List<UUID> fleeingPlayers = new ArrayList<>();
 
     private final Map<Long, List<Task>> tasks = new HashMap<>();
     private final Map<UUID, BossBar> playerBossbars = new HashMap<>();
@@ -138,7 +139,7 @@ public class Raid {
 
         List<PokemonEntity> toRemove = new ArrayList<>(clones.keySet());
         for (PokemonEntity pokemon : toRemove) {
-            removeClone(pokemon);
+            removeClone(pokemon, false);
         }
 
         for (UUID playerUUID : playerBossbars.keySet()) {
@@ -710,7 +711,7 @@ public class Raid {
         clones.put(pokemon, player.getUuid());
     }
 
-    public void removeClone(PokemonEntity clone) {
+    public void removeClone(PokemonEntity clone, boolean fromFlee) {
         if (clone != null) {
             if (clone.isAlive()) {
                 int chunkX = (int) Math.floor(clone.getPos().getX() / 16);
@@ -723,10 +724,12 @@ public class Raid {
                 }
 
                 world.setChunkForced(chunkX, chunkZ, true);
-                if (clone.isBattling() && clone.getBattleId() != null) {
-                    PokemonBattle battle = BattleRegistry.INSTANCE.getBattle(clone.getBattleId());
-                    if (battle != null) {
-                        battle.end();
+                if (!fromFlee) {
+                    if (clone.isBattling() && clone.getBattleId() != null) {
+                        PokemonBattle battle = BattleRegistry.INSTANCE.getBattle(clone.getBattleId());
+                        if (battle != null) {
+                            battle.stop();
+                        }
                     }
                 }
 
@@ -771,7 +774,7 @@ public class Raid {
                     }
                 }
                 for (PokemonEntity clone : toRemove) {
-                    removeClone(clone);
+                    removeClone(clone, false);
                 }
             }
         }
@@ -938,6 +941,18 @@ public class Raid {
 
     public void removePokeballsCapturing(EmptyPokeBallEntity entity) {
         pokeballsCapturing.remove(entity);
+    }
+
+    public boolean isPlayerFleeing(UUID playerUUID) {
+        return fleeingPlayers.contains(playerUUID);
+    }
+
+    public void addFleeingPlayer(UUID playerUUID) {
+        fleeingPlayers.add(playerUUID);
+    }
+
+    public void removeFleeingPlayer(UUID playerUUID) {
+        fleeingPlayers.remove(playerUUID);
     }
 
     public Map<UUID, BossBar> bossbars() {

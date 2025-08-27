@@ -1,3 +1,8 @@
+# Nova Raids Beta v0.3.1 Hotfix
+- Teleporting away from raids via /home, /spawn, etc. will no longer deal damage to the boss from the battle ending
+- Added experience gain toggle to config.json, with this enabled experience will still not be gained if players manage to flee from the encounter
+- Boss clone battles are properly stopped when needed
+
 # Nova Raids Beta v0.3.1 *(Patch Update)*
 
 ## Additions

@@ -52,14 +52,16 @@ public class BattleEndMixin {
         if (player != null) {
             for (Raid raid : NovaRaids.INSTANCE.activeRaids().values()) {
                 if (raid.participatingPlayers().contains(player.getUuid())) {
-                    if (damage > raid.currentHealth()) {
-                        damage = raid.currentHealth();
-                    }
+                    if (!raid.isPlayerFleeing(player.getUuid())) {
+                        if (damage > raid.currentHealth()) {
+                            damage = raid.currentHealth();
+                        }
 
-                    if (damage > 0) {
-                        raid.applyDamage(damage);
-                        raid.updatePlayerDamage(player.getUuid(), damage);
-                        raid.participatingBroadcast(TextUtils.deserialize(TextUtils.parse(NovaRaids.INSTANCE.messagesConfig().getMessage("player_damage_report"), raid, player, damage, -1)));
+                        if (damage > 0) {
+                            raid.applyDamage(damage);
+                            raid.updatePlayerDamage(player.getUuid(), damage);
+                            raid.participatingBroadcast(TextUtils.deserialize(TextUtils.parse(NovaRaids.INSTANCE.messagesConfig().getMessage("player_damage_report"), raid, player, damage, -1)));
+                        }
                     }
 
                     if (NovaRaids.INSTANCE.config().automaticBattles) {

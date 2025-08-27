@@ -153,6 +153,7 @@ public class EventManager {
                     if (player != null) {
                         for (Raid raid : nr.activeRaids().values()) {
                             if (raid.participatingPlayers().contains(player.getUuid())) {
+                                raid.addFleeingPlayer(player.getUuid());
                                 List<PokemonEntity> toRemove = new ArrayList<>();
                                 for (PokemonEntity cloneEntity : raid.getClones().keySet()) {
                                     if (raid.getClones().get(cloneEntity).equals(player.getUuid())) {
@@ -160,8 +161,9 @@ public class EventManager {
                                     }
                                 }
                                 for (PokemonEntity cloneEntity : toRemove) {
-                                    raid.removeClone(cloneEntity);
+                                    raid.removeClone(cloneEntity, true);
                                 }
+                                break;
                             }
                         }
                     }
@@ -201,7 +203,7 @@ public class EventManager {
                 if (player != null) {
                     for (Raid raid : nr.activeRaids().values()) {
                         if (raid.participatingPlayers().contains(player.getUuid())) {
-                            if (event.getSource().isBattle()) {
+                            if ((!nr.config().allowExperienceGain || raid.isPlayerFleeing(player.getUuid())) && event.getSource().isBattle()) {
                                 event.cancel();
                             }
                         }
