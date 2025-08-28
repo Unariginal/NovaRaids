@@ -46,7 +46,7 @@ public class EventManager {
     private static final NovaRaids nr = NovaRaids.INSTANCE;
     private static final MessagesConfig messages = nr.messagesConfig();
 
-    public static void capture_event() {
+    public static void captureEvent() {
         CobblemonEvents.THROWN_POKEBALL_HIT.subscribe(Priority.HIGHEST, event -> {
             PokemonEntity pokemonEntity = event.getPokemon();
             Pokemon pokemon = pokemonEntity.getPokemon();
@@ -153,6 +153,7 @@ public class EventManager {
                     if (player != null) {
                         for (Raid raid : nr.activeRaids().values()) {
                             if (raid.participatingPlayers().contains(player.getUuid())) {
+                                raid.addFleeingPlayer(player.getUuid());
                                 List<PokemonEntity> toRemove = new ArrayList<>();
                                 for (PokemonEntity cloneEntity : raid.getClones().keySet()) {
                                     if (raid.getClones().get(cloneEntity).equals(player.getUuid())) {
@@ -160,8 +161,9 @@ public class EventManager {
                                     }
                                 }
                                 for (PokemonEntity cloneEntity : toRemove) {
-                                    raid.removeClone(cloneEntity);
+                                    raid.removeClone(cloneEntity, true);
                                 }
+                                break;
                             }
                         }
                     }
@@ -201,7 +203,7 @@ public class EventManager {
                 if (player != null) {
                     for (Raid raid : nr.activeRaids().values()) {
                         if (raid.participatingPlayers().contains(player.getUuid())) {
-                            if (event.getSource().isBattle()) {
+                            if ((!nr.config().allowExperienceGain || raid.isPlayerFleeing(player.getUuid())) && event.getSource().isBattle()) {
                                 event.cancel();
                             }
                         }
@@ -572,7 +574,7 @@ public class EventManager {
                         } else if (customData.copyNbt().getString("raid_item").equals("raid_ball") && nr.config().raidBallsEnabled) {
                             boolean canThrow = false;
 
-                            if (customData.contains("owner_uuid")) {
+                            if (nr.config().playerLinkedRaidBalls && customData.contains("owner_uuid")) {
                                 if (!customData.copyNbt().getUuid("owner_uuid").equals(player.getUuid())) {
                                     player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_not_your_raid_pokeball"))));
                                     return TypedActionResult.fail(itemStack);

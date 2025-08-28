@@ -66,6 +66,7 @@ public class Raid {
     private boolean clearToDelete = true;
     private final Map<UUID, Integer> damageByPlayer = new HashMap<>();
     private final List<UUID> latestDamage = new ArrayList<>();
+    private final List<UUID> fleeingPlayers = new ArrayList<>();
 
     private final Map<Long, List<Task>> tasks = new HashMap<>();
     private final Map<UUID, BossBar> playerBossbars = new HashMap<>();
@@ -138,13 +139,13 @@ public class Raid {
 
         List<PokemonEntity> toRemove = new ArrayList<>(clones.keySet());
         for (PokemonEntity pokemon : toRemove) {
-            removeClone(pokemon);
+            removeClone(pokemon, false);
         }
 
-        for (UUID player_uuid : playerBossbars.keySet()) {
-            ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(player_uuid);
+        for (UUID playerUUID : playerBossbars.keySet()) {
+            ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(playerUUID);
             if (player != null) {
-                player.hideBossBar(playerBossbars.get(player_uuid));
+                player.hideBossBar(playerBossbars.get(playerUUID));
             }
         }
 
@@ -162,7 +163,7 @@ public class Raid {
         phaseStartTime = nr.server().getOverworld().getTime();
 
         broadcast(TextUtils.deserialize(TextUtils.parse(messages.getMessage("start_pre_phase"), this)));
-        nr.messagesConfig().execute_command(this);
+        nr.messagesConfig().executeCommand(this);
 
         if (WebhookHandler.webhookToggle &&
                 WebhookHandler.startEmbedEnabled &&
@@ -327,13 +328,18 @@ public class Raid {
                     }
                 }
             } else if (placement.place().equalsIgnoreCase("participating")) {
-                for (Map.Entry<String, Integer> entry : getDamageLeaderboard()) {
-                    ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(entry.getKey());
+                for (UUID participatingUUID : participatingPlayers) {
+                    ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(participatingUUID);
                     if (player != null) {
                         if (!alreadyCatching.contains(player)) {
-                            if (!placement.requireDamage() || (damageByPlayer.containsKey(player.getUuid()) && damageByPlayer.get(player.getUuid()) > 0) && participatingPlayers.contains(player.getUuid())) {
-                                playersToReward.add(player);
-                            }
+                            boolean valid = false;
+                            if (placement.requireDamage()) {
+                                if (damageByPlayer.containsKey(player.getUuid()) && damageByPlayer.get(player.getUuid()) > 0) {
+                                    valid = true;
+                                }
+                            } else valid = true;
+
+                            if (valid) playersToReward.add(player);
                         }
                     }
                 }
@@ -388,33 +394,35 @@ public class Raid {
         List<DistributionSection> categoryRewards = new ArrayList<>(raidBossCategory.rewards());
         List<DistributionSection> bossRewards = new ArrayList<>(bossInfo.raidDetails().rewards());
 
-        List<Place> overriddenPlacements = new ArrayList<>();
-
-        for (DistributionSection bossReward : bossRewards) {
-            List<Place> places = bossReward.places();
-            for (Place place : places) {
-                if (place.overrideCategoryReward()) {
-                    overriddenPlacements.add(place);
-                }
-            }
-        }
-
         List<DistributionSection> rewards = new ArrayList<>(bossRewards);
 
-        for (DistributionSection categoryReward : categoryRewards) {
-            boolean overridden = false;
-            List<Place> places = categoryReward.places();
-            outer:
-            for (Place place : places) {
-                for (Place overriddenPlacement : overriddenPlacements) {
-                    if (overriddenPlacement.place().equalsIgnoreCase(place.place())) {
-                        overridden = true;
-                        break outer;
+        if (!bossInfo.raidDetails().overrideCategoryDistribution()) {
+            List<Place> overriddenPlacements = new ArrayList<>();
+
+            for (DistributionSection bossReward : bossRewards) {
+                List<Place> places = bossReward.places();
+                for (Place place : places) {
+                    if (place.overrideCategoryReward()) {
+                        overriddenPlacements.add(place);
                     }
                 }
             }
-            if (!overridden) {
-                rewards.add(categoryReward);
+
+            for (DistributionSection categoryReward : categoryRewards) {
+                boolean overridden = false;
+                List<Place> places = categoryReward.places();
+                outer:
+                for (Place place : places) {
+                    for (Place overriddenPlacement : overriddenPlacements) {
+                        if (overriddenPlacement.place().equalsIgnoreCase(place.place())) {
+                            overridden = true;
+                            break outer;
+                        }
+                    }
+                }
+                if (!overridden) {
+                    rewards.add(categoryReward);
+                }
             }
         }
 
@@ -453,14 +461,17 @@ public class Raid {
                         }
                     }
                 } else if (place.place().equalsIgnoreCase("participating")) {
-                    for (Map.Entry<String, Integer> entry : getDamageLeaderboard()) {
-                        ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(entry.getKey());
+                    for (UUID participatingUUID : participatingPlayers) {
+                        ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(participatingUUID);
                         if (player != null) {
-                            if (damageByPlayer.containsKey(player.getUuid())) {
-                                if (!place.requireDamage() || damageByPlayer.get(player.getUuid()) > 0) {
-                                    playersToReward.add(player);
+                            boolean valid = false;
+                            if (place.requireDamage()) {
+                                if (damageByPlayer.containsKey(player.getUuid()) && damageByPlayer.get(player.getUuid()) > 0) {
+                                    valid = true;
                                 }
-                            }
+                            } else valid = true;
+
+                            if (valid) playersToReward.add(player);
                         }
                     }
                 }
@@ -468,16 +479,16 @@ public class Raid {
                 for (ServerPlayerEntity player : playersToReward) {
                     if (player != null) {
                         boolean duplicatePlacementExists = false;
-                        int place_count = 0;
+                        int placeCount = 0;
                         for (DistributionSection rewardSection : rewards) {
                             List<Place> rewardPlaces = rewardSection.places();
                             for (Place rewardPlace : rewardPlaces) {
                                 if (rewardPlace.place().equalsIgnoreCase(place.place())) {
-                                    place_count++;
+                                    placeCount++;
                                     break;
                                 }
                             }
-                            if (place_count >= 2) {
+                            if (placeCount >= 2) {
                                 duplicatePlacementExists = true;
                                 break;
                             }
@@ -568,8 +579,8 @@ public class Raid {
     }
 
     private void endBattles() {
-        for (UUID player_uuid : participatingPlayers) {
-            ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(player_uuid);
+        for (UUID playerUUID : participatingPlayers) {
+            ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(playerUUID);
             if (player != null) {
                 PokemonBattle battle = BattleRegistry.INSTANCE.getBattleByParticipatingPlayer(player);
                 if (battle != null) {
@@ -658,10 +669,6 @@ public class Raid {
         return raidBossPokemonUncatchable;
     }
 
-    public PokemonEntity raidBossEntity() {
-        return raidBossEntity;
-    }
-
     public Category raidBossCategory() {
         return raidBossCategory;
     }
@@ -704,7 +711,7 @@ public class Raid {
         clones.put(pokemon, player.getUuid());
     }
 
-    public void removeClone(PokemonEntity clone) {
+    public void removeClone(PokemonEntity clone, boolean fromFlee) {
         if (clone != null) {
             if (clone.isAlive()) {
                 int chunkX = (int) Math.floor(clone.getPos().getX() / 16);
@@ -717,10 +724,12 @@ public class Raid {
                 }
 
                 world.setChunkForced(chunkX, chunkZ, true);
-                if (clone.isBattling() && clone.getBattleId() != null) {
-                    PokemonBattle battle = BattleRegistry.INSTANCE.getBattle(clone.getBattleId());
-                    if (battle != null) {
-                        battle.end();
+                if (!fromFlee) {
+                    if (clone.isBattling() && clone.getBattleId() != null) {
+                        PokemonBattle battle = BattleRegistry.INSTANCE.getBattle(clone.getBattleId());
+                        if (battle != null) {
+                            battle.stop();
+                        }
                     }
                 }
 
@@ -739,25 +748,24 @@ public class Raid {
         return participatingPlayers;
     }
 
-    public int getPlayerIndex(UUID player_uuid) {
+    public int getPlayerIndex(UUID playerUUID) {
         int index;
         for (index = 0; index < participatingPlayers.size(); index++) {
-            if (participatingPlayers.get(index).equals(player_uuid)) {
+            if (participatingPlayers.get(index).equals(playerUUID)) {
                 return index;
             }
         }
         return -1;
     }
 
-    public void removePlayer(UUID player_uuid) {
-        int index = getPlayerIndex(player_uuid);
+    public void removePlayer(UUID playerUUID) {
+        int index = getPlayerIndex(playerUUID);
         if (index != -1) {
-            ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(player_uuid);
+            ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(playerUUID);
             if (player != null) {
-                markForDeletion.add(player_uuid);
-                player.hideBossBar(bossbars().get(player_uuid));
-                playerBossbars.remove(player_uuid);
-                //damage_by_player.remove(player_uuid);
+                markForDeletion.add(playerUUID);
+                player.hideBossBar(bossbars().get(playerUUID));
+                playerBossbars.remove(playerUUID);
 
                 List<PokemonEntity> toRemove = new ArrayList<>();
                 for (PokemonEntity clone : clones.keySet()) {
@@ -766,7 +774,7 @@ public class Raid {
                     }
                 }
                 for (PokemonEntity clone : toRemove) {
-                    removeClone(clone);
+                    removeClone(clone, false);
                 }
             }
         }
@@ -781,10 +789,6 @@ public class Raid {
 
     public long getCurrentWebhookID() {
         return webhook;
-    }
-
-    public void editWebhookID(long webhookID) {
-        this.webhook = webhookID;
     }
 
     public boolean addPlayer(UUID playerUUID, boolean usedPass) {
@@ -931,16 +935,24 @@ public class Raid {
         return sortedLeaderboard;
     }
 
-    public List<EmptyPokeBallEntity> getPokeballsCapturing() {
-        return pokeballsCapturing;
-    }
-
     public void addPokeballsCapturing(EmptyPokeBallEntity entity) {
         pokeballsCapturing.add(entity);
     }
 
     public void removePokeballsCapturing(EmptyPokeBallEntity entity) {
         pokeballsCapturing.remove(entity);
+    }
+
+    public boolean isPlayerFleeing(UUID playerUUID) {
+        return fleeingPlayers.contains(playerUUID);
+    }
+
+    public void addFleeingPlayer(UUID playerUUID) {
+        fleeingPlayers.add(playerUUID);
+    }
+
+    public void removeFleeingPlayer(UUID playerUUID) {
+        fleeingPlayers.remove(playerUUID);
     }
 
     public Map<UUID, BossBar> bossbars() {

@@ -20,10 +20,7 @@ public class RewardPoolsConfig {
             loadConfig();
         } catch (IOException | NullPointerException | UnsupportedOperationException e) {
             NovaRaids.LOADED = false;
-            NovaRaids.INSTANCE.logError("Failed to load reward pools file. " + e.getMessage());
-            for (StackTraceElement element : e.getStackTrace()) {
-                NovaRaids.INSTANCE.logError("  " + element.toString());
-            }
+            NovaRaids.LOGGER.error("[NovaRaids] Failed to load reward pools file.", e);
         }
     }
 
@@ -37,7 +34,23 @@ public class RewardPoolsConfig {
         JsonObject config = new JsonObject();
         if (file.exists()) config = JsonParser.parseReader(new FileReader(file)).getAsJsonObject();
 
-        rewardPools.clear();
+        if (config.keySet().isEmpty()) {
+            InputStream stream = NovaRaids.class.getResourceAsStream("/raid_config_files/reward_pools.json");
+            assert stream != null;
+            OutputStream out = new FileOutputStream(file);
+
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = stream.read(buffer)) > 0) {
+                out.write(buffer, 0, length);
+            }
+
+            stream.close();
+            out.close();
+
+            config = JsonParser.parseReader(new FileReader(file)).getAsJsonObject();
+        }
+
         for (String key : config.keySet()) {
             JsonObject rewardObject = config.getAsJsonObject(key);
             RewardPool rewardPool = ConfigHelper.getRewardPool(rewardObject, key);

@@ -67,16 +67,18 @@ public class ConfigHelper {
                 placeObject.remove("allow_other_rewards");
                 placeObject.addProperty("allow_other_rewards", allowOtherRewards);
 
-                boolean overrideCategoryRewards = false;
+                boolean overrideCategoryPlacement = false;
                 if (!isCategorySection) {
                     if (placeObject.has("override_category_rewards"))
-                        overrideCategoryRewards = placeObject.get("override_category_rewards").getAsBoolean();
+                        overrideCategoryPlacement = placeObject.get("override_category_rewards").getAsBoolean();
+                    if (placeObject.has("override_category_placement"))
+                        overrideCategoryPlacement = placeObject.get("override_category_placement").getAsBoolean();
                     placeObject.remove("override_category_rewards");
-                    placeObject.addProperty("override_category_rewards", overrideCategoryRewards);
+                    placeObject.addProperty("override_category_placement", overrideCategoryPlacement);
                 }
 
                 placesArray.add(placeObject);
-                places.add(new Place(place, requireDamage, allowOtherRewards, overrideCategoryRewards));
+                places.add(new Place(place, requireDamage, allowOtherRewards, overrideCategoryPlacement));
             }
 
             distributionObject.remove("places");
@@ -608,6 +610,8 @@ public class ConfigHelper {
 
     public static List<RaidBall> getRaidBalls(JsonObject raidBallsObject) {
         List<RaidBall> raidBalls = new ArrayList<>();
+        if (raidBallsObject.isEmpty())
+            raidBallsObject.add("default", new JsonObject());
         for (String raidBallID : raidBallsObject.keySet()) {
             JsonObject ballObject = raidBallsObject.getAsJsonObject(raidBallID);
             Item pokeball = CobblemonItems.POKE_BALL;

@@ -15,14 +15,49 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BossbarsConfig {
-    public List<BossbarData> bossbars = new ArrayList<>();
+    public List<BossbarData> bossbars = new ArrayList<>(
+            List.of(
+                    new BossbarData(
+                            "setup_phase_example",
+                            BossBar.Color.BLUE,
+                            BossBar.Overlay.PROGRESS,
+                            "<blue>Prepare for battle against %boss.form% %boss.species%!",
+                            true,
+                            "<gold>Raid starts in %raid.phase_timer%"
+                    ),
+                    new BossbarData(
+                            "fight_phase_example",
+                            BossBar.Color.RED,
+                            BossBar.Overlay.NOTCHED_20,
+                            "<red>Boss %boss.form% %boss.species%",
+                            true,
+                            "<red>Raid ends in %raid.phase_timer% <dark_gray>| <red>HP %boss.currenthp%/%boss.maxhp%"
+                    ),
+                    new BossbarData(
+                            "pre_catch_phase_example",
+                            BossBar.Color.RED,
+                            BossBar.Overlay.PROGRESS,
+                            "<red>Catching event starts soon, get to a safe place!",
+                            true,
+                            "<red>Catching event starts in %raid.phase_timer%"
+                    ),
+                    new BossbarData(
+                            "catch_phase_example",
+                            BossBar.Color.YELLOW,
+                            BossBar.Overlay.PROGRESS,
+                            "<yellow>Time to catch %boss.form% %boss.species%",
+                            true,
+                            "<yellow>Catching event ends in %raid.phase_timer%"
+                    )
+            )
+    );
 
     public BossbarsConfig() {
         try {
             loadConfig();
         } catch (IOException | NullPointerException | UnsupportedOperationException e) {
             NovaRaids.LOADED = false;
-            NovaRaids.LOGGER.error("Failed to load bossbars file. ", e);
+            NovaRaids.LOGGER.error("[NovaRaids] Failed to load bossbars file. ", e);
         }
     }
 
@@ -34,6 +69,8 @@ public class BossbarsConfig {
 
         JsonObject config = new JsonObject();
         if (file.exists()) config = JsonParser.parseReader(new FileReader(file)).getAsJsonObject();
+
+        if (!config.keySet().isEmpty()) bossbars.clear();
 
         for (String key : config.keySet()) {
             JsonObject bossbarObject = config.getAsJsonObject(key);

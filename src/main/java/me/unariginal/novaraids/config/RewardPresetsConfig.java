@@ -34,7 +34,23 @@ public class RewardPresetsConfig {
         JsonObject config = new JsonObject();
         if (file.exists()) config = JsonParser.parseReader(new FileReader(file)).getAsJsonObject();
 
-        rewards.clear();
+        if (config.keySet().isEmpty()) {
+            InputStream stream = NovaRaids.class.getResourceAsStream("/raid_config_files/reward_presets.json");
+            assert stream != null;
+            OutputStream out = new FileOutputStream(file);
+
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = stream.read(buffer)) > 0) {
+                out.write(buffer, 0, length);
+            }
+
+            stream.close();
+            out.close();
+
+            config = JsonParser.parseReader(new FileReader(file)).getAsJsonObject();
+        }
+
         for (String key : config.keySet()) {
             JsonObject rewardObject = config.getAsJsonObject(key);
             Reward reward = ConfigHelper.getReward(rewardObject, key);

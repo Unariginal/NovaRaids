@@ -71,7 +71,7 @@ public class TickManager {
                     }
                 }
                 for (PokemonEntity pokemonEntity : toRemove) {
-                    raid.removeClone(pokemonEntity);
+                    raid.removeClone(pokemonEntity, false);
                 }
             }
 
