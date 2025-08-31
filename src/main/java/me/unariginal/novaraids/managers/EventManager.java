@@ -67,6 +67,25 @@ public class EventManager {
     }
 
     public static void battleEvents() {
+//        CobblemonEvents.BATTLE_STARTED_POST.subscribe(Priority.NORMAL, event -> {
+//            PokemonBattle battle = event.getBattle();
+//            if (battle.isPvW()) {
+//                for (BattleActor actor : battle.getActors()) {
+//                    if (actor instanceof PokemonBattleActor pokemonBattleActor) {
+//                        Pokemon pokemon = pokemonBattleActor.getPokemon().getEffectedPokemon();
+//                        if (!pokemon.isPlayerOwned() && !pokemon.isNPCOwned()) {
+//                            NovaRaids.LOGGER.info("[NovaRaids] Attempting Terastallization for {}. UUID: {}, TeraType: {}", pokemon.getSpecies().getName(), pokemon.getUuid(), pokemon.getTeraType().showdownId());
+//                            battle.dispatchWaitingToFront(0.5F, () -> {
+//                                new TerastallizeInstruction(new BattleMessage("|-terastallize|p2a: " + pokemon.getUuid() + "|" + pokemon.getTeraType().showdownId())).invoke(battle);
+//                                return Unit.INSTANCE;
+//                            });
+//                        }
+//                    }
+//                }
+//            }
+//            return Unit.INSTANCE;
+//        });
+
         CobblemonEvents.BATTLE_STARTED_PRE.subscribe(Priority.HIGHEST, event -> {
             PokemonBattle battle = event.getBattle();
             ServerPlayerEntity player = null;

@@ -4,6 +4,7 @@ import com.cobblemon.mod.common.api.abilities.Ability;
 import com.cobblemon.mod.common.api.moves.MoveTemplate;
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
 import com.cobblemon.mod.common.api.pokemon.stats.Stat;
+import com.cobblemon.mod.common.api.types.tera.TeraType;
 import com.cobblemon.mod.common.pokemon.*;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.utils.RandomUtils;
@@ -23,6 +24,7 @@ public record PokemonDetails(
         Map<Ability, Double> possibleAbilities,
         Map<Nature, Double> possibleNatures,
         Map<Gender, Double> possibleGenders,
+        TeraType teraType,
         boolean shiny,
         float scale,
         Item heldItem,
@@ -75,6 +77,7 @@ public record PokemonDetails(
             pokemon.setGender((Gender) entry.getKey());
         }
 
+        if (teraType != null) pokemon.setTeraType(teraType);
         pokemon.setShiny(shiny);
         pokemon.setScaleModifier(scale);
 

@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 public class NovaRaids implements ModInitializer {
-    private static final String MOD_ID = "novaraids";
+    public static final String MOD_ID = "novaraids";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
     public static NovaRaids INSTANCE;
     public static boolean LOADED = true;

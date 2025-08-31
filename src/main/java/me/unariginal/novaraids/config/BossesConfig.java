@@ -9,6 +9,8 @@ import com.cobblemon.mod.common.api.moves.Moves;
 import com.cobblemon.mod.common.api.pokemon.Natures;
 import com.cobblemon.mod.common.api.pokemon.PokemonSpecies;
 import com.cobblemon.mod.common.api.pokemon.stats.Stats;
+import com.cobblemon.mod.common.api.types.tera.TeraType;
+import com.cobblemon.mod.common.api.types.tera.TeraTypes;
 import com.cobblemon.mod.common.pokemon.*;
 import com.google.gson.*;
 import com.mojang.serialization.JsonOps;
@@ -312,6 +314,7 @@ public class BossesConfig {
         Map<Ability, Double> abilities = new HashMap<>();
         Map<Nature, Double> natures = new HashMap<>();
         Map<Gender, Double> genders = new HashMap<>();
+        TeraType teraType = null;
         boolean shiny = false;
         float scale = 1.0f;
         Item heldItem = Items.AIR;
@@ -490,6 +493,12 @@ public class BossesConfig {
         pokemonDetails.add("genders", gendersArray);
         pokemonDetails.remove("gender");
 
+        if (pokemonDetails.has("tera_type"))
+            teraType = TeraTypes.get(pokemonDetails.get("tera_type").getAsString());
+        pokemonDetails.remove("tera_type");
+        if (teraType == null) pokemonDetails.addProperty("tera_type", "random");
+        else pokemonDetails.addProperty("tera_type", teraType.getName());
+
         if (pokemonDetails.has("shiny"))
             shiny = pokemonDetails.get("shiny").getAsBoolean();
         pokemonDetails.remove("shiny");
@@ -618,6 +627,7 @@ public class BossesConfig {
                 abilities,
                 natures,
                 genders,
+                teraType,
                 shiny,
                 scale,
                 heldItem,

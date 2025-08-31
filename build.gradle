@@ -7,6 +7,14 @@ plugins {
 version = project.mod_version
 group = project.maven_group
 
+allprojects {
+    gradle.projectsEvaluated {
+        tasks.withType(JavaCompile) {
+            options.compilerArgs << "-Xlint:deprecation"
+        }
+    }
+}
+
 base {
     archivesName = project.archives_base_name
 }
