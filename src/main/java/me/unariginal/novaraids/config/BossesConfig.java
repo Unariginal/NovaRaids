@@ -494,7 +494,7 @@ public class BossesConfig {
         pokemonDetails.remove("gender");
 
         if (pokemonDetails.has("tera_type"))
-            teraType = TeraTypes.get(pokemonDetails.get("tera_type").getAsString());
+            teraType = TeraTypes.get(pokemonDetails.get("tera_type").getAsString().toLowerCase());
         pokemonDetails.remove("tera_type");
         if (teraType == null) pokemonDetails.addProperty("tera_type", "random");
         else pokemonDetails.addProperty("tera_type", teraType.getName());

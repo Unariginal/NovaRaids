@@ -9,10 +9,10 @@
     "start_catch_phase": "%prefix% Time to catch %boss.form% %boss.species%!",
     "catch_phase_end": "%prefix% Catch phase completed!",
     "raid_end": "%prefix% The %boss.form% %boss.species% raid has finished.",
-    "out_of_time": "%prefix% %boss.form% %boss.species% was not defeated in time!",
+    "out_of_time": "%prefix% %boss.form% %boss.species% was not defeated on time!",
     "not_enough_players": "%prefix% There wasn't enough players to start the raid!",
 
-    "player_damage_report": "%prefix% %raid.player% did %raid.player.damage% to the boss!",
+    "player_damage_report": "%prefix% %raid.player% did %raid.player.damage% damage to the boss!",
 
     "no_active_raids": "%prefix% There are no active raids!",
     "no_queued_raids": "%prefix% There are no queued raids!",

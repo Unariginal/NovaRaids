@@ -469,7 +469,7 @@ public class RaidCommands {
         if (player != null) {
             player.sendMessage(TextUtils.deserialize("<gray><st><b><i>---------<reset><red> Nova Raids <reset><gray><st><b><i>---------"));
             player.sendMessage(TextUtils.deserialize("<gray><b>Author: <reset><white>Unariginal <i>(Ariginal)"));
-            player.sendMessage(TextUtils.deserialize("<gray><b>Version: <reset><white>Beta v0.3.2"));
+            player.sendMessage(TextUtils.deserialize("<gray><b>Version: <reset><white>Beta v0.3.3"));
             player.sendMessage(TextUtils.deserialize("<gray><b><i><u><click:open_url:https://github.com/Unariginal/NovaRaids>Source"));
             player.sendMessage(TextUtils.deserialize("<gray><b><i><u><click:open_url:https://github.com/Unariginal/NovaRaids/wiki>Wiki"));
             player.sendMessage(TextUtils.deserialize("<gray><st><b><i>---------------------------"));

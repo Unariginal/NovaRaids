@@ -5,10 +5,10 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "BattleEndMixin",
+    "GimmickActionMixin",
     "HidePlayersAndPokemon",
     "PreventDrops",
-    "PreventHeldItems",
-    "StrongBattleAIMixin"
+    "PreventHeldItems"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -233,7 +233,11 @@ public class BattleManager {
             errors.getParticipantErrors().get(wildActor).add(BattleStartError.Companion.alreadyInBattle(wildActor));
         }
 
-        playerActor.setBattleTheme(pokemonEntity.getBattleTheme());
+        try {
+            playerActor.setBattleTheme(pokemonEntity.getBattleTheme());
+        } catch (NoSuchMethodError e) {
+            NovaRaids.LOGGER.error("No Such Method Error", e);
+        }
 
         if (errors.isEmpty()) {
             return BattleRegistry.INSTANCE.startBattle(battleFormat, new BattleSide(playerActor), new BattleSide(wildActor), true).ifSuccessful(pokemonBattle -> {
