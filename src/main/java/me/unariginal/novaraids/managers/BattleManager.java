@@ -159,7 +159,9 @@ public class BattleManager {
 
     public static void invokeBattle(Raid raid, ServerPlayerEntity player) {
         Pokemon pokemon = raid.bossInfo().pokemonDetails().createPokemon(false);
-        pokemon.setFeatures(raid.raidBossPokemonUncatchable().getFeatures());
+        if (!raid.bossInfo().rerollFeaturesEachBattle()) {
+            pokemon.setFeatures(raid.raidBossPokemonUncatchable().getFeatures());
+        }
         pokemon.getCustomProperties().add(UncatchableProperty.INSTANCE.uncatchable());
         pokemon.setAbility$common(raid.raidBossPokemonUncatchable().getAbility());
         pokemon.setGender(raid.raidBossPokemonUncatchable().getGender());

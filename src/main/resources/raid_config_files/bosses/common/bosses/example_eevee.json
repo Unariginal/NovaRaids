@@ -41,7 +41,11 @@
         "weight": 87.5
       }
     ],
+    "gimmicks": [],
     "shiny": false,
+    "tera_type": "random",
+    "gmax_factor": false,
+    "dynamax_level": 0,
     "scale": 5.0,
     "held_item": "cobblemon:leftovers",
     "held_item_data": {},
@@ -75,6 +79,8 @@
     "health_increase_per_player": 500,
     "apply_glowing": true,
     "ai_skill_level": 3,
+    "reroll_features_each_battle": false,
+    "reroll_gimmick_each_battle": true,
     "locations": [
       {
         "location": "example_location",

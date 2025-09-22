@@ -37,10 +37,19 @@ public abstract class GimmickActionMixin {
      *          log(messages.joinToString("\n"))
      *          ShowdownService.service.send(battleId, messages.toList().toTypedArray())
      *      }
-     *  But we need to make the message look like this:
+     *  But we need to make the message look like this example of when a player uses a gimmick:
      *      >p1 move 2 +1 terastal
      *  But p2 because it's the wild pokemon, not the player
      *  Then cancel because we don't want 2 instructions sending
+     *
+     * Mega:
+     * >p2 move # mega
+     * Tera:
+     * >p2 move # terastal
+     * Dynamax:
+     * >p2 move # max
+     * Z Power:
+     * >p2 move # zmove
      */
     @Inject(method = "writeShowdownAction", at = @At("HEAD"), cancellable = true)
     private void injectGimmick(String[] messages, CallbackInfo ci) {
@@ -52,11 +61,29 @@ public abstract class GimmickActionMixin {
         if (pokemonEntity == null) return;
         for (Raid raid : NovaRaids.INSTANCE.activeRaids().values()) {
             if (raid.getClones().containsKey(pokemonEntity)) {
-                NovaRaids.LOGGER.info("We found the boss, time to tera");
-                this.log(String.join("\n", messages));
-                messages[0] = messages[0] + " terastal";
-                ShowdownService.Companion.getService().send(this.getBattleId(), messages);
-                ci.cancel();
+                NovaRaids.LOGGER.info("We found the boss, time to gimmick");
+                String gimmick = raid.baseGimmick();
+                if (raid.bossInfo().rerollGimmickEachBattle()) {
+                    gimmick = raid.bossInfo().pokemonDetails().getGimmick();
+                }
+
+                if (gimmick != null && !gimmick.isEmpty()) {
+                    String instruction = switch (gimmick) {
+                        case "tera", "terastal", "terastallize", "terastallization" -> "terastal";
+                        case "mega" -> "mega";
+                        case "dmax", "dynamax", "gmax", "gigantamax", "max" -> "max";
+                        //case "zpower" -> "zmove";
+                        default -> "";
+                    };
+
+                    if (instruction.isEmpty()) return;
+                    if (instruction.equals("mega") && pokemonEntity.getPokemon().getLevel() > 100) return;
+
+                    this.log(String.join("\n", messages));
+                    messages[0] = messages[0] + " " + instruction;
+                    ShowdownService.Companion.getService().send(this.getBattleId(), messages);
+                    ci.cancel();
+                }
             }
         }
     }

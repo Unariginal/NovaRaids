@@ -314,8 +314,11 @@ public class BossesConfig {
         Map<Ability, Double> abilities = new HashMap<>();
         Map<Nature, Double> natures = new HashMap<>();
         Map<Gender, Double> genders = new HashMap<>();
-        TeraType teraType = null;
+        Map<String, Double> gimmicks = new HashMap<>();
         boolean shiny = false;
+        TeraType teraType = null;
+        boolean gmaxFactor = false;
+        int dynamaxLevel = 0;
         float scale = 1.0f;
         Item heldItem = Items.AIR;
         ComponentChanges heldItemData = ComponentChanges.EMPTY;
@@ -493,16 +496,51 @@ public class BossesConfig {
         pokemonDetails.add("genders", gendersArray);
         pokemonDetails.remove("gender");
 
+        JsonArray gimmicksArray = new JsonArray();
+        if (pokemonDetails.has("gimmicks"))
+            gimmicksArray = pokemonDetails.get("gimmicks").getAsJsonArray();
+
+        for (JsonElement gimmickElement : gimmicksArray) {
+            JsonObject gimmickObject = gimmickElement.getAsJsonObject();
+            if (!gimmickObject.has("gimmick")) continue;
+            String gimmickStr = gimmickObject.get("gimmick").getAsString();
+            double weight = 1.0;
+            if (gimmickObject.has("weight"))
+                weight = gimmickObject.get("weight").getAsDouble();
+
+            gimmicks.put(gimmickStr, weight);
+        }
+
+        gimmicksArray = new JsonArray();
+        for (Map.Entry<String, Double> entry : gimmicks.entrySet()) {
+            JsonObject gimmickObject = new JsonObject();
+            gimmickObject.addProperty("gimmick", entry.getKey());
+            gimmickObject.addProperty("weight", entry.getValue());
+            gimmicksArray.add(gimmickObject);
+        }
+        pokemonDetails.remove("gimmicks");
+        pokemonDetails.add("gimmicks", gimmicksArray);
+
+        if (pokemonDetails.has("shiny"))
+            shiny = pokemonDetails.get("shiny").getAsBoolean();
+        pokemonDetails.remove("shiny");
+        pokemonDetails.addProperty("shiny", shiny);
+
         if (pokemonDetails.has("tera_type"))
             teraType = TeraTypes.get(pokemonDetails.get("tera_type").getAsString().toLowerCase());
         pokemonDetails.remove("tera_type");
         if (teraType == null) pokemonDetails.addProperty("tera_type", "random");
         else pokemonDetails.addProperty("tera_type", teraType.getName());
 
-        if (pokemonDetails.has("shiny"))
-            shiny = pokemonDetails.get("shiny").getAsBoolean();
-        pokemonDetails.remove("shiny");
-        pokemonDetails.addProperty("shiny", shiny);
+        if (pokemonDetails.has("gmax_factor"))
+            gmaxFactor = pokemonDetails.get("gmax_factor").getAsBoolean();
+        pokemonDetails.remove("gmax_factor");
+        pokemonDetails.addProperty("gmax_factor", gmaxFactor);
+
+        if (pokemonDetails.has("dynamax_level"))
+            dynamaxLevel = pokemonDetails.get("dynamax_level").getAsInt();
+        pokemonDetails.remove("dynamax_level");
+        pokemonDetails.addProperty("dynamax_level", dynamaxLevel);
 
         if (pokemonDetails.has("scale"))
             scale = pokemonDetails.get("scale").getAsInt();
@@ -627,7 +665,10 @@ public class BossesConfig {
                 abilities,
                 natures,
                 genders,
+                gimmicks,
                 teraType,
+                gmaxFactor,
+                dynamaxLevel,
                 shiny,
                 scale,
                 heldItem,
@@ -644,6 +685,8 @@ public class BossesConfig {
         int healthIncreasePerPlayer = 0;
         boolean applyGlowing = false;
         int aiSkillLevel = 3;
+        boolean rerollFeaturesEachBattle = false;
+        boolean rerollGimmickEachBattle = false;
         Map<String, Double> locations = new HashMap<>();
 
         JsonObject bossDetails = new JsonObject();
@@ -674,6 +717,16 @@ public class BossesConfig {
             aiSkillLevel = bossDetails.get("ai_skill_level").getAsInt();
         bossDetails.remove("ai_skill_level");
         bossDetails.addProperty("ai_skill_level", aiSkillLevel);
+
+        if (bossDetails.has("reroll_features_each_battle"))
+            rerollFeaturesEachBattle = bossDetails.get("reroll_features_each_battle").getAsBoolean();
+        bossDetails.remove("reroll_features_each_battle");
+        bossDetails.addProperty("reroll_features_each_battle", rerollFeaturesEachBattle);
+
+        if (bossDetails.has("reroll_gimmick_each_battle"))
+            rerollGimmickEachBattle = bossDetails.get("reroll_gimmick_each_battle").getAsBoolean();
+        bossDetails.remove("reroll_gimmick_each_battle");
+        bossDetails.addProperty("reroll_gimmick_each_battle", rerollGimmickEachBattle);
 
         JsonArray locationsArray = new JsonArray();
         if (bossDetails.has("locations"))
@@ -1084,6 +1137,8 @@ public class BossesConfig {
                 healthIncreasePerPlayer,
                 applyGlowing,
                 aiSkillLevel,
+                rerollFeaturesEachBattle,
+                rerollGimmickEachBattle,
                 locations,
                 itemSettings,
                 raidDetails,

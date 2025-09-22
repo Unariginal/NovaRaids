@@ -49,6 +49,7 @@ public class Raid {
     private final Boss bossInfo;
     private final Pokemon raidBossPokemon;
     private final Pokemon raidBossPokemonUncatchable;
+    private final String baseGimmick;
     private final PokemonEntity raidBossEntity;
     private final Location raidBossLocation;
     private final Category raidBossCategory;
@@ -98,6 +99,7 @@ public class Raid {
         raidBossPokemon = bossInfo.pokemonDetails().createPokemon(false);
         raidBossPokemonUncatchable = bossInfo.pokemonDetails().createPokemon(false);
         raidBossPokemonUncatchable.getCustomProperties().add(UncatchableProperty.INSTANCE.uncatchable());
+        baseGimmick = bossInfo.pokemonDetails().getGimmick();
         raidBossEntity = generateBossEntity();
         raidBossEntity.setBodyYaw(raidBossLocation.bossFacingDirection());
         uuid = raidBossEntity.getUuid();
@@ -667,6 +669,10 @@ public class Raid {
 
     public Pokemon raidBossPokemonUncatchable() {
         return raidBossPokemonUncatchable;
+    }
+
+    public String baseGimmick() {
+        return baseGimmick;
     }
 
     public Category raidBossCategory() {

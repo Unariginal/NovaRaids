@@ -24,7 +24,10 @@ public record PokemonDetails(
         Map<Ability, Double> possibleAbilities,
         Map<Nature, Double> possibleNatures,
         Map<Gender, Double> possibleGenders,
+        Map<String, Double> possibleGimmicks,
         TeraType teraType,
+        boolean gmaxFactor,
+        int dynamaxLevel,
         boolean shiny,
         float scale,
         Item heldItem,
@@ -40,6 +43,14 @@ public record PokemonDetails(
             stack.applyChanges(heldItemData);
         }
         return stack;
+    }
+
+    public String getGimmick() {
+        Map.Entry<?, Double> entry = RandomUtils.getRandomEntry(possibleGimmicks);
+        if (entry != null) {
+            return (String) entry.getKey();
+        }
+        return "";
     }
 
     public Pokemon createPokemon(boolean catchEncounter) {
@@ -77,8 +88,10 @@ public record PokemonDetails(
             pokemon.setGender((Gender) entry.getKey());
         }
 
-        if (teraType != null) pokemon.setTeraType(teraType);
         pokemon.setShiny(shiny);
+        if (teraType != null) pokemon.setTeraType(teraType);
+        pokemon.setGmaxFactor(gmaxFactor);
+        pokemon.setDmaxLevel(dynamaxLevel);
         pokemon.setScaleModifier(scale);
 
         if (heldItem != null) {
