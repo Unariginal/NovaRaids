@@ -217,7 +217,7 @@ public class BossesConfig {
         Voucher categoryRandomVoucher = ConfigHelper.getVoucher(categoryRandomVoucherObject, nr.config().defaultVoucher);
 
         itemSettings.remove("category_random_voucher");
-        itemSettings.add("category_random_voucher", categoryChoiceVoucher.voucherObject());
+        itemSettings.add("category_random_voucher", categoryRandomVoucher.voucherObject());
 
         JsonObject categoryPassObject = new JsonObject();
         if (itemSettings.has("category_pass"))

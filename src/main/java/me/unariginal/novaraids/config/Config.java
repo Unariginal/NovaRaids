@@ -25,6 +25,7 @@ public class Config {
     public boolean hideOtherCatchEncounters = true;
     public boolean hideOtherPlayersInRaid = false;
     public boolean hideOtherPokemonInRaid = false;
+    public boolean reducePokemonHitboxSize = true;
     public boolean bossesHaveInfinitePP = false;
     public boolean allowExperienceGain = false;
     public boolean automaticBattles = false;
@@ -102,6 +103,11 @@ public class Config {
             hideOtherPokemonInRaid = raidSettingsObject.get("hide_other_pokemon_in_raid").getAsBoolean();
         raidSettingsObject.remove("hide_other_pokemon_in_raid");
         raidSettingsObject.addProperty("hide_other_pokemon_in_raid", hideOtherPokemonInRaid);
+
+        if (raidSettingsObject.has("reduce_pokemon_hitbox_size"))
+            reducePokemonHitboxSize = raidSettingsObject.get("reduce_pokemon_hitbox_size").getAsBoolean();
+        raidSettingsObject.remove("reduce_pokemon_hitbox_size");
+        raidSettingsObject.addProperty("reduce_pokemon_hitbox_size", reducePokemonHitboxSize);
 
         if (raidSettingsObject.has("bosses_have_infinite_pp"))
             bossesHaveInfinitePP = raidSettingsObject.get("bosses_have_infinite_pp").getAsBoolean();

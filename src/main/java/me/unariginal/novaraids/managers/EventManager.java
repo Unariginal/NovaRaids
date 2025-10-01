@@ -39,6 +39,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.TypedActionResult;
+import net.minecraft.util.math.Box;
 
 import java.util.*;
 
@@ -706,6 +707,25 @@ public class EventManager {
             Pokemon pokemon = pokemonEntity.getPokemon();
             if (pokemon.getPersistentData().contains("raid_entity")) {
                 event.cancel();
+            }
+            return Unit.INSTANCE;
+        });
+
+        CobblemonEvents.POKEMON_SENT_POST.subscribe(Priority.NORMAL, event -> {
+            if (nr.config().reducePokemonHitboxSize) {
+                Pokemon pokemon = event.getPokemon();
+                PokemonEntity pokemonEntity = event.getPokemonEntity();
+                if (pokemon.isPlayerOwned()) {
+                    ServerPlayerEntity player = pokemon.getOwnerPlayer();
+                    if (player != null) {
+                        for (Raid raid : nr.activeRaids().values()) {
+                            if (raid.participatingPlayers().contains(player.getUuid())) {
+                                pokemonEntity.setBoundingBox(new Box(0,0,0,0,0,0));
+                                break;
+                            }
+                        }
+                    }
+                }
             }
             return Unit.INSTANCE;
         });

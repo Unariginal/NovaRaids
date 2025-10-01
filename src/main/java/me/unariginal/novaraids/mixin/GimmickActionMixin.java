@@ -54,6 +54,7 @@ public abstract class GimmickActionMixin {
     @Inject(method = "writeShowdownAction", at = @At("HEAD"), cancellable = true)
     private void injectGimmick(String[] messages, CallbackInfo ci) {
         if (this.getTurn() != 1 || !messages[0].startsWith(">p2")) return;
+
         List<ActiveBattlePokemon> activeBattlePokemon = this.getSide2().getActivePokemon();
         BattlePokemon battlePokemon = activeBattlePokemon.getFirst().getBattlePokemon();
         if (battlePokemon == null) return;
@@ -61,7 +62,6 @@ public abstract class GimmickActionMixin {
         if (pokemonEntity == null) return;
         for (Raid raid : NovaRaids.INSTANCE.activeRaids().values()) {
             if (raid.getClones().containsKey(pokemonEntity)) {
-                NovaRaids.LOGGER.info("We found the boss, time to gimmick");
                 String gimmick = raid.baseGimmick();
                 if (raid.bossInfo().rerollGimmickEachBattle()) {
                     gimmick = raid.bossInfo().pokemonDetails().getGimmick();
