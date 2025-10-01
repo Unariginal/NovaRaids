@@ -7,7 +7,6 @@ import com.cobblemon.mod.common.api.events.pokemon.ShinyChanceCalculationEvent;
 import com.cobblemon.mod.common.api.moves.MoveTemplate;
 import com.cobblemon.mod.common.api.pokemon.Natures;
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
-import com.cobblemon.mod.common.api.pokemon.stats.SidemodEvSource;
 import com.cobblemon.mod.common.api.pokemon.stats.Stat;
 import com.cobblemon.mod.common.api.storage.party.PartyStore;
 import com.cobblemon.mod.common.battles.*;
@@ -83,7 +82,7 @@ public class BattleManager {
         if (settings.keepEvs()) {
             EVs new_evs = new EVs();
             for (Map.Entry<? extends Stat, ? extends Integer> ev : pokemon.getEvs()) {
-                new_evs.add(ev.getKey(), ev.getValue(), new SidemodEvSource(NovaRaids.MOD_ID, pokemon));
+                new_evs.add(ev.getKey(), ev.getValue());
             }
             for (Map.Entry<? extends Stat, ? extends Integer> ev : new_evs) {
                 pokemon.setEV(ev.getKey(), ev.getValue());
