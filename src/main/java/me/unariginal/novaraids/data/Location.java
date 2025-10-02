@@ -14,4 +14,7 @@ public record Location(String id,
                        Vec3d joinLocation,
                        float yaw,
                        float pitch) {
+    public boolean isPointInLocation(double x, double z) {
+        return Math.pow(x - pos.x, 2) + Math.pow(z - pos.z, 2) <= Math.pow(borderRadius, 2);
+    }
 }

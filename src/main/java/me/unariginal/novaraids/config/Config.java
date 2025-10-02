@@ -25,7 +25,8 @@ public class Config {
     public boolean hideOtherCatchEncounters = true;
     public boolean hideOtherPlayersInRaid = false;
     public boolean hideOtherPokemonInRaid = false;
-    public boolean reducePokemonHitboxSize = true;
+    public boolean reduceLargePokemonSize = true;
+    public boolean disableSpawnsInArena = true;
     public boolean bossesHaveInfinitePP = false;
     public boolean allowExperienceGain = false;
     public boolean automaticBattles = false;
@@ -104,10 +105,15 @@ public class Config {
         raidSettingsObject.remove("hide_other_pokemon_in_raid");
         raidSettingsObject.addProperty("hide_other_pokemon_in_raid", hideOtherPokemonInRaid);
 
-        if (raidSettingsObject.has("reduce_pokemon_hitbox_size"))
-            reducePokemonHitboxSize = raidSettingsObject.get("reduce_pokemon_hitbox_size").getAsBoolean();
-        raidSettingsObject.remove("reduce_pokemon_hitbox_size");
-        raidSettingsObject.addProperty("reduce_pokemon_hitbox_size", reducePokemonHitboxSize);
+        if (raidSettingsObject.has("reduce_large_pokemon_size"))
+            reduceLargePokemonSize = raidSettingsObject.get("reduce_large_pokemon_size").getAsBoolean();
+        raidSettingsObject.remove("reduce_large_pokemon_size");
+        raidSettingsObject.addProperty("reduce_large_pokemon_size", reduceLargePokemonSize);
+
+        if (raidSettingsObject.has("disable_spawns_in_arena"))
+            disableSpawnsInArena = raidSettingsObject.get("disable_spawns_in_arena").getAsBoolean();
+        raidSettingsObject.remove("disable_spawns_in_arena");
+        raidSettingsObject.addProperty("disable_spawns_in_arena", disableSpawnsInArena);
 
         if (raidSettingsObject.has("bosses_have_infinite_pp"))
             bossesHaveInfinitePP = raidSettingsObject.get("bosses_have_infinite_pp").getAsBoolean();

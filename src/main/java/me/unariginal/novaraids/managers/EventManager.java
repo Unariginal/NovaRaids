@@ -30,6 +30,8 @@ import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.attribute.EntityAttributeInstance;
+import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
@@ -39,6 +41,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.TypedActionResult;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 
 import java.util.*;
@@ -712,7 +715,7 @@ public class EventManager {
         });
 
         CobblemonEvents.POKEMON_SENT_POST.subscribe(Priority.NORMAL, event -> {
-            if (nr.config().reducePokemonHitboxSize) {
+            if (nr.config().reduceLargePokemonSize) {
                 Pokemon pokemon = event.getPokemon();
                 PokemonEntity pokemonEntity = event.getPokemonEntity();
                 if (pokemon.isPlayerOwned()) {
@@ -720,10 +723,29 @@ public class EventManager {
                     if (player != null) {
                         for (Raid raid : nr.activeRaids().values()) {
                             if (raid.participatingPlayers().contains(player.getUuid())) {
-                                pokemonEntity.setBoundingBox(new Box(0,0,0,0,0,0));
-                                break;
+                                Box hitbox = pokemonEntity.getBoundingBox();
+                                double maxLength = Math.max(Math.max(hitbox.getLengthX(), hitbox.getLengthY()), hitbox.getLengthZ());
+                                if (maxLength > 1) {
+                                    double scale = 1 / maxLength;
+                                    EntityAttributeInstance scaleAttribute = pokemonEntity.getAttributeInstance(EntityAttributes.GENERIC_SCALE);
+                                    if (scaleAttribute != null) scaleAttribute.setBaseValue(scale);
+                                    break;
+                                }
                             }
                         }
+                    }
+                }
+            }
+            return Unit.INSTANCE;
+        });
+
+        CobblemonEvents.POKEMON_ENTITY_SPAWN.subscribe(Priority.NORMAL, event -> {
+            if (nr.config().disableSpawnsInArena) {
+                BlockPos pos = event.getSpawnablePosition().getPosition();
+                for (Raid raid : nr.activeRaids().values()) {
+                    if (raid.raidBossLocation().isPointInLocation(pos.getX(), pos.getZ())) {
+                        event.cancel();
+                        break;
                     }
                 }
             }
