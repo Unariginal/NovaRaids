@@ -741,7 +741,7 @@ public class EventManager {
 
         CobblemonEvents.POKEMON_ENTITY_SPAWN.subscribe(Priority.NORMAL, event -> {
             if (nr.config().disableSpawnsInArena) {
-                BlockPos pos = event.getSpawnablePosition().getPosition();
+                BlockPos pos = event.getCtx().getPosition();
                 for (Raid raid : nr.activeRaids().values()) {
                     if (raid.raidBossLocation().isPointInLocation(pos.getX(), pos.getZ())) {
                         event.cancel();
