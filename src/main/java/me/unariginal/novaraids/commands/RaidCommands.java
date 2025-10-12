@@ -76,7 +76,10 @@ public class RaidCommands {
                                                     .suggests(new BossSuggestions())
                                                     .executes(ctx -> {
                                                         if (NovaRaids.LOADED) {
-                                                            return start(nr.bossesConfig().getBoss(StringArgumentType.getString(ctx, "boss")), ctx.getSource().getPlayer(), null);
+                                                            if (ctx.getSource().isExecutedByPlayer())
+                                                                return start(nr.bossesConfig().getBoss(StringArgumentType.getString(ctx, "boss")), ctx.getSource().getPlayer(), null);
+                                                            else
+                                                                return start(nr.bossesConfig().getBoss(StringArgumentType.getString(ctx, "boss")), null, null);
                                                         } else {
                                                             return 0;
                                                         }
@@ -86,7 +89,10 @@ public class RaidCommands {
                                             CommandManager.literal("random")
                                                     .executes(ctx -> {
                                                         if (NovaRaids.LOADED) {
-                                                            return start(nr.bossesConfig().getRandomBoss(), ctx.getSource().getPlayer(), null);
+                                                            if (ctx.getSource().isExecutedByPlayer())
+                                                                return start(nr.bossesConfig().getRandomBoss(), ctx.getSource().getPlayer(), null);
+                                                            else
+                                                                return start(nr.bossesConfig().getRandomBoss(), null, null);
                                                         } else {
                                                             return 0;
                                                         }
@@ -99,7 +105,10 @@ public class RaidCommands {
                                                                             String categoryStr = StringArgumentType.getString(ctx, "category");
                                                                             Boss boss = nr.bossesConfig().getRandomBoss(categoryStr);
 
-                                                                            return start(boss, ctx.getSource().getPlayer(), null);
+                                                                            if (ctx.getSource().isExecutedByPlayer())
+                                                                                return start(boss, ctx.getSource().getPlayer(), null);
+                                                                            else
+                                                                                return start(boss, null, null);
                                                                         } else {
                                                                             return 0;
                                                                         }
@@ -469,7 +478,7 @@ public class RaidCommands {
         if (player != null) {
             player.sendMessage(TextUtils.deserialize("<gray><st><b><i>---------<reset><red> Nova Raids <reset><gray><st><b><i>---------"));
             player.sendMessage(TextUtils.deserialize("<gray><b>Author: <reset><white>Unariginal <i>(Ariginal)"));
-            player.sendMessage(TextUtils.deserialize("<gray><b>Version: <reset><white>Beta v0.3.3"));
+            player.sendMessage(TextUtils.deserialize("<gray><b>Version: <reset><white>Beta v0.3.4"));
             player.sendMessage(TextUtils.deserialize("<gray><b><i><u><click:open_url:https://github.com/Unariginal/NovaRaids>Source"));
             player.sendMessage(TextUtils.deserialize("<gray><b><i><u><click:open_url:https://github.com/Unariginal/NovaRaids/wiki>Wiki"));
             player.sendMessage(TextUtils.deserialize("<gray><st><b><i>---------------------------"));
