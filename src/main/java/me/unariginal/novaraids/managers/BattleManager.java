@@ -9,6 +9,7 @@ import com.cobblemon.mod.common.api.pokemon.Natures;
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
 import com.cobblemon.mod.common.api.pokemon.stats.Stat;
 import com.cobblemon.mod.common.api.storage.party.PartyStore;
+import com.cobblemon.mod.common.api.types.tera.TeraTypes;
 import com.cobblemon.mod.common.battles.*;
 import com.cobblemon.mod.common.battles.actor.PlayerBattleActor;
 import com.cobblemon.mod.common.battles.actor.PokemonBattleActor;
@@ -123,6 +124,8 @@ public class BattleManager {
             pokemon.updateAbility(raid.raidBossPokemon().getAbility());
         }
 
+        pokemon.setLevel(settings.levelOverride());
+
         if (settings.resetMoves()) {
             pokemon.getMoveSet().clear();
             Set<MoveTemplate> moves = pokemon.getSpecies().getMoves().getLevelUpMovesUpTo(pokemon.getLevel());
@@ -138,7 +141,15 @@ public class BattleManager {
 
         pokemon.setFriendship(settings.friendshipOverride(), true);
 
-        pokemon.setLevel(settings.levelOverride());
+        pokemon.setDmaxLevel(settings.dmaxLevelOverride());
+
+        if (settings.randomizeTeraType()) {
+            pokemon.setTeraType(TeraTypes.random(true));
+        }
+
+        if (settings.resetGmaxFactor()) {
+            pokemon.setGmaxFactor(false);
+        }
 
         PokemonEntity bossClone = pokemon.sendOut(raid.raidBossLocation().world(), player.getPos().offset(player.getFacing(), 1), null, entity -> {
             entity.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, -1, 9999, false, false));

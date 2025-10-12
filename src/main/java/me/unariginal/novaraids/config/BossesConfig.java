@@ -980,6 +980,9 @@ public class BossesConfig {
         boolean randomizeAbility = true;
         boolean resetMoves = true;
         int friendshipOverride = 50;
+        boolean randomizeTeraType = true;
+        boolean resetGmaxFactor = true;
+        int dmaxLevelOverride = 0;
         List<CatchPlacement> catchPlacements = new ArrayList<>();
 
         JsonObject catchSettingsObject = new JsonObject();
@@ -1062,6 +1065,21 @@ public class BossesConfig {
         catchSettingsObject.remove("friendship_override");
         catchSettingsObject.addProperty("friendship_override", friendshipOverride);
 
+        if (catchSettingsObject.has("randomize_tera_type"))
+            randomizeTeraType = catchSettingsObject.get("randomize_tera_type").getAsBoolean();
+        catchSettingsObject.remove("randomize_tera_type");
+        catchSettingsObject.addProperty("randomize_tera_type", randomizeTeraType);
+
+        if (catchSettingsObject.has("reset_gmax_factor"))
+            resetGmaxFactor = catchSettingsObject.get("reset_gmax_factor").getAsBoolean();
+        catchSettingsObject.remove("reset_gmax_factor");
+        catchSettingsObject.addProperty("reset_gmax_factor", resetGmaxFactor);
+
+        if (catchSettingsObject.has("dynamax_level_override"))
+            dmaxLevelOverride = catchSettingsObject.get("dynamax_level_override").getAsInt();
+        catchSettingsObject.remove("dynamax_level_override");
+        catchSettingsObject.addProperty("dynamax_level_override", dmaxLevelOverride);
+
         JsonArray placementsArray = new JsonArray();
         if (catchSettingsObject.has("places"))
             placementsArray = catchSettingsObject.getAsJsonArray("places");
@@ -1123,6 +1141,9 @@ public class BossesConfig {
                 randomizeAbility,
                 resetMoves,
                 friendshipOverride,
+                randomizeTeraType,
+                resetGmaxFactor,
+                dmaxLevelOverride,
                 catchPlacements
         );
 

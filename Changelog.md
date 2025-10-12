@@ -1,8 +1,46 @@
+# Nova Raids Beta v0.3.4
+
+## Bug Fixes
+- Category random vouchers will no longer be a copy of category choice vouchers
+
+## Config Changes
+- Added `reduce_large_pokemon_size` boolean to config.json. With this enabled, any pokemon whose hitbox is larger than 1 block will be scaled down to 1 block.
+- Added `disable_spawns_in_arena` boolean to config.json. This disables pokemon spawns in any active raid locations.
+- Added `tera_type` string to bosses/your_boss.json/pokemon_details. This can be any tera type, or "random".
+- Added `gmax_factor` boolean to bosses/your_boss.json/pokemon_details.
+- Added `dynamax_level` integer to bosses/your_boss.json/pokemon_details. This value can be between 0 and, usually, 10. Unless you changed the maximum dynamax level in your cobblemon config.
+- Added `gimmicks` list to bosses/your_boss.json/pokemon_details. 
+  - Gimmick objects are formatted as follows:  
+    ```json
+    "gimmicks": [
+      {
+        "gimmick": "tera",
+        "weight": 1.0
+      }
+    ]
+    ```
+  - Gimmick values can be "tera", "mega", "dynamax", or any traditional variation of those gimmick names.
+  - Currently, there is no visual changes for mega or dynamax on the core boss entity, as I utilize boss clones.
+  - There is no support for z-power at this time, you can set z-moves in the boss's moveset if you wish.
+- Added `reroll_features_each_battle` boolean to bosses/your_boss.json/boss_details. This option will reroll the boss features from pokemon_details for each battle.
+- Added `reroll_gimmick_each_battle` boolean to bosses/your_boss.json/boss_details. This option will reroll the boss gimmick from pokemon_details for each battle.
+- Added `randomize_tera_type` boolean to bosses/your_boss.json/catch_settings.
+- Added `reset_gmax_factor` boolean to bosses/your_boss.json/catch_settings.
+- Added `dynamax_level_override` integer to bosses/your_boss.json/catch_settings.
+---
+# Nova Raids Beta v0.3.3
+- Introduced Cobblemon 1.7 Snapshot support
+---
+# Nova Raids Beta v0.3.2 Hotfix
+- Teleporting away from raids via /home, /spawn, etc. will no longer deal damage to the boss from the battle ending
+- Added experience gain toggle to config.json, with this enabled experience will still not be gained if players manage to flee from the encounter, only from properly defeating the encounter
+- Boss clone battles are properly stopped when needed
+---
 # Nova Raids Beta v0.3.1 Hotfix
 - Teleporting away from raids via /home, /spawn, etc. will no longer deal damage to the boss from the battle ending
 - Added experience gain toggle to config.json, with this enabled experience will still not be gained if players manage to flee from the encounter
 - Boss clone battles are properly stopped when needed
-
+---
 # Nova Raids Beta v0.3.1 *(Patch Update)*
 
 ## Additions
@@ -50,7 +88,7 @@
 - Boss battle's flee-distance is now set to the arena's border radius x 2, effectively preventing fleeing from boss battles.
 - Catch encounters and rewards with the "participating" placement will now include.. participating players :)
 - Certain timezones will now properly parse for schedules
-
+---
 # Nova Raids Beta v0.3.0 - The Customization Update!
 
 If I missed anything... whoops :) I did my best
