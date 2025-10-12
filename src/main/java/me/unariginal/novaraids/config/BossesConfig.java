@@ -530,7 +530,7 @@ public class BossesConfig {
             teraType = TeraTypes.get(pokemonDetails.get("tera_type").getAsString().toLowerCase());
         pokemonDetails.remove("tera_type");
         if (teraType == null) pokemonDetails.addProperty("tera_type", "random");
-        else pokemonDetails.addProperty("tera_type", teraType.getName());
+        else pokemonDetails.addProperty("tera_type", teraType.showdownId());
 
         if (pokemonDetails.has("gmax_factor"))
             gmaxFactor = pokemonDetails.get("gmax_factor").getAsBoolean();
