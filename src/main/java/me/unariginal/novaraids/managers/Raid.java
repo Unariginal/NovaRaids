@@ -584,7 +584,7 @@ public class Raid {
         for (UUID playerUUID : participatingPlayers) {
             ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(playerUUID);
             if (player != null) {
-                PokemonBattle battle = BattleRegistry.INSTANCE.getBattleByParticipatingPlayer(player);
+                PokemonBattle battle = BattleRegistry.getBattleByParticipatingPlayer(player);
                 if (battle != null) {
                     battle.stop();
                 }
@@ -732,7 +732,7 @@ public class Raid {
                 world.setChunkForced(chunkX, chunkZ, true);
                 if (!fromFlee) {
                     if (clone.isBattling() && clone.getBattleId() != null) {
-                        PokemonBattle battle = BattleRegistry.INSTANCE.getBattle(clone.getBattleId());
+                        PokemonBattle battle = BattleRegistry.getBattle(clone.getBattleId());
                         if (battle != null) {
                             battle.stop();
                         }

@@ -57,7 +57,7 @@ public class PokemonReward extends Reward {
     }
 
     public Species species() {
-        return PokemonSpecies.INSTANCE.getByName(species);
+        return PokemonSpecies.getByName(species);
     }
 
     public int level() {
@@ -65,13 +65,13 @@ public class PokemonReward extends Reward {
     }
 
     public Ability ability() {
-        AbilityTemplate abilityTemplate = Abilities.INSTANCE.get(ability);
+        AbilityTemplate abilityTemplate = Abilities.get(ability);
         assert abilityTemplate != null;
         return abilityTemplate.create(false, Priority.LOWEST);
     }
 
     public Nature nature() {
-        return Natures.INSTANCE.getNature(nature);
+        return Natures.getNature(nature);
     }
 
     public PokemonProperties features() {
@@ -113,7 +113,7 @@ public class PokemonReward extends Reward {
         int index = 0;
         MoveSet moves = new MoveSet();
         for (String move : moveSet) {
-            MoveTemplate moveTemplate = Moves.INSTANCE.getByName(move);
+            MoveTemplate moveTemplate = Moves.getByName(move);
             if (moveTemplate != null) {
                 moves.setMove(index, moveTemplate.create());
                 index++;

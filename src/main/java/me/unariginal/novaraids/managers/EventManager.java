@@ -200,7 +200,7 @@ public class EventManager {
             return Unit.INSTANCE;
         });
 
-        CobblemonEvents.EXPERIENCE_GAINED_EVENT_PRE.subscribe(Priority.NORMAL, event -> {
+        CobblemonEvents.EXPERIENCE_GAINED_EVENT_PRE.subscribe(event -> {
             Pokemon pokemon = event.getPokemon();
             if (pokemon.isPlayerOwned()) {
                 ServerPlayerEntity player = pokemon.getOwnerPlayer();
@@ -214,7 +214,6 @@ public class EventManager {
                     }
                 }
             }
-            return Unit.INSTANCE;
         });
     }
 
@@ -714,7 +713,7 @@ public class EventManager {
             return Unit.INSTANCE;
         });
 
-        CobblemonEvents.POKEMON_SENT_POST.subscribe(Priority.NORMAL, event -> {
+        CobblemonEvents.POKEMON_SENT_POST.subscribe(event -> {
             if (nr.config().reduceLargePokemonSize) {
                 Pokemon pokemon = event.getPokemon();
                 PokemonEntity pokemonEntity = event.getPokemonEntity();
@@ -736,10 +735,9 @@ public class EventManager {
                     }
                 }
             }
-            return Unit.INSTANCE;
         });
 
-        CobblemonEvents.POKEMON_ENTITY_SPAWN.subscribe(Priority.NORMAL, event -> {
+        CobblemonEvents.POKEMON_ENTITY_SPAWN.subscribe(event -> {
             if (nr.config().disableSpawnsInArena) {
                 BlockPos pos = event.getSpawnablePosition().getPosition();
                 for (Raid raid : nr.activeRaids().values()) {
@@ -749,7 +747,6 @@ public class EventManager {
                     }
                 }
             }
-            return Unit.INSTANCE;
         });
     }
 }

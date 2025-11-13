@@ -62,7 +62,7 @@ public class TickManager {
                     UUID playerUUID = raid.getClones().get(pokemonEntity);
                     ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(playerUUID);
                     if (player != null) {
-                        PokemonBattle battle = BattleRegistry.INSTANCE.getBattleByParticipatingPlayer(player);
+                        PokemonBattle battle = BattleRegistry.getBattleByParticipatingPlayer(player);
                         if (battle == null) {
                             toRemove.add(pokemonEntity);
                         }
@@ -233,7 +233,7 @@ public class TickManager {
                     for (UUID playerUUID : raid.participatingPlayers()) {
                         ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(playerUUID);
                         if (player != null) {
-                            PokemonBattle battle = BattleRegistry.INSTANCE.getBattleByParticipatingPlayer(player);
+                            PokemonBattle battle = BattleRegistry.getBattleByParticipatingPlayer(player);
                             if (battle != null) {
                                 BattleActor actor = battle.getActor(player);
                                 if (actor != null) {

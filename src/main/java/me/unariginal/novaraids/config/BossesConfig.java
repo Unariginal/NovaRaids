@@ -332,16 +332,16 @@ public class BossesConfig {
             pokemonDetails = root.getAsJsonObject("pokemon_details");
 
         if (pokemonDetails.has("species"))
-            species = PokemonSpecies.INSTANCE.getByName(pokemonDetails.get("species").getAsString().toLowerCase());
+            species = PokemonSpecies.getByName(pokemonDetails.get("species").getAsString().toLowerCase());
 
         if (species == null) {
             NovaRaids.LOGGER.warn("[NovaRaids] Invalid species: {}. Using default (bulbasaur)", pokemonDetails.get("species").getAsString().toLowerCase());
-            species = PokemonSpecies.INSTANCE.getByName("bulbasaur");
+            species = PokemonSpecies.getByName("bulbasaur");
         }
 
         if (species == null) {
             NovaRaids.LOGGER.error("[NovaRaids] Default species was invalid. Using random.");
-            species = PokemonSpecies.INSTANCE.random();
+            species = PokemonSpecies.random();
         }
 
         pokemonDetails.remove("species");
@@ -407,9 +407,9 @@ public class BossesConfig {
             if (abilityObject.has("weight"))
                 weight = abilityObject.get("weight").getAsDouble();
 
-            AbilityTemplate template = Abilities.INSTANCE.get(ability);
+            AbilityTemplate template = Abilities.get(ability);
             if (template == null) {
-                template = Abilities.INSTANCE.first();
+                template = Abilities.first();
                 NovaRaids.LOGGER.warn("[NovaRaids] Invalid ability: {}. Using default ({}).", ability, template.getName());
             }
 
@@ -441,9 +441,9 @@ public class BossesConfig {
             if (natureObject.has("weight"))
                 weight = natureObject.get("weight").getAsDouble();
 
-            Nature nature = Natures.INSTANCE.getNature(natureStr);
+            Nature nature = Natures.getNature(natureStr);
             if (nature == null) {
-                nature = Natures.INSTANCE.getSERIOUS();
+                nature = Natures.SERIOUS;
                 NovaRaids.LOGGER.warn("[NovaRaids] Invalid nature: {}. Using default ({}).", natureStr, nature.getName());
             }
 
@@ -561,7 +561,7 @@ public class BossesConfig {
         if (pokemonDetails.has("moves"))
             movesArray = pokemonDetails.get("moves").getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList();
         for (String move : movesArray) {
-            MoveTemplate template = Moves.INSTANCE.getByNameOrDummy(move);
+            MoveTemplate template = Moves.getByNameOrDummy(move);
             if (template.getNum() == -1) {
                 NovaRaids.LOGGER.warn("[NovaRaids] Invalid move: {}. Creating dummy move", move);
                 continue;
@@ -992,7 +992,7 @@ public class BossesConfig {
         String speciesOverrideString = species.getResourceIdentifier().getPath();
         if (catchSettingsObject.has("species_override"))
             speciesOverrideString = catchSettingsObject.get("species_override").getAsString();
-        speciesOverride = PokemonSpecies.INSTANCE.getByName(speciesOverrideString.toLowerCase());
+        speciesOverride = PokemonSpecies.getByName(speciesOverrideString.toLowerCase());
 
         if (speciesOverride == null) {
             speciesOverride = species;

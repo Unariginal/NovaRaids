@@ -440,7 +440,7 @@ public class ConfigHelper {
 
         for (JsonElement pokemon : bannedPokemonArray) {
             String speciesName = pokemon.getAsString();
-            Species species = PokemonSpecies.INSTANCE.getByName(speciesName);
+            Species species = PokemonSpecies.getByName(speciesName);
             if (species == null) {
                 NovaRaids.LOGGER.error("[NovaRaids] Unknown species in {} contraband: {}", fileName, speciesName);
                 continue;
@@ -461,7 +461,7 @@ public class ConfigHelper {
 
         for (JsonElement move : bannedMovesArray) {
             String moveName = move.getAsString();
-            MoveTemplate moveTemplate = Moves.INSTANCE.getByName(moveName);
+            MoveTemplate moveTemplate = Moves.getByName(moveName);
             if (moveTemplate == null) {
                 NovaRaids.LOGGER.error("[NovaRaids] Unknown move in {} contraband: {}", fileName, moveName);
                 continue;
@@ -482,7 +482,7 @@ public class ConfigHelper {
 
         for (JsonElement ability : bannedAbilitiesArray) {
             String abilityName = ability.getAsString();
-            AbilityTemplate abilityTemplate = Abilities.INSTANCE.get(abilityName);
+            AbilityTemplate abilityTemplate = Abilities.get(abilityName);
             if (abilityTemplate == null) {
                 NovaRaids.LOGGER.error("[NovaRaids] Unknown ability in {} contraband: {}", fileName, abilityName);
                 continue;

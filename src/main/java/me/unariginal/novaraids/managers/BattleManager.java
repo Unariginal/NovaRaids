@@ -7,6 +7,7 @@ import com.cobblemon.mod.common.api.events.pokemon.ShinyChanceCalculationEvent;
 import com.cobblemon.mod.common.api.moves.MoveTemplate;
 import com.cobblemon.mod.common.api.pokemon.Natures;
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
+import com.cobblemon.mod.common.api.pokemon.stats.SidemodEvSource;
 import com.cobblemon.mod.common.api.pokemon.stats.Stat;
 import com.cobblemon.mod.common.api.storage.party.PartyStore;
 import com.cobblemon.mod.common.api.types.tera.TeraTypes;
@@ -83,7 +84,7 @@ public class BattleManager {
         if (settings.keepEvs()) {
             EVs new_evs = new EVs();
             for (Map.Entry<? extends Stat, ? extends Integer> ev : pokemon.getEvs()) {
-                new_evs.add(ev.getKey(), ev.getValue());
+                new_evs.add(ev.getKey(), ev.getValue(), new SidemodEvSource(NovaRaids.MOD_ID, pokemon));
             }
             for (Map.Entry<? extends Stat, ? extends Integer> ev : new_evs) {
                 pokemon.setEV(ev.getKey(), ev.getValue());
@@ -113,7 +114,7 @@ public class BattleManager {
         }
 
         if (settings.randomizeNature()) {
-            pokemon.setNature(Natures.INSTANCE.getRandomNature());
+            pokemon.setNature(Natures.getRandomNature());
         } else {
             pokemon.setNature(raid.raidBossPokemon().getNature());
         }
@@ -237,7 +238,7 @@ public class BattleManager {
             errors.getParticipantErrors().get(playerActor).add(BattleStartError.Companion.targetIsBusy(player.getDisplayName() != null ? player.getDisplayName() : player.getName()));
         }
 
-        if (BattleRegistry.INSTANCE.getBattleByParticipatingPlayer(player) != null) {
+        if (BattleRegistry.getBattleByParticipatingPlayer(player) != null) {
             errors.getParticipantErrors().get(playerActor).add(BattleStartError.Companion.alreadyInBattle(playerActor));
         }
 
@@ -252,7 +253,7 @@ public class BattleManager {
         }
 
         if (errors.isEmpty()) {
-            return BattleRegistry.INSTANCE.startBattle(battleFormat, new BattleSide(playerActor), new BattleSide(wildActor), true).ifSuccessful(pokemonBattle -> {
+            return BattleRegistry.startBattle(battleFormat, new BattleSide(playerActor), new BattleSide(wildActor), true).ifSuccessful(pokemonBattle -> {
                 if (!cloneParties) {
                     pokemonEntity.setBattleId(pokemonBattle.getBattleId());
                 }

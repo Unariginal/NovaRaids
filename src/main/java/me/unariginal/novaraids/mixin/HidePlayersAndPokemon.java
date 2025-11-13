@@ -1,7 +1,7 @@
 package me.unariginal.novaraids.mixin;
 
-import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.battles.model.PokemonBattle;
+import com.cobblemon.mod.common.battles.BattleRegistry;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import me.lucko.fabric.api.permissions.v0.Permissions;
@@ -47,7 +47,7 @@ public class HidePlayersAndPokemon {
                             if (pokemonEntity.isBattling()) {
                                 UUID battle_id = pokemonEntity.getBattleId();
                                 if (battle_id != null) {
-                                    PokemonBattle battle = Cobblemon.INSTANCE.getBattleRegistry().getBattle(battle_id);
+                                    PokemonBattle battle = BattleRegistry.getBattle(battle_id);
                                     if (battle != null) {
                                         if (!battle.getPlayers().contains(spectator)) {
                                             cir.setReturnValue(false);
