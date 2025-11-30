@@ -789,8 +789,10 @@ public class Raid {
     public void removePlayers() {
         if (clearToDelete) {
             if (stage == 1) {
-                maxHealth -= Math.max(bossInfo.healthIncreasePerPlayer() * markForDeletion.size(), bossInfo.baseHealth());
-                currentHealth -= Math.max(bossInfo.healthIncreasePerPlayer() * markForDeletion.size(), bossInfo.baseHealth());
+                for (UUID ignored : markForDeletion) {
+                    maxHealth = Math.max(maxHealth - bossInfo.healthIncreasePerPlayer(), bossInfo.baseHealth());
+                    currentHealth = Math.max(currentHealth - bossInfo.healthIncreasePerPlayer(), bossInfo.baseHealth());
+                }
             }
 
             participatingPlayers().removeAll(markForDeletion);
