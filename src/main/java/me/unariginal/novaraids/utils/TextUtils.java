@@ -35,6 +35,8 @@ public class TextUtils {
             phaseRemaining = 0;
         }
 
+        message = spaceReplace(message, "%boss.form%", !raid.raidBossPokemon().getForm().getName().equalsIgnoreCase("normal"), raid.raidBossPokemon().getForm().getName());
+
         return message
                 .replaceAll("%boss.maxhp%", String.valueOf(raid.maxHealth()))
                 .replaceAll("%raid.defeat_time%", (raid.bossDefeatTime() > 0) ? TextUtils.hms(raid.bossDefeatTime() * 20L) : "")
@@ -52,7 +54,8 @@ public class TextUtils {
                 .replaceAll("%raid.min_players%", String.valueOf(raid.minPlayers()))
                 .replaceAll("%raid.join_method%", (raid.raidBossCategory().requirePass()) ? "A Raid Pass" : "/raid list")
                 .replaceAll("%raid.location%", raid.raidBossLocation().name())
-                .replaceAll("%raid.location.id%", raid.raidBossLocation().id());
+                .replaceAll("%raid.location.id%", raid.raidBossLocation().id())
+                .replaceAll("%boss.form%", raid.raidBossPokemon().getForm().getName());
     }
 
     public static String parse(String message, Boss boss) {
@@ -62,10 +65,7 @@ public class TextUtils {
                 .replaceAll("%boss.species%", boss.pokemonDetails().species().getName())
                 .replaceAll("%boss.level%", String.valueOf(boss.pokemonDetails().level()))
                 .replaceAll("%boss.minimum_level%", String.valueOf(boss.raidDetails().minimumLevel()))
-                .replaceAll("%boss.maximum_level%", String.valueOf(boss.raidDetails().maximumLevel()));
-        message = spaceReplace(message, "%boss.form%", !boss.pokemonDetails().createPokemon(false).getForm().getName().equalsIgnoreCase("normal"), boss.pokemonDetails().createPokemon(false).getForm().getName());
-        message = message
-                .replaceAll("%boss.form%", boss.pokemonDetails().createPokemon(false).getForm().getName())
+                .replaceAll("%boss.maximum_level%", String.valueOf(boss.raidDetails().maximumLevel()))
                 .replaceAll("%boss.name%", boss.displayName());
 
         return message;
