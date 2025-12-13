@@ -61,6 +61,7 @@ public abstract class GimmickActionMixin {
         PokemonEntity pokemonEntity = battlePokemon.getEntity();
         if (pokemonEntity == null) return;
         for (Raid raid : NovaRaids.INSTANCE.activeRaids().values()) {
+            if (raid.stage() != 2) continue;
             if (raid.getClones().containsKey(pokemonEntity)) {
                 String gimmick = raid.baseGimmick();
                 if (raid.bossInfo().rerollGimmickEachBattle()) {

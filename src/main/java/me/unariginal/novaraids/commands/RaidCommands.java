@@ -517,6 +517,34 @@ public class RaidCommands {
                                         return 1;
                                     })
                     )
+                    .then(
+                            CommandManager.literal("togglePlayerVisibility")
+                                    .requires(Permissions.require("novaraids.togglePlayerVisibility", 4))
+                                    .executes(ctx -> {
+                                        ServerPlayerEntity player = ctx.getSource().getPlayer();
+                                        if (player == null) return 1;
+                                        if (!nr.ignorePlayerVisibility.contains(player.getUuid())) {
+                                            nr.ignorePlayerVisibility.add(player.getUuid());
+                                        } else {
+                                            nr.ignorePlayerVisibility.remove(player.getUuid());
+                                        }
+                                        return 1;
+                                    })
+                    )
+                    .then(
+                            CommandManager.literal("togglePokemonVisibility")
+                                    .requires(Permissions.require("novaraids.togglePokemonVisibility", 4))
+                                    .executes(ctx -> {
+                                        ServerPlayerEntity player = ctx.getSource().getPlayer();
+                                        if (player == null) return 1;
+                                        if (!nr.ignorePokemonVisibility.contains(player.getUuid())) {
+                                            nr.ignorePokemonVisibility.add(player.getUuid());
+                                        } else {
+                                            nr.ignorePokemonVisibility.remove(player.getUuid());
+                                        }
+                                        return 1;
+                                    })
+                    )
         ));
     }
 

@@ -40,6 +40,8 @@ public class NovaRaids implements ModInitializer {
 
     private final Map<Integer, Raid> activeRaids = new HashMap<>();
     private final Queue<QueueItem> queuedRaids = new LinkedList<>();
+    public List<UUID> ignorePlayerVisibility = new ArrayList<>();
+    public List<UUID> ignorePokemonVisibility = new ArrayList<>();
 
     @Override
     public void onInitialize() {
