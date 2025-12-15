@@ -729,18 +729,21 @@ public class Raid {
                     }
                 }
 
-                world.setChunkForced(chunkX, chunkZ, true);
-                if (!fromFlee) {
-                    if (clone.isBattling() && clone.getBattleId() != null) {
-                        PokemonBattle battle = BattleRegistry.getBattle(clone.getBattleId());
-                        if (battle != null) {
-                            battle.stop();
+                ServerWorld finalWorld = world;
+                nr.server().execute(() -> {
+                    finalWorld.setChunkForced(chunkX, chunkZ, true);
+                    if (!fromFlee) {
+                        if (clone.isBattling() && clone.getBattleId() != null) {
+                            PokemonBattle battle = BattleRegistry.getBattle(clone.getBattleId());
+                            if (battle != null) {
+                                battle.stop();
+                            }
                         }
                     }
-                }
 
-                clone.kill();
-                world.setChunkForced(chunkX, chunkZ, false);
+                    clone.kill();
+                    finalWorld.setChunkForced(chunkX, chunkZ, false);
+                });
             }
         }
         clones.remove(clone);
