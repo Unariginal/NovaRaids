@@ -13,6 +13,7 @@ import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.gui.SimpleGui;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import me.unariginal.novaraids.NovaRaids;
+import me.unariginal.novaraids.cache.PlayerRaidCache;
 import me.unariginal.novaraids.commands.suggestions.BossSuggestions;
 import me.unariginal.novaraids.commands.suggestions.CategorySuggestions;
 import me.unariginal.novaraids.data.*;
@@ -347,14 +348,17 @@ public class RaidCommands {
                                     .executes(ctx -> {
                                         if (NovaRaids.LOADED) {
                                             if (ctx.getSource().isExecutedByPlayer()) {
-                                                for (Raid raid : nr.activeRaids().values()) {
-                                                    ServerPlayerEntity player = ctx.getSource().getPlayer();
-                                                    if (player != null) {
-                                                        if (raid.participatingPlayers().contains(player.getUuid())) {
-                                                            raid.removePlayer(player.getUuid());
-                                                        }
-                                                    }
+
+                                                ServerPlayerEntity player = ctx.getSource().getPlayer();
+
+                                                if(player == null) return 1;
+
+                                                var activeRaid = PlayerRaidCache.currentRaid(player);
+
+                                                if(activeRaid != null) {
+                                                    activeRaid.removePlayer(player.getUuid());
                                                 }
+
                                             }
                                         }
                                         return 1;

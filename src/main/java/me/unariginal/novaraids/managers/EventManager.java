@@ -6,6 +6,11 @@ import com.cobblemon.mod.common.api.Priority;
 import com.cobblemon.mod.common.api.battles.model.PokemonBattle;
 import com.cobblemon.mod.common.api.battles.model.actor.BattleActor;
 import com.cobblemon.mod.common.api.events.CobblemonEvents;
+import com.cobblemon.mod.common.api.events.battles.BattleFledEvent;
+import com.cobblemon.mod.common.api.events.battles.BattleStartedEvent;
+import com.cobblemon.mod.common.api.events.drops.LootDroppedEvent;
+import com.cobblemon.mod.common.api.events.pokeball.ThrownPokeballHitEvent;
+import com.cobblemon.mod.common.api.events.pokemon.ExperienceGainedEvent;
 import com.cobblemon.mod.common.battles.actor.PlayerBattleActor;
 import com.cobblemon.mod.common.battles.actor.PokemonBattleActor;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
@@ -18,6 +23,7 @@ import eu.pb4.sgui.api.gui.SimpleGui;
 import kotlin.Unit;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import me.unariginal.novaraids.NovaRaids;
+import me.unariginal.novaraids.cache.PlayerRaidCache;
 import me.unariginal.novaraids.config.MessagesConfig;
 import me.unariginal.novaraids.data.bosssettings.Boss;
 import me.unariginal.novaraids.utils.BanHandler;
@@ -46,175 +52,190 @@ import net.minecraft.util.math.Box;
 
 import java.util.*;
 
+@SuppressWarnings("UnusedReturnValue")
 public class EventManager {
+
+    private static Unit unit() {
+        return Unit.INSTANCE;
+    }
+
     private static final NovaRaids nr = NovaRaids.INSTANCE;
     private static final MessagesConfig messages = nr.messagesConfig();
 
-    public static void captureEvent() {
-        CobblemonEvents.THROWN_POKEBALL_HIT.subscribe(Priority.HIGHEST, event -> {
-            PokemonEntity pokemonEntity = event.getPokemon();
-            Pokemon pokemon = pokemonEntity.getPokemon();
-            if (pokemon.getPersistentData().contains("raid_entity")) {
-                for (Raid raid : nr.activeRaids().values()) {
-                    for (PokemonEntity clone : raid.getClones().keySet()) {
-                        if (clone.getUuid().equals(pokemonEntity.getUuid())) {
-                            raid.addPokeballsCapturing(event.getPokeBall());
-                            return Unit.INSTANCE;
-                        }
-                    }
-                }
-                pokemonEntity.remove(Entity.RemovalReason.DISCARDED);
-                event.cancel();
-            }
-            return Unit.INSTANCE;
-        });
+    public static void initialiseEvents() {
+        CobblemonEvents.THROWN_POKEBALL_HIT.subscribe(EventManager::onThrownPokeballHit);
+        CobblemonEvents.BATTLE_STARTED_PRE.subscribe(EventManager::onBattleStartedPre);
+        CobblemonEvents.BATTLE_FLED.subscribe(EventManager::onBattleFled);
+        CobblemonEvents.LOOT_DROPPED.subscribe(EventManager::onLootDropped);
+        CobblemonEvents.EXPERIENCE_GAINED_EVENT_PRE.subscribe(EventManager::onExperienceGainedPre);
+
+        // TODO --> Cleanup
+        rightClickEvents();
+        playerEvents();
     }
 
-    public static void battleEvents() {
-        CobblemonEvents.BATTLE_STARTED_PRE.subscribe(Priority.HIGHEST, event -> {
-            PokemonBattle battle = event.getBattle();
-            ServerPlayerEntity player = null;
-            PokemonEntity pokemonEntity = null;
-
-            for (BattleActor actor : battle.getActors()) {
-                if (actor instanceof PlayerBattleActor playerBattleActor) {
-                    player = playerBattleActor.getEntity();
-                } else if (actor instanceof PokemonBattleActor pokemonBattleActor) {
-                    pokemonEntity = pokemonBattleActor.getEntity();
+    private static Unit onThrownPokeballHit(ThrownPokeballHitEvent event) {
+        PokemonEntity pokemonEntity = event.getPokemon();
+        Pokemon pokemon = pokemonEntity.getPokemon();
+        if (pokemon.getPersistentData().contains("raid_entity")) {
+            for (Raid raid : nr.activeRaids().values()) {
+                for (PokemonEntity clone : raid.getClones().keySet()) {
+                    if (clone.getUuid().equals(pokemonEntity.getUuid())) {
+                        raid.addPokeballsCapturing(event.getPokeBall());
+                        return unit();
+                    }
                 }
             }
+            pokemonEntity.remove(Entity.RemovalReason.DISCARDED);
+            event.cancel();
+        }
+        return unit();
+    }
 
-            if (player != null) {
-                if (pokemonEntity != null) {
-                    UUID entityUUID = pokemonEntity.getUuid();
-                    for (Raid raid : nr.activeRaids().values()) {
-                        for (PokemonEntity clone : raid.getClones().keySet()) {
-                            if (clone.getUuid().equals(entityUUID)) {
-                                if (!raid.getClones().get(clone).equals(player.getUuid())) {
-                                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_not_your_encounter"), raid)));
-                                    event.setReason(null);
-                                    event.cancel();
-                                }
-                                return Unit.INSTANCE;
-                            }
-                        }
+    private static Unit onBattleStartedPre(BattleStartedEvent.Pre event) {
+        PokemonBattle battle = event.getBattle();
+        ServerPlayerEntity player = null;
+        PokemonEntity pokemonEntity = null;
 
-                        if (raid.uuid().equals(entityUUID)) {
-                            if (raid.getPlayerIndex(player.getUuid()) == -1) {
-                                event.setReason(null);
-                                event.cancel();
-                                return Unit.INSTANCE;
-                            }
+        for (BattleActor actor : battle.getActors()) {
+            if (actor instanceof PlayerBattleActor playerBattleActor) {
+                player = playerBattleActor.getEntity();
+            } else if (actor instanceof PokemonBattleActor pokemonBattleActor) {
+                pokemonEntity = pokemonBattleActor.getEntity();
+            }
+        }
 
-                            for (Pokemon pokemon : Cobblemon.INSTANCE.getStorage().getParty(player)) {
-                                if (pokemon != null) {
-                                    if (pokemon.getLevel() < raid.bossInfo().raidDetails().minimumLevel()) {
-                                        player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_minimum_level"), raid)));
-                                        event.setReason(null);
-                                        event.cancel();
-                                        return Unit.INSTANCE;
-                                    }
-                                    if (pokemon.getLevel() > raid.bossInfo().raidDetails().maximumLevel()) {
-                                        player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_maximum_level"), raid)));
-                                        event.setReason(null);
-                                        event.cancel();
-                                        return Unit.INSTANCE;
-                                    }
-                                }
-                            }
+        if (player != null && pokemonEntity != null) {
 
-                            if (raid.stage() == 2) {
-                                if (!BanHandler.hasContraband(player, raid.bossInfo())) {
-                                    BattleManager.invokeBattle(raid, player);
-                                }
-                            }
-
+            UUID entityUUID = pokemonEntity.getUuid();
+            for (Raid raid : nr.activeRaids().values()) {
+                for (PokemonEntity clone : raid.getClones().keySet()) {
+                    if (clone.getUuid().equals(entityUUID)) {
+                        if (!raid.getClones().get(clone).equals(player.getUuid())) {
+                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_not_your_encounter"), raid)));
                             event.setReason(null);
                             event.cancel();
-                            return Unit.INSTANCE;
+                        }
+                        return unit();
+                    }
+                }
+
+                if (!raid.uuid().equals(entityUUID)) continue;
+
+                if (!raid.isParticipating(player)) {
+                    event.setReason(null);
+                    event.cancel();
+                    return unit();
+                }
+
+                for (Pokemon pokemon : Cobblemon.INSTANCE.getStorage().getParty(player)) {
+                    if (pokemon != null) {
+                        if (pokemon.getLevel() < raid.bossInfo().raidDetails().minimumLevel()) {
+                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_minimum_level"), raid)));
+                            event.setReason(null);
+                            event.cancel();
+                            return unit();
+                        }
+                        if (pokemon.getLevel() > raid.bossInfo().raidDetails().maximumLevel()) {
+                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_maximum_level"), raid)));
+                            event.setReason(null);
+                            event.cancel();
+                            return unit();
                         }
                     }
                 }
 
+                if (raid.stage() == 2) {
+                    if (!BanHandler.hasContraband(player, raid.bossInfo())) {
+                        BattleManager.invokeBattle(raid, player);
+                    }
+                }
+
+                event.setReason(null);
+                event.cancel();
+                return unit();
+            }
+
+        }
+
+        var raid = PlayerRaidCache.currentRaid(player);
+        if (raid != null) {
+            player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_battle_during_raid"), raid)));
+            event.setReason(null);
+            event.cancel();
+        }
+
+        return unit();
+    }
+
+    private static Unit onBattleFled(BattleFledEvent event) {
+        PokemonBattle battle = event.getBattle();
+        for (BattleActor actor : battle.getActors()) {
+
+            if (!(actor instanceof PlayerBattleActor playerBattleActor) || playerBattleActor.getEntity() == null) {
+                return Unit.INSTANCE;
+            }
+
+            ServerPlayerEntity player = playerBattleActor.getEntity();
+            Raid raid = PlayerRaidCache.currentRaid(player);
+
+            if (raid == null) return Unit.INSTANCE;
+
+            raid.addFleeingPlayer(player.getUuid());
+            List<PokemonEntity> toRemove = new ArrayList<>();
+            for (PokemonEntity cloneEntity : raid.getClones().keySet()) {
+                if (raid.getClones().get(cloneEntity).equals(player.getUuid())) {
+                    toRemove.add(cloneEntity);
+                }
+            }
+            for (PokemonEntity cloneEntity : toRemove) {
+                raid.removeClone(cloneEntity, true);
+            }
+
+        }
+
+        return Unit.INSTANCE;
+    }
+
+    private static Unit onLootDropped(LootDroppedEvent event) {
+        LivingEntity entity = event.getEntity();
+        if (entity != null) {
+            if (entity instanceof PokemonEntity pokemonEntity) {
+                Pokemon pokemon = pokemonEntity.getPokemon();
                 for (Raid raid : nr.activeRaids().values()) {
-                    if (raid.participatingPlayers().contains(player.getUuid())) {
-                        player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_battle_during_raid"), raid)));
-                        event.setReason(null);
+                    if (raid.uuid().equals(pokemonEntity.getUuid())) {
                         event.cancel();
                         return Unit.INSTANCE;
                     }
                 }
-            }
-
-            return Unit.INSTANCE;
-        });
-
-        CobblemonEvents.BATTLE_FLED.subscribe(Priority.HIGHEST, event -> {
-            PokemonBattle battle = event.getBattle();
-            for (BattleActor actor : battle.getActors()) {
-                if (actor instanceof PlayerBattleActor playerBattleActor) {
-                    ServerPlayerEntity player = playerBattleActor.getEntity();
-                    if (player != null) {
-                        for (Raid raid : nr.activeRaids().values()) {
-                            if (raid.participatingPlayers().contains(player.getUuid())) {
-                                raid.addFleeingPlayer(player.getUuid());
-                                List<PokemonEntity> toRemove = new ArrayList<>();
-                                for (PokemonEntity cloneEntity : raid.getClones().keySet()) {
-                                    if (raid.getClones().get(cloneEntity).equals(player.getUuid())) {
-                                        toRemove.add(cloneEntity);
-                                    }
-                                }
-                                for (PokemonEntity cloneEntity : toRemove) {
-                                    raid.removeClone(cloneEntity, true);
-                                }
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-            return Unit.INSTANCE;
-        });
-
-        CobblemonEvents.LOOT_DROPPED.subscribe(Priority.HIGHEST, event -> {
-            LivingEntity entity = event.getEntity();
-            if (entity != null) {
-                if (entity instanceof PokemonEntity pokemonEntity) {
-                    Pokemon pokemon = pokemonEntity.getPokemon();
-                    for (Raid raid : nr.activeRaids().values()) {
-                        if (raid.uuid().equals(pokemonEntity.getUuid())) {
+                if (!pokemon.isPlayerOwned()) {
+                    if (pokemon.getPersistentData().contains("boss_clone")) {
+                        if (pokemon.getPersistentData().getBoolean("boss_clone")) {
                             event.cancel();
                             return Unit.INSTANCE;
                         }
                     }
-                    if (!pokemon.isPlayerOwned()) {
-                        if (pokemon.getPersistentData().contains("boss_clone")) {
-                            if (pokemon.getPersistentData().getBoolean("boss_clone")) {
-                                event.cancel();
-                                return Unit.INSTANCE;
-                            }
-                        }
-                    }
                 }
             }
-            return Unit.INSTANCE;
-        });
+        }
+        return Unit.INSTANCE;
+    }
 
-        CobblemonEvents.EXPERIENCE_GAINED_EVENT_PRE.subscribe(event -> {
-            Pokemon pokemon = event.getPokemon();
-            if (pokemon.isPlayerOwned()) {
-                ServerPlayerEntity player = pokemon.getOwnerPlayer();
-                if (player != null) {
-                    for (Raid raid : nr.activeRaids().values()) {
-                        if (raid.participatingPlayers().contains(player.getUuid())) {
-                            if ((!nr.config().allowExperienceGain || raid.isPlayerFleeing(player.getUuid())) && event.getSource().isBattle()) {
-                                event.cancel();
-                            }
-                        }
-                    }
-                }
-            }
-        });
+    private static Unit onExperienceGainedPre(ExperienceGainedEvent.Pre event) {
+        Pokemon pokemon = event.getPokemon();
+        if (!pokemon.isPlayerOwned()) return Unit.INSTANCE;
+
+        ServerPlayerEntity player = pokemon.getOwnerPlayer();
+        if (player == null) return Unit.INSTANCE;
+
+        Raid raid = PlayerRaidCache.currentRaid(player);
+        if (raid == null) return Unit.INSTANCE;
+
+        if ((!nr.config().allowExperienceGain || raid.isPlayerFleeing(player.getUuid())) && event.getSource().isBattle()) {
+            event.cancel();
+        }
+
+        return Unit.INSTANCE;
     }
 
     public static void rightClickEvents() {
@@ -271,28 +292,37 @@ public class EventManager {
                                                     .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().passGui.displayButton.itemName(), raid)))
                                                     .setLore(lore)
                                                     .setCallback((num, clickType, slotActionType) -> {
-                                                        if (clickType.isLeft) {
-                                                            if (raid.raidBossCategory().requirePass()) {
-                                                                if (nr.activeRaids().get(nr.getRaidId(raid)).stage() == 1) {
-                                                                    if (nr.activeRaids().get(nr.getRaidId(raid)).participatingPlayers().size() < nr.activeRaids().get(nr.getRaidId(raid)).maxPlayers() || nr.activeRaids().get(nr.getRaidId(raid)).maxPlayers() == -1 || Permissions.check(player, "novaraids.override")) {
-                                                                        if (raid.addPlayer(player.getUuid(), true)) {
-                                                                            itemStack.decrement(1);
-                                                                            player.setStackInHand(hand, itemStack);
 
-                                                                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("joined_raid"), raid)));
+                                                        if (!clickType.isLeft) return;
 
-                                                                            pageEntry.getValue().close();
-                                                                        }
-                                                                    } else {
-                                                                        player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_max_players"), raid)));
-                                                                    }
-                                                                } else {
-                                                                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_not_joinable"), raid)));
-                                                                }
-                                                            } else {
-                                                                player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_no_pass_needed"), raid)));
-                                                            }
+                                                        if (!raid.raidBossCategory().requirePass()) {
+                                                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_no_pass_needed"), raid)));
+                                                            return;
                                                         }
+
+                                                        if (raid.stage() != 1) {
+                                                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_not_joinable"), raid)));
+                                                            return;
+                                                        }
+
+                                                        boolean hasSpace = raid.participatingPlayers().size() < raid.maxPlayers() ||
+                                                                raid.maxPlayers() == -1 ||
+                                                                Permissions.check(player, "novaraids.override");
+
+                                                        if (!hasSpace) {
+                                                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_max_players"), raid)));
+                                                            return;
+                                                        }
+
+                                                        if (raid.addPlayer(player.getUuid(), true)) {
+                                                            itemStack.decrement(1);
+                                                            player.setStackInHand(hand, itemStack);
+
+                                                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("joined_raid"), raid)));
+
+                                                            pageEntry.getValue().close();
+                                                        }
+
                                                     }).build();
                                             pageEntry.getValue().setSlot(slot, element);
                                             index++;
@@ -384,10 +414,12 @@ public class EventManager {
                                     pages.get(1).open();
                                 }
                             } else {
+
+                                if(PlayerRaidCache.isInRaid(player)) {
+                                    return TypedActionResult.fail(itemStack);
+                                }
+
                                 for (Raid raid : nr.activeRaids().values()) {
-                                    if (raid.participatingPlayers().contains(player.getUuid())) {
-                                        return TypedActionResult.fail(itemStack);
-                                    }
 
                                     if (raid.bossInfo().bossId().equalsIgnoreCase(bossName)) {
                                         if (raid.raidBossCategory().requirePass()) {
@@ -584,53 +616,40 @@ public class EventManager {
                                 }
                             }
 
-                            for (Raid raid : nr.activeRaids().values()) {
-                                if (raid.participatingPlayers().contains(player.getUuid())) {
-                                    canThrow = true;
-                                    break;
-                                }
-                            }
+                            canThrow = PlayerRaidCache.isInRaid(player.getUuid());
 
                             if (canThrow) {
                                 canThrow = false;
-                                for (Raid raid : nr.activeRaids().values()) {
-                                    if (raid.participatingPlayers().contains(player.getUuid())) {
-                                        if (raid.stage() == 4) {
-                                            // Old Data
-                                            if (customData.contains("raid_categories")) {
-                                                break;
-                                            } else if (customData.contains("raid_bosses")) {
-                                                break;
-                                            }
 
-                                            if (customData.contains("raid_boss") && customData.contains("raid_category")) {
-                                                String boss = customData.copyNbt().getString("raid_boss");
-                                                String category = customData.copyNbt().getString("raid_category");
-                                                if (boss.equalsIgnoreCase("*") && category.equalsIgnoreCase("*")) {
-                                                    if (raid.bossInfo().itemSettings().allowGlobalPokeballs()) {
-                                                        canThrow = true;
-                                                        break;
-                                                    }
-                                                } else if (boss.equalsIgnoreCase("*")) {
-                                                    if (raid.bossInfo().categoryId().equalsIgnoreCase(category)) {
-                                                        if (raid.bossInfo().itemSettings().allowCategoryPokeballs()) {
-                                                            canThrow = true;
-                                                            break;
-                                                        }
-                                                    }
-                                                } else {
-                                                    if (raid.bossInfo().bossId().equalsIgnoreCase(boss)) {
-                                                        canThrow = true;
-                                                        break;
-                                                    }
-                                                }
-                                            } else {
+                                Raid raid = PlayerRaidCache.currentRaid(player);
+                                if (raid != null && raid.stage() == 4) {
+
+                                    if (customData.contains("raid_categories") || customData.contains("raid_bosses")) {
+                                        // do nothing - same as previous logic
+                                    } else if (customData.contains("raid_boss") && customData.contains("raid_category")) {
+                                        String boss = customData.copyNbt().getString("raid_boss");
+                                        String category = customData.copyNbt().getString("raid_category");
+                                        if (boss.equalsIgnoreCase("*") && category.equalsIgnoreCase("*")) {
+                                            if (raid.bossInfo().itemSettings().allowGlobalPokeballs()) {
                                                 canThrow = true;
-                                                break;
+                                            }
+                                        } else if (boss.equalsIgnoreCase("*")) {
+                                            if (raid.bossInfo().categoryId().equalsIgnoreCase(category)) {
+                                                if (raid.bossInfo().itemSettings().allowCategoryPokeballs()) {
+                                                    canThrow = true;
+                                                }
+                                            }
+                                        } else {
+                                            if (raid.bossInfo().bossId().equalsIgnoreCase(boss)) {
+                                                canThrow = true;
                                             }
                                         }
+                                    } else {
+                                        canThrow = true;
                                     }
+
                                 }
+
                             } else {
                                 player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_raid_pokeball_outside_raid"))));
                                 return TypedActionResult.fail(itemStack);
@@ -646,25 +665,20 @@ public class EventManager {
                     }
                 }
 
+                Raid raid = PlayerRaidCache.currentRaid(player);
+                if (raid == null) return TypedActionResult.pass(itemStack);
+
                 if (isPokeball(itemStack) && nr.config().raidBallsEnabled) {
-                    for (Raid raid : nr.activeRaids().values()) {
-                        if (raid.participatingPlayers().contains(player.getUuid())) {
-                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_deny_normal_pokeball"))));
-                            return TypedActionResult.fail(itemStack);
-                        }
-                    }
+                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_deny_normal_pokeball"))));
+                    return TypedActionResult.fail(itemStack);
                 }
 
-                for (Raid raid : nr.activeRaids().values()) {
-                    if (raid.participatingPlayers().contains(player.getUuid())) {
-                        List<Item> bannedBagItems = nr.config().globalContraband.bannedBagItems();
-                        bannedBagItems.addAll(raid.bossInfo().raidDetails().contraband().bannedBagItems());
-                        bannedBagItems.addAll(raid.raidBossCategory().contraband().bannedBagItems());
-                        if (bannedBagItems.contains(itemStack.getItem())) {
-                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_banned_bag_item").replaceAll("%banned.bag_item%", itemStack.getItem().getName().getString()), raid)));
-                            return TypedActionResult.fail(itemStack);
-                        }
-                    }
+                List<Item> bannedBagItems = nr.config().globalContraband.bannedBagItems();
+                bannedBagItems.addAll(raid.bossInfo().raidDetails().contraband().bannedBagItems());
+                bannedBagItems.addAll(raid.raidBossCategory().contraband().bannedBagItems());
+                if (bannedBagItems.contains(itemStack.getItem())) {
+                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_banned_bag_item").replaceAll("%banned.bag_item%", itemStack.getItem().getName().getString()), raid)));
+                    return TypedActionResult.fail(itemStack);
                 }
 
                 return TypedActionResult.pass(itemStack);
@@ -684,12 +698,15 @@ public class EventManager {
 
     public static void playerEvents() {
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
-            for (Raid raid : nr.activeRaids().values()) {
-                raid.removePlayer(handler.getPlayer().getUuid());
-                if (raid.stage() > 1 && raid.participatingPlayers().isEmpty()) {
-                    raid.stop();
-                }
+            ServerPlayerEntity player = handler.getPlayer();
+            Raid raid = PlayerRaidCache.currentRaid(player);
+            if (raid == null) return;
+
+            raid.removePlayer(player);
+            if (raid.stage() > 1 && raid.participatingPlayers().isEmpty()) {
+                raid.stop();
             }
+
         });
 
         AttackEntityCallback.EVENT.register(((playerEntity, world, hand, entity, entityHitResult) -> {
@@ -710,31 +727,32 @@ public class EventManager {
             if (pokemon.getPersistentData().contains("raid_entity")) {
                 event.cancel();
             }
-            return Unit.INSTANCE;
+
         });
 
         CobblemonEvents.POKEMON_SENT_POST.subscribe(event -> {
-            if (nr.config().reduceLargePokemonSize) {
-                Pokemon pokemon = event.getPokemon();
-                PokemonEntity pokemonEntity = event.getPokemonEntity();
-                if (pokemon.isPlayerOwned()) {
-                    ServerPlayerEntity player = pokemon.getOwnerPlayer();
-                    if (player != null) {
-                        for (Raid raid : nr.activeRaids().values()) {
-                            if (raid.participatingPlayers().contains(player.getUuid())) {
-                                Box hitbox = pokemonEntity.getBoundingBox();
-                                double maxLength = Math.max(Math.max(hitbox.getLengthX(), hitbox.getLengthY()), hitbox.getLengthZ());
-                                if (maxLength > 1) {
-                                    double scale = 1 / maxLength;
-                                    EntityAttributeInstance scaleAttribute = pokemonEntity.getAttributeInstance(EntityAttributes.GENERIC_SCALE);
-                                    if (scaleAttribute != null) scaleAttribute.setBaseValue(scale);
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
+
+            if (!nr.config().reduceLargePokemonSize) return;
+
+            Pokemon pokemon = event.getPokemon();
+            if (!pokemon.isPlayerOwned()) return;
+
+            PokemonEntity pokemonEntity = event.getPokemonEntity();
+
+            ServerPlayerEntity player = pokemon.getOwnerPlayer();
+            if (player == null) return;
+
+            Raid raid = PlayerRaidCache.currentRaid(player);
+            if (raid == null) return;
+
+            Box hitbox = pokemonEntity.getBoundingBox();
+            double maxLength = Math.max(Math.max(hitbox.getLengthX(), hitbox.getLengthY()), hitbox.getLengthZ());
+            if (maxLength > 1) {
+                double scale = 1 / maxLength;
+                EntityAttributeInstance scaleAttribute = pokemonEntity.getAttributeInstance(EntityAttributes.GENERIC_SCALE);
+                if (scaleAttribute != null) scaleAttribute.setBaseValue(scale);
             }
+
         });
 
         CobblemonEvents.POKEMON_ENTITY_SPAWN.subscribe(event -> {

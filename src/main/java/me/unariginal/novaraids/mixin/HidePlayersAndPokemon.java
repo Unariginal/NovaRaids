@@ -5,7 +5,7 @@ import com.cobblemon.mod.common.battles.BattleRegistry;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import me.unariginal.novaraids.NovaRaids;
-import me.unariginal.novaraids.managers.Raid;
+import me.unariginal.novaraids.cache.PlayerRaidCache;
 import net.minecraft.entity.Entity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
@@ -19,8 +19,10 @@ import java.util.UUID;
 public class HidePlayersAndPokemon {
     @Inject(at = {@At("HEAD")}, method = {"canBeSpectated"}, cancellable = true)
     public void canBeSpectated(ServerPlayerEntity spectator, CallbackInfoReturnable<Boolean> cir) {
+
         Entity self = (Entity) (Object) this;
         if (self instanceof PokemonEntity pokemonEntity) {
+
             Pokemon pokemon = pokemonEntity.getPokemon();
             if (pokemon != null) {
                 if (pokemon.getPersistentData().contains("raid_entity")
@@ -32,15 +34,11 @@ public class HidePlayersAndPokemon {
                 }
             }
 
-            if (NovaRaids.INSTANCE.config().hideOtherCatchEncounters && !NovaRaids.INSTANCE.ignorePokemonVisibility.contains(spectator.getUuid())) {
-                boolean inRaid = false;
-                for (Raid raid : NovaRaids.INSTANCE.activeRaids().values()) {
-                    if (raid.participatingPlayers().contains(spectator.getUuid())) {
-                        inRaid = true;
-                        break;
-                    }
-                }
-                if (inRaid) {
+            if (NovaRaids.INSTANCE.ignorePokemonVisibility.contains(spectator.getUuid())) return;
+
+            if (NovaRaids.INSTANCE.config().hideOtherCatchEncounters) {
+
+                if (PlayerRaidCache.isInRaid(spectator)) {
                     if (pokemon != null) {
                         if (pokemon.getPersistentData().contains("catch_encounter")) {
                             if (pokemonEntity.isBattling()) {
@@ -58,28 +56,16 @@ public class HidePlayersAndPokemon {
                     }
                 }
             }
-            if (NovaRaids.INSTANCE.config().hideOtherPokemonInRaid && !NovaRaids.INSTANCE.ignorePokemonVisibility.contains(spectator.getUuid())) {
-                boolean inRaid = false;
-                for (Raid raid : NovaRaids.INSTANCE.activeRaids().values()) {
-                    if (raid.participatingPlayers().contains(spectator.getUuid())) {
-                        inRaid = true;
-                        break;
-                    }
-                }
-                if (inRaid) {
+
+            if (NovaRaids.INSTANCE.config().hideOtherPokemonInRaid) {
+
+                if (PlayerRaidCache.isInRaid(spectator)) {
                     if (pokemon != null) {
                         if (!pokemon.getPersistentData().contains("raid_entity")) {
                             if (pokemon.isPlayerOwned()) {
                                 ServerPlayerEntity owner = pokemon.getOwnerPlayer();
                                 if (owner != null) {
-                                    boolean pokemonInRaid = false;
-                                    for (Raid raid : NovaRaids.INSTANCE.activeRaids().values()) {
-                                        if (raid.participatingPlayers().contains(owner.getUuid())) {
-                                            pokemonInRaid = true;
-                                            break;
-                                        }
-                                    }
-                                    if (!owner.getUuid().equals(spectator.getUuid()) && pokemonInRaid) {
+                                    if (!owner.getUuid().equals(spectator.getUuid()) && PlayerRaidCache.isInRaid(owner)) {
                                         cir.setReturnValue(false);
                                     }
                                 }
@@ -88,23 +74,10 @@ public class HidePlayersAndPokemon {
                     }
                 }
             }
+
         } else if (self instanceof ServerPlayerEntity serverPlayerEntity) {
             if (NovaRaids.INSTANCE.config().hideOtherPlayersInRaid && !NovaRaids.INSTANCE.ignorePlayerVisibility.contains(spectator.getUuid())) {
-                boolean inRaid = false;
-                for (Raid raid : NovaRaids.INSTANCE.activeRaids().values()) {
-                    if (raid.participatingPlayers().contains(spectator.getUuid())) {
-                        inRaid = true;
-                        break;
-                    }
-                }
-                boolean otherPlayerInRaid = false;
-                for (Raid raid : NovaRaids.INSTANCE.activeRaids().values()) {
-                    if (raid.participatingPlayers().contains(serverPlayerEntity.getUuid())) {
-                        otherPlayerInRaid = true;
-                        break;
-                    }
-                }
-                if (inRaid && otherPlayerInRaid) {
+                if (PlayerRaidCache.isInRaid(spectator) && PlayerRaidCache.isInRaid(serverPlayerEntity)) {
                     cir.setReturnValue(false);
                 }
             }

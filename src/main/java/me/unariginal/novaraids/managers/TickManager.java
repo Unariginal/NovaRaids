@@ -15,6 +15,7 @@ import me.unariginal.novaraids.utils.WebhookHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -114,7 +115,7 @@ public class TickManager {
                         if (hyp < raidPushback) {
                             distance = raidPushback + 1;
                         } else if (hyp > raidRadius) {
-                            if (raid.stage() < 3 && raid.participatingPlayers().contains(player.getUuid()) && raid.stage() != -1 ) {
+                            if (raid.stage() < 3 && raid.participatingPlayers().contains(player.getUuid()) && raid.stage() != -1) {
                                 distance = raidRadius - 1;
                             }
                         }
@@ -226,56 +227,68 @@ public class TickManager {
         }
     }
 
-    public static void fixPlayerPokemon() throws ConcurrentModificationException {
-        if (!nr.config().hideOtherPokemonInRaid) {
-            for (Raid raid : nr.activeRaids().values()) {
-                if (raid.stage() == 2) {
-                    for (UUID playerUUID : raid.participatingPlayers()) {
-                        ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(playerUUID);
-                        if (player != null) {
-                            PokemonBattle battle = BattleRegistry.getBattleByParticipatingPlayer(player);
-                            if (battle != null) {
-                                BattleActor actor = battle.getActor(player);
-                                if (actor != null) {
-                                    if (!actor.getActivePokemon().isEmpty()) {
-                                        for (ActiveBattlePokemon activeBattlePokemon : actor.getActivePokemon()) {
-                                            BattlePokemon battlePokemon = activeBattlePokemon.getBattlePokemon();
-                                            if (battlePokemon != null) {
-                                                PokemonEntity entity = battlePokemon.getEntity();
-                                                if (entity != null) {
-                                                    double x = entity.getPos().getX();
-                                                    double z = entity.getPos().getZ();
-                                                    double cx = raid.raidBossLocation().pos().getX();
-                                                    double cz = raid.raidBossLocation().pos().getZ();
+    public static void fixPlayerPokemon() {
 
-                                                    // Get direction vector
-                                                    double deltaX = x - cx;
-                                                    double deltaZ = z - cz;
+        if (nr.config().hideOtherPokemonInRaid) return;
 
-                                                    // Get angle of approach
-                                                    double angle = Math.toDegrees(Math.atan2(deltaZ, deltaX));
+        Collection<Raid> raids = nr.activeRaids().values(); // Prevents CME
 
-                                                    if (angle < 0) {
-                                                        angle += 360;
-                                                    }
+        for (Raid raid : raids) {
+            if (raid.stage() == 2) {
+                for (UUID playerUUID : raid.participatingPlayers()) {
 
-                                                    double distance = Math.min(30, raid.raidBossLocation().borderRadius());
+                    ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(playerUUID);
+                    if (player == null) return;
 
-                                                    double newX = cx + distance * Math.cos(Math.toRadians(angle));
-                                                    double newZ = cz + distance * Math.sin(Math.toRadians(angle));
+                    PokemonBattle battle = BattleRegistry.getBattleByParticipatingPlayer(player);
+                    if (battle == null) return;
 
-                                                    entity.setPosition(newX, raid.raidBossLocation().pos().getY(), newZ);
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                    BattleActor actor = battle.getActor(player);
+                    if (actor == null) return;
+
+                    if (actor.getActivePokemon().isEmpty()) return;
+
+                    // Moved up - don't get/calculate for every pokemon
+                    Vec3d bossPos = raid.raidBossLocation().pos();
+                    double cx = bossPos.getX();
+                    double cz = bossPos.getZ();
+
+                    double distance = Math.min(30, raid.raidBossLocation().borderRadius());
+
+                    for (ActiveBattlePokemon activeBattlePokemon : actor.getActivePokemon()) {
+
+                        BattlePokemon battlePokemon = activeBattlePokemon.getBattlePokemon();
+                        if (battlePokemon == null) continue;
+
+                        PokemonEntity entity = battlePokemon.getEntity();
+                        if (entity == null) return;
+
+                        // Split into it's own method for clarity
+                        double angle = getAngle(entity, cx, cz);
+
+                        // Prevents us converting back here...
+                        double newX = cx + distance * Math.cos(angle);
+                        double newZ = cz + distance * Math.sin(angle);
+
+                        entity.setPosition(newX, raid.raidBossLocation().pos().getY(), newZ);
                     }
                 }
             }
         }
+    }
+
+    private static double getAngle(PokemonEntity entity, double cx, double cz) {
+        double x = entity.getPos().getX();
+        double z = entity.getPos().getZ();
+
+        // Get direction vector
+        double deltaX = x - cx;
+        double deltaZ = z - cz;
+
+        // Get angle of approach
+        // Change - We convert straight back to radians so no need to convert to degrees first. atan2 works fine with -ve radians
+        double angle = Math.atan2(deltaZ, deltaX);
+        return angle;
     }
 
     public static void scheduledRaids() throws ConcurrentModificationException {
