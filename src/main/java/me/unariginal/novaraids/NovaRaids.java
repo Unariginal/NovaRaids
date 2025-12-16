@@ -56,11 +56,7 @@ public class NovaRaids implements ModInitializer {
 
             reloadConfig();
             if (LOADED) {
-                EventManager.battleEvents();
-                EventManager.rightClickEvents();
-                EventManager.playerEvents();
-                EventManager.cobblemonEvents();
-                EventManager.captureEvent();
+                EventManager.initialiseEvents();
             } else {
                 LOGGER.error("Config did not load properly!");
             }

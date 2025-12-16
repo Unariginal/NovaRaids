@@ -12,6 +12,7 @@ import com.mojang.authlib.GameProfile;
 import kotlin.Unit;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import me.unariginal.novaraids.NovaRaids;
+import me.unariginal.novaraids.cache.PlayerRaidCache;
 import me.unariginal.novaraids.config.MessagesConfig;
 import me.unariginal.novaraids.data.*;
 import me.unariginal.novaraids.data.bosssettings.Boss;
@@ -184,7 +185,8 @@ public class Raid {
             if (startedBy != null && startingItem != null) {
                 if (addPlayer(startedBy, true)) {
                     ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(startedBy);
-                    if (player != null) player.sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("joined_raid"), this)));
+                    if (player != null)
+                        player.sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("joined_raid"), this)));
                 }
             }
         }
@@ -757,6 +759,14 @@ public class Raid {
         return participatingPlayers;
     }
 
+    public boolean isParticipating(ServerPlayerEntity player) {
+        return isParticipating(player.getUuid());
+    }
+
+    public boolean isParticipating(UUID playerUUID) {
+        return participatingPlayers.contains(playerUUID);
+    }
+
     public int getPlayerIndex(UUID playerUUID) {
         int index;
         for (index = 0; index < participatingPlayers.size(); index++) {
@@ -767,24 +777,30 @@ public class Raid {
         return -1;
     }
 
-    public void removePlayer(UUID playerUUID) {
-        int index = getPlayerIndex(playerUUID);
-        if (index != -1) {
-            ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(playerUUID);
-            if (player != null) {
-                markForDeletion.add(playerUUID);
-                player.hideBossBar(bossbars().get(playerUUID));
-                playerBossbars.remove(playerUUID);
+    public void removePlayer(ServerPlayerEntity player) {
+        removePlayer(player.getUuid());
+    }
 
-                List<PokemonEntity> toRemove = new ArrayList<>();
-                for (PokemonEntity clone : clones.keySet()) {
-                    if (clones.get(clone).equals(player.getUuid())) {
-                        toRemove.add(clone);
-                    }
+    public void removePlayer(UUID playerUUID) {
+        PlayerRaidCache.remove(playerUUID); // Remove from the lovely cache
+        if (!isParticipating(uuid)) {
+            return;
+        }
+
+        ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(playerUUID);
+        if (player != null) {
+            markForDeletion.add(playerUUID);
+            player.hideBossBar(bossbars().get(playerUUID));
+            playerBossbars.remove(playerUUID);
+
+            List<PokemonEntity> toRemove = new ArrayList<>();
+            for (PokemonEntity clone : clones.keySet()) {
+                if (clones.get(clone).equals(player.getUuid())) {
+                    toRemove.add(clone);
                 }
-                for (PokemonEntity clone : toRemove) {
-                    removeClone(clone, false);
-                }
+            }
+            for (PokemonEntity clone : toRemove) {
+                removeClone(clone, false);
             }
         }
     }
@@ -798,6 +814,10 @@ public class Raid {
                 }
             }
 
+            for(UUID uuid : markForDeletion) {
+                PlayerRaidCache.remove(uuid);
+            }
+
             participatingPlayers().removeAll(markForDeletion);
             markForDeletion.clear();
         }
@@ -808,6 +828,7 @@ public class Raid {
     }
 
     public boolean addPlayer(UUID playerUUID, boolean usedPass) {
+
         int index = getPlayerIndex(playerUUID);
 
         ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(playerUUID);
@@ -861,6 +882,7 @@ public class Raid {
 
             if (index == -1) {
                 participatingPlayers().add(playerUUID);
+                PlayerRaidCache.add(playerUUID, this);
                 if (participatingPlayers().size() > 1) {
                     maxHealth += bossInfo.healthIncreasePerPlayer();
                     currentHealth += bossInfo.healthIncreasePerPlayer();
@@ -957,6 +979,10 @@ public class Raid {
 
     public void removePokeballsCapturing(EmptyPokeBallEntity entity) {
         pokeballsCapturing.remove(entity);
+    }
+
+    public boolean isPlayerFleeing(ServerPlayerEntity player) {
+        return isPlayerFleeing(player.getUuid());
     }
 
     public boolean isPlayerFleeing(UUID playerUUID) {
