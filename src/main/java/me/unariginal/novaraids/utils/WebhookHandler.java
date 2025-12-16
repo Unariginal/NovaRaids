@@ -1,32 +1,33 @@
 package me.unariginal.novaraids.utils;
 
 import club.minnced.discord.webhook.WebhookClient;
+import club.minnced.discord.webhook.receive.ReadonlyMessage;
 import club.minnced.discord.webhook.send.WebhookEmbed;
 import club.minnced.discord.webhook.send.WebhookEmbedBuilder;
 import club.minnced.discord.webhook.send.WebhookMessageBuilder;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.mojang.authlib.GameProfile;
 import me.unariginal.novaraids.NovaRaids;
-
-import java.awt.*;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.util.*;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-
 import me.unariginal.novaraids.data.FieldData;
 import me.unariginal.novaraids.managers.Raid;
 import net.minecraft.util.UserCache;
 
+import java.awt.*;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+
 public class WebhookHandler {
     private static final NovaRaids nr = NovaRaids.INSTANCE;
-    private static final UserCache cache =  nr.server().getUserCache();
+    private static final UserCache cache = nr.server().getUserCache();
     public static boolean webhookToggle = false;
     public static List<String> blacklistedCategories = new ArrayList<>();
     public static List<String> blacklistedBosses = new ArrayList<>();
     public static String webhookUrl = "https://discord.com/api/webhooks/";
-    public static String webhookUsername =  "Raid Alert!";
+    public static String webhookUsername = "Raid Alert!";
     public static String webhookAvatarUrl = "https://cdn.modrinth.com/data/MdwFAVRL/e54083a07bcd9436d1f8d2879b0d821a54588b9e.png";
     public static String rolePing = "<@&role_id_here>";
     public static int webhookUpdateRateSeconds = 15;
@@ -136,19 +137,30 @@ public class WebhookHandler {
         webhook = WebhookClient.withUrl(webhookUrl);
     }
 
-    public static void deleteWebhook(long id) throws ExecutionException, InterruptedException {
-        webhook.delete(id);
+    public static void deleteWebhook(long id) {
+        webhook.delete(id).exceptionally(e -> {
+            nr.logError("Failed to delete webhook: " + e.getMessage());
+            return null;
+        });
     }
 
-    public static long sendStartRaidWebhook(Raid raid) throws ExecutionException, InterruptedException {
-        return webhook.send(buildStartRaidWebhook(raid).build()).get().getId();
+    public static CompletableFuture<Long> sendStartRaidWebhook(Raid raid) {
+        return webhook.send(buildStartRaidWebhook(raid).build())
+                .thenApply(ReadonlyMessage::getId)
+                .exceptionally(e -> {
+                    nr.logError("Failed to send start raid webhook: " + e.getMessage());
+                    return 0L;
+                });
     }
 
-    public static void editStartRaidWebhook(long id, Raid raid) throws ExecutionException, InterruptedException {
-        webhook.edit(id, buildStartRaidWebhook(raid).build());
+    public static void editStartRaidWebhook(long id, Raid raid) {
+        webhook.edit(id, buildStartRaidWebhook(raid).build()).exceptionally(e -> {
+            nr.logError("Failed to edit start raid webhook: " + e.getMessage());
+            return null;
+        });
     }
 
-    public static WebhookMessageBuilder buildStartRaidWebhook(Raid raid){
+    public static WebhookMessageBuilder buildStartRaidWebhook(Raid raid) {
         Pokemon pokemon = raid.raidBossPokemon();
         int randColor = genTypeColor(pokemon);
         String thumbnailUrl = getThumbnailUrl(pokemon);
@@ -168,22 +180,30 @@ public class WebhookHandler {
         embedBuilder.setThumbnailUrl(thumbnailUrl);
         WebhookEmbed embed = embedBuilder.build();
         return new WebhookMessageBuilder()
-                .setContent(rolePing)
                 .setUsername(webhookUsername)
                 .setAvatarUrl(webhookAvatarUrl)
                 .addEmbeds(embed);
     }
 
-    public static void sendEndRaidWebhook(long id, Raid raid) throws ExecutionException, InterruptedException {
+    public static void sendEndRaidWebhook(long id, Raid raid) {
         if (id == 0) {
-            webhook.send(buildEndRaidWebhook(raid).build()).get();
+            webhook.send(buildEndRaidWebhook(raid).build()).exceptionally(e -> {
+                nr.logError("Failed to send end raid webhook: " + e.getMessage());
+                return null;
+            });
         } else {
-            editEndRaidWebhook(id, raid);
+            webhook.edit(id, buildEndRaidWebhook(raid).build()).exceptionally(e -> {
+                nr.logError("Failed to edit end raid webhook: " + e.getMessage());
+                return null;
+            });
         }
     }
 
     public static void editEndRaidWebhook(long id, Raid raid) {
-        webhook.edit(id, buildEndRaidWebhook(raid).build());
+        webhook.edit(id, buildEndRaidWebhook(raid).build()).exceptionally(e -> {
+            nr.logError("Failed to edit end raid webhook: " + e.getMessage());
+            return null;
+        });
     }
 
     public static WebhookMessageBuilder buildEndRaidWebhook(Raid raid) {
@@ -227,17 +247,28 @@ public class WebhookHandler {
                 .addEmbeds(embed);
     }
 
-    public static long sendRunningWebhook(long id, Raid raid) throws ExecutionException, InterruptedException {
+    public static CompletableFuture<Long> sendRunningWebhook(long id, Raid raid) {
         if (id == 0) {
-            return webhook.send(buildRunningWebhook(raid).build()).get().getId();
+            return webhook.send(buildRunningWebhook(raid).build())
+                    .thenApply(ReadonlyMessage::getId)
+                    .exceptionally(e -> {
+                        nr.logError("Failed to send running webhook: " + e.getMessage());
+                        return id;
+                    });
         } else {
-            editRunningWebhook(id, raid);
+            webhook.edit(id, buildRunningWebhook(raid).build()).exceptionally(e -> {
+                nr.logError("Failed to edit running webhook: " + e.getMessage());
+                return null;
+            });
+            return CompletableFuture.completedFuture(id);
         }
-        return id;
     }
 
-    public static void editRunningWebhook(long id, Raid raid) throws ExecutionException, InterruptedException {
-        webhook.edit(id, buildRunningWebhook(raid).build());
+    public static void editRunningWebhook(long id, Raid raid) {
+        webhook.edit(id, buildRunningWebhook(raid).build()).exceptionally(e -> {
+            nr.logError("Failed to edit running webhook: " + e.getMessage());
+            return null;
+        });
     }
 
     public static WebhookMessageBuilder buildRunningWebhook(Raid raid) {
@@ -281,16 +312,25 @@ public class WebhookHandler {
                 .addEmbeds(embed);
     }
 
-    public static void sendFailedWebhook(long id, Raid raid) throws ExecutionException, InterruptedException {
+    public static void sendFailedWebhook(long id, Raid raid) {
         if (id == 0) {
-            webhook.send(buildFailedWebhook(raid).build()).get();
+            webhook.send(buildFailedWebhook(raid).build()).exceptionally(e -> {
+                nr.logError("Failed to send failed webhook: " + e.getMessage());
+                return null;
+            });
         } else {
-            editFailedWebhook(id, raid);
+            webhook.edit(id, buildFailedWebhook(raid).build()).exceptionally(e -> {
+                nr.logError("Failed to edit failed webhook: " + e.getMessage());
+                return null;
+            });
         }
     }
 
     public static void editFailedWebhook(long id, Raid raid) {
-        webhook.edit(id, buildFailedWebhook(raid).build());
+        webhook.edit(id, buildFailedWebhook(raid).build()).exceptionally(e -> {
+            nr.logError("Failed to edit failed webhook: " + e.getMessage());
+            return null;
+        });
     }
 
     public static WebhookMessageBuilder buildFailedWebhook(Raid raid) {

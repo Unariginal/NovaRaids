@@ -20,7 +20,6 @@ import net.minecraft.util.math.Vec3d;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 
 public class TickManager {
     private static final NovaRaids nr = NovaRaids.INSTANCE;
@@ -39,17 +38,9 @@ public class TickManager {
                     continue;
                 }
                 if (raid.stage() == 1) {
-                    try {
-                        WebhookHandler.editStartRaidWebhook(id, raid);
-                    } catch (ExecutionException | InterruptedException e) {
-                        nr.logError("Failed to edit raid_start webhook: " + e.getMessage());
-                    }
+                    WebhookHandler.editStartRaidWebhook(id, raid);
                 } else if (raid.stage() == 2) {
-                    try {
-                        WebhookHandler.editRunningWebhook(id, raid);
-                    } catch (ExecutionException | InterruptedException e) {
-                        nr.logError("Failed to edit raid_running webhook: " + e.getMessage());
-                    }
+                    WebhookHandler.editRunningWebhook(id, raid);
                 }
             }
         }
@@ -129,14 +120,11 @@ public class TickManager {
                             double newX = cx + distance * Math.cos(Math.toRadians(angle));
                             double newZ = cz + distance * Math.sin(Math.toRadians(angle));
                             double newY = raid.raidBossLocation().pos().getY();
-                            int chunkX = (int) Math.floor(newX / 16);
-                            int chunkZ = (int) Math.floor(newZ / 16);
-                            world.setChunkForced(chunkX, chunkZ, true);
+
                             while (!world.getBlockState(new BlockPos((int) newX, (int) newY, (int) newZ)).isAir()) {
                                 newY++;
                             }
                             player.teleport(world, newX, newY, newZ, player.getYaw(), player.getPitch());
-                            world.setChunkForced(chunkX, chunkZ, false);
                         }
                     }
                 }
