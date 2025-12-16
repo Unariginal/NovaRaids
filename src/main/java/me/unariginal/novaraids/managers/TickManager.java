@@ -27,12 +27,13 @@ public class TickManager {
     private static ZonedDateTime setTimeBuffer = ZonedDateTime.now(nr.schedulesConfig().zone);
     private static int webhookUpdateTimer = WebhookHandler.webhookUpdateRateSeconds * 20;
 
-    public static void updateWebhooks() throws ConcurrentModificationException {
+    public static void updateWebhooks() {
         webhookUpdateTimer--;
         if (webhookUpdateTimer <= 0) {
             webhookUpdateTimer = WebhookHandler.webhookUpdateRateSeconds * 20;
 
-            for (Raid raid : nr.activeRaids().values()) {
+            Collection<Raid> raids = nr.activeRaids().values();
+            for (Raid raid : raids) {
                 long id = raid.getCurrentWebhookID();
                 if (id == 0) {
                     continue;
@@ -54,12 +55,14 @@ public class TickManager {
         }
     }
 
-    public static void fixBossPositions() throws ConcurrentModificationException {
-        for (Raid raid : nr.activeRaids().values()) {
+    public static void fixBossPositions() {
+        Collection<Raid> raids = nr.activeRaids().values();
+        for (Raid raid : raids) {
             raid.fixBossPosition();
+            Collection<PokemonEntity> clones = raid.getClones().keySet();
             if (raid.stage() == 2 || raid.stage() == 4) {
                 List<PokemonEntity> toRemove = new ArrayList<>();
-                for (PokemonEntity pokemonEntity : raid.getClones().keySet()) {
+                for (PokemonEntity pokemonEntity : clones) {
                     UUID playerUUID = raid.getClones().get(pokemonEntity);
                     ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(playerUUID);
                     if (player != null) {
@@ -82,9 +85,11 @@ public class TickManager {
         }
     }
 
-    public static void fixPlayerPositions() throws ConcurrentModificationException {
-        for (Raid raid : nr.activeRaids().values()) {
-            for (ServerPlayerEntity player : nr.server().getPlayerManager().getPlayerList()) {
+    public static void fixPlayerPositions() {
+        Collection<Raid> raids = nr.activeRaids().values();
+        Collection<ServerPlayerEntity> players = nr.server().getPlayerManager().getPlayerList();
+        for (Raid raid : raids) {
+            for (ServerPlayerEntity player : players) {
                 if (player != null) {
                     int raidRadius = raid.raidBossLocation().borderRadius();
                     int raidPushback = raid.raidBossLocation().bossPushbackRadius();
@@ -139,9 +144,10 @@ public class TickManager {
         }
     }
 
-    public static void handleDefeatedBosses() throws ConcurrentModificationException {
+    public static void handleDefeatedBosses() {
         List<Raid> toRemove = new ArrayList<>();
-        for (Raid raid : nr.activeRaids().values()) {
+        Collection<Raid> raids = nr.activeRaids().values();
+        for (Raid raid : raids) {
             if (raid.stage() == -1) {
                 toRemove.add(raid);
                 continue;
@@ -160,10 +166,11 @@ public class TickManager {
         }
     }
 
-    public static void executeTasks() throws ConcurrentModificationException {
+    public static void executeTasks() {
         ServerWorld world = nr.server().getOverworld();
         long currentTick = world.getTime();
-        for (Raid raid : nr.activeRaids().values()) {
+        Collection<Raid> raids = nr.activeRaids().values();
+        for (Raid raid : raids) {
             if (!raid.getTasks().isEmpty()) {
                 if (raid.getTasks().get(currentTick) != null) {
                     if (!raid.getTasks().get(currentTick).isEmpty()) {
@@ -177,8 +184,11 @@ public class TickManager {
         }
     }
 
-    public static void updateBossbars() throws ConcurrentModificationException {
-        for (Raid raid : nr.activeRaids().values()) {
+    public static void updateBossbars() {
+        Collection<Raid> raids = nr.activeRaids().values();
+
+        for (Raid raid : raids) {
+            Collection<UUID> playerUUIDs = raid.bossbars().keySet();
             if (raid.stage() == 2) {
                 float progress = (float) raid.currentHealth() / raid.maxHealth();
 
@@ -190,7 +200,7 @@ public class TickManager {
                     progress = 1F;
                 }
 
-                for (UUID playerUUID : raid.bossbars().keySet()) {
+                for (UUID playerUUID : playerUUIDs) {
                     try {
                         raid.bossbars().get(playerUUID).progress(progress);
                     } catch (IllegalArgumentException | NullPointerException e) {
@@ -211,7 +221,7 @@ public class TickManager {
                     total = 1F;
                 }
 
-                for (UUID playerUUID : raid.bossbars().keySet()) {
+                for (UUID playerUUID : playerUUIDs) {
                     try {
                         if (raid.bossbars().containsKey(playerUUID) && raid.bossbars().get(playerUUID) != null) {
                             raid.bossbars().get(playerUUID).progress(total);
@@ -234,8 +244,9 @@ public class TickManager {
         Collection<Raid> raids = nr.activeRaids().values(); // Prevents CME
 
         for (Raid raid : raids) {
+            Collection<UUID> participatingUUIDs = raid.participatingPlayers();
             if (raid.stage() == 2) {
-                for (UUID playerUUID : raid.participatingPlayers()) {
+                for (UUID playerUUID : participatingUUIDs) {
 
                     ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(playerUUID);
                     if (player == null) return;
@@ -256,14 +267,13 @@ public class TickManager {
                     double distance = Math.min(30, raid.raidBossLocation().borderRadius());
 
                     for (ActiveBattlePokemon activeBattlePokemon : actor.getActivePokemon()) {
-
                         BattlePokemon battlePokemon = activeBattlePokemon.getBattlePokemon();
                         if (battlePokemon == null) continue;
 
                         PokemonEntity entity = battlePokemon.getEntity();
                         if (entity == null) return;
 
-                        // Split into it's own method for clarity
+                        // Split into its own method for clarity
                         double angle = getAngle(entity, cx, cz);
 
                         // Prevents us converting back here...
@@ -287,13 +297,13 @@ public class TickManager {
 
         // Get angle of approach
         // Change - We convert straight back to radians so no need to convert to degrees first. atan2 works fine with -ve radians
-        double angle = Math.atan2(deltaZ, deltaX);
-        return angle;
+        return Math.atan2(deltaZ, deltaX);
     }
 
-    public static void scheduledRaids() throws ConcurrentModificationException {
+    public static void scheduledRaids() {
         ZonedDateTime now = ZonedDateTime.now(nr.schedulesConfig().zone);
-        for (Schedule schedule : nr.schedulesConfig().schedules) {
+        Collection<Schedule> schedules = nr.schedulesConfig().schedules;
+        for (Schedule schedule : schedules) {
             boolean shouldExecute = false;
             if (schedule instanceof SpecificSchedule specificSchedule) {
                 if (setTimeBuffer.until(now, ChronoUnit.SECONDS) >= 1 && specificSchedule.isNextTime()) {

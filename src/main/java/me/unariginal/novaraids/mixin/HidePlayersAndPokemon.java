@@ -19,10 +19,8 @@ import java.util.UUID;
 public class HidePlayersAndPokemon {
     @Inject(at = {@At("HEAD")}, method = {"canBeSpectated"}, cancellable = true)
     public void canBeSpectated(ServerPlayerEntity spectator, CallbackInfoReturnable<Boolean> cir) {
-
         Entity self = (Entity) (Object) this;
         if (self instanceof PokemonEntity pokemonEntity) {
-
             Pokemon pokemon = pokemonEntity.getPokemon();
             if (pokemon != null) {
                 if (pokemon.getPersistentData().contains("raid_entity")
@@ -37,14 +35,13 @@ public class HidePlayersAndPokemon {
             if (NovaRaids.INSTANCE.ignorePokemonVisibility.contains(spectator.getUuid())) return;
 
             if (NovaRaids.INSTANCE.config().hideOtherCatchEncounters) {
-
                 if (PlayerRaidCache.isInRaid(spectator)) {
                     if (pokemon != null) {
                         if (pokemon.getPersistentData().contains("catch_encounter")) {
                             if (pokemonEntity.isBattling()) {
-                                UUID battle_id = pokemonEntity.getBattleId();
-                                if (battle_id != null) {
-                                    PokemonBattle battle = BattleRegistry.getBattle(battle_id);
+                                UUID battleID = pokemonEntity.getBattleId();
+                                if (battleID != null) {
+                                    PokemonBattle battle = BattleRegistry.getBattle(battleID);
                                     if (battle != null) {
                                         if (!battle.getPlayers().contains(spectator)) {
                                             cir.setReturnValue(false);
@@ -58,7 +55,6 @@ public class HidePlayersAndPokemon {
             }
 
             if (NovaRaids.INSTANCE.config().hideOtherPokemonInRaid) {
-
                 if (PlayerRaidCache.isInRaid(spectator)) {
                     if (pokemon != null) {
                         if (!pokemon.getPersistentData().contains("raid_entity")) {
@@ -74,7 +70,6 @@ public class HidePlayersAndPokemon {
                     }
                 }
             }
-
         } else if (self instanceof ServerPlayerEntity serverPlayerEntity) {
             if (NovaRaids.INSTANCE.config().hideOtherPlayersInRaid && !NovaRaids.INSTANCE.ignorePlayerVisibility.contains(spectator.getUuid())) {
                 if (PlayerRaidCache.isInRaid(spectator) && PlayerRaidCache.isInRaid(serverPlayerEntity)) {

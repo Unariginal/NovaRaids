@@ -28,7 +28,6 @@ public class BattleEndMixin {
         int damage = 0;
 
         for (BattleActor actor : battle.getActors()) {
-
             switch (actor) {
                 case PokemonBattleActor pokemonBattleActor -> {
                     Pokemon pokemon = pokemonBattleActor.getPokemon().getEffectedPokemon();

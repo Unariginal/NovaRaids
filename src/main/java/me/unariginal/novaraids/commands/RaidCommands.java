@@ -351,11 +351,11 @@ public class RaidCommands {
 
                                                 ServerPlayerEntity player = ctx.getSource().getPlayer();
 
-                                                if(player == null) return 1;
+                                                if (player == null) return 1;
 
                                                 var activeRaid = PlayerRaidCache.currentRaid(player);
 
-                                                if(activeRaid != null) {
+                                                if (activeRaid != null) {
                                                     activeRaid.removePlayer(player.getUuid());
                                                 }
 

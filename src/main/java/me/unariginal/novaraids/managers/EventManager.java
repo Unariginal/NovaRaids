@@ -72,6 +72,7 @@ public class EventManager {
         // TODO --> Cleanup
         rightClickEvents();
         playerEvents();
+        cobblemonEvents();
     }
 
     private static Unit onThrownPokeballHit(ThrownPokeballHitEvent event) {
@@ -106,7 +107,6 @@ public class EventManager {
         }
 
         if (player != null && pokemonEntity != null) {
-
             UUID entityUUID = pokemonEntity.getUuid();
             for (Raid raid : nr.activeRaids().values()) {
                 for (PokemonEntity clone : raid.getClones().keySet()) {
@@ -155,14 +155,15 @@ public class EventManager {
                 event.cancel();
                 return unit();
             }
-
         }
 
-        var raid = PlayerRaidCache.currentRaid(player);
-        if (raid != null) {
-            player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_battle_during_raid"), raid)));
-            event.setReason(null);
-            event.cancel();
+        if (player != null) {
+            Raid raid = PlayerRaidCache.currentRaid(player);
+            if (raid != null) {
+                player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_battle_during_raid"), raid)));
+                event.setReason(null);
+                event.cancel();
+            }
         }
 
         return unit();
@@ -173,13 +174,13 @@ public class EventManager {
         for (BattleActor actor : battle.getActors()) {
 
             if (!(actor instanceof PlayerBattleActor playerBattleActor) || playerBattleActor.getEntity() == null) {
-                return Unit.INSTANCE;
+                return unit();
             }
 
             ServerPlayerEntity player = playerBattleActor.getEntity();
             Raid raid = PlayerRaidCache.currentRaid(player);
 
-            if (raid == null) return Unit.INSTANCE;
+            if (raid == null) return unit();
 
             raid.addFleeingPlayer(player.getUuid());
             List<PokemonEntity> toRemove = new ArrayList<>();
@@ -194,7 +195,7 @@ public class EventManager {
 
         }
 
-        return Unit.INSTANCE;
+        return unit();
     }
 
     private static Unit onLootDropped(LootDroppedEvent event) {
@@ -205,37 +206,37 @@ public class EventManager {
                 for (Raid raid : nr.activeRaids().values()) {
                     if (raid.uuid().equals(pokemonEntity.getUuid())) {
                         event.cancel();
-                        return Unit.INSTANCE;
+                        return unit();
                     }
                 }
                 if (!pokemon.isPlayerOwned()) {
                     if (pokemon.getPersistentData().contains("boss_clone")) {
                         if (pokemon.getPersistentData().getBoolean("boss_clone")) {
                             event.cancel();
-                            return Unit.INSTANCE;
+                            return unit();
                         }
                     }
                 }
             }
         }
-        return Unit.INSTANCE;
+        return unit();
     }
 
     private static Unit onExperienceGainedPre(ExperienceGainedEvent.Pre event) {
         Pokemon pokemon = event.getPokemon();
-        if (!pokemon.isPlayerOwned()) return Unit.INSTANCE;
+        if (!pokemon.isPlayerOwned()) return unit();
 
         ServerPlayerEntity player = pokemon.getOwnerPlayer();
-        if (player == null) return Unit.INSTANCE;
+        if (player == null) return unit();
 
         Raid raid = PlayerRaidCache.currentRaid(player);
-        if (raid == null) return Unit.INSTANCE;
+        if (raid == null) return unit();
 
         if ((!nr.config().allowExperienceGain || raid.isPlayerFleeing(player.getUuid())) && event.getSource().isBattle()) {
             event.cancel();
         }
 
-        return Unit.INSTANCE;
+        return unit();
     }
 
     public static void rightClickEvents() {
