@@ -38,7 +38,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 public class Raid {
@@ -53,28 +52,22 @@ public class Raid {
     private final PokemonEntity raidBossEntity;
     private final Location raidBossLocation;
     private final Category raidBossCategory;
-
-    private int currentHealth;
-    private int maxHealth;
-
     private final UUID startedBy;
     private final ItemStack startingItem;
-
     private final int minPlayers;
     private final int maxPlayers;
     private final List<UUID> participatingPlayers = new ArrayList<>();
     private final List<UUID> markForDeletion = new ArrayList<>();
-    private boolean clearToDelete = true;
     private final Map<UUID, Integer> damageByPlayer = new HashMap<>();
     private final List<UUID> latestDamage = new ArrayList<>();
     private final List<UUID> fleeingPlayers = new ArrayList<>();
-
     private final Map<Long, List<Task>> tasks = new HashMap<>();
     private final Map<UUID, BossBar> playerBossbars = new HashMap<>();
-
     private final Map<PokemonEntity, UUID> clones = new HashMap<>();
     private final List<EmptyPokeBallEntity> pokeballsCapturing = new ArrayList<>();
-
+    private int currentHealth;
+    private int maxHealth;
+    private boolean clearToDelete = true;
     private long raidStartTime = 0;
     private long raidEndTime = 0;
     private long phaseLength;
@@ -171,11 +164,7 @@ public class Raid {
                 WebhookHandler.startEmbedEnabled &&
                 !WebhookHandler.blacklistedBosses.contains(bossInfo.bossId()) &&
                 !WebhookHandler.blacklistedCategories.contains(raidBossCategory.id())) {
-            try {
-                webhook = WebhookHandler.sendStartRaidWebhook(this);
-            } catch (ExecutionException | InterruptedException e) {
-                nr.logError("Failed to send raid_start webhook: " + e.getMessage());
-            }
+            WebhookHandler.sendStartRaidWebhook(this).thenAccept(id -> this.webhook = id);
         }
 
         addTask(raidBossLocation.world(), phaseLength * 20L, this::fightPhase);
@@ -204,11 +193,7 @@ public class Raid {
             participatingBroadcast(TextUtils.deserialize(TextUtils.parse(messages.getMessage("start_fight_phase"), this)));
 
             if (WebhookHandler.webhookToggle && webhook != 0 && WebhookHandler.runningEmbedEnabled) {
-                try {
-                    webhook = WebhookHandler.sendRunningWebhook(webhook, this);
-                } catch (ExecutionException | InterruptedException e) {
-                    nr.logError("Failed to send raid_running webhook: " + e.getMessage());
-                }
+                WebhookHandler.sendRunningWebhook(webhook, this).thenAccept(id -> this.webhook = id);
             }
 
             addTask(raidBossLocation.world(), phaseLength * 20L, this::raidLost);
@@ -224,11 +209,7 @@ public class Raid {
                 }
             }
             if (WebhookHandler.webhookToggle && webhook != 0 && WebhookHandler.deleteIfNoFightPhase) {
-                try {
-                    WebhookHandler.deleteWebhook(webhook);
-                } catch (ExecutionException | InterruptedException e) {
-                    nr.logError("Failed to delete webhook: " + e.getMessage());
-                }
+                WebhookHandler.deleteWebhook(webhook);
             }
         }
     }
@@ -239,11 +220,7 @@ public class Raid {
         raidEndTime = nr.server().getOverworld().getTime();
         participatingBroadcast(TextUtils.deserialize(TextUtils.parse(messages.getMessage("out_of_time"), this)));
         if (WebhookHandler.webhookToggle && WebhookHandler.failedEmbedEnabled && webhook != 0) {
-            try {
-                WebhookHandler.sendFailedWebhook(webhook, this);
-            } catch (ExecutionException | InterruptedException e) {
-                nr.logError("Failed to send raid_failed webhook: " + e.getMessage());
-            }
+            WebhookHandler.sendFailedWebhook(webhook, this);
         }
     }
 
@@ -273,11 +250,7 @@ public class Raid {
         }
 
         if (WebhookHandler.webhookToggle && WebhookHandler.endEmbedEnabled && webhook != 0) {
-            try {
-                WebhookHandler.sendEndRaidWebhook(webhook, this);
-            } catch (ExecutionException | InterruptedException e) {
-                nr.logError("Failed to send raid_end webhook: " + e.getMessage());
-            }
+            WebhookHandler.sendEndRaidWebhook(webhook, this);
         }
 
         if (bossInfo.raidDetails().doCatchPhase()) {
@@ -891,14 +864,11 @@ public class Raid {
         List<Map.Entry<UUID, Integer>> leaderboardList = new ArrayList<>(damageByPlayer.entrySet());
 
         Map<Integer, Long> damageFrequencies = leaderboardList.stream().collect(
-                Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)
-        ).values().stream().collect(
-                Collectors.groupingBy(value -> value, Collectors.counting())
-        );
+                Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)).values().stream().collect(
+                Collectors.groupingBy(value -> value, Collectors.counting()));
 
         List<Integer> duplicates = damageFrequencies.entrySet().stream().filter(
-                entry -> entry.getValue() > 1
-        ).map(Map.Entry::getKey).toList();
+                entry -> entry.getValue() > 1).map(Map.Entry::getKey).toList();
 
         leaderboardList.sort((o1, o2) -> o2.getValue().compareTo(o1.getValue()));
 
