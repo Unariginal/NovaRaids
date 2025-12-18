@@ -64,7 +64,7 @@ public class RaidCommands {
     private final NovaRaids nr = NovaRaids.INSTANCE;
 
     public RaidCommands() {
-        CommandRegistrationCallback.EVENT.register(this::initalize);
+        CommandRegistrationCallback.EVENT.register(this::initialize);
     }
 
     public LiteralArgumentBuilder<ServerCommandSource> reload() {
@@ -379,7 +379,7 @@ public class RaidCommands {
                 });
     }
 
-    private void initalize(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess var2, CommandManager.RegistrationEnvironment var3) {
+    private void initialize(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess var2, CommandManager.RegistrationEnvironment var3) {
         dispatcher.register(
                 CommandManager.literal("raid")
                         .executes(this::modInfo)

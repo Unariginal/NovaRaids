@@ -9,17 +9,12 @@ import java.util.Map;
 import java.util.UUID;
 
 public class BossBarHandler {
-
-    private final NovaRaids nr;
-
-    public BossBarHandler(NovaRaids plugin) {
-        this.nr = plugin;
-
-        Threading.runDelayedTaskAsyncTimer(this::updateBossBars, 3L, 3L);
+    public BossBarHandler() {
+        Threading.runDelayedTaskAsyncTimer(this::updateBossBars, 2L, 2L);
     }
 
     public void updateBossBars() {
-        Collection<Raid> raids = nr.activeRaids().values();
+        Collection<Raid> raids = NovaRaids.INSTANCE.activeRaids().values();
 
         for (Raid raid : raids) {
             for(Map.Entry<UUID, BossBar> entry : raid.bossbars().entrySet()) {
@@ -32,7 +27,7 @@ public class BossBarHandler {
                     continue;
                 }
 
-                float remainingTicks = (float) (raid.phaseEndTime() - nr.server().getOverworld().getTime());
+                float remainingTicks = (float) (raid.phaseEndTime() - NovaRaids.INSTANCE.server().getOverworld().getTime());
                 float progress = 1.0F / (raid.phaseLength() * 20L);
                 float total = Math.clamp(progress * remainingTicks, 0, 1);
                 bossBar.progress(total);

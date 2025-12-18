@@ -13,7 +13,7 @@ public class Threading {
         throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
     }
 
-    private static ScheduledExecutorService ASYNC_EXECUTOR = Executors.newSingleThreadScheduledExecutor();
+    private static final ScheduledExecutorService ASYNC_EXECUTOR = Executors.newSingleThreadScheduledExecutor();
 
     /**
      * Run a task asynchronously

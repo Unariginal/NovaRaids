@@ -1,7 +1,5 @@
 package me.unariginal.novaraids;
 
-import me.unariginal.novaraids.commands.CommandManager;
-import me.unariginal.novaraids.commands.ExampleCommandObject;
 import me.unariginal.novaraids.commands.RaidCommands;
 import me.unariginal.novaraids.config.*;
 import me.unariginal.novaraids.data.QueueItem;
@@ -52,8 +50,6 @@ public class NovaRaids implements ModInitializer {
     public void onInitialize() {
         INSTANCE = this;
 
-        CommandManager.INSTANCE.parseClass(new ExampleCommandObject());
-
         raidCommands = new RaidCommands();
 
         // Set up event handlers and configuration at server load
@@ -64,7 +60,7 @@ public class NovaRaids implements ModInitializer {
             reloadConfig();
             if (LOADED) {
                 EventManager.initialiseEvents();
-                bossBarHandler = new BossBarHandler(this);
+                bossBarHandler = new BossBarHandler();
             } else {
                 LOGGER.error("Config did not load properly!");
             }

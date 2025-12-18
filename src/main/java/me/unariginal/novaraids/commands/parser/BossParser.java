@@ -11,6 +11,7 @@ import org.incendo.cloud.context.CommandInput;
 import org.incendo.cloud.exception.parsing.ParserException;
 import org.incendo.cloud.parser.ArgumentParseResult;
 import org.incendo.cloud.parser.ArgumentParser;
+import org.incendo.cloud.suggestion.Suggestion;
 import org.incendo.cloud.suggestion.SuggestionProvider;
 
 public class BossParser implements ArgumentParser<ServerCommandSource, Boss> {
@@ -28,7 +29,7 @@ public class BossParser implements ArgumentParser<ServerCommandSource, Boss> {
     @Override
     public @NonNull SuggestionProvider<ServerCommandSource> suggestionProvider() {
         return SuggestionProvider.suggesting(
-                NovaRaids.INSTANCE.bossesConfig().bosses.stream().map(Boss::bossId)
+                NovaRaids.INSTANCE.bossesConfig().bosses.stream().map(boss -> Suggestion.suggestion(boss.bossId())).toList()
         );
     }
 
