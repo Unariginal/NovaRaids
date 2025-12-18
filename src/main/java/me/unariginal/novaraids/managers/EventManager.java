@@ -478,7 +478,7 @@ public class EventManager {
                                                 lore.add(TextUtils.deserialize(TextUtils.parse(line, boss)));
                                             }
 
-                                            ItemStack item = PokemonItem.from(boss.pokemonDetails().createPokemon(false));
+                                            ItemStack item = PokemonItem.from(boss.pokemonDetails().createPokemon(false, true));
                                             item.applyChanges(nr.guisConfig().voucherGui.displayButton.itemData());
                                             GuiElement element = new GuiElementBuilder(item)
                                                     .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().voucherGui.displayButton.itemName(), boss)))

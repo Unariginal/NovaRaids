@@ -27,12 +27,14 @@ public class SchedulesConfig {
                                     new ScheduleBoss(
                                             "category",
                                             "common",
-                                            5.0
+                                            5.0,
+                                            List.of()
                                     ),
                                     new ScheduleBoss(
                                             "boss",
                                             "example_eevee",
-                                            5.0
+                                            5.0,
+                                            List.of()
                                     )
                             ),
                             1200,
@@ -44,12 +46,14 @@ public class SchedulesConfig {
                                     new ScheduleBoss(
                                             "category",
                                             "common",
-                                            5.0
+                                            5.0,
+                                            List.of()
                                     ),
                                     new ScheduleBoss(
                                             "boss",
                                             "example_eevee",
-                                            5.0
+                                            5.0,
+                                            List.of()
                                     )
                             ),
                             "0 30 * ? * *"
@@ -60,12 +64,14 @@ public class SchedulesConfig {
                                     new ScheduleBoss(
                                             "category",
                                             "common",
-                                            5.0
+                                            5.0,
+                                            List.of()
                                     ),
                                     new ScheduleBoss(
                                             "boss",
                                             "example_eevee",
-                                            5.0
+                                            5.0,
+                                            List.of()
                                     )
                             ),
                             "@hourly"
@@ -76,12 +82,14 @@ public class SchedulesConfig {
                                     new ScheduleBoss(
                                             "category",
                                             "common",
-                                            5.0
+                                            5.0,
+                                            List.of()
                                     ),
                                     new ScheduleBoss(
                                             "boss",
                                             "example_eevee",
-                                            5.0
+                                            5.0,
+                                            List.of()
                                     )
                             ),
                             List.of(
@@ -172,10 +180,16 @@ public class SchedulesConfig {
 
                 if (bossType.equalsIgnoreCase("category")) {
                     String category = bossObject.get("category").getAsString();
-                    scheduleBosses.add(new ScheduleBoss(bossType, category, bossWeight));
+                    List<String> blacklistedBosses = new ArrayList<>();
+                    if (bossObject.has("blacklisted_bosses")) blacklistedBosses = bossObject.getAsJsonArray("blacklisted_bosses").asList().stream().map(JsonElement::getAsString).toList();
+                    JsonArray blacklistedBossesArray = new JsonArray();
+                    blacklistedBosses.forEach(blacklistedBossesArray::add);
+                    bossObject.remove("blacklisted_bosses");
+                    bossObject.add("blacklisted_bosses", blacklistedBossesArray);
+                    scheduleBosses.add(new ScheduleBoss(bossType, category, bossWeight, blacklistedBosses));
                 } else if (bossType.equalsIgnoreCase("boss")) {
                     String bossID = bossObject.get("boss_id").getAsString();
-                    scheduleBosses.add(new ScheduleBoss(bossType, bossID, bossWeight));
+                    scheduleBosses.add(new ScheduleBoss(bossType, bossID, bossWeight, List.of()));
                 }
             }
 
@@ -256,6 +270,9 @@ public class SchedulesConfig {
                 bossObject.addProperty("type", bossType);
                 if (bossType.equalsIgnoreCase("category")) {
                     bossObject.addProperty("category", scheduleBoss.id());
+                    JsonArray blacklistedBosses = new JsonArray();
+                    scheduleBoss.blacklistedBosses().forEach(blacklistedBosses::add);
+                    bossObject.add("blacklisted_bosses", blacklistedBosses);
                 } else if (bossType.equalsIgnoreCase("boss")) {
                     bossObject.addProperty("boss_id", scheduleBoss.id());
                 } else continue;

@@ -1859,7 +1859,7 @@ public class RaidCommands {
                                 }
                             }
 
-                            ItemStack item = PokemonItem.from(boss.pokemonDetails().createPokemon(false));
+                            ItemStack item = PokemonItem.from(boss.pokemonDetails().createPokemon(false, true));
                             item.applyChanges(nr.guisConfig().queueGui.displayData);
                             int finalIndex = index;
                             GuiElement element = new GuiElementBuilder(item)

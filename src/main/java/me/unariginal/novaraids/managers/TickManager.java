@@ -173,7 +173,6 @@ public class TickManager {
     }
 
     public static void fixPlayerPokemon() {
-
         if (nr.config().hideOtherPokemonInRaid) return;
 
         Collection<Raid> raids = nr.activeRaids().values(); // Prevents CME
@@ -288,7 +287,7 @@ public class TickManager {
                             if (category != null) {
                                 totalWeight += scheduleBoss.weight();
                                 if (randomWeight < totalWeight) {
-                                    Boss boss = nr.bossesConfig().getRandomBoss(category.id());
+                                    Boss boss = nr.bossesConfig().getRandomBoss(category.id(), scheduleBoss.blacklistedBosses());
                                     if (boss != null) {
                                         nr.raidCommands().start(boss, null, null);
                                         break;

@@ -11,7 +11,8 @@
         {
           "type": "category",
           "category": "common",
-          "weight": 5.0
+          "weight": 5.0,
+          "blacklisted_bosses": []
         },
         {
           "type": "boss",

@@ -1,4 +1,6 @@
 package me.unariginal.novaraids.data.schedule;
 
-public record ScheduleBoss(String type, String id, double weight) {
+import java.util.List;
+
+public record ScheduleBoss(String type, String id, double weight, List<String> blacklistedBosses) {
 }

@@ -1174,6 +1174,29 @@ public class BossesConfig {
         writer.close();
     }
 
+    public Boss getRandomBoss(String category, List<String> blacklist) {
+        double totalWeight = 0;
+        for (Boss boss : bosses) {
+            if (boss.categoryId().equalsIgnoreCase(category) && !blacklist.contains(boss.bossId())) {
+                totalWeight += boss.categoryWeight();
+            }
+        }
+
+        if (totalWeight > 0) {
+            double randomWeight = new Random().nextDouble(totalWeight);
+            totalWeight = 0;
+            for (Boss boss : bosses) {
+                if (boss.categoryId().equalsIgnoreCase(category) && !blacklist.contains(boss.bossId())) {
+                    totalWeight += boss.categoryWeight();
+                    if (randomWeight < totalWeight) {
+                        return boss;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
     public Boss getRandomBoss(String category) {
         double totalWeight = 0;
         for (Boss boss : bosses) {

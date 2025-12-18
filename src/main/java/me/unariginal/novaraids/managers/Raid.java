@@ -90,8 +90,8 @@ public class Raid {
             startingItem.setCount(1);
         }
 
-        raidBossPokemon = bossInfo.pokemonDetails().createPokemon(false);
-        raidBossPokemonUncatchable = bossInfo.pokemonDetails().createPokemon(false);
+        raidBossPokemon = bossInfo.pokemonDetails().createPokemon(false, true);
+        raidBossPokemonUncatchable = bossInfo.pokemonDetails().createPokemon(false, true);
         raidBossPokemonUncatchable.getCustomProperties().add(UncatchableProperty.INSTANCE.uncatchable());
         baseGimmick = bossInfo.pokemonDetails().getGimmick();
         raidBossEntity = generateBossEntity();

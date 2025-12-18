@@ -53,7 +53,7 @@ public record PokemonDetails(
         return "";
     }
 
-    public Pokemon createPokemon(boolean catchEncounter) {
+    public Pokemon createPokemon(boolean catchEncounter, boolean rollFeatures) {
         Pokemon pokemon = new Pokemon();
         pokemon.setSpecies(species);
         if (level <= 100) {
@@ -68,9 +68,12 @@ public record PokemonDetails(
             }
         }
         pokemon.heal();
-        Map.Entry<?, Double> entry = RandomUtils.getRandomEntry(possibleFeatures);
-        if (entry != null) {
-            PokemonProperties.Companion.parse((String) entry.getKey()).apply(pokemon);
+        Map.Entry<?, Double> entry;
+        if (rollFeatures) {
+            entry = RandomUtils.getRandomEntry(possibleFeatures);
+            if (entry != null) {
+                PokemonProperties.Companion.parse((String) entry.getKey()).apply(pokemon);
+            }
         }
 
         entry = RandomUtils.getRandomEntry(possibleAbilities);
