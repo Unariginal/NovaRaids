@@ -5,8 +5,10 @@ import com.cobblemon.mod.common.api.moves.Move;
 import com.cobblemon.mod.common.item.PokemonItem;
 import com.cobblemon.mod.common.pokemon.Species;
 import com.cobblemon.mod.common.util.MiscUtilsKt;
+import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import eu.pb4.sgui.api.elements.GuiElement;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
@@ -35,6 +37,7 @@ import me.unariginal.novaraids.utils.GuiUtils;
 import me.unariginal.novaraids.utils.RandomUtils;
 import me.unariginal.novaraids.utils.TextUtils;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.component.ComponentMap;
 import net.minecraft.component.DataComponentTypes;
@@ -61,438 +64,451 @@ public class RaidCommands {
     private final NovaRaids nr = NovaRaids.INSTANCE;
 
     public RaidCommands() {
-        CommandRegistrationCallback.EVENT.register((commandDispatcher, commandRegistryAccess, registrationEnvironment) -> commandDispatcher.register(
-            CommandManager.literal("raid")
-                    .executes(this::modInfo)
-                    .then(
-                            CommandManager.literal("reload")
-                                    .requires(Permissions.require("novaraids.reload", 4))
-                                    .executes(this::reload)
-                    )
-                    .then(
-                            CommandManager.literal("start")
-                                    .requires(Permissions.require("novaraids.start", 4))
-                                    .then(
-                                            CommandManager.argument("boss", StringArgumentType.string())
-                                                    .suggests(new BossSuggestions())
-                                                    .executes(ctx -> {
-                                                        if (NovaRaids.LOADED) {
-                                                            if (ctx.getSource().isExecutedByPlayer())
-                                                                return start(nr.bossesConfig().getBoss(StringArgumentType.getString(ctx, "boss")), ctx.getSource().getPlayer(), null);
-                                                            else
-                                                                return start(nr.bossesConfig().getBoss(StringArgumentType.getString(ctx, "boss")), null, null);
-                                                        } else {
-                                                            return 0;
-                                                        }
-                                                    })
-                                    )
-                                    .then(
-                                            CommandManager.literal("random")
-                                                    .executes(ctx -> {
-                                                        if (NovaRaids.LOADED) {
-                                                            if (ctx.getSource().isExecutedByPlayer())
-                                                                return start(nr.bossesConfig().getRandomBoss(), ctx.getSource().getPlayer(), null);
-                                                            else
-                                                                return start(nr.bossesConfig().getRandomBoss(), null, null);
-                                                        } else {
-                                                            return 0;
-                                                        }
-                                                    })
-                                                    .then(
-                                                            CommandManager.argument("category", StringArgumentType.string())
-                                                                    .suggests(new CategorySuggestions())
-                                                                    .executes(ctx -> {
-                                                                        if (NovaRaids.LOADED) {
-                                                                            String categoryStr = StringArgumentType.getString(ctx, "category");
-                                                                            Boss boss = nr.bossesConfig().getRandomBoss(categoryStr);
+        CommandRegistrationCallback.EVENT.register(this::initalize);
+    }
 
-                                                                            if (ctx.getSource().isExecutedByPlayer())
-                                                                                return start(boss, ctx.getSource().getPlayer(), null);
-                                                                            else
-                                                                                return start(boss, null, null);
-                                                                        } else {
-                                                                            return 0;
-                                                                        }
-                                                                    })
-                                                    )
-                                    )
-                    )
-                    .then(
-                            CommandManager.literal("stop")
-                                    .requires(Permissions.require("novaraids.stop", 4))
-                                    .then(
-                                            CommandManager.argument("id", IntegerArgumentType.integer(1))
-                                                    .executes(this::stop)
-                                    )
-                    )
-                    .then(
-                            CommandManager.literal("give")
-                                    .requires(Permissions.require("novaraids.give", 4))
-                                    .then(
-                                            CommandManager.argument("player", EntityArgumentType.players())
-                                                    .then(
-                                                            CommandManager.literal("pass")
-                                                                    .then(
-                                                                            CommandManager.argument("boss", StringArgumentType.string())
-                                                                                    .suggests(new BossSuggestions())
-                                                                                    .executes(ctx -> {
-                                                                                        List<ServerPlayerEntity> players = EntityArgumentType.getPlayers(ctx, "player").stream().toList();
-                                                                                        for (ServerPlayerEntity player : players) {
-                                                                                            give(ctx.getSource().getPlayer(), player, "pass", StringArgumentType.getString(ctx, "boss"), null, "", 0);
-                                                                                        }
-                                                                                        return 1;
-                                                                                    })
-                                                                    )
-                                                                    .then(
-                                                                            CommandManager.literal("*")
-                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "pass", "*", null, "", 0))
-                                                                                    .then(
-                                                                                            CommandManager.argument("category", StringArgumentType.string())
-                                                                                                    .suggests(new CategorySuggestions())
-                                                                                                    .executes(ctx -> {
-                                                                                                        List<ServerPlayerEntity> players = EntityArgumentType.getPlayers(ctx, "player").stream().toList();
-                                                                                                        for (ServerPlayerEntity player : players) {
-                                                                                                            give(ctx.getSource().getPlayer(), player, "pass", "*", StringArgumentType.getString(ctx, "category"), "", 0);
-                                                                                                        }
-                                                                                                        return 1;
-                                                                                                    })
-                                                                                    )
-                                                                    )
-                                                                    .then(
-                                                                            CommandManager.literal("random")
-                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "pass", "random", null, "", 0))
-                                                                                    .then(
-                                                                                            CommandManager.argument("category", StringArgumentType.string())
-                                                                                                    .suggests(new CategorySuggestions())
-                                                                                                    .executes(ctx -> {
-                                                                                                        List<ServerPlayerEntity> players = EntityArgumentType.getPlayers(ctx, "player").stream().toList();
-                                                                                                        for (ServerPlayerEntity player : players) {
-                                                                                                            give(ctx.getSource().getPlayer(), player, "pass", "random", StringArgumentType.getString(ctx, "category"), "", 0);
-                                                                                                        }
-                                                                                                        return 1;
-                                                                                                    })
-                                                                                    )
-                                                                    )
-                                                    )
-                                                    .then(
-                                                            CommandManager.literal("voucher")
-                                                                    .then(
-                                                                            CommandManager.argument("boss", StringArgumentType.string())
-                                                                                    .suggests(new BossSuggestions())
-                                                                                    .executes(ctx -> {
-                                                                                        List<ServerPlayerEntity> players = EntityArgumentType.getPlayers(ctx, "player").stream().toList();
-                                                                                        for (ServerPlayerEntity player : players) {
-                                                                                            give(ctx.getSource().getPlayer(), player, "voucher", StringArgumentType.getString(ctx, "boss"), null, "", 0);
-                                                                                        }
-                                                                                        return 1;
-                                                                                    })
-                                                                    )
-                                                                    .then(
-                                                                            CommandManager.literal("*")
-                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "voucher", "*", null, "", 0))
-                                                                                    .then(
-                                                                                            CommandManager.argument("category", StringArgumentType.string())
-                                                                                                    .suggests(new CategorySuggestions())
-                                                                                                    .executes(ctx -> {
-                                                                                                        List<ServerPlayerEntity> players = EntityArgumentType.getPlayers(ctx, "player").stream().toList();
-                                                                                                        for (ServerPlayerEntity player : players) {
-                                                                                                            give(ctx.getSource().getPlayer(), player, "voucher", "*", StringArgumentType.getString(ctx, "category"), "", 0);
-                                                                                                        }
-                                                                                                        return 1;
-                                                                                                    })
-                                                                                    )
-                                                                    )
-                                                                    .then(
-                                                                            CommandManager.literal("random")
-                                                                                    .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "voucher", "random", null, "", 0))
-                                                                                    .then(
-                                                                                            CommandManager.argument("category", StringArgumentType.string())
-                                                                                                    .suggests(new CategorySuggestions())
-                                                                                                    .executes(ctx -> {
-                                                                                                        List<ServerPlayerEntity> players = EntityArgumentType.getPlayers(ctx, "player").stream().toList();
-                                                                                                        for (ServerPlayerEntity player : players) {
-                                                                                                            give(ctx.getSource().getPlayer(), player, "voucher", "random", StringArgumentType.getString(ctx, "category"), "", 0);
-                                                                                                        }
-                                                                                                        return 1;
-                                                                                                    })
-                                                                                    )
-                                                                    )
-                                                    )
-                                                    .then(
-                                                            CommandManager.literal("pokeball")
-                                                                    .then(
-                                                                            CommandManager.literal("boss")
-                                                                                    .then(
-                                                                                            CommandManager.argument("boss", StringArgumentType.string())
-                                                                                                    .suggests(new BossSuggestions())
-                                                                                                    .then(
-                                                                                                            CommandManager.argument("pokeball", StringArgumentType.string())
-                                                                                                                    .suggests((ctx, builder) -> {
-                                                                                                                        if (NovaRaids.LOADED) {
-                                                                                                                            Boss boss = nr.bossesConfig().getBoss(StringArgumentType.getString(ctx, "boss"));
-                                                                                                                            if (boss != null) {
-                                                                                                                                for (RaidBall ball : boss.itemSettings().raidBalls()) {
-                                                                                                                                    builder.suggest(ball.id());
-                                                                                                                                }
-                                                                                                                            }
-                                                                                                                        }
-                                                                                                                        return builder.buildFuture();
-                                                                                                                    })
-                                                                                                                    .then(
-                                                                                                                            CommandManager.argument("amount", IntegerArgumentType.integer(1))
-                                                                                                                                    .executes(ctx -> {
-                                                                                                                                        List<ServerPlayerEntity> players = EntityArgumentType.getPlayers(ctx, "player").stream().toList();
-                                                                                                                                        for (ServerPlayerEntity player : players) {
-                                                                                                                                            give(ctx.getSource().getPlayer(), player, "pokeball", StringArgumentType.getString(ctx, "boss"), null, StringArgumentType.getString(ctx, "pokeball"), IntegerArgumentType.getInteger(ctx, "amount"));
-                                                                                                                                        }
-                                                                                                                                        return 1;
-                                                                                                                                    })
-                                                                                                                    )
-                                                                                                    )
-                                                                                    )
-                                                                    )
-                                                                    .then(
-                                                                            CommandManager.literal("category")
-                                                                                    .then(
-                                                                                            CommandManager.argument("category", StringArgumentType.string())
-                                                                                                    .suggests(new CategorySuggestions())
-                                                                                                    .then(
-                                                                                                            CommandManager.argument("pokeball", StringArgumentType.string())
-                                                                                                                    .suggests((ctx, builder) -> {
-                                                                                                                        if (NovaRaids.LOADED) {
-                                                                                                                            Category cat = nr.bossesConfig().getCategory(StringArgumentType.getString(ctx, "category"));
-                                                                                                                            if (cat != null) {
-                                                                                                                                for (RaidBall ball : cat.categoryBalls()) {
-                                                                                                                                    builder.suggest(ball.id());
-                                                                                                                                }
-                                                                                                                            }
-                                                                                                                        }
-                                                                                                                        return builder.buildFuture();
-                                                                                                                    })
-                                                                                                                    .then(
-                                                                                                                            CommandManager.argument("amount", IntegerArgumentType.integer(1))
-                                                                                                                                    .executes(ctx -> {
-                                                                                                                                        List<ServerPlayerEntity> players = EntityArgumentType.getPlayers(ctx, "player").stream().toList();
-                                                                                                                                        for (ServerPlayerEntity player : players) {
-                                                                                                                                            give(ctx.getSource().getPlayer(), player, "pokeball", null, StringArgumentType.getString(ctx, "category"), StringArgumentType.getString(ctx, "pokeball"), IntegerArgumentType.getInteger(ctx, "amount"));
-                                                                                                                                        }
-                                                                                                                                        return 1;
-                                                                                                                                    })
-                                                                                                                    )
-                                                                                                    )
-                                                                                    )
-                                                                    )
-                                                                    .then(
-                                                                            CommandManager.literal("global")
-                                                                                    .then(
-                                                                                            CommandManager.argument("pokeball", StringArgumentType.string())
-                                                                                                    .suggests((ctx, builder) -> {
-                                                                                                        if (NovaRaids.LOADED) {
-                                                                                                            for (RaidBall ball : nr.config().raidBalls) {
+    public LiteralArgumentBuilder<ServerCommandSource> reload() {
+        return CommandManager.literal("reload")
+                .requires(Permissions.require("novaraids.reload", 4))
+                .executes((ctx) -> {
+                    nr.reloadConfig();
+                    if (NovaRaids.LOADED)
+                        ctx.getSource().sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("reload_command"))));
+                    return 1;
+                });
+    }
+
+    public LiteralArgumentBuilder<ServerCommandSource> start() {
+        return CommandManager.literal("start")
+                .requires(Permissions.require("novaraids.start", 4))
+                .then(
+                        CommandManager.argument("boss", StringArgumentType.string())
+                                .suggests(new BossSuggestions())
+                                .executes(ctx -> {
+                                    if (NovaRaids.LOADED) {
+                                        if (ctx.getSource().isExecutedByPlayer())
+                                            return start(nr.bossesConfig().getBoss(StringArgumentType.getString(ctx, "boss")), ctx.getSource().getPlayer(), null);
+                                        else
+                                            return start(nr.bossesConfig().getBoss(StringArgumentType.getString(ctx, "boss")), null, null);
+                                    } else {
+                                        return 0;
+                                    }
+                                })
+                )
+                .then(
+                        CommandManager.literal("random")
+                                .executes(ctx -> {
+                                    if (NovaRaids.LOADED) {
+                                        if (ctx.getSource().isExecutedByPlayer())
+                                            return start(nr.bossesConfig().getRandomBoss(), ctx.getSource().getPlayer(), null);
+                                        else
+                                            return start(nr.bossesConfig().getRandomBoss(), null, null);
+                                    } else {
+                                        return 0;
+                                    }
+                                })
+                                .then(
+                                        CommandManager.argument("category", StringArgumentType.string())
+                                                .suggests(new CategorySuggestions())
+                                                .executes(ctx -> {
+                                                    if (NovaRaids.LOADED) {
+                                                        String categoryStr = StringArgumentType.getString(ctx, "category");
+                                                        Boss boss = nr.bossesConfig().getRandomBoss(categoryStr);
+
+                                                        if (ctx.getSource().isExecutedByPlayer())
+                                                            return start(boss, ctx.getSource().getPlayer(), null);
+                                                        else
+                                                            return start(boss, null, null);
+                                                    } else {
+                                                        return 0;
+                                                    }
+                                                })
+                                )
+                );
+    }
+
+    public LiteralArgumentBuilder<ServerCommandSource> stop() {
+        return CommandManager.literal("stop")
+                .requires(Permissions.require("novaraids.stop", 4))
+                .then(
+                        CommandManager.argument("id", IntegerArgumentType.integer(1))
+                                .executes(this::stop)
+                );
+    }
+
+    public LiteralArgumentBuilder<ServerCommandSource> give() {
+        return CommandManager.literal("give")
+                .requires(Permissions.require("novaraids.give", 4))
+                .then(
+                        CommandManager.argument("player", EntityArgumentType.players())
+                                .then(
+                                        CommandManager.literal("pass")
+                                                .then(
+                                                        CommandManager.argument("boss", StringArgumentType.string())
+                                                                .suggests(new BossSuggestions())
+                                                                .executes(ctx -> {
+                                                                    List<ServerPlayerEntity> players = EntityArgumentType.getPlayers(ctx, "player").stream().toList();
+                                                                    for (ServerPlayerEntity player : players) {
+                                                                        give(ctx.getSource().getPlayer(), player, "pass", StringArgumentType.getString(ctx, "boss"), null, "", 0);
+                                                                    }
+                                                                    return 1;
+                                                                })
+                                                )
+                                                .then(
+                                                        CommandManager.literal("*")
+                                                                .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "pass", "*", null, "", 0))
+                                                                .then(
+                                                                        CommandManager.argument("category", StringArgumentType.string())
+                                                                                .suggests(new CategorySuggestions())
+                                                                                .executes(ctx -> {
+                                                                                    List<ServerPlayerEntity> players = EntityArgumentType.getPlayers(ctx, "player").stream().toList();
+                                                                                    for (ServerPlayerEntity player : players) {
+                                                                                        give(ctx.getSource().getPlayer(), player, "pass", "*", StringArgumentType.getString(ctx, "category"), "", 0);
+                                                                                    }
+                                                                                    return 1;
+                                                                                })
+                                                                )
+                                                )
+                                                .then(
+                                                        CommandManager.literal("random")
+                                                                .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "pass", "random", null, "", 0))
+                                                                .then(
+                                                                        CommandManager.argument("category", StringArgumentType.string())
+                                                                                .suggests(new CategorySuggestions())
+                                                                                .executes(ctx -> {
+                                                                                    List<ServerPlayerEntity> players = EntityArgumentType.getPlayers(ctx, "player").stream().toList();
+                                                                                    for (ServerPlayerEntity player : players) {
+                                                                                        give(ctx.getSource().getPlayer(), player, "pass", "random", StringArgumentType.getString(ctx, "category"), "", 0);
+                                                                                    }
+                                                                                    return 1;
+                                                                                })
+                                                                )
+                                                )
+                                )
+                                .then(
+                                        CommandManager.literal("voucher")
+                                                .then(
+                                                        CommandManager.argument("boss", StringArgumentType.string())
+                                                                .suggests(new BossSuggestions())
+                                                                .executes(ctx -> {
+                                                                    List<ServerPlayerEntity> players = EntityArgumentType.getPlayers(ctx, "player").stream().toList();
+                                                                    for (ServerPlayerEntity player : players) {
+                                                                        give(ctx.getSource().getPlayer(), player, "voucher", StringArgumentType.getString(ctx, "boss"), null, "", 0);
+                                                                    }
+                                                                    return 1;
+                                                                })
+                                                )
+                                                .then(
+                                                        CommandManager.literal("*")
+                                                                .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "voucher", "*", null, "", 0))
+                                                                .then(
+                                                                        CommandManager.argument("category", StringArgumentType.string())
+                                                                                .suggests(new CategorySuggestions())
+                                                                                .executes(ctx -> {
+                                                                                    List<ServerPlayerEntity> players = EntityArgumentType.getPlayers(ctx, "player").stream().toList();
+                                                                                    for (ServerPlayerEntity player : players) {
+                                                                                        give(ctx.getSource().getPlayer(), player, "voucher", "*", StringArgumentType.getString(ctx, "category"), "", 0);
+                                                                                    }
+                                                                                    return 1;
+                                                                                })
+                                                                )
+                                                )
+                                                .then(
+                                                        CommandManager.literal("random")
+                                                                .executes(ctx -> give(ctx.getSource().getPlayer(), EntityArgumentType.getPlayer(ctx, "player"), "voucher", "random", null, "", 0))
+                                                                .then(
+                                                                        CommandManager.argument("category", StringArgumentType.string())
+                                                                                .suggests(new CategorySuggestions())
+                                                                                .executes(ctx -> {
+                                                                                    List<ServerPlayerEntity> players = EntityArgumentType.getPlayers(ctx, "player").stream().toList();
+                                                                                    for (ServerPlayerEntity player : players) {
+                                                                                        give(ctx.getSource().getPlayer(), player, "voucher", "random", StringArgumentType.getString(ctx, "category"), "", 0);
+                                                                                    }
+                                                                                    return 1;
+                                                                                })
+                                                                )
+                                                )
+                                )
+                                .then(
+                                        CommandManager.literal("pokeball")
+                                                .then(
+                                                        CommandManager.literal("boss")
+                                                                .then(
+                                                                        CommandManager.argument("boss", StringArgumentType.string())
+                                                                                .suggests(new BossSuggestions())
+                                                                                .then(
+                                                                                        CommandManager.argument("pokeball", StringArgumentType.string())
+                                                                                                .suggests((ctx, builder) -> {
+                                                                                                    if (NovaRaids.LOADED) {
+                                                                                                        Boss boss = nr.bossesConfig().getBoss(StringArgumentType.getString(ctx, "boss"));
+                                                                                                        if (boss != null) {
+                                                                                                            for (RaidBall ball : boss.itemSettings().raidBalls()) {
                                                                                                                 builder.suggest(ball.id());
                                                                                                             }
                                                                                                         }
-                                                                                                        return builder.buildFuture();
-                                                                                                    })
-                                                                                                    .then(
-                                                                                                            CommandManager.argument("amount", IntegerArgumentType.integer(1))
-                                                                                                                    .executes(ctx -> {
-                                                                                                                        List<ServerPlayerEntity> players = EntityArgumentType.getPlayers(ctx, "player").stream().toList();
-                                                                                                                        for (ServerPlayerEntity player : players) {
-                                                                                                                            give(ctx.getSource().getPlayer(), player, "pokeball", "*", null, StringArgumentType.getString(ctx, "pokeball"), IntegerArgumentType.getInteger(ctx, "amount"));
-                                                                                                                        }
-                                                                                                                        return 1;
-                                                                                                                    })
-                                                                                                    )
-                                                                                    )
-                                                                    )
+                                                                                                    }
+                                                                                                    return builder.buildFuture();
+                                                                                                })
+                                                                                                .then(
+                                                                                                        CommandManager.argument("amount", IntegerArgumentType.integer(1))
+                                                                                                                .executes(ctx -> {
+                                                                                                                    List<ServerPlayerEntity> players = EntityArgumentType.getPlayers(ctx, "player").stream().toList();
+                                                                                                                    for (ServerPlayerEntity player : players) {
+                                                                                                                        give(ctx.getSource().getPlayer(), player, "pokeball", StringArgumentType.getString(ctx, "boss"), null, StringArgumentType.getString(ctx, "pokeball"), IntegerArgumentType.getInteger(ctx, "amount"));
+                                                                                                                    }
+                                                                                                                    return 1;
+                                                                                                                })
+                                                                                                )
+                                                                                )
+                                                                )
+                                                )
+                                                .then(
+                                                        CommandManager.literal("category")
+                                                                .then(
+                                                                        CommandManager.argument("category", StringArgumentType.string())
+                                                                                .suggests(new CategorySuggestions())
+                                                                                .then(
+                                                                                        CommandManager.argument("pokeball", StringArgumentType.string())
+                                                                                                .suggests((ctx, builder) -> {
+                                                                                                    if (NovaRaids.LOADED) {
+                                                                                                        Category cat = nr.bossesConfig().getCategory(StringArgumentType.getString(ctx, "category"));
+                                                                                                        if (cat != null) {
+                                                                                                            for (RaidBall ball : cat.categoryBalls()) {
+                                                                                                                builder.suggest(ball.id());
+                                                                                                            }
+                                                                                                        }
+                                                                                                    }
+                                                                                                    return builder.buildFuture();
+                                                                                                })
+                                                                                                .then(
+                                                                                                        CommandManager.argument("amount", IntegerArgumentType.integer(1))
+                                                                                                                .executes(ctx -> {
+                                                                                                                    List<ServerPlayerEntity> players = EntityArgumentType.getPlayers(ctx, "player").stream().toList();
+                                                                                                                    for (ServerPlayerEntity player : players) {
+                                                                                                                        give(ctx.getSource().getPlayer(), player, "pokeball", null, StringArgumentType.getString(ctx, "category"), StringArgumentType.getString(ctx, "pokeball"), IntegerArgumentType.getInteger(ctx, "amount"));
+                                                                                                                    }
+                                                                                                                    return 1;
+                                                                                                                })
+                                                                                                )
+                                                                                )
+                                                                )
+                                                )
+                                                .then(
+                                                        CommandManager.literal("global")
+                                                                .then(
+                                                                        CommandManager.argument("pokeball", StringArgumentType.string())
+                                                                                .suggests((ctx, builder) -> {
+                                                                                    if (NovaRaids.LOADED) {
+                                                                                        for (RaidBall ball : nr.config().raidBalls) {
+                                                                                            builder.suggest(ball.id());
+                                                                                        }
+                                                                                    }
+                                                                                    return builder.buildFuture();
+                                                                                })
+                                                                                .then(
+                                                                                        CommandManager.argument("amount", IntegerArgumentType.integer(1))
+                                                                                                .executes(ctx -> {
+                                                                                                    List<ServerPlayerEntity> players = EntityArgumentType.getPlayers(ctx, "player").stream().toList();
+                                                                                                    for (ServerPlayerEntity player : players) {
+                                                                                                        give(ctx.getSource().getPlayer(), player, "pokeball", "*", null, StringArgumentType.getString(ctx, "pokeball"), IntegerArgumentType.getInteger(ctx, "amount"));
+                                                                                                    }
+                                                                                                    return 1;
+                                                                                                })
+                                                                                )
+                                                                )
+                                                )
 
-                                                    )
-                                    )
-                    )
-                    .then(
-                            CommandManager.literal("list")
-                                    .requires(Permissions.require("novaraids.list", 4))
-                                    .executes(this::list)
-                    )
-                    .then(
-                            CommandManager.literal("join")
-                                    .requires(Permissions.require("novaraids.join", 4))
-                                    .then(
-                                            CommandManager.argument("id", IntegerArgumentType.integer(1))
-                                                    .executes(ctx -> {
-                                                        if (NovaRaids.LOADED) {
-                                                            if (ctx.getSource().isExecutedByPlayer()) {
-                                                                ServerPlayerEntity player = ctx.getSource().getPlayer();
-                                                                if (player != null) {
-                                                                    if (nr.activeRaids().containsKey(IntegerArgumentType.getInteger(ctx, "id"))) {
-                                                                        Raid raid = nr.activeRaids().get(IntegerArgumentType.getInteger(ctx, "id"));
-                                                                        if (raid.participatingPlayers().size() < raid.maxPlayers() || Permissions.check(player, "novaraids.override") || raid.maxPlayers() == -1) {
-                                                                            if (raid.addPlayer(player.getUuid(), false)) {
-                                                                                player.sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("joined_raid"), raid)));
-                                                                            }
-                                                                        } else {
-                                                                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("warning_max_players"), raid)));
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                        return 1;
-                                                    })
-                                    )
-                    )
-                    .then(
-                            CommandManager.literal("leave")
-                                    .requires(Permissions.require("novaraids.leave", 4))
-                                    .executes(ctx -> {
-                                        if (NovaRaids.LOADED) {
-                                            if (ctx.getSource().isExecutedByPlayer()) {
+                                )
+                );
+    }
 
-                                                ServerPlayerEntity player = ctx.getSource().getPlayer();
+    public LiteralArgumentBuilder<ServerCommandSource> list() {
+        return CommandManager.literal("list")
+                .requires(Permissions.require("novaraids.list", 4))
+                .executes(this::list);
+    }
 
-                                                if (player == null) return 1;
-
-                                                var activeRaid = PlayerRaidCache.currentRaid(player);
-
-                                                if (activeRaid != null) {
-                                                    activeRaid.removePlayer(player.getUuid());
-                                                }
-
-                                            }
-                                        }
-                                        return 1;
-                                    })
-                    )
-                    .then(
-                            CommandManager.literal("queue")
-                                    .requires(Permissions.require("novaraids.queue", 4))
-                                    .executes(ctx -> queue(ctx, 1))
-                    )
-                    .then(
-                            CommandManager.literal("checkbanned")
-                                    .requires(Permissions.require("novaraids.checkbanned", 4))
-                                    .then(
-                                            CommandManager.literal("global")
-                                                    .executes(ctx -> checkbanned(ctx, "global"))
-                                    )
-                                    .then(
-                                            CommandManager.literal("category")
-                                                    .then(
-                                                            CommandManager.argument("category", StringArgumentType.string())
-                                                                    .suggests(new CategorySuggestions())
-                                                                    .executes(ctx -> checkbanned(ctx, "category"))
-                                                    )
-                                    )
-                                    .then(
-                                            CommandManager.literal("boss")
-                                                    .then(
-                                                            CommandManager.argument("boss", StringArgumentType.string())
-                                                                    .suggests(new BossSuggestions())
-                                                                    .executes(ctx -> checkbanned(ctx, "boss"))
-                                                    )
-                                    )
-                    )
-                    .then(
-                            CommandManager.literal("history")
-                                    .requires(Permissions.require("novaraids.history", 4))
-                                    .executes(ctx -> {
-                                        ctx.getSource().sendMessage(Text.literal("Not Implemented"));
-                                        return 1;
-                                    })
-                    )
-                    .then(
-                            CommandManager.literal("skipphase")
-                                    .requires(Permissions.require("novaraids.skipphase", 4))
-                                    .then(
-                                            CommandManager.argument("id", IntegerArgumentType.integer(1))
-                                                    .executes(this::skipphase)
-                                    )
-                    )
-                    .then(
-                            CommandManager.literal("testrewards")
-                                    .requires(Permissions.require("novaraids.testrewards", 4))
-                                    .then(
-                                            CommandManager.argument("boss", StringArgumentType.string())
-                                                    .suggests(new BossSuggestions())
-                                                    .then(
-                                                            CommandManager.argument("placement", IntegerArgumentType.integer(1))
-                                                                    .then(
-                                                                            CommandManager.argument("total-players", IntegerArgumentType.integer(1))
-                                                                                    .executes(this::testRewards)
-                                                                    )
-                                                    )
-                                    )
-                    )
-                    .then(
-                            CommandManager.literal("world")
-                                    .requires(Permissions.require("novaraids.world", 4))
-                                    .executes(ctx -> {
+    public LiteralArgumentBuilder<ServerCommandSource> join() {
+        return CommandManager.literal("join")
+                .requires(Permissions.require("novaraids.join", 4))
+                .then(
+                        CommandManager.argument("id", IntegerArgumentType.integer(1))
+                                .executes(ctx -> {
+                                    if (NovaRaids.LOADED) {
                                         if (ctx.getSource().isExecutedByPlayer()) {
                                             ServerPlayerEntity player = ctx.getSource().getPlayer();
                                             if (player != null) {
-                                                player.sendMessage(TextUtils.deserialize(player.getServerWorld().getRegistryKey().getValue().toString()));
+                                                if (nr.activeRaids().containsKey(IntegerArgumentType.getInteger(ctx, "id"))) {
+                                                    Raid raid = nr.activeRaids().get(IntegerArgumentType.getInteger(ctx, "id"));
+                                                    if (raid.participatingPlayers().size() < raid.maxPlayers() || Permissions.check(player, "novaraids.override") || raid.maxPlayers() == -1) {
+                                                        if (raid.addPlayer(player.getUuid(), false)) {
+                                                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("joined_raid"), raid)));
+                                                        }
+                                                    } else {
+                                                        player.sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("warning_max_players"), raid)));
+                                                    }
+                                                }
                                             }
                                         }
-                                        return 1;
-                                    })
-                    )
-                    .then(
-                            CommandManager.literal("damage")
-                                    .requires(Permissions.require("novaraids.damage", 4))
-                                    .then(
-                                            CommandManager.argument("id", IntegerArgumentType.integer(1))
-                                                    .then(
-                                                            CommandManager.argument("amount", IntegerArgumentType.integer(1))
-                                                                    .executes(ctx -> {
-                                                                        if (NovaRaids.LOADED) {
-                                                                            int id = IntegerArgumentType.getInteger(ctx, "id");
-                                                                            if (nr.activeRaids().containsKey(id)) {
-                                                                                Raid raid = nr.activeRaids().get(id);
-                                                                                if (raid != null) {
-                                                                                    if (ctx.getSource().isExecutedByPlayer()) {
-                                                                                        ServerPlayerEntity player = ctx.getSource().getPlayer();
-                                                                                        if (player != null) {
-                                                                                            int damage = IntegerArgumentType.getInteger(ctx, "amount");
-                                                                                            if (damage > raid.currentHealth()) {
-                                                                                                damage = raid.currentHealth();
-                                                                                            }
+                                    }
+                                    return 1;
+                                })
+                );
+    }
 
-                                                                                            raid.applyDamage(damage);
-                                                                                            raid.updatePlayerDamage(player.getUuid(), damage);
-                                                                                            raid.participatingBroadcast(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("player_damage_report"), raid, player, damage, -1)));
-                                                                                            player.sendMessage(TextUtils.deserialize("<green>The damage has been applied."));
+    public LiteralArgumentBuilder<ServerCommandSource> leave() {
+        return CommandManager.literal("leave")
+                .requires(Permissions.require("novaraids.leave", 4))
+                .executes(ctx -> {
+                    if (NovaRaids.LOADED) {
+                        if (ctx.getSource().isExecutedByPlayer()) {
+
+                            ServerPlayerEntity player = ctx.getSource().getPlayer();
+
+                            if (player == null) return 1;
+
+                            var activeRaid = PlayerRaidCache.currentRaid(player);
+
+                            if (activeRaid != null) {
+                                activeRaid.removePlayer(player.getUuid());
+                            }
+
+                        }
+                    }
+                    return 1;
+                });
+    }
+
+    private void initalize(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess var2, CommandManager.RegistrationEnvironment var3) {
+        dispatcher.register(
+                CommandManager.literal("raid")
+                        .executes(this::modInfo)
+                        .then(reload())
+                        .then(start())
+                        .then(stop())
+                        .then(give())
+                        .then(list())
+                        .then(join())
+                        .then(leave())
+                        .then(
+                                CommandManager.literal("queue")
+                                        .requires(Permissions.require("novaraids.queue", 4))
+                                        .executes(ctx -> queue(ctx, 1))
+                        )
+                        .then(
+                                CommandManager.literal("checkbanned")
+                                        .requires(Permissions.require("novaraids.checkbanned", 4))
+                                        .then(
+                                                CommandManager.literal("global")
+                                                        .executes(ctx -> checkbanned(ctx, "global"))
+                                        )
+                                        .then(
+                                                CommandManager.literal("category")
+                                                        .then(
+                                                                CommandManager.argument("category", StringArgumentType.string())
+                                                                        .suggests(new CategorySuggestions())
+                                                                        .executes(ctx -> checkbanned(ctx, "category"))
+                                                        )
+                                        )
+                                        .then(
+                                                CommandManager.literal("boss")
+                                                        .then(
+                                                                CommandManager.argument("boss", StringArgumentType.string())
+                                                                        .suggests(new BossSuggestions())
+                                                                        .executes(ctx -> checkbanned(ctx, "boss"))
+                                                        )
+                                        )
+                        )
+                        .then(
+                                CommandManager.literal("history")
+                                        .requires(Permissions.require("novaraids.history", 4))
+                                        .executes(ctx -> {
+                                            ctx.getSource().sendMessage(Text.literal("Not Implemented"));
+                                            return 1;
+                                        })
+                        )
+                        .then(
+                                CommandManager.literal("skipphase")
+                                        .requires(Permissions.require("novaraids.skipphase", 4))
+                                        .then(
+                                                CommandManager.argument("id", IntegerArgumentType.integer(1))
+                                                        .executes(this::skipphase)
+                                        )
+                        )
+                        .then(
+                                CommandManager.literal("testrewards")
+                                        .requires(Permissions.require("novaraids.testrewards", 4))
+                                        .then(
+                                                CommandManager.argument("boss", StringArgumentType.string())
+                                                        .suggests(new BossSuggestions())
+                                                        .then(
+                                                                CommandManager.argument("placement", IntegerArgumentType.integer(1))
+                                                                        .then(
+                                                                                CommandManager.argument("total-players", IntegerArgumentType.integer(1))
+                                                                                        .executes(this::testRewards)
+                                                                        )
+                                                        )
+                                        )
+                        )
+                        .then(
+                                CommandManager.literal("world")
+                                        .requires(Permissions.require("novaraids.world", 4))
+                                        .executes(ctx -> {
+                                            if (ctx.getSource().isExecutedByPlayer()) {
+                                                ServerPlayerEntity player = ctx.getSource().getPlayer();
+                                                if (player != null) {
+                                                    player.sendMessage(TextUtils.deserialize(player.getServerWorld().getRegistryKey().getValue().toString()));
+                                                }
+                                            }
+                                            return 1;
+                                        })
+                        )
+                        .then(
+                                CommandManager.literal("damage")
+                                        .requires(Permissions.require("novaraids.damage", 4))
+                                        .then(
+                                                CommandManager.argument("id", IntegerArgumentType.integer(1))
+                                                        .then(
+                                                                CommandManager.argument("amount", IntegerArgumentType.integer(1))
+                                                                        .executes(ctx -> {
+                                                                            if (NovaRaids.LOADED) {
+                                                                                int id = IntegerArgumentType.getInteger(ctx, "id");
+                                                                                if (nr.activeRaids().containsKey(id)) {
+                                                                                    Raid raid = nr.activeRaids().get(id);
+                                                                                    if (raid != null) {
+                                                                                        if (ctx.getSource().isExecutedByPlayer()) {
+                                                                                            ServerPlayerEntity player = ctx.getSource().getPlayer();
+                                                                                            if (player != null) {
+                                                                                                int damage = IntegerArgumentType.getInteger(ctx, "amount");
+                                                                                                if (damage > raid.currentHealth()) {
+                                                                                                    damage = raid.currentHealth();
+                                                                                                }
+
+                                                                                                raid.applyDamage(damage);
+                                                                                                raid.updatePlayerDamage(player.getUuid(), damage);
+                                                                                                raid.participatingBroadcast(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("player_damage_report"), raid, player, damage, -1)));
+                                                                                                player.sendMessage(TextUtils.deserialize("<green>The damage has been applied."));
+                                                                                            }
                                                                                         }
                                                                                     }
                                                                                 }
                                                                             }
-                                                                        }
-                                                                        return 1;
-                                                                    })
-                                                    )
-                                    )
-                    )
-                    .then(
-                            CommandManager.literal("schedule")
-                                    .requires(Permissions.require("novaraids.schedule", 4))
-                                    .executes(ctx -> {
-                                        for (Schedule schedule : nr.schedulesConfig().schedules) {
-                                            if (schedule instanceof SpecificSchedule specificSchedule) {
-                                                List<LocalTime> closestTimes = new ArrayList<>();
+                                                                            return 1;
+                                                                        })
+                                                        )
+                                        )
+                        )
+                        .then(
+                                CommandManager.literal("schedule")
+                                        .requires(Permissions.require("novaraids.schedule", 4))
+                                        .executes(ctx -> {
+                                            for (Schedule schedule : nr.schedulesConfig().schedules) {
+                                                if (schedule instanceof SpecificSchedule specificSchedule) {
+                                                    List<LocalTime> closestTimes = new ArrayList<>();
 
-                                                for (int i = 0; i < specificSchedule.setTimes.size(); i++) {
-                                                    LocalTime now = LocalTime.now(nr.schedulesConfig().zone);
-                                                    LocalTime closestTime = null;
-                                                    for (LocalTime time : specificSchedule.setTimes) {
-                                                        if (time.isAfter(now) || time.equals(now)) {
-                                                            if ((closestTime == null || time.isBefore(closestTime)) && !closestTimes.contains(time)) {
-                                                                closestTime = time;
-                                                            }
-                                                        }
-                                                    }
-
-                                                    if (closestTime == null) {
-                                                        now = LocalTime.of(0,0);
+                                                    for (int i = 0; i < specificSchedule.setTimes.size(); i++) {
+                                                        LocalTime now = LocalTime.now(nr.schedulesConfig().zone);
+                                                        LocalTime closestTime = null;
                                                         for (LocalTime time : specificSchedule.setTimes) {
                                                             if (time.isAfter(now) || time.equals(now)) {
                                                                 if ((closestTime == null || time.isBefore(closestTime)) && !closestTimes.contains(time)) {
@@ -500,63 +516,66 @@ public class RaidCommands {
                                                                 }
                                                             }
                                                         }
+
+                                                        if (closestTime == null) {
+                                                            now = LocalTime.of(0, 0);
+                                                            for (LocalTime time : specificSchedule.setTimes) {
+                                                                if (time.isAfter(now) || time.equals(now)) {
+                                                                    if ((closestTime == null || time.isBefore(closestTime)) && !closestTimes.contains(time)) {
+                                                                        closestTime = time;
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+
+                                                        closestTimes.add(closestTime);
                                                     }
 
-                                                    closestTimes.add(closestTime);
+                                                    ctx.getSource().sendMessage(TextUtils.deserialize("<red>Specific Schedule Nearest Times:"));
+                                                    for (LocalTime time : closestTimes) {
+                                                        ctx.getSource().sendMessage(TextUtils.deserialize("<gray><i> - " + time.toString()));
+                                                    }
+                                                } else if (schedule instanceof RandomSchedule randomSchedule) {
+                                                    ctx.getSource().sendMessage(TextUtils.deserialize("<red>Random Schedule (<i>" + randomSchedule.minBound + "s - " + randomSchedule.maxBound + "s<!i>) Next Raid:"));
+                                                    ctx.getSource().sendMessage(TextUtils.deserialize("<gray><i> - " + randomSchedule.nextRandom.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withZone(nr.schedulesConfig().zone))));
+                                                } else if (schedule instanceof CronSchedule cronSchedule) {
+                                                    ctx.getSource().sendMessage(TextUtils.deserialize("<red>Cron Schedule (<i>" + cronSchedule.expression + "<!i>) Next Raid:"));
+                                                    ctx.getSource().sendMessage(TextUtils.deserialize("<gray><i> - " + cronSchedule.nextExecution.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withZone(nr.schedulesConfig().zone))));
                                                 }
-
-                                                ctx.getSource().sendMessage(TextUtils.deserialize("<red>Specific Schedule Nearest Times:"));
-                                                for (LocalTime time : closestTimes) {
-                                                    ctx.getSource().sendMessage(TextUtils.deserialize("<gray><i> - " + time.toString()));
-                                                }
-                                            } else if (schedule instanceof RandomSchedule randomSchedule) {
-                                                ctx.getSource().sendMessage(TextUtils.deserialize("<red>Random Schedule (<i>" + randomSchedule.minBound + "s - " + randomSchedule.maxBound + "s<!i>) Next Raid:"));
-                                                ctx.getSource().sendMessage(TextUtils.deserialize("<gray><i> - " + randomSchedule.nextRandom.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withZone(nr.schedulesConfig().zone))));
-                                            } else if (schedule instanceof CronSchedule cronSchedule) {
-                                                ctx.getSource().sendMessage(TextUtils.deserialize("<red>Cron Schedule (<i>" + cronSchedule.expression + "<!i>) Next Raid:"));
-                                                ctx.getSource().sendMessage(TextUtils.deserialize("<gray><i> - " + cronSchedule.nextExecution.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withZone(nr.schedulesConfig().zone))));
+                                                ctx.getSource().sendMessage(TextUtils.deserialize(""));
                                             }
-                                            ctx.getSource().sendMessage(TextUtils.deserialize(""));
-                                        }
-                                        return 1;
-                                    })
-                    )
-                    .then(
-                            CommandManager.literal("togglePlayerVisibility")
-                                    .requires(Permissions.require("novaraids.togglePlayerVisibility", 4))
-                                    .executes(ctx -> {
-                                        ServerPlayerEntity player = ctx.getSource().getPlayer();
-                                        if (player == null) return 1;
-                                        if (!nr.ignorePlayerVisibility.contains(player.getUuid())) {
-                                            nr.ignorePlayerVisibility.add(player.getUuid());
-                                        } else {
-                                            nr.ignorePlayerVisibility.remove(player.getUuid());
-                                        }
-                                        return 1;
-                                    })
-                    )
-                    .then(
-                            CommandManager.literal("togglePokemonVisibility")
-                                    .requires(Permissions.require("novaraids.togglePokemonVisibility", 4))
-                                    .executes(ctx -> {
-                                        ServerPlayerEntity player = ctx.getSource().getPlayer();
-                                        if (player == null) return 1;
-                                        if (!nr.ignorePokemonVisibility.contains(player.getUuid())) {
-                                            nr.ignorePokemonVisibility.add(player.getUuid());
-                                        } else {
-                                            nr.ignorePokemonVisibility.remove(player.getUuid());
-                                        }
-                                        return 1;
-                                    })
-                    )
-        ));
-    }
-
-    private int reload(CommandContext<ServerCommandSource> ctx) {
-        nr.reloadConfig();
-        if (NovaRaids.LOADED)
-            ctx.getSource().sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("reload_command"))));
-        return 1;
+                                            return 1;
+                                        })
+                        )
+                        .then(
+                                CommandManager.literal("togglePlayerVisibility")
+                                        .requires(Permissions.require("novaraids.togglePlayerVisibility", 4))
+                                        .executes(ctx -> {
+                                            ServerPlayerEntity player = ctx.getSource().getPlayer();
+                                            if (player == null) return 1;
+                                            if (!nr.ignorePlayerVisibility.contains(player.getUuid())) {
+                                                nr.ignorePlayerVisibility.add(player.getUuid());
+                                            } else {
+                                                nr.ignorePlayerVisibility.remove(player.getUuid());
+                                            }
+                                            return 1;
+                                        })
+                        )
+                        .then(
+                                CommandManager.literal("togglePokemonVisibility")
+                                        .requires(Permissions.require("novaraids.togglePokemonVisibility", 4))
+                                        .executes(ctx -> {
+                                            ServerPlayerEntity player = ctx.getSource().getPlayer();
+                                            if (player == null) return 1;
+                                            if (!nr.ignorePokemonVisibility.contains(player.getUuid())) {
+                                                nr.ignorePokemonVisibility.add(player.getUuid());
+                                            } else {
+                                                nr.ignorePokemonVisibility.remove(player.getUuid());
+                                            }
+                                            return 1;
+                                        })
+                        )
+        );
     }
 
     private int modInfo(CommandContext<ServerCommandSource> ctx) {
@@ -1644,7 +1663,7 @@ public class RaidCommands {
             } else {
                 targetPlayer.sendMessage(
                         TextUtils.deserialize(
-                            TextUtils.parse(nr.messagesConfig().getMessage("give_command_received_item"), sourcePlayer, targetPlayer, amount, itemType)
+                                TextUtils.parse(nr.messagesConfig().getMessage("give_command_received_item"), sourcePlayer, targetPlayer, amount, itemType)
                         )
                 );
                 if (sourcePlayer != null) {

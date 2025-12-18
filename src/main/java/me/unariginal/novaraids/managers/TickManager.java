@@ -172,59 +172,6 @@ public class TickManager {
         }
     }
 
-    public static void updateBossbars() {
-        Collection<Raid> raids = nr.activeRaids().values();
-
-        for (Raid raid : raids) {
-            Collection<UUID> playerUUIDs = raid.bossbars().keySet();
-            if (raid.stage() == 2) {
-                float progress = (float) raid.currentHealth() / raid.maxHealth();
-
-                if (progress < 0F) {
-                    progress = 0F;
-                }
-
-                if (progress > 1F) {
-                    progress = 1F;
-                }
-
-                for (UUID playerUUID : playerUUIDs) {
-                    try {
-                        raid.bossbars().get(playerUUID).progress(progress);
-                    } catch (IllegalArgumentException | NullPointerException e) {
-                        nr.logError("Error updating bossbar for player uuid: " + playerUUID);
-                        nr.logError("Error Message: " + e.getMessage());
-                    }
-                }
-            } else {
-                float remainingTicks = (float) (raid.phaseEndTime() - nr.server().getOverworld().getTime());
-                float progress = 1.0F / (raid.phaseLength() * 20L);
-                float total = progress * remainingTicks;
-
-                if (total < 0F) {
-                    total = 0F;
-                }
-
-                if (total > 1F) {
-                    total = 1F;
-                }
-
-                for (UUID playerUUID : playerUUIDs) {
-                    try {
-                        if (raid.bossbars().containsKey(playerUUID) && raid.bossbars().get(playerUUID) != null) {
-                            raid.bossbars().get(playerUUID).progress(total);
-                        }
-                    } catch (IllegalArgumentException | NullPointerException e) {
-                        nr.logError("Error updating bossbar for player uuid: " + playerUUID);
-                        nr.logError("Error Message: " + e.getMessage());
-                    }
-                }
-            }
-
-            raid.showOverlay(raid.bossbarData());
-        }
-    }
-
     public static void fixPlayerPokemon() {
 
         if (nr.config().hideOtherPokemonInRaid) return;

@@ -64,6 +64,12 @@ dependencies {
     implementation include("com.cronutils:cron-utils:9.2.1")
 
     modImplementation "com.cobblemon:fabric:${project.cobblemon_version}"
+
+    modImplementation "org.incendo:cloud-fabric:2.0.0-beta.9"
+    include "org.incendo:cloud-fabric:2.0.0-beta.9"
+
+    modImplementation "org.incendo:cloud-annotations:2.0.0"
+    include "org.incendo:cloud-annotations:2.0.0"
 }
 
 processResources {
