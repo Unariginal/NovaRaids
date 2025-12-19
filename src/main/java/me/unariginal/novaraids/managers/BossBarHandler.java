@@ -31,7 +31,7 @@ public class BossBarHandler {
                     float total = Math.clamp(progress * remainingTicks, 0, 1);
                     bossBar.progress(total);
                 } catch (IllegalArgumentException e) {
-                    NovaRaids.LOGGER.error("[NovaRaids] Caught Bossbar Exception.", e);
+                    NovaRaids.INSTANCE.logInfo("Caught Bossbar Exception.");
                 }
             }
 

@@ -63,10 +63,18 @@ public class EventManager {
     private static final MessagesConfig messages = nr.messagesConfig();
 
     public static void initialiseEvents() {
-        CobblemonEvents.THROWN_POKEBALL_HIT.subscribe(EventManager::onThrownPokeballHit);
-        CobblemonEvents.BATTLE_STARTED_PRE.subscribe(EventManager::onBattleStartedPre);
-        CobblemonEvents.BATTLE_FLED.subscribe(EventManager::onBattleFled);
-        CobblemonEvents.LOOT_DROPPED.subscribe(EventManager::onLootDropped);
+        CobblemonEvents.THROWN_POKEBALL_HIT.subscribe(Priority.HIGHEST, event -> {
+            return onThrownPokeballHit(event);
+        });
+        CobblemonEvents.BATTLE_STARTED_PRE.subscribe(Priority.HIGHEST, event -> {
+            return onBattleStartedPre(event);
+        });
+        CobblemonEvents.BATTLE_FLED.subscribe(Priority.HIGHEST, event -> {
+            return onBattleFled(event);
+        });
+        CobblemonEvents.LOOT_DROPPED.subscribe(Priority.HIGHEST, event -> {
+            return onLootDropped(event);
+        });
         CobblemonEvents.EXPERIENCE_GAINED_EVENT_PRE.subscribe(EventManager::onExperienceGainedPre);
 
         // TODO --> Cleanup

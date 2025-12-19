@@ -145,6 +145,8 @@ public class Raid {
             }
         }
 
+        PlayerRaidCache.clearFromRaid(uuid);
+
         raidEndTime = nr.server().getOverworld().getTime();
         nr.initNextRaid();
     }
@@ -740,16 +742,6 @@ public class Raid {
         return participatingPlayers.contains(playerUUID);
     }
 
-    public int getPlayerIndex(UUID playerUUID) {
-        int index;
-        for (index = 0; index < participatingPlayers.size(); index++) {
-            if (participatingPlayers.get(index).equals(playerUUID)) {
-                return index;
-            }
-        }
-        return -1;
-    }
-
     public void removePlayer(ServerPlayerEntity player) {
         removePlayer(player.getUuid());
     }
@@ -787,7 +779,7 @@ public class Raid {
                 }
             }
 
-            for(UUID uuid : markForDeletion) {
+            for (UUID uuid : markForDeletion) {
                 PlayerRaidCache.remove(uuid);
             }
 
@@ -801,32 +793,26 @@ public class Raid {
     }
 
     public boolean addPlayer(UUID playerUUID, boolean usedPass) {
-
-        int index = getPlayerIndex(playerUUID);
-
         ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(playerUUID);
         if (player != null) {
             if (!Permissions.check(player, "novaraids.override")) {
-                for (Raid raid : nr.activeRaids().values()) {
-                    index = raid.getPlayerIndex(playerUUID);
-                    if (index != -1) {
-                        player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_already_joined_raid"), this)));
-                        return false;
-                    }
+                if (PlayerRaidCache.isInRaid(playerUUID)) {
+                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_already_joined_raid"), this)));
+                    return false;
                 }
 
                 if (raidBossCategory().requirePass() && !usedPass) {
-                    index = -2;
                     player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_no_pass"), this)));
+                    return false;
                 }
 
                 if (stage != 1) {
-                    index = -2;
                     player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_not_joinable"), this)));
+                    return false;
                 }
 
                 if (BanHandler.hasContraband(player, bossInfo)) {
-                    index = -2;
+                    return false;
                 }
 
                 int numPokemon = 0;
@@ -834,41 +820,36 @@ public class Raid {
                     if (pokemon != null) {
                         numPokemon++;
                         if (pokemon.getLevel() < bossInfo.raidDetails().minimumLevel()) {
-                            index = -2;
                             player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_minimum_level"), this)));
-                            break;
+                            return false;
                         }
                         if (pokemon.getLevel() > bossInfo.raidDetails().maximumLevel()) {
-                            index = -2;
                             player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_maximum_level"), this)));
+                            return false;
                         }
                     }
                 }
 
                 if (numPokemon == 0) {
-                    index = -2;
                     player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_no_pokemon"), this)));
+                    return false;
                 }
             } else {
                 nr.logInfo("Player has permission override!");
             }
 
-            if (index == -1) {
-                participatingPlayers().add(playerUUID);
-                PlayerRaidCache.add(playerUUID, this);
-                if (participatingPlayers().size() > 1) {
-                    maxHealth += bossInfo.healthIncreasePerPlayer();
-                    currentHealth += bossInfo.healthIncreasePerPlayer();
-                }
-
-                showBossbar(bossbarData);
-                if (raidBossLocation.useSetJoinLocation()) {
-                    player.teleport(raidBossLocation.world(), raidBossLocation.joinLocation().x, raidBossLocation.joinLocation().y, raidBossLocation.joinLocation().z, raidBossLocation.yaw(), raidBossLocation().pitch());
-                }
-            } else if (index != -2) {
-                player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_already_joined_raid"), this)));
+            participatingPlayers().add(playerUUID);
+            PlayerRaidCache.add(playerUUID, this);
+            if (participatingPlayers().size() > 1) {
+                maxHealth += bossInfo.healthIncreasePerPlayer();
+                currentHealth += bossInfo.healthIncreasePerPlayer();
             }
-            return index == -1;
+
+            showBossbar(bossbarData);
+            if (raidBossLocation.useSetJoinLocation()) {
+                player.teleport(raidBossLocation.world(), raidBossLocation.joinLocation().x, raidBossLocation.joinLocation().y, raidBossLocation.joinLocation().z, raidBossLocation.yaw(), raidBossLocation().pitch());
+            }
+            return true;
         }
         return false;
     }

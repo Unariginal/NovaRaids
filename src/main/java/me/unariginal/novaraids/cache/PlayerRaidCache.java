@@ -5,6 +5,8 @@ import me.unariginal.novaraids.managers.Raid;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -46,4 +48,14 @@ public class PlayerRaidCache {
         playersInRaid.remove(player.getUuid());
     }
 
+    public static void clearFromRaid(UUID uuid) {
+        List<UUID> playersToRemove = new ArrayList<>();
+        for (Map.Entry<UUID, Raid> entry : playersInRaid.entrySet()) {
+            if (entry.getValue().uuid().equals(uuid)) {
+                playersToRemove.add(entry.getKey());
+            }
+        }
+
+        playersToRemove.forEach(PlayerRaidCache::remove);
+    }
 }

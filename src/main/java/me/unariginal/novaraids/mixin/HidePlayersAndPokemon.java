@@ -61,7 +61,7 @@ public class HidePlayersAndPokemon {
                             if (pokemon.isPlayerOwned()) {
                                 ServerPlayerEntity owner = pokemon.getOwnerPlayer();
                                 if (owner != null) {
-                                    if (!owner.getUuid().equals(spectator.getUuid()) && PlayerRaidCache.isInRaid(owner)) {
+                                    if (!owner.getUuid().equals(spectator.getUuid())) {
                                         cir.setReturnValue(false);
                                     }
                                 }
@@ -70,9 +70,9 @@ public class HidePlayersAndPokemon {
                     }
                 }
             }
-        } else if (self instanceof ServerPlayerEntity serverPlayerEntity) {
+        } else if (self instanceof ServerPlayerEntity) {
             if (NovaRaids.INSTANCE.config().hideOtherPlayersInRaid && !NovaRaids.INSTANCE.ignorePlayerVisibility.contains(spectator.getUuid())) {
-                if (PlayerRaidCache.isInRaid(spectator) && PlayerRaidCache.isInRaid(serverPlayerEntity)) {
+                if (PlayerRaidCache.isInRaid(spectator)) {
                     cir.setReturnValue(false);
                 }
             }
