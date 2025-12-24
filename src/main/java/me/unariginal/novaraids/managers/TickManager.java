@@ -160,14 +160,21 @@ public class TickManager {
         Collection<Raid> raids = nr.activeRaids().values();
         for (Raid raid : raids) {
             if (!raid.getTasks().isEmpty()) {
-                if (raid.getTasks().get(currentTick) != null) {
-                    if (!raid.getTasks().get(currentTick).isEmpty()) {
-                        for (Task task : raid.getTasks().get(currentTick)) {
-                            task.action().run();
+                List<Long> tasksToRemove = new ArrayList<>();
+                for (Long tick : raid.getTasks().keySet()) {
+                    if (tick <= currentTick) {
+                         if (raid.getTasks().get(tick) != null) {
+                            for (Task task : raid.getTasks().get(tick)) {
+                                task.action().run();
+                            }
                         }
-                        raid.getTasks().remove(currentTick);
+                        tasksToRemove.add(tick);
                     }
                 }
+                for (Long tick : tasksToRemove) {
+                    raid.getTasks().remove(tick);
+                }
+            
             }
         }
     }
