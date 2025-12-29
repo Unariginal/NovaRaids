@@ -340,7 +340,7 @@ public class RaidCommands {
                                             if (player != null) {
                                                 if (nr.activeRaids().containsKey(IntegerArgumentType.getInteger(ctx, "id"))) {
                                                     Raid raid = nr.activeRaids().get(IntegerArgumentType.getInteger(ctx, "id"));
-                                                    if (raid.participatingPlayers().size() < raid.maxPlayers() || Permissions.check(player, "novaraids.override") || raid.maxPlayers() == -1) {
+                                                    if (raid.participatingPlayers.size() < raid.maxPlayers() || Permissions.check(player, "novaraids.override") || raid.maxPlayers() == -1) {
                                                         if (raid.addPlayer(player.getUuid(), false)) {
                                                             player.sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("joined_raid"), raid)));
                                                         }
@@ -1723,7 +1723,7 @@ public class RaidCommands {
                                     .setLore(lore)
                                     .setCallback((num, clickType, slotActionType) -> {
                                         if (clickType.isLeft) {
-                                            if (raid.participatingPlayers().size() < raid.maxPlayers() || Permissions.check(player, "novaraids.override") || raid.maxPlayers() == -1) {
+                                            if (raid.participatingPlayers.size() < raid.maxPlayers() || Permissions.check(player, "novaraids.override") || raid.maxPlayers() == -1) {
                                                 if (raid.addPlayer(player.getUuid(), false)) {
                                                     player.sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("joined_raid"), raid)));
                                                 }

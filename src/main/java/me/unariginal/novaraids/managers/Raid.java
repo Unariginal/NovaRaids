@@ -57,7 +57,7 @@ public class Raid {
     private final ItemStack startingItem;
     private final int minPlayers;
     private final int maxPlayers;
-    private final List<UUID> participatingPlayers = new ArrayList<>();
+    public final List<UUID> participatingPlayers = new ArrayList<>();
     private final List<UUID> markForDeletion = new ArrayList<>();
     private final Map<UUID, Integer> damageByPlayer = new HashMap<>();
     private final List<UUID> latestDamage = new ArrayList<>();
@@ -68,7 +68,6 @@ public class Raid {
     private final List<EmptyPokeBallEntity> pokeballsCapturing = new ArrayList<>();
     private int currentHealth;
     private int maxHealth;
-    private boolean clearToDelete = true;
     private long raidStartTime = 0;
     private long raidEndTime = 0;
     private long phaseLength;
@@ -730,10 +729,6 @@ public class Raid {
         return clones;
     }
 
-    public List<UUID> participatingPlayers() {
-        return participatingPlayers;
-    }
-
     public boolean isParticipating(ServerPlayerEntity player) {
         return isParticipating(player.getUuid());
     }
@@ -747,8 +742,7 @@ public class Raid {
     }
 
     public void removePlayer(UUID playerUUID) {
-        PlayerRaidCache.remove(playerUUID); // Remove from the lovely cache
-        if (!isParticipating(uuid)) {
+        if (!isParticipating(playerUUID)) {
             return;
         }
 
@@ -771,21 +765,19 @@ public class Raid {
     }
 
     public void removePlayers() {
-        if (clearToDelete) {
-            if (stage == 1) {
-                for (UUID ignored : markForDeletion) {
-                    maxHealth = Math.max(maxHealth - bossInfo.healthIncreasePerPlayer(), bossInfo.baseHealth());
-                    currentHealth = Math.max(currentHealth - bossInfo.healthIncreasePerPlayer(), bossInfo.baseHealth());
-                }
+        if (stage == 1) {
+            for (UUID ignored : markForDeletion) {
+                maxHealth = Math.max(maxHealth - bossInfo.healthIncreasePerPlayer(), bossInfo.baseHealth());
+                currentHealth = Math.max(currentHealth - bossInfo.healthIncreasePerPlayer(), bossInfo.baseHealth());
             }
-
-            for (UUID uuid : markForDeletion) {
-                PlayerRaidCache.remove(uuid);
-            }
-
-            participatingPlayers().removeAll(markForDeletion);
-            markForDeletion.clear();
         }
+
+        for (UUID uuid : markForDeletion) {
+            PlayerRaidCache.remove(uuid);
+            participatingPlayers.removeIf(uuid::equals);
+        }
+
+        markForDeletion.clear();
     }
 
     public long getCurrentWebhookID() {
@@ -838,14 +830,14 @@ public class Raid {
                 nr.logInfo("Player has permission override!");
             }
 
-            participatingPlayers().add(playerUUID);
+            participatingPlayers.add(playerUUID);
             PlayerRaidCache.add(playerUUID, this);
-            if (participatingPlayers().size() > 1) {
+            if (participatingPlayers.size() > 1) {
                 maxHealth += bossInfo.healthIncreasePerPlayer();
                 currentHealth += bossInfo.healthIncreasePerPlayer();
             }
 
-            showBossbar(bossbarData);
+            showBossbar(bossbarData, player);
             if (raidBossLocation.useSetJoinLocation()) {
                 player.teleport(raidBossLocation.world(), raidBossLocation.joinLocation().x, raidBossLocation.joinLocation().y, raidBossLocation.joinLocation().z, raidBossLocation.yaw(), raidBossLocation().pitch());
             }
@@ -944,19 +936,21 @@ public class Raid {
         fleeingPlayers.add(playerUUID);
     }
 
-    public void removeFleeingPlayer(UUID playerUUID) {
-        fleeingPlayers.remove(playerUUID);
-    }
-
     public Map<UUID, BossBar> bossbars() {
         return playerBossbars;
+    }
+
+    private void showBossbar(BossbarData bossbar, ServerPlayerEntity player) {
+        BossBar bar = bossbar.createBossBar(this);
+        player.showBossBar(bar);
+        playerBossbars.put(player.getUuid(), bar);
     }
 
     private void showBossbar(BossbarData bossbar) {
         hideBossbar();
         if (bossbar != null) {
-            for (UUID playerUUID : participatingPlayers) {
-                clearToDelete = false;
+            Collection<UUID> playerCache = new ArrayList<>(participatingPlayers);
+            for (UUID playerUUID : playerCache) {
                 ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(playerUUID);
                 if (player != null) {
                     BossBar bar = bossbar.createBossBar(this);
@@ -964,7 +958,6 @@ public class Raid {
                     playerBossbars.put(playerUUID, bar);
                 }
             }
-            clearToDelete = true;
         }
     }
 
@@ -981,14 +974,13 @@ public class Raid {
     public void showOverlay(BossbarData bossbar) {
         if (bossbar != null) {
             if (bossbar.useActionbar()) {
-                for (UUID playerUUID : participatingPlayers) {
-                    clearToDelete = false;
+                Collection<UUID> playerCache = new ArrayList<>(playerBossbars.keySet());
+                for (UUID playerUUID : playerCache) {
                     ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(playerUUID);
                     if (player != null) {
                         player.sendActionBar(TextUtils.deserialize(TextUtils.parse(bossbar.actionbarText(), this)));
                     }
                 }
-                clearToDelete = true;
             }
         }
     }

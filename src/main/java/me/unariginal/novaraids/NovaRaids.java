@@ -51,14 +51,17 @@ public class NovaRaids implements ModInitializer {
         INSTANCE = this;
 
         raidCommands = new RaidCommands();
+        LOGGER.error("[NovaRaids] TEST PLEASE WORK");
 
         // Set up event handlers and configuration at server load
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            LOGGER.error("[NovaRaids] TEST PLEASE WORK 2");
             this.server = server;
             this.audience = FabricServerAudiences.of(server);
 
             reloadConfig();
             if (LOADED) {
+                LOGGER.error("[NovaRaids] LOADED");
                 EventManager.initialiseEvents();
                 bossBarHandler = new BossBarHandler();
             } else {

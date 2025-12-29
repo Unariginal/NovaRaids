@@ -70,7 +70,7 @@ public class TickManager {
                 }
             }
 
-            if (raid.stage() > 1 && raid.participatingPlayers().isEmpty()) {
+            if (raid.stage() > 1 && raid.participatingPlayers.isEmpty()) {
                 raid.stop();
             }
         }
@@ -111,7 +111,7 @@ public class TickManager {
                         if (hyp < raidPushback) {
                             distance = raidPushback + 1;
                         } else if (hyp > raidRadius) {
-                            if (raid.stage() < 3 && raid.participatingPlayers().contains(player.getUuid()) && raid.stage() != -1) {
+                            if (raid.stage() < 3 && raid.participatingPlayers.contains(player.getUuid()) && raid.stage() != -1) {
                                 distance = raidRadius - 1;
                             }
                         }
@@ -178,7 +178,7 @@ public class TickManager {
         Collection<Raid> raids = nr.activeRaids().values(); // Prevents CME
 
         for (Raid raid : raids) {
-            Collection<UUID> participatingUUIDs = raid.participatingPlayers();
+            Collection<UUID> participatingUUIDs = raid.participatingPlayers;
             if (raid.stage() == 2) {
                 for (UUID playerUUID : participatingUUIDs) {
 

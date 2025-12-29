@@ -14,7 +14,6 @@ import com.cobblemon.mod.common.api.types.tera.TeraTypes;
 import com.cobblemon.mod.common.battles.*;
 import com.cobblemon.mod.common.battles.actor.PlayerBattleActor;
 import com.cobblemon.mod.common.battles.actor.PokemonBattleActor;
-import com.cobblemon.mod.common.battles.ai.StrongBattleAI;
 import com.cobblemon.mod.common.battles.pokemon.BattlePokemon;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.pokemon.EVs;
@@ -24,6 +23,7 @@ import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.cobblemon.mod.common.pokemon.properties.UncatchableProperty;
 import kotlin.Unit;
 import me.unariginal.novaraids.NovaRaids;
+import me.unariginal.novaraids.ai.StrongBattleAIFix;
 import me.unariginal.novaraids.data.bosssettings.CatchSettings;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
@@ -205,7 +205,7 @@ public class BattleManager {
         List<BattlePokemon> playerTeam = party.toBattleTeam(cloneParties, healFirst, leadingPokemon);
         playerTeam.sort((pokemon1, pokemon2) -> Boolean.compare(pokemon1.getHealth() <= 0, pokemon2.getHealth() <= 0));
         PlayerBattleActor playerActor = new PlayerBattleActor(player.getUuid(), playerTeam);
-        PokemonBattleActor wildActor = new PokemonBattleActor(pokemonEntity.getPokemon().getUuid(), new BattlePokemon(pokemonEntity.getPokemon(), pokemonEntity.getPokemon(), pEntity -> Unit.INSTANCE), fleeDistance, new StrongBattleAI(skill));
+        PokemonBattleActor wildActor = new PokemonBattleActor(pokemonEntity.getPokemon().getUuid(), new BattlePokemon(pokemonEntity.getPokemon(), pokemonEntity.getPokemon(), pEntity -> Unit.INSTANCE), fleeDistance, new StrongBattleAIFix(skill));
         ErroredBattleStart errors = new ErroredBattleStart();
 
         if (!playerTeam.isEmpty() && playerTeam.getFirst().getHealth() <= 0) {

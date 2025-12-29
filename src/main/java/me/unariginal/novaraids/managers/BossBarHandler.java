@@ -38,5 +38,4 @@ public class BossBarHandler {
             raid.showOverlay(raid.bossbarData());
         }
     }
-
 }

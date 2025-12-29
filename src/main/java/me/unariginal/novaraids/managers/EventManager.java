@@ -16,6 +16,7 @@ import com.cobblemon.mod.common.battles.actor.PokemonBattleActor;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.item.PokeBallItem;
 import com.cobblemon.mod.common.item.PokemonItem;
+import com.cobblemon.mod.common.platform.events.PlatformEvents;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import eu.pb4.sgui.api.elements.GuiElement;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
@@ -31,7 +32,6 @@ import me.unariginal.novaraids.utils.GuiUtils;
 import me.unariginal.novaraids.utils.TextUtils;
 import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.Entity;
@@ -54,7 +54,6 @@ import java.util.*;
 
 @SuppressWarnings("UnusedReturnValue")
 public class EventManager {
-
     private static Unit unit() {
         return Unit.INSTANCE;
     }
@@ -63,6 +62,7 @@ public class EventManager {
     private static final MessagesConfig messages = nr.messagesConfig();
 
     public static void initialiseEvents() {
+        NovaRaids.LOGGER.error("[NovaRaids] INIT EVENTS");
         CobblemonEvents.THROWN_POKEBALL_HIT.subscribe(Priority.HIGHEST, event -> {
             return onThrownPokeballHit(event);
         });
@@ -314,7 +314,7 @@ public class EventManager {
                                                             return;
                                                         }
 
-                                                        boolean hasSpace = raid.participatingPlayers().size() < raid.maxPlayers() ||
+                                                        boolean hasSpace = raid.participatingPlayers.size() < raid.maxPlayers() ||
                                                                 raid.maxPlayers() == -1 ||
                                                                 Permissions.check(player, "novaraids.override");
 
@@ -433,7 +433,7 @@ public class EventManager {
                                     if (raid.bossInfo().bossId().equalsIgnoreCase(bossName)) {
                                         if (raid.raidBossCategory().requirePass()) {
                                             if (raid.stage() == 1) {
-                                                if (raid.participatingPlayers().size() < raid.maxPlayers() || raid.maxPlayers() == -1 || Permissions.check(player, "novaraids.override")) {
+                                                if (raid.participatingPlayers.size() < raid.maxPlayers() || raid.maxPlayers() == -1 || Permissions.check(player, "novaraids.override")) {
                                                     if (raid.addPlayer(player.getUuid(), true)) {
                                                         itemStack.decrement(1);
                                                         player.setStackInHand(hand, itemStack);
@@ -706,16 +706,21 @@ public class EventManager {
     }
 
     public static void playerEvents() {
-        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
-            ServerPlayerEntity player = handler.getPlayer();
-            Raid raid = PlayerRaidCache.currentRaid(player);
-            if (raid == null) return;
+        NovaRaids.LOGGER.error("[NovaRaids] Player Events");
 
-            raid.removePlayer(player);
-            if (raid.stage() > 1 && raid.participatingPlayers().isEmpty()) {
-                raid.stop();
-            }
+        PlatformEvents.SERVER_PLAYER_LOGOUT.subscribe(event -> {
+            NovaRaids.LOGGER.error("[NovaRaids] Player Disconnecting!");
+            nr.server().execute(() -> {
+                ServerPlayerEntity player = event.getPlayer();
+                NovaRaids.LOGGER.error("[NovaRaids] Player: {}. {}", player.getNameForScoreboard(), player.getUuidAsString());
+                Raid raid = PlayerRaidCache.currentRaid(player);
+                if (raid == null) return;
 
+                raid.removePlayer(player);
+                if (raid.stage() > 1 && raid.participatingPlayers.isEmpty()) {
+                    raid.stop();
+                }
+            });
         });
 
         AttackEntityCallback.EVENT.register(((playerEntity, world, hand, entity, entityHitResult) -> {
@@ -736,7 +741,6 @@ public class EventManager {
             if (pokemon.getPersistentData().contains("raid_entity")) {
                 event.cancel();
             }
-
         });
 
         CobblemonEvents.POKEMON_SENT_POST.subscribe(event -> {

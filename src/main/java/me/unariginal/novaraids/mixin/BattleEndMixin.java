@@ -8,6 +8,7 @@ import com.cobblemon.mod.common.battles.actor.PokemonBattleActor;
 import com.cobblemon.mod.common.battles.pokemon.BattlePokemon;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import me.unariginal.novaraids.NovaRaids;
+import me.unariginal.novaraids.ai.StrongBattleAIFix;
 import me.unariginal.novaraids.cache.PlayerRaidCache;
 import me.unariginal.novaraids.managers.BattleManager;
 import me.unariginal.novaraids.managers.Raid;
@@ -34,6 +35,9 @@ public class BattleEndMixin {
                     if (pokemon.getPersistentData().contains("boss_clone") && pokemon.getPersistentData().contains("battle_clone")) {
                         if (pokemon.getPersistentData().getBoolean("boss_clone") && pokemon.getPersistentData().getBoolean("battle_clone")) {
                             damage = Math.abs(pokemon.getCurrentHealth() - pokemon.getMaxHealth());
+                            if (pokemonBattleActor.getBattleAI() instanceof StrongBattleAIFix) {
+                                ((StrongBattleAIFix) pokemonBattleActor.getBattleAI()).cleanUp();
+                            }
                         } else {
                             return;
                         }
@@ -52,7 +56,6 @@ public class BattleEndMixin {
                 }
                 default -> {}
             }
-
         }
 
         if (player == null) return;
