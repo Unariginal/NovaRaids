@@ -62,7 +62,6 @@ public class EventManager {
     private static final MessagesConfig messages = nr.messagesConfig();
 
     public static void initialiseEvents() {
-        NovaRaids.LOGGER.error("[NovaRaids] INIT EVENTS");
         CobblemonEvents.THROWN_POKEBALL_HIT.subscribe(Priority.HIGHEST, event -> {
             return onThrownPokeballHit(event);
         });
@@ -706,22 +705,16 @@ public class EventManager {
     }
 
     public static void playerEvents() {
-        NovaRaids.LOGGER.error("[NovaRaids] Player Events");
+        PlatformEvents.SERVER_PLAYER_LOGOUT.subscribe(event -> nr.server().execute(() -> {
+            ServerPlayerEntity player = event.getPlayer();
+            Raid raid = PlayerRaidCache.currentRaid(player);
+            if (raid == null) return;
 
-        PlatformEvents.SERVER_PLAYER_LOGOUT.subscribe(event -> {
-            NovaRaids.LOGGER.error("[NovaRaids] Player Disconnecting!");
-            nr.server().execute(() -> {
-                ServerPlayerEntity player = event.getPlayer();
-                NovaRaids.LOGGER.error("[NovaRaids] Player: {}. {}", player.getNameForScoreboard(), player.getUuidAsString());
-                Raid raid = PlayerRaidCache.currentRaid(player);
-                if (raid == null) return;
-
-                raid.removePlayer(player);
-                if (raid.stage() > 1 && raid.participatingPlayers.isEmpty()) {
-                    raid.stop();
-                }
-            });
-        });
+            raid.removePlayer(player);
+            if (raid.stage() > 1 && raid.participatingPlayers.isEmpty()) {
+                raid.stop();
+            }
+        }));
 
         AttackEntityCallback.EVENT.register(((playerEntity, world, hand, entity, entityHitResult) -> {
             if (entity instanceof PokemonEntity pokemonEntity) {
