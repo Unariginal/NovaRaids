@@ -61,6 +61,8 @@ public class Raid {
     private final List<UUID> markForDeletion = new ArrayList<>();
     private final Map<UUID, Integer> damageByPlayer = new HashMap<>();
     private final List<UUID> latestDamage = new ArrayList<>();
+    private List<Map.Entry<UUID, Integer>> cachedUuidLeaderboard = null;
+    private List<Map.Entry<String, Integer>> cachedStringLeaderboard = null;
     private final List<UUID> fleeingPlayers = new ArrayList<>();
     private final Map<Long, List<Task>> tasks = new HashMap<>();
     private final Map<UUID, BossBar> playerBossbars = new HashMap<>();
@@ -274,6 +276,7 @@ public class Raid {
         phaseStartTime = nr.server().getOverworld().getTime();
 
         List<ServerPlayerEntity> alreadyCatching = new ArrayList<>();
+        List<Map.Entry<UUID, Integer>> leaderboard = getDamageLeaderboardUUIDs();
         for (CatchPlacement placement : bossInfo.catchSettings().catchPlacements()) {
             List<ServerPlayerEntity> playersToReward = new ArrayList<>();
             if (StringUtils.isNumeric(placement.place())) {
@@ -293,7 +296,7 @@ public class Raid {
                 String percentStr = placement.place().replace("%", "");
                 if (StringUtils.isNumeric(percentStr)) {
                     int percent = Integer.parseInt(percentStr);
-                    double positions = getDamageLeaderboard().size() * ((double) percent / 100);
+                    double positions = leaderboard.size() * ((double) percent / 100);
                     for (int i = 0; i < ((int) positions); i++) {
                         ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(getDamageLeaderboard().get(i).getKey());
                         if (player != null) {
@@ -389,8 +392,7 @@ public class Raid {
             for (DistributionSection categoryReward : categoryRewards) {
                 boolean overridden = false;
                 List<Place> places = categoryReward.places();
-                outer:
-                for (Place place : places) {
+                outer: for (Place place : places) {
                     for (Place overriddenPlacement : overriddenPlacements) {
                         if (overriddenPlacement.place().equalsIgnoreCase(place.place())) {
                             overridden = true;
@@ -409,6 +411,8 @@ public class Raid {
             List<Place> places = reward.places();
             for (Place place : places) {
                 List<ServerPlayerEntity> playersToReward = new ArrayList<>();
+                List<Map.Entry<UUID, Integer>> leaderboard = getDamageLeaderboardUUIDs();
+
                 if (StringUtils.isNumeric(place.place())) {
                     int placeAsInt = Integer.parseInt(place.place());
                     placeAsInt--;
@@ -426,7 +430,7 @@ public class Raid {
                     String percentStr = place.place().replace("%", "");
                     if (StringUtils.isNumeric(percentStr)) {
                         int percent = Integer.parseInt(percentStr);
-                        double positions = getDamageLeaderboard().size() * ((double) percent / 100);
+                        double positions = leaderboard.size() * ((double) percent / 100);
                         for (int i = 0; i < ((int) Math.ceil(positions)); i++) {
                             ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(getDamageLeaderboard().get(i).getKey());
                             if (player != null) {
@@ -853,9 +857,15 @@ public class Raid {
         damageByPlayer.put(playerUUID, damage);
         latestDamage.remove(playerUUID);
         latestDamage.add(playerUUID);
+        cachedUuidLeaderboard = null;
+        cachedStringLeaderboard = null;
     }
 
-    public List<Map.Entry<String, Integer>> getDamageLeaderboard() {
+    public List<Map.Entry<UUID, Integer>> getDamageLeaderboardUUIDs() {
+        if (cachedUuidLeaderboard != null) {
+            return cachedUuidLeaderboard;
+        }
+
         List<Map.Entry<UUID, Integer>> leaderboardList = new ArrayList<>(damageByPlayer.entrySet());
 
         Map<Integer, Long> damageFrequencies = leaderboardList.stream().collect(
@@ -900,6 +910,16 @@ public class Raid {
                 }
             }
         }
+        cachedUuidLeaderboard = leaderboardList;
+        return leaderboardList;
+    }
+
+    public List<Map.Entry<String, Integer>> getDamageLeaderboard() {
+        if (cachedStringLeaderboard != null) {
+            return cachedStringLeaderboard;
+        }
+
+        List<Map.Entry<UUID, Integer>> leaderboardList = getDamageLeaderboardUUIDs();
 
         List<Map.Entry<String, Integer>> sortedLeaderboard = new ArrayList<>();
         UserCache cache = nr.server().getUserCache();
@@ -912,7 +932,7 @@ public class Raid {
                 }
             }
         }
-
+        cachedStringLeaderboard = sortedLeaderboard;
         return sortedLeaderboard;
     }
 
