@@ -180,6 +180,7 @@ public class WebhookHandler {
         embedBuilder.setThumbnailUrl(thumbnailUrl);
         WebhookEmbed embed = embedBuilder.build();
         return new WebhookMessageBuilder()
+                .setContent(rolePing)
                 .setUsername(webhookUsername)
                 .setAvatarUrl(webhookAvatarUrl)
                 .addEmbeds(embed);
@@ -242,6 +243,7 @@ public class WebhookHandler {
         WebhookEmbed embed = embedBuilder.build();
 
         return new WebhookMessageBuilder()
+                .setContent(rolePing)
                 .setUsername(webhookUsername)
                 .setAvatarUrl(webhookAvatarUrl)
                 .addEmbeds(embed);
@@ -307,6 +309,7 @@ public class WebhookHandler {
         WebhookEmbed embed = embedBuilder.build();
 
         return new WebhookMessageBuilder()
+                .setContent(rolePing)
                 .setUsername(webhookUsername)
                 .setAvatarUrl(webhookAvatarUrl)
                 .addEmbeds(embed);
@@ -369,6 +372,7 @@ public class WebhookHandler {
         WebhookEmbed embed = embedBuilder.build();
 
         return new WebhookMessageBuilder()
+                .setContent(rolePing)
                 .setUsername(webhookUsername)
                 .setAvatarUrl(webhookAvatarUrl)
                 .addEmbeds(embed);
