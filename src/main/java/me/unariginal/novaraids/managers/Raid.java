@@ -667,6 +667,30 @@ public class Raid {
         currentHealth -= damage;
     }
 
+    public void collectPendingDamage() {
+        for (Map.Entry<PokemonEntity, UUID> entry : clones.entrySet()) {
+            PokemonEntity clone = entry.getKey();
+            UUID playerUUID = entry.getValue();
+            
+            if (clone != null && clone.isAlive() && clone.getBattleId() != null) {
+                Pokemon pokemon = clone.getPokemon();
+                if (pokemon.getPersistentData().contains("boss_clone") && pokemon.getPersistentData().contains("battle_clone")) {
+                    if (pokemon.getPersistentData().getBoolean("boss_clone") && pokemon.getPersistentData().getBoolean("battle_clone")) {
+                        int pendingDamage = Math.abs(pokemon.getCurrentHealth() - pokemon.getMaxHealth());
+                        
+                        if (pendingDamage > 0) {
+                            updatePlayerDamage(playerUUID, pendingDamage);
+                            ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(playerUUID);
+                            if (player != null) {
+                                participatingBroadcast(TextUtils.deserialize(TextUtils.parse(messages.getMessage("player_damage_report"), this, player, pendingDamage, -1)));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     public int maxHealth() {
         return maxHealth;
     }
