@@ -176,7 +176,8 @@ public class Raid {
                 if (addPlayer(startedBy, true)) {
                     ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(startedBy);
                     if (player != null)
-                        player.sendMessage(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("joined_raid"), this)));
+                        player.sendMessage(TextUtils
+                                .deserialize(TextUtils.parse(nr.messagesConfig().getMessage("joined_raid"), this)));
                 }
             }
         }
@@ -193,7 +194,8 @@ public class Raid {
             phaseStartTime = nr.server().getOverworld().getTime();
             fightStartTime = phaseStartTime;
 
-            participatingBroadcast(TextUtils.deserialize(TextUtils.parse(messages.getMessage("start_fight_phase"), this)));
+            participatingBroadcast(
+                    TextUtils.deserialize(TextUtils.parse(messages.getMessage("start_fight_phase"), this)));
 
             if (WebhookHandler.webhookToggle && webhook != 0 && WebhookHandler.runningEmbedEnabled) {
                 WebhookHandler.sendRunningWebhook(webhook, this).thenAccept(id -> this.webhook = id);
@@ -202,7 +204,8 @@ public class Raid {
             addTask(raidBossLocation.world(), phaseLength * 20L, this::raidLost);
         } else {
             stage = -1;
-            participatingBroadcast(TextUtils.deserialize(TextUtils.parse(messages.getMessage("not_enough_players"), this)));
+            participatingBroadcast(
+                    TextUtils.deserialize(TextUtils.parse(messages.getMessage("not_enough_players"), this)));
             if (raidBossCategory.requirePass()) {
                 if (startingItem != null) {
                     ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(startedBy);
@@ -257,7 +260,8 @@ public class Raid {
         }
 
         if (bossInfo.raidDetails().doCatchPhase()) {
-            participatingBroadcast(TextUtils.deserialize(TextUtils.parse(messages.getMessage("catch_phase_warning"), this)));
+            participatingBroadcast(
+                    TextUtils.deserialize(TextUtils.parse(messages.getMessage("catch_phase_warning"), this)));
             addTask(raidBossLocation.world(), phaseLength * 20L, this::catchPhase);
         } else {
             raidWon();
@@ -280,11 +284,15 @@ public class Raid {
                 int placeIndex = Integer.parseInt(placement.place());
                 placeIndex--;
                 if (placeIndex >= 0 && placeIndex < getDamageLeaderboard().size()) {
-                    ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(getDamageLeaderboard().get(placeIndex).getKey());
+                    ServerPlayerEntity player = nr.server().getPlayerManager()
+                            .getPlayer(getDamageLeaderboard().get(placeIndex).getKey());
                     if (player != null) {
                         if (!alreadyCatching.contains(player)) {
-                            if (!placement.requireDamage() || (damageByPlayer.containsKey(player.getUuid()) && damageByPlayer.get(player.getUuid()) > 0)) {
-                                playersToReward.add(player);
+                            if (!placement.requireDamage() || (damageByPlayer.containsKey(player.getUuid())
+                                    && damageByPlayer.get(player.getUuid()) > 0)) {
+                                if (hasMetDamageThreshold(player.getUuid())) {
+                                    playersToReward.add(player);
+                                }
                             }
                         }
                     }
@@ -295,11 +303,15 @@ public class Raid {
                     int percent = Integer.parseInt(percentStr);
                     double positions = getDamageLeaderboard().size() * ((double) percent / 100);
                     for (int i = 0; i < ((int) positions); i++) {
-                        ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(getDamageLeaderboard().get(i).getKey());
+                        ServerPlayerEntity player = nr.server().getPlayerManager()
+                                .getPlayer(getDamageLeaderboard().get(i).getKey());
                         if (player != null) {
                             if (!alreadyCatching.contains(player)) {
-                                if (!placement.requireDamage() || (damageByPlayer.containsKey(player.getUuid()) && damageByPlayer.get(player.getUuid()) > 0)) {
-                                    playersToReward.add(player);
+                                if (!placement.requireDamage() || (damageByPlayer.containsKey(player.getUuid())
+                                        && damageByPlayer.get(player.getUuid()) > 0)) {
+                                    if (hasMetDamageThreshold(player.getUuid())) {
+                                        playersToReward.add(player);
+                                    }
                                 }
                             }
                         }
@@ -312,12 +324,15 @@ public class Raid {
                         if (!alreadyCatching.contains(player)) {
                             boolean valid = false;
                             if (placement.requireDamage()) {
-                                if (damageByPlayer.containsKey(player.getUuid()) && damageByPlayer.get(player.getUuid()) > 0) {
+                                if (damageByPlayer.containsKey(player.getUuid())
+                                        && damageByPlayer.get(player.getUuid()) > 0) {
                                     valid = true;
                                 }
-                            } else valid = true;
+                            } else
+                                valid = true;
 
-                            if (valid) playersToReward.add(player);
+                            if (valid && hasMetDamageThreshold(player.getUuid()))
+                                playersToReward.add(player);
                         }
                     }
                 }
@@ -326,7 +341,8 @@ public class Raid {
             for (ServerPlayerEntity player : playersToReward) {
                 if (player != null) {
                     alreadyCatching.add(player);
-                    BattleManager.invokeCatchEncounter(this, player, (float) placement.shinyChance(), placement.minPerfectIvs());
+                    BattleManager.invokeCatchEncounter(this, player, (float) placement.shinyChance(),
+                            placement.minPerfectIvs());
                 }
             }
         }
@@ -342,19 +358,22 @@ public class Raid {
 
         raidEndTime = nr.server().getOverworld().getTime();
         if (bossInfo.raidDetails().doCatchPhase()) {
-            participatingBroadcast(TextUtils.deserialize(TextUtils.parse(messages.getMessage("catch_phase_end"), this)));
+            participatingBroadcast(
+                    TextUtils.deserialize(TextUtils.parse(messages.getMessage("catch_phase_end"), this)));
         }
         participatingBroadcast(TextUtils.deserialize(TextUtils.parse(messages.getMessage("raid_end"), this)));
     }
 
     public void handleRewards() {
-        participatingBroadcast(TextUtils.deserialize(TextUtils.parse(messages.getMessage("leaderboard_message_header"), this)));
+        participatingBroadcast(
+                TextUtils.deserialize(TextUtils.parse(messages.getMessage("leaderboard_message_header"), this)));
         int placeIndex = 0;
         for (Map.Entry<String, Integer> entry : getDamageLeaderboard()) {
             ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(entry.getKey());
             if (player != null) {
                 placeIndex++;
-                participatingBroadcast(TextUtils.deserialize(TextUtils.parse(messages.getMessage("leaderboard_message_item"), this, player, entry.getValue(), placeIndex)));
+                participatingBroadcast(TextUtils.deserialize(TextUtils.parse(
+                        messages.getMessage("leaderboard_message_item"), this, player, entry.getValue(), placeIndex)));
                 if (placeIndex == 10) {
                     break;
                 }
@@ -365,7 +384,8 @@ public class Raid {
             ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(entry.getKey());
             if (player != null) {
                 placeIndex++;
-                player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("leaderboard_individual"), this, player, entry.getValue(), placeIndex)));
+                player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("leaderboard_individual"),
+                        this, player, entry.getValue(), placeIndex)));
             }
         }
 
@@ -389,8 +409,7 @@ public class Raid {
             for (DistributionSection categoryReward : categoryRewards) {
                 boolean overridden = false;
                 List<Place> places = categoryReward.places();
-                outer:
-                for (Place place : places) {
+                outer: for (Place place : places) {
                     for (Place overriddenPlacement : overriddenPlacements) {
                         if (overriddenPlacement.place().equalsIgnoreCase(place.place())) {
                             overridden = true;
@@ -413,11 +432,14 @@ public class Raid {
                     int placeAsInt = Integer.parseInt(place.place());
                     placeAsInt--;
                     if (placeAsInt >= 0 && placeAsInt < getDamageLeaderboard().size()) {
-                        ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(getDamageLeaderboard().get(placeAsInt).getKey());
+                        ServerPlayerEntity player = nr.server().getPlayerManager()
+                                .getPlayer(getDamageLeaderboard().get(placeAsInt).getKey());
                         if (player != null) {
                             if (damageByPlayer.containsKey(player.getUuid())) {
                                 if (!place.requireDamage() || damageByPlayer.get(player.getUuid()) > 0) {
-                                    playersToReward.add(player);
+                                    if (hasMetDamageThreshold(player.getUuid())) {
+                                        playersToReward.add(player);
+                                    }
                                 }
                             }
                         }
@@ -428,11 +450,14 @@ public class Raid {
                         int percent = Integer.parseInt(percentStr);
                         double positions = getDamageLeaderboard().size() * ((double) percent / 100);
                         for (int i = 0; i < ((int) Math.ceil(positions)); i++) {
-                            ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(getDamageLeaderboard().get(i).getKey());
+                            ServerPlayerEntity player = nr.server().getPlayerManager()
+                                    .getPlayer(getDamageLeaderboard().get(i).getKey());
                             if (player != null) {
                                 if (damageByPlayer.containsKey(player.getUuid())) {
                                     if (!place.requireDamage() || damageByPlayer.get(player.getUuid()) > 0) {
-                                        playersToReward.add(player);
+                                        if (hasMetDamageThreshold(player.getUuid())) {
+                                            playersToReward.add(player);
+                                        }
                                     }
                                 }
                             }
@@ -444,12 +469,15 @@ public class Raid {
                         if (player != null) {
                             boolean valid = false;
                             if (place.requireDamage()) {
-                                if (damageByPlayer.containsKey(player.getUuid()) && damageByPlayer.get(player.getUuid()) > 0) {
+                                if (damageByPlayer.containsKey(player.getUuid())
+                                        && damageByPlayer.get(player.getUuid()) > 0) {
                                     valid = true;
                                 }
-                            } else valid = true;
+                            } else
+                                valid = true;
 
-                            if (valid) playersToReward.add(player);
+                            if (valid && hasMetDamageThreshold(player.getUuid()))
+                                playersToReward.add(player);
                         }
                     }
                 }
@@ -472,7 +500,8 @@ public class Raid {
                             }
                         }
 
-                        if (!noMoreRewards.containsKey(player) || (duplicatePlacementExists && place.place().equalsIgnoreCase(noMoreRewards.get(player)))) {
+                        if (!noMoreRewards.containsKey(player) || (duplicatePlacementExists
+                                && place.place().equalsIgnoreCase(noMoreRewards.get(player)))) {
                             int rolls = new Random().nextInt(reward.minRolls(), reward.maxRolls() + 1);
                             List<UUID> distributedPools = new ArrayList<>();
                             for (int i = 0; i < rolls; i++) {
@@ -528,7 +557,9 @@ public class Raid {
         if (stage != -1 && stage != 0) {
             if (raidBossEntity != null) {
                 if (raidBossEntity.getPos() != raidBossLocation.pos()) {
-                    raidBossEntity.teleport(raidBossLocation.world(), raidBossLocation.pos().x, raidBossLocation.pos().y, raidBossLocation.pos().z, null, raidBossLocation.bossFacingDirection(), 0);
+                    raidBossEntity.teleport(raidBossLocation.world(), raidBossLocation.pos().x,
+                            raidBossLocation.pos().y, raidBossLocation.pos().z, null,
+                            raidBossLocation.bossFacingDirection(), 0);
                 }
             }
         }
@@ -550,7 +581,8 @@ public class Raid {
             entity.setBodyYaw(raidBossLocation.bossFacingDirection());
             entity.setDrops(new DropTable());
             Box hitbox = entity.getBoundingBox();
-            hitbox.stretch(new Vec3d(raidBossPokemonUncatchable.getScaleModifier(), raidBossPokemonUncatchable.getScaleModifier(), raidBossPokemonUncatchable.getScaleModifier()));
+            hitbox.stretch(new Vec3d(raidBossPokemonUncatchable.getScaleModifier(),
+                    raidBossPokemonUncatchable.getScaleModifier(), raidBossPokemonUncatchable.getScaleModifier()));
             entity.setBoundingBox(hitbox);
             return Unit.INSTANCE;
         });
@@ -671,24 +703,31 @@ public class Raid {
         for (Map.Entry<PokemonEntity, UUID> entry : clones.entrySet()) {
             PokemonEntity clone = entry.getKey();
             UUID playerUUID = entry.getValue();
-            
+
             if (clone != null && clone.isAlive() && clone.getBattleId() != null) {
                 Pokemon pokemon = clone.getPokemon();
-                if (pokemon.getPersistentData().contains("boss_clone") && pokemon.getPersistentData().contains("battle_clone")) {
-                    if (pokemon.getPersistentData().getBoolean("boss_clone") && pokemon.getPersistentData().getBoolean("battle_clone")) {
+                if (pokemon.getPersistentData().contains("boss_clone")
+                        && pokemon.getPersistentData().contains("battle_clone")) {
+                    if (pokemon.getPersistentData().getBoolean("boss_clone")
+                            && pokemon.getPersistentData().getBoolean("battle_clone")) {
                         int pendingDamage = Math.abs(pokemon.getCurrentHealth() - pokemon.getMaxHealth());
-                        
+
                         if (pendingDamage > 0) {
                             updatePlayerDamage(playerUUID, pendingDamage);
                             ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(playerUUID);
                             if (player != null) {
-                                participatingBroadcast(TextUtils.deserialize(TextUtils.parse(messages.getMessage("player_damage_report"), this, player, pendingDamage, -1)));
+                                participatingBroadcast(TextUtils.deserialize(TextUtils.parse(
+                                        messages.getMessage("player_damage_report"), this, player, pendingDamage, -1)));
                             }
                         }
                     }
                 }
             }
         }
+    }
+
+    public int getPlayerDamage(UUID playerUUID) {
+        return damageByPlayer.getOrDefault(playerUUID, 0);
     }
 
     public int maxHealth() {
@@ -813,17 +852,20 @@ public class Raid {
         if (player != null) {
             if (!Permissions.check(player, "novaraids.override")) {
                 if (PlayerRaidCache.isInRaid(playerUUID)) {
-                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_already_joined_raid"), this)));
+                    player.sendMessage(TextUtils
+                            .deserialize(TextUtils.parse(messages.getMessage("warning_already_joined_raid"), this)));
                     return false;
                 }
 
                 if (raidBossCategory().requirePass() && !usedPass) {
-                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_no_pass"), this)));
+                    player.sendMessage(
+                            TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_no_pass"), this)));
                     return false;
                 }
 
                 if (stage != 1) {
-                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_not_joinable"), this)));
+                    player.sendMessage(
+                            TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_not_joinable"), this)));
                     return false;
                 }
 
@@ -836,18 +878,21 @@ public class Raid {
                     if (pokemon != null) {
                         numPokemon++;
                         if (pokemon.getLevel() < bossInfo.raidDetails().minimumLevel()) {
-                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_minimum_level"), this)));
+                            player.sendMessage(TextUtils
+                                    .deserialize(TextUtils.parse(messages.getMessage("warning_minimum_level"), this)));
                             return false;
                         }
                         if (pokemon.getLevel() > bossInfo.raidDetails().maximumLevel()) {
-                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_maximum_level"), this)));
+                            player.sendMessage(TextUtils
+                                    .deserialize(TextUtils.parse(messages.getMessage("warning_maximum_level"), this)));
                             return false;
                         }
                     }
                 }
 
                 if (numPokemon == 0) {
-                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_no_pokemon"), this)));
+                    player.sendMessage(
+                            TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_no_pokemon"), this)));
                     return false;
                 }
             } else {
@@ -863,7 +908,9 @@ public class Raid {
 
             showBossbar(bossbarData, player);
             if (raidBossLocation.useSetJoinLocation()) {
-                player.teleport(raidBossLocation.world(), raidBossLocation.joinLocation().x, raidBossLocation.joinLocation().y, raidBossLocation.joinLocation().z, raidBossLocation.yaw(), raidBossLocation().pitch());
+                player.teleport(raidBossLocation.world(), raidBossLocation.joinLocation().x,
+                        raidBossLocation.joinLocation().y, raidBossLocation.joinLocation().z, raidBossLocation.yaw(),
+                        raidBossLocation().pitch());
             }
             return true;
         }
@@ -879,12 +926,29 @@ public class Raid {
         latestDamage.add(playerUUID);
     }
 
+    public boolean hasMetDamageThreshold(UUID playerUUID) {
+        if (!bossInfo.raidDetails().damageThreshold().enabled()) {
+            return true;
+        }
+
+        if (!damageByPlayer.containsKey(playerUUID)) {
+            return false;
+        }
+
+        int playerDamage = damageByPlayer.get(playerUUID);
+        double thresholdPercentage = bossInfo.raidDetails().damageThreshold().minDamagePercentage();
+        int pokemonMaxHP = raidBossPokemonUncatchable.getMaxHealth();
+        int requiredDamage = (int) Math.ceil(pokemonMaxHP * (thresholdPercentage / 100.0));
+
+        return playerDamage >= requiredDamage;
+    }
+
     public List<Map.Entry<String, Integer>> getDamageLeaderboard() {
         List<Map.Entry<UUID, Integer>> leaderboardList = new ArrayList<>(damageByPlayer.entrySet());
 
         Map<Integer, Long> damageFrequencies = leaderboardList.stream().collect(
                 Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)).values().stream().collect(
-                Collectors.groupingBy(value -> value, Collectors.counting()));
+                        Collectors.groupingBy(value -> value, Collectors.counting()));
 
         List<Integer> duplicates = damageFrequencies.entrySet().stream().filter(
                 entry -> entry.getValue() > 1).map(Map.Entry::getKey).toList();

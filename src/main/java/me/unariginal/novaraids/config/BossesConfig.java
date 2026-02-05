@@ -48,18 +48,23 @@ public class BossesConfig {
 
     public void loadBosses() throws IOException, NullPointerException, UnsupportedOperationException {
         File rootFolder = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids").toFile();
-        if (!rootFolder.exists()) rootFolder.mkdirs();
+        if (!rootFolder.exists())
+            rootFolder.mkdirs();
 
         File bossesFolder = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/bosses").toFile();
         if (!bossesFolder.exists()) {
             bossesFolder.mkdirs();
 
-            File exampleCategoryFolder = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/bosses/common/bosses").toFile();
-            if (!exampleCategoryFolder.exists()) exampleCategoryFolder.mkdirs();
+            File exampleCategoryFolder = FabricLoader.getInstance().getConfigDir()
+                    .resolve("NovaRaids/bosses/common/bosses").toFile();
+            if (!exampleCategoryFolder.exists())
+                exampleCategoryFolder.mkdirs();
 
-            File settingsFile = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/bosses/common/settings.json").toFile();
+            File settingsFile = FabricLoader.getInstance().getConfigDir()
+                    .resolve("NovaRaids/bosses/common/settings.json").toFile();
             if (settingsFile.createNewFile()) {
-                InputStream stream = NovaRaids.class.getResourceAsStream("/raid_config_files/bosses/common/settings.json");
+                InputStream stream = NovaRaids.class
+                        .getResourceAsStream("/raid_config_files/bosses/common/settings.json");
                 assert stream != null;
                 OutputStream out = new FileOutputStream(settingsFile);
 
@@ -73,9 +78,11 @@ public class BossesConfig {
                 out.close();
             }
 
-            File exampleBoss = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/bosses/common/bosses/example_eevee.json").toFile();
+            File exampleBoss = FabricLoader.getInstance().getConfigDir()
+                    .resolve("NovaRaids/bosses/common/bosses/example_eevee.json").toFile();
             if (exampleBoss.createNewFile()) {
-                InputStream stream = NovaRaids.class.getResourceAsStream("/raid_config_files/bosses/common/bosses/example_eevee.json");
+                InputStream stream = NovaRaids.class
+                        .getResourceAsStream("/raid_config_files/bosses/common/bosses/example_eevee.json");
                 assert stream != null;
                 OutputStream out = new FileOutputStream(exampleBoss);
 
@@ -110,9 +117,11 @@ public class BossesConfig {
         }
     }
 
-    public void loadSettings(String categoryId, File file) throws IOException, NullPointerException, UnsupportedOperationException {
+    public void loadSettings(String categoryId, File file)
+            throws IOException, NullPointerException, UnsupportedOperationException {
         JsonObject root = new JsonObject();
-        if (file.exists()) root = JsonParser.parseReader(new FileReader(file)).getAsJsonObject();
+        if (file.exists())
+            root = JsonParser.parseReader(new FileReader(file)).getAsJsonObject();
 
         String categoryName = categoryId;
         if (root.has("category_name"))
@@ -120,7 +129,7 @@ public class BossesConfig {
         root.remove("category_name");
         root.addProperty("category_name", categoryName);
 
-        //------- Raid Details Section -------//
+        // ------- Raid Details Section -------//
 
         boolean requirePass = false;
         int minPlayers = 0;
@@ -195,8 +204,7 @@ public class BossesConfig {
         root.remove("raid_details");
         root.add("raid_details", raidDetails);
 
-
-        //------- Item Settings Section -------//
+        // ------- Item Settings Section -------//
         JsonObject itemSettings = new JsonObject();
         if (root.has("item_settings"))
             itemSettings = root.getAsJsonObject("item_settings");
@@ -205,7 +213,8 @@ public class BossesConfig {
         if (itemSettings.has("category_choice_voucher"))
             categoryChoiceVoucherObject = itemSettings.getAsJsonObject("category_choice_voucher");
 
-        Voucher categoryChoiceVoucher = ConfigHelper.getVoucher(categoryChoiceVoucherObject, nr.config().defaultVoucher);
+        Voucher categoryChoiceVoucher = ConfigHelper.getVoucher(categoryChoiceVoucherObject,
+                nr.config().defaultVoucher);
 
         itemSettings.remove("category_choice_voucher");
         itemSettings.add("category_choice_voucher", categoryChoiceVoucher.voucherObject());
@@ -214,7 +223,8 @@ public class BossesConfig {
         if (itemSettings.has("category_random_voucher"))
             categoryRandomVoucherObject = itemSettings.getAsJsonObject("category_random_voucher");
 
-        Voucher categoryRandomVoucher = ConfigHelper.getVoucher(categoryRandomVoucherObject, nr.config().defaultVoucher);
+        Voucher categoryRandomVoucher = ConfigHelper.getVoucher(categoryRandomVoucherObject,
+                nr.config().defaultVoucher);
 
         itemSettings.remove("category_random_voucher");
         itemSettings.add("category_random_voucher", categoryRandomVoucher.voucherObject());
@@ -272,8 +282,7 @@ public class BossesConfig {
                 categoryRandomVoucher,
                 categoryPass,
                 categoryBalls,
-                rewards
-        ));
+                rewards));
 
         file.delete();
         file.createNewFile();
@@ -283,9 +292,11 @@ public class BossesConfig {
         writer.close();
     }
 
-    public void loadBoss(String category_name, File file) throws IOException, NullPointerException, UnsupportedOperationException {
+    public void loadBoss(String category_name, File file)
+            throws IOException, NullPointerException, UnsupportedOperationException {
         JsonObject root = new JsonObject();
-        if (file.exists()) root = JsonParser.parseReader(new FileReader(file)).getAsJsonObject();
+        if (file.exists())
+            root = JsonParser.parseReader(new FileReader(file)).getAsJsonObject();
 
         String fileName = file.getName().substring(0, file.getName().indexOf(".json"));
 
@@ -335,7 +346,8 @@ public class BossesConfig {
             species = PokemonSpecies.getByName(pokemonDetails.get("species").getAsString().toLowerCase());
 
         if (species == null) {
-            NovaRaids.LOGGER.warn("[NovaRaids] Invalid species: {}. Using default (bulbasaur)", pokemonDetails.get("species").getAsString().toLowerCase());
+            NovaRaids.LOGGER.warn("[NovaRaids] Invalid species: {}. Using default (bulbasaur)",
+                    pokemonDetails.get("species").getAsString().toLowerCase());
             species = PokemonSpecies.getByName("bulbasaur");
         }
 
@@ -367,7 +379,8 @@ public class BossesConfig {
 
         for (JsonElement featureElement : featuresArray) {
             JsonObject featureObject = featureElement.getAsJsonObject();
-            if (!featureObject.has("feature")) continue;
+            if (!featureObject.has("feature"))
+                continue;
 
             String feature = featureObject.get("feature").getAsString();
 
@@ -401,7 +414,8 @@ public class BossesConfig {
 
         for (JsonElement abilityElement : abilitiesArray) {
             JsonObject abilityObject = abilityElement.getAsJsonObject();
-            if (!abilityObject.has("ability")) continue;
+            if (!abilityObject.has("ability"))
+                continue;
             String ability = abilityObject.get("ability").getAsString();
             double weight = 1.0;
             if (abilityObject.has("weight"))
@@ -410,7 +424,8 @@ public class BossesConfig {
             AbilityTemplate template = Abilities.get(ability);
             if (template == null) {
                 template = Abilities.first();
-                NovaRaids.LOGGER.warn("[NovaRaids] Invalid ability: {}. Using default ({}).", ability, template.getName());
+                NovaRaids.LOGGER.warn("[NovaRaids] Invalid ability: {}. Using default ({}).", ability,
+                        template.getName());
             }
 
             abilities.put(template.create(false, Priority.LOWEST), weight);
@@ -435,7 +450,8 @@ public class BossesConfig {
 
         for (JsonElement natureElement : naturesArray) {
             JsonObject natureObject = natureElement.getAsJsonObject();
-            if (!natureObject.has("nature")) continue;
+            if (!natureObject.has("nature"))
+                continue;
             String natureStr = natureObject.get("nature").getAsString();
             double weight = 1.0;
             if (natureObject.has("weight"))
@@ -444,7 +460,8 @@ public class BossesConfig {
             Nature nature = Natures.getNature(natureStr);
             if (nature == null) {
                 nature = Natures.SERIOUS;
-                NovaRaids.LOGGER.warn("[NovaRaids] Invalid nature: {}. Using default ({}).", natureStr, nature.getName());
+                NovaRaids.LOGGER.warn("[NovaRaids] Invalid nature: {}. Using default ({}).", natureStr,
+                        nature.getName());
             }
 
             natures.put(nature, weight);
@@ -469,7 +486,8 @@ public class BossesConfig {
 
         for (JsonElement genderElement : gendersArray) {
             JsonObject genderObject = genderElement.getAsJsonObject();
-            if (!genderObject.has("gender")) continue;
+            if (!genderObject.has("gender"))
+                continue;
             String genderStr = genderObject.get("gender").getAsString();
             double weight = 1.0;
             if (genderObject.has("weight"))
@@ -502,7 +520,8 @@ public class BossesConfig {
 
         for (JsonElement gimmickElement : gimmicksArray) {
             JsonObject gimmickObject = gimmickElement.getAsJsonObject();
-            if (!gimmickObject.has("gimmick")) continue;
+            if (!gimmickObject.has("gimmick"))
+                continue;
             String gimmickStr = gimmickObject.get("gimmick").getAsString();
             double weight = 1.0;
             if (gimmickObject.has("weight"))
@@ -529,8 +548,10 @@ public class BossesConfig {
         if (pokemonDetails.has("tera_type"))
             teraType = TeraTypes.get(pokemonDetails.get("tera_type").getAsString().toLowerCase());
         pokemonDetails.remove("tera_type");
-        if (teraType == null) pokemonDetails.addProperty("tera_type", "random");
-        else pokemonDetails.addProperty("tera_type", teraType.showdownId());
+        if (teraType == null)
+            pokemonDetails.addProperty("tera_type", "random");
+        else
+            pokemonDetails.addProperty("tera_type", teraType.showdownId());
 
         if (pokemonDetails.has("gmax_factor"))
             gmaxFactor = pokemonDetails.get("gmax_factor").getAsBoolean();
@@ -550,16 +571,20 @@ public class BossesConfig {
         if (pokemonDetails.has("held_item"))
             heldItem = Registries.ITEM.get(Identifier.of(pokemonDetails.get("held_item").getAsString()));
         pokemonDetails.remove("held_item");
-        pokemonDetails.addProperty("held_item", heldItem.equals(Items.AIR) ? "" : Registries.ITEM.getId(heldItem).toString());
+        pokemonDetails.addProperty("held_item",
+                heldItem.equals(Items.AIR) ? "" : Registries.ITEM.getId(heldItem).toString());
 
         if (pokemonDetails.has("held_item_data"))
-            heldItemData = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, pokemonDetails.get("held_item_data")).getOrThrow().getFirst();
+            heldItemData = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, pokemonDetails.get("held_item_data"))
+                    .getOrThrow().getFirst();
         pokemonDetails.remove("held_item_data");
-        pokemonDetails.add("held_item_data", ComponentChanges.CODEC.encode(heldItemData, JsonOps.INSTANCE, new JsonObject()).getOrThrow());
+        pokemonDetails.add("held_item_data",
+                ComponentChanges.CODEC.encode(heldItemData, JsonOps.INSTANCE, new JsonObject()).getOrThrow());
 
         List<String> movesArray = new ArrayList<>();
         if (pokemonDetails.has("moves"))
-            movesArray = pokemonDetails.get("moves").getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList();
+            movesArray = pokemonDetails.get("moves").getAsJsonArray().asList().stream().map(JsonElement::getAsString)
+                    .toList();
         for (String move : movesArray) {
             MoveTemplate template = Moves.getByNameOrDummy(move);
             if (template.getNum() == -1) {
@@ -676,8 +701,7 @@ public class BossesConfig {
                 moves,
                 friendship,
                 ivs,
-                evs
-        );
+                evs);
 
         // Boss Details
         String displayName = bossId;
@@ -734,7 +758,8 @@ public class BossesConfig {
 
         for (JsonElement locationElement : locationsArray) {
             JsonObject locationObject = locationElement.getAsJsonObject();
-            if (!locationObject.has("location")) continue;
+            if (!locationObject.has("location"))
+                continue;
 
             String location = locationObject.get("location").getAsString();
             locationObject.remove("location");
@@ -753,9 +778,13 @@ public class BossesConfig {
             try {
                 String defaultLocation = NovaRaids.INSTANCE.locationsConfig().locations.getFirst().id();
                 locations.put(defaultLocation, 1.0);
-                NovaRaids.LOGGER.error("[NovaRaids] No locations in boss details of boss, {}. Setting to default ({}). This will .", bossId, defaultLocation);
+                NovaRaids.LOGGER.error(
+                        "[NovaRaids] No locations in boss details of boss, {}. Setting to default ({}). This will .",
+                        bossId, defaultLocation);
             } catch (NoSuchElementException e) {
-                NovaRaids.LOGGER.error("[NovaRaids] No locations to default to.. this should stop your server from crashing but please fix your locations and {} boss config!", bossId);
+                NovaRaids.LOGGER.error(
+                        "[NovaRaids] No locations to default to.. this should stop your server from crashing but please fix your locations and {} boss config!",
+                        bossId);
             }
         }
 
@@ -830,8 +859,7 @@ public class BossesConfig {
                 allowCategoryPokeballs,
                 bossVoucher,
                 bossPass,
-                bossBalls
-        );
+                bossBalls);
 
         // Raid Details
         int minimumLevel = 1;
@@ -934,6 +962,29 @@ public class BossesConfig {
         raidDetailsObject.remove("override_category_distribution");
         raidDetailsObject.addProperty("override_category_distribution", overrideCategoryDistribution);
 
+        // Damage Threshold
+        boolean damageThresholdEnabled = true;
+        double minDamagePercentage = 70.0;
+
+        JsonObject damageThresholdObject = new JsonObject();
+        if (raidDetailsObject.has("damage_threshold"))
+            damageThresholdObject = raidDetailsObject.getAsJsonObject("damage_threshold");
+
+        if (damageThresholdObject.has("enabled"))
+            damageThresholdEnabled = damageThresholdObject.get("enabled").getAsBoolean();
+        damageThresholdObject.remove("enabled");
+        damageThresholdObject.addProperty("enabled", damageThresholdEnabled);
+
+        if (damageThresholdObject.has("min_damage_percentage"))
+            minDamagePercentage = damageThresholdObject.get("min_damage_percentage").getAsDouble();
+        damageThresholdObject.remove("min_damage_percentage");
+        damageThresholdObject.addProperty("min_damage_percentage", minDamagePercentage);
+
+        DamageThreshold damageThreshold = new DamageThreshold(damageThresholdEnabled, minDamagePercentage);
+
+        raidDetailsObject.remove("damage_threshold");
+        raidDetailsObject.add("damage_threshold", damageThresholdObject);
+
         JsonArray rewardDistributionArray = new JsonArray();
         if (raidDetailsObject.has("reward_distribution"))
             rewards = ConfigHelper.getDistributionSections(raidDetailsObject, false);
@@ -963,8 +1014,8 @@ public class BossesConfig {
                 preCatchBossbar,
                 catchBossbar,
                 overrideCategoryDistribution,
-                rewards
-        );
+                rewards,
+                damageThreshold);
 
         // Catch Settings
         Species speciesOverride;
@@ -997,7 +1048,9 @@ public class BossesConfig {
         if (speciesOverride == null) {
             speciesOverride = species;
             if (!speciesOverrideString.isEmpty())
-                NovaRaids.LOGGER.warn("[NovaRaids] Unknown species for catch override: {}. In boss {}. Using boss species ({})", speciesOverrideString, bossId, species.getName());
+                NovaRaids.LOGGER.warn(
+                        "[NovaRaids] Unknown species for catch override: {}. In boss {}. Using boss species ({})",
+                        speciesOverrideString, bossId, species.getName());
         }
         catchSettingsObject.remove("species_override");
         catchSettingsObject.addProperty("species_override", speciesOverride.getResourceIdentifier().getPath());
@@ -1087,7 +1140,8 @@ public class BossesConfig {
         for (JsonElement place : placementsArray) {
             JsonObject placeObject = place.getAsJsonObject();
 
-            if (!placeObject.has("place")) continue;
+            if (!placeObject.has("place"))
+                continue;
 
             String placeStr = placeObject.get("place").getAsString();
             boolean requireDamage = true;
@@ -1122,7 +1176,8 @@ public class BossesConfig {
         catchSettingsObject.remove("places");
         catchSettingsObject.add("places", placementsArray);
 
-        if (catchPlacements.isEmpty()) catchPlacements.add(new CatchPlacement("participating", true, 8192, 0));
+        if (catchPlacements.isEmpty())
+            catchPlacements.add(new CatchPlacement("participating", true, 8192, 0));
 
         root.remove("catch_settings");
         root.add("catch_settings", catchSettingsObject);
@@ -1144,8 +1199,7 @@ public class BossesConfig {
                 randomizeTeraType,
                 resetGmaxFactor,
                 dmaxLevelOverride,
-                catchPlacements
-        );
+                catchPlacements);
 
         bosses.add(new Boss(
                 bossId,
@@ -1163,8 +1217,7 @@ public class BossesConfig {
                 locations,
                 itemSettings,
                 raidDetails,
-                catchSettings
-        ));
+                catchSettings));
 
         file.delete();
         file.createNewFile();

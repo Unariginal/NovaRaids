@@ -143,7 +143,6 @@ public class TickManager {
 
             if (raid.stage() == 2) {
                 if (raid.currentHealth() <= 0) {
-                    raid.collectPendingDamage();
                     raid.preCatchPhase();
                 }
             }

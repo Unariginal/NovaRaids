@@ -13,6 +13,7 @@
     "not_enough_players": "%prefix% There wasn't enough players to start the raid!",
 
     "player_damage_report": "%prefix% %raid.player% did %raid.player.damage% damage to the boss!",
+    "player_total_damage": "%prefix% %raid.player% dealt a total of %raid.player.damage% damage in this battle!",
 
     "no_active_raids": "%prefix% There are no active raids!",
     "no_queued_raids": "%prefix% There are no queued raids!",

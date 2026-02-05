@@ -12,7 +12,6 @@ import me.unariginal.novaraids.ai.StrongBattleAIFix;
 import me.unariginal.novaraids.cache.PlayerRaidCache;
 import me.unariginal.novaraids.managers.BattleManager;
 import me.unariginal.novaraids.managers.Raid;
-import me.unariginal.novaraids.utils.TextUtils;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -26,20 +25,15 @@ public class BattleEndMixin {
         PokemonBattle battle = (PokemonBattle) (Object) this;
 
         ServerPlayerEntity player = null;
-        int damage = 0;
 
         for (BattleActor actor : battle.getActors()) {
             switch (actor) {
                 case PokemonBattleActor pokemonBattleActor -> {
                     Pokemon pokemon = pokemonBattleActor.getPokemon().getEffectedPokemon();
-                    if (pokemon.getPersistentData().contains("boss_clone") && pokemon.getPersistentData().contains("battle_clone")) {
-                        if (pokemon.getPersistentData().getBoolean("boss_clone") && pokemon.getPersistentData().getBoolean("battle_clone")) {
-                            damage = Math.abs(pokemon.getCurrentHealth() - pokemon.getMaxHealth());
-                            if (pokemonBattleActor.getBattleAI() instanceof StrongBattleAIFix) {
-                                ((StrongBattleAIFix) pokemonBattleActor.getBattleAI()).cleanUp();
-                            }
-                        } else {
-                            return;
+                    if (pokemon.getPersistentData().getBoolean("boss_clone")
+                            && pokemon.getPersistentData().getBoolean("battle_clone")) {
+                        if (pokemonBattleActor.getBattleAI() instanceof StrongBattleAIFix) {
+                            ((StrongBattleAIFix) pokemonBattleActor.getBattleAI()).cleanUp();
                         }
                     }
                 }
@@ -58,27 +52,19 @@ public class BattleEndMixin {
             }
         }
 
-        if (player == null) return;
+        if (player == null)
+            return;
 
         Raid raid = PlayerRaidCache.currentRaid(player);
-        if (raid == null) return;
+        if (raid == null)
+            return;
 
-        if (!raid.isPlayerFleeing(player)) {
-            if (damage > raid.currentHealth()) {
-                damage = raid.currentHealth();
-            }
-
-            if (damage > 0) {
-                raid.applyDamage(damage);
-                raid.updatePlayerDamage(player.getUuid(), damage);
-                raid.participatingBroadcast(TextUtils.deserialize(TextUtils.parse(NovaRaids.INSTANCE.messagesConfig().getMessage("player_damage_report"), raid, player, damage, -1)));
-            }
-        }
-
+        // Automatic battle logic (NO damage calculation here anymore!)
         if (NovaRaids.INSTANCE.config().automaticBattles) {
-            if (raid.currentHealth() > 0) {
+            if (raid.currentHealth() > 0 && !raid.isPlayerFleeing(player)) {
                 ServerPlayerEntity finalPlayer = player;
-                raid.addTask(player.getServerWorld(), NovaRaids.INSTANCE.config().automaticBattleDelay * 20L, () -> BattleManager.invokeBattle(raid, finalPlayer));
+                raid.addTask(player.getServerWorld(), NovaRaids.INSTANCE.config().automaticBattleDelay * 20L,
+                        () -> BattleManager.invokeBattle(raid, finalPlayer));
             }
         }
     }
