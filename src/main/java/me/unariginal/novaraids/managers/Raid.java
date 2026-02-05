@@ -389,6 +389,16 @@ public class Raid {
             }
         }
 
+        for (UUID playerUUID : participatingPlayers) {
+            if (!hasMetDamageThreshold(playerUUID)) {
+                ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(playerUUID);
+                if (player != null && damageByPlayer.containsKey(playerUUID)) {
+                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(
+                            messages.getMessage("damage_threshold_not_met"),
+                            this, player, damageByPlayer.get(playerUUID), -1)));
+                }
+            }
+        }
         List<DistributionSection> categoryRewards = new ArrayList<>(raidBossCategory.rewards());
         List<DistributionSection> bossRewards = new ArrayList<>(bossInfo.raidDetails().rewards());
 
@@ -945,6 +955,7 @@ public class Raid {
 
     public List<Map.Entry<String, Integer>> getDamageLeaderboard() {
         List<Map.Entry<UUID, Integer>> leaderboardList = new ArrayList<>(damageByPlayer.entrySet());
+        leaderboardList.removeIf(entry -> !hasMetDamageThreshold(entry.getKey()));
 
         Map<Integer, Long> damageFrequencies = leaderboardList.stream().collect(
                 Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)).values().stream().collect(

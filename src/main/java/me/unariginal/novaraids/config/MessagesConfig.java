@@ -30,6 +30,7 @@ public class MessagesConfig {
         messages.put("not_enough_players", "%prefix% There wasn't enough players to start the raid!");
         messages.put("player_damage_report", "%prefix% %raid.player% did %raid.player.damage% to the boss!");
         messages.put("player_total_damage", "%prefix% %raid.player% dealt a total of %raid.player.damage% damage in this battle!");
+        messages.put("damage_threshold_not_met", "%prefix% You didn’t deal enough damage to earn a reward.");
         messages.put("no_active_raids", "%prefix% There are no active raids!");
         messages.put("no_queued_raids", "%prefix% There are no queued raids!");
         messages.put("no_available_locations", "%prefix% Failed to start raid. All possible locations are busy.");

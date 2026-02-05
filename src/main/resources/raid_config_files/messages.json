@@ -14,6 +14,7 @@
 
     "player_damage_report": "%prefix% %raid.player% did %raid.player.damage% damage to the boss!",
     "player_total_damage": "%prefix% %raid.player% dealt a total of %raid.player.damage% damage in this battle!",
+    "damage_threshold_not_met": "%prefix% You didn’t deal enough damage to earn a reward.",
 
     "no_active_raids": "%prefix% There are no active raids!",
     "no_queued_raids": "%prefix% There are no queued raids!",
