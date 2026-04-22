@@ -659,6 +659,20 @@ public class Raid {
         return raidBossLocation;
     }
 
+    public boolean isRaidBallsEnabled() {
+        Boolean bossOverride = bossInfo.itemSettings().raidBallsEnabledOverride();
+        if (bossOverride != null) {
+            return bossOverride;
+        }
+
+        Boolean categoryOverride = raidBossCategory.raidBallsEnabledOverride();
+        if (categoryOverride != null) {
+            return categoryOverride;
+        }
+
+        return nr.config().raidBallsEnabled;
+    }
+
     public int currentHealth() {
         return currentHealth;
     }

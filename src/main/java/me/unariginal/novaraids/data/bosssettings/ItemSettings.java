@@ -8,6 +8,7 @@ import java.util.List;
 
 public record ItemSettings(boolean allowGlobalPokeballs,
                            boolean allowCategoryPokeballs,
+                           Boolean raidBallsEnabledOverride,
                            Voucher voucher,
                            Pass pass,
                            List<RaidBall> raidBalls) {

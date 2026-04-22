@@ -21,6 +21,7 @@
     }
   },
   "item_settings": {
+    "raid_balls_enabled": true,
     "category_choice_voucher": {
       "voucher_item": "minecraft:feather",
       "voucher_name": "",

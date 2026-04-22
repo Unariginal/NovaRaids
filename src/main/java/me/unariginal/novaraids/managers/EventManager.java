@@ -614,7 +614,7 @@ public class EventManager {
                                     player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("used_voucher"), boss)));
                                 }
                             }
-                        } else if (customData.copyNbt().getString("raid_item").equals("raid_ball") && nr.config().raidBallsEnabled) {
+                        } else if (customData.copyNbt().getString("raid_item").equals("raid_ball")) {
                             boolean canThrow = false;
 
                             if (nr.config().playerLinkedRaidBalls && customData.contains("owner_uuid")) {
@@ -627,10 +627,12 @@ public class EventManager {
                             canThrow = PlayerRaidCache.isInRaid(player.getUuid());
 
                             if (canThrow) {
-                                canThrow = false;
-
                                 Raid raid = PlayerRaidCache.currentRaid(player);
                                 if (raid != null && raid.stage() == 4) {
+                                    if (!raid.isRaidBallsEnabled()) {
+                                        player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_not_catch_phase"))));
+                                        return TypedActionResult.fail(itemStack);
+                                    }
 
                                     if (customData.contains("raid_categories") || customData.contains("raid_bosses")) {
                                         // do nothing - same as previous logic
@@ -676,7 +678,7 @@ public class EventManager {
                 Raid raid = PlayerRaidCache.currentRaid(player);
                 if (raid == null) return TypedActionResult.pass(itemStack);
 
-                if (isPokeball(itemStack) && nr.config().raidBallsEnabled) {
+                if (isPokeball(itemStack) && raid.isRaidBallsEnabled()) {
                     player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_deny_normal_pokeball"))));
                     return TypedActionResult.fail(itemStack);
                 }

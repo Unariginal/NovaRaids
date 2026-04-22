@@ -91,6 +91,7 @@
   "item_settings": {
     "allow_global_pokeballs": true,
     "allow_category_pokeballs": true,
+    "raid_balls_enabled": true,
     "boss_voucher": {
       "voucher_item": "minecraft:feather",
       "voucher_name": "",
