@@ -201,6 +201,18 @@ public class BossesConfig {
         if (root.has("item_settings"))
             itemSettings = root.getAsJsonObject("item_settings");
 
+        Boolean raidBallsEnabledOverride = null;
+        if (itemSettings.has("raid_balls_enabled")) {
+            JsonElement categoryRaidBallsOverrideElement = itemSettings.get("raid_balls_enabled");
+            if (!categoryRaidBallsOverrideElement.isJsonNull()) {
+                raidBallsEnabledOverride = categoryRaidBallsOverrideElement.getAsBoolean();
+            }
+        }
+        itemSettings.remove("raid_balls_enabled");
+        if (raidBallsEnabledOverride != null) {
+            itemSettings.addProperty("raid_balls_enabled", raidBallsEnabledOverride);
+        }
+
         JsonObject categoryChoiceVoucherObject = new JsonObject();
         if (itemSettings.has("category_choice_voucher"))
             categoryChoiceVoucherObject = itemSettings.getAsJsonObject("category_choice_voucher");
@@ -268,6 +280,7 @@ public class BossesConfig {
                 fightBossbar,
                 preCatchBossbar,
                 catchBossbar,
+                raidBallsEnabledOverride,
                 categoryChoiceVoucher,
                 categoryRandomVoucher,
                 categoryPass,
@@ -775,6 +788,7 @@ public class BossesConfig {
         // Item Settings
         boolean allowGlobalPokeballs = true;
         boolean allowCategoryPokeballs = true;
+        Boolean raidBallsEnabledOverride = null;
 
         JsonObject itemSettingsObject = new JsonObject();
         if (root.has("item_settings"))
@@ -789,6 +803,17 @@ public class BossesConfig {
             allowCategoryPokeballs = itemSettingsObject.get("allow_category_pokeballs").getAsBoolean();
         itemSettingsObject.remove("allow_category_pokeballs");
         itemSettingsObject.addProperty("allow_category_pokeballs", allowCategoryPokeballs);
+
+        if (itemSettingsObject.has("raid_balls_enabled")) {
+            JsonElement bossRaidBallsOverrideElement = itemSettingsObject.get("raid_balls_enabled");
+            if (!bossRaidBallsOverrideElement.isJsonNull()) {
+                raidBallsEnabledOverride = bossRaidBallsOverrideElement.getAsBoolean();
+            }
+        }
+        itemSettingsObject.remove("raid_balls_enabled");
+        if (raidBallsEnabledOverride != null) {
+            itemSettingsObject.addProperty("raid_balls_enabled", raidBallsEnabledOverride);
+        }
 
         JsonObject bossVoucherObject = new JsonObject();
         if (itemSettingsObject.has("boss_voucher"))
@@ -828,6 +853,7 @@ public class BossesConfig {
         ItemSettings itemSettings = new ItemSettings(
                 allowGlobalPokeballs,
                 allowCategoryPokeballs,
+                raidBallsEnabledOverride,
                 bossVoucher,
                 bossPass,
                 bossBalls
