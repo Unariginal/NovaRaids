@@ -33,14 +33,14 @@ public class WebhookHandler {
     public static int webhookUpdateRateSeconds = 15;
     public static boolean deleteIfNoFightPhase = true;
     public static boolean startEmbedEnabled = false;
-    public static String startEmbedTitle = "%boss.id% Raid Has Started";
+    public static String startEmbedTitle = "%boss.name% Raid Has Started";
     public static List<FieldData> startEmbedFields = new ArrayList<>();
     public static boolean runningEmbedEnabled = false;
-    public static String runningEmbedTitle = "%boss.id% Raid In Progress!";
+    public static String runningEmbedTitle = "%boss.name% Raid In Progress!";
     public static List<FieldData> runningEmbedFields = new ArrayList<>();
     public static FieldData runningEmbedLeaderboardField = null;
     public static boolean endEmbedEnabled = false;
-    public static String endEmbedTitle = "%boss.id% Raid Has Ended";
+    public static String endEmbedTitle = "%boss.name% Raid Has Ended";
     public static List<FieldData> endEmbedFields = new ArrayList<>();
     public static FieldData endEmbedLeaderboardField = null;
     public static boolean failedEmbedEnabled = false;
@@ -180,6 +180,7 @@ public class WebhookHandler {
         embedBuilder.setThumbnailUrl(thumbnailUrl);
         WebhookEmbed embed = embedBuilder.build();
         return new WebhookMessageBuilder()
+                .setContent(rolePing)
                 .setUsername(webhookUsername)
                 .setAvatarUrl(webhookAvatarUrl)
                 .addEmbeds(embed);

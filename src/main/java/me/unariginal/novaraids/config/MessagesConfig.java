@@ -275,6 +275,11 @@ public class MessagesConfig {
         JsonObject leaderboardFieldObject = new JsonObject();
         if (raidRunningObject.has("leaderboard_field_layout"))
             leaderboardFieldObject = raidRunningObject.get("leaderboard_field_layout").getAsJsonObject();
+        else {
+            leaderboardFieldObject.addProperty("inline", false);
+            leaderboardFieldObject.addProperty("name", "%raid.player.place%. %raid.player%:");
+            leaderboardFieldObject.addProperty("value", "%raid.player.damage% damage");
+        }
 
         WebhookHandler.runningEmbedLeaderboardField = getFieldData(leaderboardFieldObject, false);
         leaderboardFieldObject = WebhookHandler.runningEmbedLeaderboardField.fieldObject();
@@ -332,6 +337,11 @@ public class MessagesConfig {
         leaderboardFieldObject = new JsonObject();
         if (raidEndObject.has("leaderboard_field_layout"))
             leaderboardFieldObject = raidEndObject.get("leaderboard_field_layout").getAsJsonObject();
+        else {
+            leaderboardFieldObject.addProperty("inline", false);
+            leaderboardFieldObject.addProperty("name", "%raid.player.place%. %raid.player%:");
+            leaderboardFieldObject.addProperty("value", "%raid.player.damage% damage");
+        }
 
         WebhookHandler.endEmbedLeaderboardField = getFieldData(leaderboardFieldObject, false);
         leaderboardFieldObject = WebhookHandler.endEmbedLeaderboardField.fieldObject();

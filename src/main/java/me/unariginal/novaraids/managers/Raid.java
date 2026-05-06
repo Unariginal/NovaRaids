@@ -787,12 +787,12 @@ public class Raid {
     public boolean addPlayer(UUID playerUUID, boolean usedPass) {
         ServerPlayerEntity player = nr.server().getPlayerManager().getPlayer(playerUUID);
         if (player != null) {
-            if (!Permissions.check(player, "novaraids.override")) {
-                if (PlayerRaidCache.isInRaid(playerUUID)) {
-                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_already_joined_raid"), this)));
-                    return false;
-                }
+            if (PlayerRaidCache.isInRaid(playerUUID)) {
+                player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_already_joined_raid"), this)));
+                return false;
+            }
 
+            if (!Permissions.check(player, "novaraids.override")) {
                 if (raidBossCategory().requirePass() && !usedPass) {
                     player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_no_pass"), this)));
                     return false;
