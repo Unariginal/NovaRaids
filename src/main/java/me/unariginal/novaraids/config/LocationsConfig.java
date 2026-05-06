@@ -7,7 +7,6 @@ import com.google.gson.JsonParser;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.Location;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Vec3d;
 
 import java.io.*;
@@ -50,7 +49,7 @@ public class LocationsConfig {
             JsonObject locationObject = root.getAsJsonObject(key);
             String name = key;
             double x = 0, y = 100, z = 0;
-            ServerWorld world = nr.server().getOverworld();
+            String worldPath = "minecraft:overworld";
             int borderRadius = 30;
             int bossPushbackRadius = 5;
             float bossFacingDirection = 0;
@@ -78,24 +77,10 @@ public class LocationsConfig {
 
             Vec3d pos = new Vec3d(x, y, z);
 
-            if (locationObject.has("world")) {
-                String worldPath = locationObject.get("world").getAsString();
-                boolean found = false;
-                for (ServerWorld w : nr.server().getWorlds()) {
-                    String id = w.getRegistryKey().getValue().toString();
-                    String path = w.getRegistryKey().getValue().getPath();
-                    if (id.equals(worldPath) || path.equals(worldPath)) {
-                        world = w;
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) {
-                    nr.logError("World " + worldPath + " not found. Using overworld.");
-                }
-            }
+            if (locationObject.has("world"))
+                worldPath = locationObject.get("world").getAsString();
             locationObject.remove("world");
-            locationObject.addProperty("world", world.getRegistryKey().getValue().toString());
+            locationObject.addProperty("world", worldPath);
 
             if (locationObject.has("name"))
                 name = locationObject.get("name").getAsString();
@@ -155,7 +140,7 @@ public class LocationsConfig {
             locationObject.add("join_location", joinLocationObject);
 
             Vec3d join_pos = new Vec3d(joinX, joinY, joinZ);
-            locations.add(new Location(key, name, pos, world, borderRadius, bossPushbackRadius, bossFacingDirection, useJoinLocation, join_pos, yaw, pitch));
+            locations.add(new Location(key, name, pos, worldPath, borderRadius, bossPushbackRadius, bossFacingDirection, useJoinLocation, join_pos, yaw, pitch));
         }
 
         for (Location location : locations) {
@@ -165,7 +150,7 @@ public class LocationsConfig {
             locationObject.addProperty("x_pos", location.pos().getX());
             locationObject.addProperty("y_pos", location.pos().getY());
             locationObject.addProperty("z_pos", location.pos().getZ());
-            locationObject.addProperty("world", location.world().getRegistryKey().getValue().toString());
+            locationObject.addProperty("world", location.worldPath());
             locationObject.addProperty("name", location.name());
             locationObject.addProperty("border_radius", location.borderRadius());
             locationObject.addProperty("boss_pushback_radius", location.bossPushbackRadius());

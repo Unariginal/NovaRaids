@@ -183,6 +183,7 @@ public class WebhookHandler {
                 .setContent(rolePing)
                 .setUsername(webhookUsername)
                 .setAvatarUrl(webhookAvatarUrl)
+                .setContent(rolePing)
                 .addEmbeds(embed);
     }
 
