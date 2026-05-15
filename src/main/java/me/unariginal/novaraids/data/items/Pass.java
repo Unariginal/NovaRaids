@@ -1,9 +1,12 @@
 package me.unariginal.novaraids.data.items;
 
-import com.google.gson.JsonObject;
-import net.minecraft.component.ComponentChanges;
-import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 
 import java.util.List;
 
-public record Pass(JsonObject passObject, Item passItem, String passName, List<String> passLore, ComponentChanges passData) {}
+public class Pass {
+    public ItemStack passItem = Items.PAPER.getDefaultStack();
+    public String passName = "<light_purple>Raid Pass";
+    public List<String> passLore = List.of("<gray>Use to join a raid!");
+}

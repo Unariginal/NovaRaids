@@ -4,7 +4,7 @@ import com.cobblemon.mod.common.command.argument.SpeciesArgumentType;
 import com.cobblemon.mod.common.pokemon.Species;
 import io.leangen.geantyref.TypeToken;
 import me.unariginal.novaraids.commands.parser.BossParser;
-import me.unariginal.novaraids.data.bosssettings.Boss;
+import me.unariginal.novaraids.data.bosses.Boss;
 import net.minecraft.server.command.ServerCommandSource;
 import org.incendo.cloud.annotations.AnnotationParser;
 import org.incendo.cloud.brigadier.parser.WrappedBrigadierParser;

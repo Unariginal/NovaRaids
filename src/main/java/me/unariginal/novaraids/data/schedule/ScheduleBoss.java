@@ -2,5 +2,9 @@ package me.unariginal.novaraids.data.schedule;
 
 import java.util.List;
 
-public record ScheduleBoss(String type, String id, double weight, List<String> blacklistedBosses) {
+public class ScheduleBoss {
+    public String type;
+    public String id;
+    public double weight;
+    public List<String> blacklistedBosses;
 }

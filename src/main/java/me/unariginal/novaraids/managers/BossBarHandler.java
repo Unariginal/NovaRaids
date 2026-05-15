@@ -17,17 +17,17 @@ public class BossBarHandler {
         Collection<Raid> raids = NovaRaids.INSTANCE.activeRaids().values();
 
         for (Raid raid : raids) {
-            for (Map.Entry<UUID, BossBar> entry : raid.bossbars().entrySet()) {
+            for (Map.Entry<UUID, BossBar> entry : raid.playerBossbars.entrySet()) {
                 BossBar bossBar = entry.getValue();
                 try {
-                    if (raid.stage() == 2) {
-                        float progress = Math.clamp((float) raid.currentHealth() / raid.maxHealth(), 0, 1);
+                    if (raid.stage == 2) {
+                        float progress = Math.clamp((float) raid.currentHealth / raid.maxHealth, 0, 1);
                         bossBar.progress(progress);
                         continue;
                     }
 
-                    float remainingTicks = (float) (raid.phaseEndTime() - NovaRaids.INSTANCE.server().getOverworld().getTime());
-                    float progress = 1.0F / (raid.phaseLength() * 20L);
+                    float remainingTicks = (float) (raid.phaseEndTime() - raid.location.getServerWorld().getTime());
+                    float progress = 1.0F / (raid.phaseLength * 20L);
                     float total = Math.clamp(progress * remainingTicks, 0, 1);
                     bossBar.progress(total);
                 } catch (IllegalArgumentException e) {
@@ -35,7 +35,7 @@ public class BossBarHandler {
                 }
             }
 
-            raid.showOverlay(raid.bossbarData());
+            raid.showOverlay(raid.bossbarData);
         }
     }
 }

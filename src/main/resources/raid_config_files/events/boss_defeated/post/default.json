@@ -1,0 +1,25 @@
+{
+  "messages": ["%prefix% %boss.name% has been defeated in %raid.defeat_time%!"],
+  "commands": [],
+  "sounds": [],
+  "particles": [],
+  "effects": [],
+  "titles": [],
+  "molang": [],
+  "discord_webhook": {
+    "embed_title": "%boss.name% Raid Has Ended",
+    "fields": [
+      {
+        "inline": false,
+        "name": "------- Raid Results -------",
+        "value": "",
+        "insert_leaderboard_after": true
+      }
+    ],
+    "leaderboard_field_layout": {
+      "inline": false,
+      "name": "%raid.player.place%. %raid.player%:",
+      "value": "%raid.player.damage% damage"
+    }
+  }
+}

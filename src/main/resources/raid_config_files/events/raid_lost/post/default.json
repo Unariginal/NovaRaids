@@ -1,0 +1,20 @@
+{
+  "messages": ["%prefix% %boss.name% was not defeated on time!"],
+  "commands": [],
+  "sounds": [],
+  "particles": [],
+  "effects": [],
+  "titles": [],
+  "molang": [],
+  "discord": {
+    "embed_title": "Failed To Defeat %boss.name%!",
+    "fields": [
+      {
+        "inline": false,
+        "name": "Dealt %raid.total_damage%/%boss.maxhp% damage!",
+        "value": "",
+        "insert_leaderboard_after": false
+      }
+    ]
+  }
+}

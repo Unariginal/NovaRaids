@@ -15,6 +15,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.UUID;
 
+import static me.unariginal.novaraids.config.ConfigManager.CONFIG;
+
 @Mixin(Entity.class)
 public class HidePlayersAndPokemon {
     @Inject(at = {@At("HEAD")}, method = {"canBeSpectated"}, cancellable = true)
@@ -26,7 +28,7 @@ public class HidePlayersAndPokemon {
                 if (pokemon.getPersistentData().contains("raid_entity")
                         && pokemon.getPersistentData().contains("boss_clone")
                         && pokemon.getPersistentData().contains("battle_clone")) {
-                    if (!NovaRaids.INSTANCE.debug) {
+                    if (!CONFIG.debug) {
                         cir.setReturnValue(false);
                     }
                 }
@@ -34,7 +36,7 @@ public class HidePlayersAndPokemon {
 
             if (NovaRaids.INSTANCE.ignorePokemonVisibility.contains(spectator.getUuid())) return;
 
-            if (NovaRaids.INSTANCE.config().hideOtherCatchEncounters) {
+            if (CONFIG.raidSettings.hideOtherCatchEncounters) {
                 if (PlayerRaidCache.isInRaid(spectator)) {
                     if (pokemon != null) {
                         if (pokemon.getPersistentData().contains("catch_encounter")) {
@@ -54,7 +56,7 @@ public class HidePlayersAndPokemon {
                 }
             }
 
-            if (NovaRaids.INSTANCE.config().hideOtherPokemonInRaid) {
+            if (CONFIG.raidSettings.hideOtherPokemonInRaid) {
                 if (PlayerRaidCache.isInRaid(spectator)) {
                     if (pokemon != null) {
                         if (!pokemon.getPersistentData().contains("raid_entity")) {
@@ -71,7 +73,7 @@ public class HidePlayersAndPokemon {
                 }
             }
         } else if (self instanceof ServerPlayerEntity) {
-            if (NovaRaids.INSTANCE.config().hideOtherPlayersInRaid && !NovaRaids.INSTANCE.ignorePlayerVisibility.contains(spectator.getUuid())) {
+            if (CONFIG.raidSettings.hideOtherPlayersInRaid && !NovaRaids.INSTANCE.ignorePlayerVisibility.contains(spectator.getUuid())) {
                 if (PlayerRaidCache.isInRaid(spectator)) {
                     cir.setReturnValue(false);
                 }

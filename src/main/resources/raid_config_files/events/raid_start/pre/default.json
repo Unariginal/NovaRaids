@@ -1,0 +1,20 @@
+{
+  "messages": ["%prefix% A raid is starting against %boss.name%!"],
+  "commands": [],
+  "sounds": [],
+  "particles": [],
+  "effects": [],
+  "titles": [],
+  "molang": [],
+  "discord_webhook": {
+    "message": "<@&role_id_here>",
+    "embed_title": "%boss.name% Raid Has Started",
+    "fields": [
+      {
+        "inline": false,
+        "name": "Players: %player_count%/%max_players%",
+        "value": "Join Now Using `%join_method%`!"
+      }
+    ]
+  }
+}

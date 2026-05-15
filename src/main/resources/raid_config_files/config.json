@@ -1,5 +1,6 @@
 {
   "debug": false,
+  "use_experimental_shared_battles": false,
   "raid_settings": {
     "use_queue_system": false,
     "run_raids_with_no_players": false,
@@ -74,5 +75,16 @@
         }
       }
     }
+  },
+  "discord_webhook": {
+    "enabled": false,
+    "url": "https://discord.com/api/webhooks/your_webhook_url",
+    "username": "Raid Alert!",
+    "avatar_url": "https://cdn.modrinth.com/data/MdwFAVRL/e54083a07bcd9436d1f8d2879b0d821a54588b9e.png",
+    "thumbnail_database_url": "https://play.pokemonshowdown.com/sprites/%rute%/%pokemon%%form%.gif",
+    "update_rate_seconds": 15,
+    "delete_if_no_fight_phase": true,
+    "blacklisted_categories": [],
+    "blacklisted_bosses": []
   }
 }

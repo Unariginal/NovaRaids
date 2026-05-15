@@ -7,7 +7,7 @@ import me.unariginal.novaraids.managers.BossBarHandler;
 import me.unariginal.novaraids.managers.EventManager;
 import me.unariginal.novaraids.managers.Raid;
 import me.unariginal.novaraids.managers.TickManager;
-import me.unariginal.novaraids.utils.WebhookHandler;
+import me.unariginal.novaraids.managers.WebhookHandler;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -18,25 +18,16 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
+import static me.unariginal.novaraids.config.ConfigManager.CONFIG;
+import static me.unariginal.novaraids.config.ConfigManager.load;
+
 public class NovaRaids implements ModInitializer {
     public static final String MOD_ID = "novaraids";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
     public static NovaRaids INSTANCE;
-    public static boolean LOADED = true;
 
     private BossBarHandler bossBarHandler;
 
-    private Config config;
-    private LocationsConfig locationsConfig;
-    private BossbarsConfig bossbarsConfig;
-    private MessagesConfig messagesConfig;
-    private SchedulesConfig schedulesConfig;
-    private RewardPresetsConfig rewardPresetsConfig;
-    private RewardPoolsConfig rewardPoolsConfig;
-    private BossesConfig bossesConfig;
-    private GuisConfig guisConfig;
-
-    public boolean debug = false;
     private MinecraftServer server;
     private FabricServerAudiences audience;
     private RaidCommands raidCommands;
@@ -57,90 +48,47 @@ public class NovaRaids implements ModInitializer {
             this.server = server;
             this.audience = FabricServerAudiences.of(server);
 
+            load();
             reloadConfig();
-            if (LOADED) {
-                EventManager.initialiseEvents();
-                bossBarHandler = new BossBarHandler();
-            } else {
-                LOGGER.error("Config did not load properly!");
-            }
+            EventManager.initialiseEvents();
+            bossBarHandler = new BossBarHandler();
         });
 
         // Server tick loop
         ServerTickEvents.END_SERVER_TICK.register(server -> {
-            if (LOADED) {
-                try {
-                    TickManager.updateWebhooks();
-                    TickManager.fixBossPositions();
-                    TickManager.handleDefeatedBosses();
-                    TickManager.executeTasks();
-                    TickManager.fixPlayerPositions();
-                    TickManager.fixPlayerPokemon();
-                    TickManager.scheduledRaids();
-                } catch (ConcurrentModificationException e) {
-                    logInfo("Suppressing concurrent modification exception!");
-                }
-                for (Raid raid : activeRaids.values()) {
-                    raid.removePlayers();
-                }
+            try {
+                TickManager.updateWebhooks();
+                TickManager.fixBossPositions();
+                TickManager.handleDefeatedBosses();
+                TickManager.executeTasks();
+                TickManager.fixPlayerPositions();
+                TickManager.fixPlayerPokemon();
+                TickManager.scheduledRaids();
+            } catch (ConcurrentModificationException e) {
+                logInfo("Suppressing concurrent modification exception!");
+            }
+            for (Raid raid : activeRaids.values()) {
+                raid.removePlayers();
             }
         });
 
         // Clean up at server stop
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
-            if (LOADED) {
-                for (QueueItem queue : queuedRaids) {
-                    queue.cancelItem();
-                }
-                queuedRaids.clear();
-
-                for (Raid raid : activeRaids.values()) {
-                    raid.stop();
-                }
-                // TODO: Save current raid, write queue to file
+            for (QueueItem queue : queuedRaids) {
+                queue.cancelItem();
             }
+            queuedRaids.clear();
+
+            for (Raid raid : activeRaids.values()) {
+                raid.stop();
+            }
+            // TODO: Save current raid, write queue to file
         });
     }
 
-    public Config config() {
-        return config;
-    }
-    public LocationsConfig locationsConfig() {
-        return locationsConfig;
-    }
-    public BossbarsConfig bossbarsConfig() {
-        return bossbarsConfig;
-    }
-    public MessagesConfig messagesConfig() {
-        return messagesConfig;
-    }
-    public SchedulesConfig schedulesConfig() {
-        return schedulesConfig;
-    }
-    public RewardPresetsConfig rewardPresetsConfig() {
-        return rewardPresetsConfig;
-    }
-    public RewardPoolsConfig rewardPoolsConfig() {
-        return rewardPoolsConfig;
-    }
-    public BossesConfig bossesConfig() {
-        return bossesConfig;
-    }
-    public GuisConfig guisConfig() {
-        return guisConfig;
-    }
-
     public void reloadConfig() {
-        config = new Config();
-        locationsConfig = new LocationsConfig();
-        bossbarsConfig = new BossbarsConfig();
-        messagesConfig = new MessagesConfig();
-        schedulesConfig = new SchedulesConfig();
-        rewardPresetsConfig = new RewardPresetsConfig();
-        rewardPoolsConfig = new RewardPoolsConfig();
-        bossesConfig = new BossesConfig();
-        guisConfig = new GuisConfig();
-        if (WebhookHandler.webhookToggle) {
+        load();
+        if (CONFIG.discordWebhook.enabled) {
             WebhookHandler.connectWebhook();
         }
     }
@@ -158,7 +106,7 @@ public class NovaRaids implements ModInitializer {
     }
 
     public void logInfo(String message) {
-        if (debug) {
+        if (CONFIG.debug) {
             logger().info("[NovaRaids] {}", message);
         }
     }
@@ -184,7 +132,7 @@ public class NovaRaids implements ModInitializer {
     }
 
     public void initNextRaid() {
-        if (config.useQueueSystem) {
+        if (CONFIG.raidSettings.useQueueSystem) {
             if (!queuedRaids.isEmpty()) {
                 queuedRaids.remove().startRaid();
             }
@@ -197,7 +145,7 @@ public class NovaRaids implements ModInitializer {
 
     public int getRaidId(Raid raid) {
         for (int key : activeRaids.keySet()) {
-            if (activeRaids.get(key).uuid().equals(raid.uuid())) {
+            if (activeRaids.get(key).uuid.equals(raid.uuid)) {
                 return key;
             }
         }

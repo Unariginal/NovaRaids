@@ -1,0 +1,9 @@
+{
+  "messages": ["%prefix% %player% did %damage% damage to the boss!"],
+  "commands": [],
+  "sounds": [],
+  "particles": [],
+  "effects": [],
+  "titles": [],
+  "molang": []
+}

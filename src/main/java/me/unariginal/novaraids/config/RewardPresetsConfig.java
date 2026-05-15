@@ -1,82 +1,139 @@
 package me.unariginal.novaraids.config;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import me.unariginal.novaraids.NovaRaids;
-import me.unariginal.novaraids.data.rewards.Reward;
-import net.fabricmc.loader.api.FabricLoader;
+import com.cobblemon.mod.common.Cobblemon;
+import com.cobblemon.mod.common.api.Priority;
+import com.cobblemon.mod.common.api.abilities.Abilities;
+import com.cobblemon.mod.common.api.abilities.AbilityTemplate;
+import com.cobblemon.mod.common.api.moves.MoveTemplate;
+import com.cobblemon.mod.common.api.moves.Moves;
+import com.cobblemon.mod.common.api.pokemon.Natures;
+import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
+import com.cobblemon.mod.common.api.pokemon.PokemonSpecies;
+import com.cobblemon.mod.common.api.storage.party.PlayerPartyStore;
+import com.cobblemon.mod.common.pokemon.*;
+import net.minecraft.item.ItemStack;
+import net.minecraft.server.command.CommandManager;
+import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class RewardPresetsConfig {
-    public List<Reward> rewards = new ArrayList<>();
+    public static class Reward {
+        public String type;
+        private UUID uuid;
 
-    public RewardPresetsConfig() {
-        try {
-            loadConfig();
-        } catch (IOException | NullPointerException | UnsupportedOperationException e) {
-            NovaRaids.LOADED = false;
-            NovaRaids.LOGGER.error("[NovaRaids] Failed to load reward presets file.", e);
+        public Reward(String type) {
+            this.type = type;
+            this.uuid = UUID.randomUUID();
+        }
+
+        public UUID getUuid() {
+            if (uuid == null) uuid = UUID.randomUUID();
+            return uuid;
+        }
+
+        public void grantReward(ServerPlayerEntity player) {}
+    }
+
+    public static class ItemReward extends Reward {
+        public ItemStack item;
+        public int minCount;
+        public int maxCount;
+
+        public ItemReward(String type, ItemStack item, int minCount, int maxCount) {
+            super(type);
+            this.item = item;
+            this.minCount = minCount;
+            this.maxCount = maxCount;
+        }
+
+        @Override
+        public void grantReward(ServerPlayerEntity player) {
+            player.giveItemStack(item.copyWithCount(new Random().nextInt(minCount, maxCount + 1)));
         }
     }
 
-    public void loadConfig() throws IOException, NullPointerException, UnsupportedOperationException {
-        File rootFolder = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids").toFile();
-        if (!rootFolder.exists()) {
-            rootFolder.mkdirs();
+    public static class CommandReward extends Reward {
+        public List<String> commands;
+
+        public CommandReward(String type, List<String> commands) {
+            super(type);
+            this.commands = commands;
         }
 
-        File file = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/reward_presets.json").toFile();
-        JsonObject config = new JsonObject();
-        if (file.exists()) config = JsonParser.parseReader(new FileReader(file)).getAsJsonObject();
-
-        if (config.keySet().isEmpty()) {
-            InputStream stream = NovaRaids.class.getResourceAsStream("/raid_config_files/reward_presets.json");
-            assert stream != null;
-            OutputStream out = new FileOutputStream(file);
-
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = stream.read(buffer)) > 0) {
-                out.write(buffer, 0, length);
+        @Override
+        public void grantReward(ServerPlayerEntity player) {
+            CommandManager cmdManager = Objects.requireNonNull(player.getServer()).getCommandManager();
+            ServerCommandSource source = player.getServer().getCommandSource();
+            for (String command : commands) {
+                cmdManager.executeWithPrefix(source, command.replaceAll("%player%", player.getNameForScoreboard()));
             }
-
-            stream.close();
-            out.close();
-
-            config = JsonParser.parseReader(new FileReader(file)).getAsJsonObject();
         }
-
-        for (String key : config.keySet()) {
-            JsonObject rewardObject = config.getAsJsonObject(key);
-            Reward reward = ConfigHelper.getReward(rewardObject, key);
-            if (reward == null) continue;
-            rewards.add(reward);
-        }
-
-        for (Reward reward : rewards) {
-            config.remove(reward.name());
-            config.add(reward.name(), reward.rewardObject());
-        }
-
-        file.delete();
-        file.createNewFile();
-        Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
-        Writer writer = new FileWriter(file);
-        gson.toJson(config, writer);
-        writer.close();
     }
 
-    public Reward getReward(String id) {
-        for (Reward reward : rewards) {
-            if (reward.name().equalsIgnoreCase(id)) {
-                return reward;
-            }
+    public static class PokemonReward extends Reward {
+        public PokemonData pokemon;
+
+        public static class PokemonData {
+            public String species;
+            public int level;
+            public String ability;
+            public String nature;
+            public String features;
+            public String gender;
+            public boolean shiny;
+            public float scale;
+            public ItemStack heldItem;
+            public List<String> moves;
+            public IVs ivs;
+            public EVs evs;
         }
-        return null;
+
+        public PokemonReward(String type, PokemonData pokemon) {
+            super(type);
+            this.pokemon = pokemon;
+        }
+
+        @Override
+        public void grantReward(ServerPlayerEntity player) {
+            Pokemon pokemon = new Pokemon();
+            Species species = PokemonSpecies.getByName(this.pokemon.species);
+            if (species == null) return;
+            pokemon.setSpecies(species);
+
+            pokemon.setLevel(this.pokemon.level);
+
+            AbilityTemplate abilityTemplate = Abilities.get(this.pokemon.ability);
+            if (abilityTemplate == null) return;
+            pokemon.updateAbility(abilityTemplate.create(false, Priority.LOWEST));
+
+            Nature nature = Natures.getNature(this.pokemon.nature);
+            if (nature == null) return;
+            pokemon.setNature(nature);
+
+            PokemonProperties.Companion.parse(this.pokemon.features).apply(pokemon);
+            pokemon.setGender(Gender.valueOf(this.pokemon.gender.toUpperCase()));
+            pokemon.setShiny(this.pokemon.shiny);
+            pokemon.setScaleModifier(this.pokemon.scale);
+            pokemon.setHeldItem$common(this.pokemon.heldItem);
+            int moveSlot = 0;
+            for (String moveName : this.pokemon.moves) {
+                MoveTemplate moveTemplate = Moves.getByName(moveName);
+                if (moveTemplate == null) continue;
+                pokemon.getMoveSet().setMove(moveSlot++, moveTemplate.create());
+                if (moveSlot >= 4) break;
+            }
+            pokemon.setIvs$common(this.pokemon.ivs);
+            pokemon.setEvs$common(this.pokemon.evs);
+
+            PlayerPartyStore party = Cobblemon.INSTANCE.getStorage().getParty(player);
+            party.add(pokemon);
+        }
+    }
+
+    public static Reward getReward(String id) {
+        return ConfigManager.REWARD_PRESETS.get(id);
     }
 }

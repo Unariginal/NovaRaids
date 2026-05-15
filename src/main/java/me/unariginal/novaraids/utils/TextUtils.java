@@ -2,11 +2,13 @@ package me.unariginal.novaraids.utils;
 
 import com.mojang.authlib.GameProfile;
 import me.unariginal.novaraids.NovaRaids;
-import me.unariginal.novaraids.data.bosssettings.Boss;
+import me.unariginal.novaraids.data.bosses.Boss;
 import me.unariginal.novaraids.managers.Raid;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+
+import static me.unariginal.novaraids.config.ConfigManager.MESSAGES;
 
 public class TextUtils {
     private static final NovaRaids nr = NovaRaids.INSTANCE;
@@ -16,7 +18,7 @@ public class TextUtils {
     }
 
     public static String parse(String text) {
-        return text.replaceAll("%prefix%", nr.messagesConfig().prefix);
+        return text.replaceAll("%prefix%", MESSAGES.prefix);
     }
 
     public static String parse(String text, ServerPlayerEntity sourcePlayer, ServerPlayerEntity targetPlayer, int amount, String itemType) {
@@ -29,44 +31,45 @@ public class TextUtils {
 
     public static String parse(String message, Raid raid) {
         message = parse(message);
-        message = parse(message, raid.bossInfo());
-        long phaseRemaining = ((raid.phaseStartTime() + (raid.phaseLength() * 20L)) - NovaRaids.INSTANCE.server().getOverworld().getTime()) / 20;
+        message = parse(message, raid.bossInfo);
+        long phaseRemaining = ((raid.phaseStartTime + (raid.phaseLength * 20L)) - NovaRaids.INSTANCE.server().getOverworld().getTime()) / 20;
         if (phaseRemaining < 0) {
             phaseRemaining = 0;
         }
 
-        message = spaceReplace(message, "%boss.form%", !raid.raidBossPokemon().getForm().getName().equalsIgnoreCase("normal"), raid.raidBossPokemon().getForm().getName());
+        message = spaceReplace(message, "%boss.form%", !raid.bossPokemon.getForm().getName().equalsIgnoreCase("normal"), raid.bossPokemon.getForm().getName());
 
         return message
-                .replaceAll("%boss.maxhp%", String.valueOf(raid.maxHealth()))
+                .replaceAll("%boss.maxhp%", String.valueOf(raid.maxHealth))
                 .replaceAll("%raid.defeat_time%", (raid.bossDefeatTime() > 0) ? TextUtils.hms(raid.bossDefeatTime() * 20L) : "")
                 .replaceAll("%raid.completion_time%", (raid.raidCompletionTime() > 0) ? TextUtils.hms(raid.raidCompletionTime()) : "")
                 .replaceAll("%raid.phase_timer%", TextUtils.hms(phaseRemaining))
-                .replaceAll("%boss.currenthp%", String.valueOf(raid.currentHealth()))
-                .replaceAll("%raid.total_damage%", String.valueOf(raid.maxHealth() - raid.currentHealth()))
+                .replaceAll("%boss.currenthp%", String.valueOf(raid.currentHealth))
+                .replaceAll("%raid.total_damage%", String.valueOf(raid.maxHealth - raid.currentHealth))
                 .replaceAll("%raid.timer%", TextUtils.hms(raid.raidTimer() / 20))
                 .replaceAll("%raid.player_count%", String.valueOf(raid.participatingPlayers.size()))
-                .replaceAll("%raid.max_players%", (raid.maxPlayers() == -1) ? "∞" : String.valueOf(raid.maxPlayers()))
+                .replaceAll("%raid.max_players%", (raid.maxPlayers == -1) ? "∞" : String.valueOf(raid.maxPlayers))
                 .replaceAll("%raid.phase%", raid.getPhase())
-                .replaceAll("%raid.category%", raid.raidBossCategory().name())
-                .replaceAll("%raid.category.id%", raid.raidBossCategory().id())
+                .replaceAll("%raid.category%", raid.category.categoryName)
+                .replaceAll("%raid.category.id%", raid.category.categoryId)
                 .replaceAll("%raid.id%", String.valueOf(NovaRaids.INSTANCE.getRaidId(raid)))
-                .replaceAll("%raid.min_players%", String.valueOf(raid.minPlayers()))
-                .replaceAll("%raid.join_method%", (raid.raidBossCategory().requirePass()) ? "A Raid Pass" : "/raid list")
-                .replaceAll("%raid.location%", raid.raidBossLocation().name())
-                .replaceAll("%raid.location.id%", raid.raidBossLocation().id())
-                .replaceAll("%boss.form%", raid.raidBossPokemon().getForm().getName());
+                .replaceAll("%raid.min_players%", String.valueOf(raid.minPlayers))
+                .replaceAll("%raid.join_method%", (raid.category.raidDetails.requirePass) ? "A Raid Pass" : "/raid list")
+                .replaceAll("%raid.location%", raid.location.name)
+//                .replaceAll("%raid.location.id%", raid.raidBossLocation)
+                .replaceAll("%boss.form%", raid.bossPokemon.getForm().getName());
     }
 
     public static String parse(String message, Boss boss) {
         message = parse(message);
         message = message
-                .replaceAll("%boss%", boss.bossId())
-                .replaceAll("%boss.species%", boss.pokemonDetails().species().getName())
-                .replaceAll("%boss.level%", String.valueOf(boss.pokemonDetails().level()))
-                .replaceAll("%boss.minimum_level%", String.valueOf(boss.raidDetails().minimumLevel()))
-                .replaceAll("%boss.maximum_level%", String.valueOf(boss.raidDetails().maximumLevel()))
-                .replaceAll("%boss.name%", boss.displayName());
+                .replaceAll("%boss%", boss.bossId)
+                // TODO: Species not string
+                .replaceAll("%boss.species%", boss.pokemonDetails.species)
+                .replaceAll("%boss.level%", String.valueOf(boss.pokemonDetails.level))
+                .replaceAll("%boss.minimum_level%", String.valueOf(boss.raidDetails.minimumLevel))
+                .replaceAll("%boss.maximum_level%", String.valueOf(boss.raidDetails.maximumLevel))
+                .replaceAll("%boss.name%", boss.bossDetails.displayName);
 
         return message;
     }

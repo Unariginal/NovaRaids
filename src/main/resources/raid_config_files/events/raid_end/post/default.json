@@ -1,0 +1,9 @@
+{
+  "messages": ["%prefix% The %boss.name% raid has finished."],
+  "commands": [],
+  "sounds": [],
+  "particles": [],
+  "effects": [],
+  "titles": [],
+  "molang": []
+}

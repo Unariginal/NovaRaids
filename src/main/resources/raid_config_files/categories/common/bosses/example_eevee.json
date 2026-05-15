@@ -1,0 +1,265 @@
+{
+  "boss_id": "example_eevee",
+  "global_weight": 15.0,
+  "category_weight": 10.0,
+  "pokemon_details": {
+    "species": "eevee",
+    "level": 50,
+    "features": [
+      {
+        "feature": "",
+        "weight": 1.0
+      }
+    ],
+    "abilities": [
+      {
+        "ability": "adaptability",
+        "weight": 4.5
+      },
+      {
+        "ability": "runaway",
+        "weight": 13.0
+      }
+    ],
+    "natures": [
+      {
+        "nature": "calm",
+        "weight": 5.0
+      },
+      {
+        "nature": "jolly",
+        "weight": 1.2
+      }
+    ],
+    "genders": [
+      {
+        "gender": "FEMALE",
+        "weight": 12.5
+      },
+      {
+        "gender": "MALE",
+        "weight": 87.5
+      }
+    ],
+    "gimmicks": [],
+    "shiny": false,
+    "tera_type": "random",
+    "gmax_factor": false,
+    "dynamax_level": 0,
+    "scale": 5.0,
+    "held_item": "cobblemon:leftovers",
+    "held_item_data": {},
+    "moves": [
+      "bite",
+      "tackle",
+      "endure",
+      "doubleedge"
+    ],
+    "friendship": 50,
+    "ivs": {
+      "hp": 31,
+      "atk": 31,
+      "def": 31,
+      "sp_atk": 31,
+      "sp_def": 31,
+      "spd": 31
+    },
+    "evs": {
+      "hp": 0,
+      "atk": 0,
+      "def": 0,
+      "sp_atk": 0,
+      "sp_def": 0,
+      "spd": 0
+    }
+  },
+  "boss_details": {
+    "display_name": "Really Big Eevee",
+    "base_health": 1000,
+    "health_increase_per_player": 500,
+    "apply_glowing": true,
+    "ai_skill_level": 3,
+    "reroll_features_each_battle": false,
+    "reroll_gimmick_each_battle": true,
+    "locations": [
+      {
+        "location": "example_location",
+        "weight": 50.0
+      }
+    ]
+  },
+  "item_settings": {
+    "allow_global_pokeballs": true,
+    "allow_category_pokeballs": true,
+    "boss_voucher": {
+      "voucher_item": "minecraft:feather",
+      "voucher_name": "",
+      "voucher_lore": [],
+      "voucher_data": {}
+    },
+    "boss_pass": {
+      "pass_item": "minecraft:paper",
+      "pass_name": "",
+      "pass_lore": [],
+      "pass_data": {}
+    },
+    "raid_balls": {
+      "eevee_premier": {
+        "pokeball": "cobblemon:premier_ball",
+        "pokeball_name": "<red>Eevee Premier Raid Pokeball",
+        "pokeball_lore": [
+          "<gray>Use this to try and catch %boss%!"
+        ],
+        "pokeball_data": {}
+      },
+      "eevee_ultra": {
+        "pokeball": "cobblemon:ultra_ball",
+        "pokeball_name": "<red>Eevee Ultra Raid Pokeball",
+        "pokeball_lore": [
+          "<gray>Use this to try and catch %boss%!"
+        ],
+        "pokeball_data": {}
+      }
+    }
+  },
+  "raid_details": {
+    "minimum_level": 25,
+    "maximum_level": 100,
+    "setup_phase_time": 30,
+    "fight_phase_time": 600,
+    "do_catch_phase": true,
+    "pre_catch_phase_time": 30,
+    "catch_phase_time": 180,
+    "heal_party_on_challenge": false,
+    "contraband": {
+      "banned_pokemon": [],
+      "banned_moves": [],
+      "banned_abilities": [],
+      "banned_held_items": [],
+      "banned_bag_items": []
+    },
+    "bossbars": {
+      "setup": "setup_phase_example",
+      "fight": "fight_phase_example",
+      "pre_catch": "pre_catch_phase_example",
+      "catch": "catch_phase_example"
+    },
+    "events": {
+      "boss_damaged": {
+        "pre": "default",
+        "post": "default"
+      },
+      "boss_defeated": {
+        "pre": "default",
+        "post": "default"
+      },
+      "raid_start": {
+        "pre": "default",
+        "post": "default"
+      },
+      "raid_end": {
+        "pre": "default",
+        "post": "default"
+      },
+      "raid_lost": {
+        "pre": "default",
+        "post": "default"
+      },
+      "setup_phase": {
+        "pre": "default",
+        "post": "default"
+      },
+      "fight_phase": {
+        "pre": "default",
+        "post": "default"
+      },
+      "catch_warning_phase": {
+        "pre": "default",
+        "post": "default"
+      },
+      "catch_phase": {
+        "pre": "default",
+        "post": "default"
+      }
+    },
+    "override_category_distribution": false,
+    "reward_distribution": [
+      {
+        "places": [
+          {
+            "place": "1",
+            "require_damage": true,
+            "allow_other_rewards": false,
+            "override_category_placement": true
+          }
+        ],
+        "rewards": {
+          "allow_duplicates": true,
+          "rolls": {
+            "min": 1,
+            "max": 5
+          },
+          "reward_pools": [
+            {
+              "weight": 5.0,
+              "pool": {
+                "allow_duplicates": true,
+                "rolls": {
+                  "min": 1,
+                  "max": 5
+                },
+                "rewards": [
+                  {
+                    "weight": 25.0,
+                    "reward": {
+                      "type": "item",
+                      "item": "minecraft:dirt",
+                      "data": {},
+                      "count": {
+                        "min": 1,
+                        "max": 16
+                      }
+                    }
+                  },
+                  {
+                    "weight": 50.0,
+                    "reward": {
+                      "type": "command",
+                      "commands": [
+                        "say Command 1: %player% won the reward!",
+                        "say Command 2: Idk just for fun"
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "catch_settings": {
+    "species_override": "eevee",
+    "level_override": 1,
+    "keep_features": false,
+    "features_override": "",
+    "keep_scale": false,
+    "keep_held_item": false,
+    "randomize_ivs": true,
+    "keep_evs": false,
+    "randomize_gender": true,
+    "randomize_nature": true,
+    "randomize_ability": true,
+    "reset_moves": true,
+    "friendship_override": 50,
+    "places": [
+      {
+        "place": "participating",
+        "require_damage": true,
+        "shiny_chance": 8192.0,
+        "min_perfect_ivs": 0
+      }
+    ]
+  }
+}

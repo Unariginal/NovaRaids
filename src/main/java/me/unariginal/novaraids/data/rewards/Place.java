@@ -1,4 +1,8 @@
 package me.unariginal.novaraids.data.rewards;
 
-public record Place(String place, boolean requireDamage, boolean allowOtherRewards, boolean overrideCategoryReward) {
+public class Place {
+    public String place;
+    public boolean requireDamage;
+    public boolean allowOtherRewards;
+    public Boolean overrideCategoryReward;
 }

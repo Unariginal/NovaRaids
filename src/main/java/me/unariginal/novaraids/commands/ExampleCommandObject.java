@@ -1,7 +1,6 @@
 package me.unariginal.novaraids.commands;
 
-import me.unariginal.novaraids.NovaRaids;
-import me.unariginal.novaraids.data.bosssettings.Boss;
+import me.unariginal.novaraids.data.bosses.Boss;
 import net.minecraft.server.command.ServerCommandSource;
 import org.incendo.cloud.annotations.Argument;
 import org.incendo.cloud.annotations.Command;
@@ -16,10 +15,8 @@ public class ExampleCommandObject {
             @Argument("boss") Boss boss
     ) {
 
-        if(NovaRaids.LOADED) {
             // if source instanceOf PlayerSender....
             // your code here
-        }
 
     }
 
@@ -29,7 +26,7 @@ public class ExampleCommandObject {
             ServerCommandSource source,
             @Argument("category") String category
     ) {
-        if(category == null) {
+        if (category == null) {
 
         }
         // same thing

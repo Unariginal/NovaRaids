@@ -7,17 +7,18 @@ import com.cobblemon.mod.common.battles.actor.PlayerBattleActor;
 import com.cobblemon.mod.common.battles.actor.PokemonBattleActor;
 import com.cobblemon.mod.common.battles.pokemon.BattlePokemon;
 import com.cobblemon.mod.common.pokemon.Pokemon;
-import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.ai.StrongBattleAIFix;
 import me.unariginal.novaraids.cache.PlayerRaidCache;
+import me.unariginal.novaraids.events.RaidEvents;
 import me.unariginal.novaraids.managers.BattleManager;
 import me.unariginal.novaraids.managers.Raid;
-import me.unariginal.novaraids.utils.TextUtils;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import static me.unariginal.novaraids.config.ConfigManager.CONFIG;
 
 @Mixin(value = PokemonBattle.class, remap = false)
 public class BattleEndMixin {
@@ -64,21 +65,22 @@ public class BattleEndMixin {
         if (raid == null) return;
 
         if (!raid.isPlayerFleeing(player)) {
-            if (damage > raid.currentHealth()) {
-                damage = raid.currentHealth();
+            if (damage > raid.currentHealth) {
+                damage = raid.currentHealth;
             }
 
             if (damage > 0) {
+                RaidEvents.BOSS_DAMAGED_EVENT_PRE.invoker().onBossDamagedPre(raid, damage);
                 raid.applyDamage(damage);
                 raid.updatePlayerDamage(player.getUuid(), damage);
-                raid.participatingBroadcast(TextUtils.deserialize(TextUtils.parse(NovaRaids.INSTANCE.messagesConfig().getMessage("player_damage_report"), raid, player, damage, -1)));
+                RaidEvents.BOSS_DAMAGED_EVENT_POST.invoker().onBossDamagedPost(raid, damage);
             }
         }
 
-        if (NovaRaids.INSTANCE.config().automaticBattles) {
-            if (raid.currentHealth() > 0) {
+        if (CONFIG.raidSettings.automaticBattles) {
+            if (raid.currentHealth > 0) {
                 ServerPlayerEntity finalPlayer = player;
-                raid.addTask(player.getServerWorld(), NovaRaids.INSTANCE.config().automaticBattleDelay * 20L, () -> BattleManager.invokeBattle(raid, finalPlayer));
+                raid.addTask(player.getServerWorld(), CONFIG.raidSettings.automaticBattleDelay * 20L, () -> BattleManager.invokeBattle(raid, finalPlayer));
             }
         }
     }

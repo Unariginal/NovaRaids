@@ -1,81 +1,106 @@
 package me.unariginal.novaraids.config;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import me.unariginal.novaraids.NovaRaids;
-import me.unariginal.novaraids.data.rewards.RewardPool;
-import net.fabricmc.loader.api.FabricLoader;
-
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class RewardPoolsConfig {
-    public List<RewardPool> rewardPools = new ArrayList<>();
+    public static class RewardPool {
+        private UUID uuid;
+        public boolean allowDuplicates;
+        public int minRolls;
+        public int maxRolls;
+        public List<RewardItem> rewards;
 
-    public RewardPoolsConfig() {
-        try {
-            loadConfig();
-        } catch (IOException | NullPointerException | UnsupportedOperationException e) {
-            NovaRaids.LOADED = false;
-            NovaRaids.LOGGER.error("[NovaRaids] Failed to load reward pools file.", e);
+        public RewardPool(boolean allowDuplicates, int minRolls, int maxRolls, List<RewardItem> rewards) {
+            this.uuid = UUID.randomUUID();
+            this.allowDuplicates = allowDuplicates;
+            this.minRolls = minRolls;
+            this.maxRolls = maxRolls;
+            this.rewards = rewards;
+        }
+
+        public UUID getUuid() {
+            if (uuid == null) uuid = UUID.randomUUID();
+            return uuid;
+        }
+
+        public List<RewardPresetsConfig.Reward> distributeRewards() {
+            List<RewardPresetsConfig.Reward> rewardsToDistribute = new ArrayList<>();
+            List<UUID> appliedRewards = new ArrayList<>();
+
+            int rolls = new Random().nextInt(minRolls, maxRolls + 1);
+            for (int i = 0; i < rolls; i++) {
+                double totalWeight = 0;
+                for (RewardItem reward : rewards) {
+                    if (allowDuplicates || !appliedRewards.contains(reward.getUuid())) {
+                        totalWeight += reward.weight;
+                    }
+                }
+
+                if (totalWeight > 0) {
+                    double randomWeight = new Random().nextDouble(totalWeight);
+                    totalWeight = 0;
+                    RewardItem rewardToGive = null;
+                    for (RewardItem reward : rewards) {
+                        if (allowDuplicates || !appliedRewards.contains(reward.getUuid())) {
+                            totalWeight += reward.weight;
+                            if (randomWeight < totalWeight) {
+                                rewardToGive = reward;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (rewardToGive != null) {
+                        if (rewardToGive instanceof RewardItemPredefined rewardItemPredefined) {
+                            rewardsToDistribute.add(RewardPresetsConfig.getReward(rewardItemPredefined.rewardPreset));
+                        } else if (rewardToGive instanceof RewardItemUndefined rewardItemUndefined) {
+                            rewardsToDistribute.add(rewardItemUndefined.reward);
+                        }
+
+                        appliedRewards.add(rewardToGive.getUuid());
+                    }
+                }
+            }
+
+            return rewardsToDistribute;
         }
     }
 
-    public void loadConfig() throws IOException, NullPointerException, UnsupportedOperationException {
-        File rootFolder = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids").toFile();
-        if (!rootFolder.exists()) {
-            rootFolder.mkdirs();
+    public static class RewardItem {
+        public double weight;
+        private UUID uuid;
+
+        public RewardItem(double weight) {
+            this.weight = weight;
+            this.uuid = UUID.randomUUID();
         }
 
-        File file = FabricLoader.getInstance().getConfigDir().resolve("NovaRaids/reward_pools.json").toFile();
-        JsonObject config = new JsonObject();
-        if (file.exists()) config = JsonParser.parseReader(new FileReader(file)).getAsJsonObject();
-
-        if (config.keySet().isEmpty()) {
-            InputStream stream = NovaRaids.class.getResourceAsStream("/raid_config_files/reward_pools.json");
-            assert stream != null;
-            OutputStream out = new FileOutputStream(file);
-
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = stream.read(buffer)) > 0) {
-                out.write(buffer, 0, length);
-            }
-
-            stream.close();
-            out.close();
-
-            config = JsonParser.parseReader(new FileReader(file)).getAsJsonObject();
+        public UUID getUuid() {
+            if (uuid == null) uuid = UUID.randomUUID();
+            return uuid;
         }
-
-        for (String key : config.keySet()) {
-            JsonObject rewardObject = config.getAsJsonObject(key);
-            RewardPool rewardPool = ConfigHelper.getRewardPool(rewardObject, key);
-            rewardPools.add(rewardPool);
-        }
-
-        for (RewardPool rewardPool : rewardPools) {
-            config.remove(rewardPool.name());
-            config.add(rewardPool.name(), rewardPool.poolObject());
-        }
-
-        file.delete();
-        file.createNewFile();
-        Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
-        Writer writer = new FileWriter(file);
-        gson.toJson(config, writer);
-        writer.close();
     }
 
-    public RewardPool getRewardPool(String id) {
-        for (RewardPool rewardPool : rewardPools) {
-            if (rewardPool.name().equalsIgnoreCase(id)) {
-                return rewardPool;
-            }
+    public static class RewardItemPredefined extends RewardItem {
+        public String rewardPreset;
+
+        public RewardItemPredefined(double weight, String rewardPreset) {
+            super(weight);
+            this.rewardPreset = rewardPreset;
         }
-        return null;
+    }
+
+    public static class RewardItemUndefined extends RewardItem {
+        public RewardPresetsConfig.Reward reward;
+
+        public RewardItemUndefined(double weight, RewardPresetsConfig.Reward reward) {
+            super(weight);
+            this.reward = reward;
+        }
+    }
+
+    public static RewardPool getRewardPool(String id) {
+        return ConfigManager.REWARD_POOLS.get(id);
     }
 }

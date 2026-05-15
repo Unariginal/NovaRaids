@@ -51,7 +51,7 @@ public class PlayerRaidCache {
     public static void clearFromRaid(UUID uuid) {
         List<UUID> playersToRemove = new ArrayList<>();
         for (Map.Entry<UUID, Raid> entry : playersInRaid.entrySet()) {
-            if (entry.getValue().uuid().equals(uuid)) {
+            if (entry.getValue().uuid.equals(uuid)) {
                 playersToRemove.add(entry.getKey());
             }
         }

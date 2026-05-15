@@ -25,8 +25,9 @@ import kotlin.Unit;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.cache.PlayerRaidCache;
-import me.unariginal.novaraids.config.MessagesConfig;
-import me.unariginal.novaraids.data.bosssettings.Boss;
+import me.unariginal.novaraids.data.bosses.Boss;
+import me.unariginal.novaraids.data.categories.Category;
+import me.unariginal.novaraids.handlers.*;
 import me.unariginal.novaraids.utils.BanHandler;
 import me.unariginal.novaraids.utils.GuiUtils;
 import me.unariginal.novaraids.utils.TextUtils;
@@ -52,6 +53,8 @@ import net.minecraft.util.math.Box;
 
 import java.util.*;
 
+import static me.unariginal.novaraids.config.ConfigManager.*;
+
 @SuppressWarnings("UnusedReturnValue")
 public class EventManager {
     private static Unit unit() {
@@ -59,7 +62,6 @@ public class EventManager {
     }
 
     private static final NovaRaids nr = NovaRaids.INSTANCE;
-    private static final MessagesConfig messages = nr.messagesConfig();
 
     public static void initialiseEvents() {
         CobblemonEvents.THROWN_POKEBALL_HIT.subscribe(Priority.HIGHEST, event -> {
@@ -80,6 +82,16 @@ public class EventManager {
         rightClickEvents();
         playerEvents();
         cobblemonEvents();
+
+        RaidStartEventHandler.register();
+        RaidEndEventHandler.register();
+        RaidLostEventHandler.register();
+        BossDamagedEventHandler.register();
+        BossDefeatedEventHandler.register();
+        SetupPhaseEventHandler.register();
+        FightPhaseEventHandler.register();
+        CatchWarningPhaseEventHandler.register();
+        CatchPhaseEventHandler.register();
     }
 
     private static Unit onThrownPokeballHit(ThrownPokeballHitEvent event) {
@@ -87,7 +99,7 @@ public class EventManager {
         Pokemon pokemon = pokemonEntity.getPokemon();
         if (pokemon.getPersistentData().contains("raid_entity")) {
             for (Raid raid : nr.activeRaids().values()) {
-                for (PokemonEntity clone : raid.getClones().keySet()) {
+                for (PokemonEntity clone : raid.clones.keySet()) {
                     if (clone.getUuid().equals(pokemonEntity.getUuid())) {
                         raid.addPokeballsCapturing(event.getPokeBall());
                         return unit();
@@ -116,10 +128,10 @@ public class EventManager {
         if (player != null && pokemonEntity != null) {
             UUID entityUUID = pokemonEntity.getUuid();
             for (Raid raid : nr.activeRaids().values()) {
-                for (PokemonEntity clone : raid.getClones().keySet()) {
+                for (PokemonEntity clone : raid.clones.keySet()) {
                     if (clone.getUuid().equals(entityUUID)) {
-                        if (!raid.getClones().get(clone).equals(player.getUuid())) {
-                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_not_your_encounter"), raid)));
+                        if (!raid.clones.get(clone).equals(player.getUuid())) {
+                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.warnings.notYourEncounter, raid)));
                             event.setReason(null);
                             event.cancel();
                         }
@@ -127,7 +139,7 @@ public class EventManager {
                     }
                 }
 
-                if (!raid.uuid().equals(entityUUID)) continue;
+                if (!raid.uuid.equals(entityUUID)) continue;
 
                 if (!raid.isParticipating(player)) {
                     event.setReason(null);
@@ -137,14 +149,14 @@ public class EventManager {
 
                 for (Pokemon pokemon : Cobblemon.INSTANCE.getStorage().getParty(player)) {
                     if (pokemon != null) {
-                        if (pokemon.getLevel() < raid.bossInfo().raidDetails().minimumLevel()) {
-                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_minimum_level"), raid)));
+                        if (pokemon.getLevel() < raid.bossInfo.raidDetails.minimumLevel) {
+                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.warnings.minimumLevel, raid)));
                             event.setReason(null);
                             event.cancel();
                             return unit();
                         }
-                        if (pokemon.getLevel() > raid.bossInfo().raidDetails().maximumLevel()) {
-                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_maximum_level"), raid)));
+                        if (pokemon.getLevel() > raid.bossInfo.raidDetails.maximumLevel) {
+                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.warnings.maximumLevel, raid)));
                             event.setReason(null);
                             event.cancel();
                             return unit();
@@ -152,8 +164,8 @@ public class EventManager {
                     }
                 }
 
-                if (raid.stage() == 2) {
-                    if (!BanHandler.hasContraband(player, raid.bossInfo())) {
+                if (raid.stage == 2) {
+                    if (!BanHandler.hasContraband(player, raid.bossInfo)) {
                         BattleManager.invokeBattle(raid, player);
                     }
                 }
@@ -167,7 +179,7 @@ public class EventManager {
         if (player != null) {
             Raid raid = PlayerRaidCache.currentRaid(player);
             if (raid != null) {
-                player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_battle_during_raid"), raid)));
+                player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.warnings.battleDuringRaid, raid)));
                 event.setReason(null);
                 event.cancel();
             }
@@ -191,8 +203,8 @@ public class EventManager {
 
             raid.addFleeingPlayer(player.getUuid());
             List<PokemonEntity> toRemove = new ArrayList<>();
-            for (PokemonEntity cloneEntity : raid.getClones().keySet()) {
-                if (raid.getClones().get(cloneEntity).equals(player.getUuid())) {
+            for (PokemonEntity cloneEntity : raid.clones.keySet()) {
+                if (raid.clones.get(cloneEntity).equals(player.getUuid())) {
                     toRemove.add(cloneEntity);
                 }
             }
@@ -211,7 +223,7 @@ public class EventManager {
             if (entity instanceof PokemonEntity pokemonEntity) {
                 Pokemon pokemon = pokemonEntity.getPokemon();
                 for (Raid raid : nr.activeRaids().values()) {
-                    if (raid.uuid().equals(pokemonEntity.getUuid())) {
+                    if (raid.uuid.equals(pokemonEntity.getUuid())) {
                         event.cancel();
                         return unit();
                     }
@@ -239,7 +251,7 @@ public class EventManager {
         Raid raid = PlayerRaidCache.currentRaid(player);
         if (raid == null) return unit();
 
-        if ((!nr.config().allowExperienceGain || raid.isPlayerFleeing(player.getUuid())) && event.getSource().isBattle()) {
+        if ((!CONFIG.raidSettings.allowExperienceGain || raid.isPlayerFleeing(player.getUuid())) && event.getSource().isBattle()) {
             event.cancel();
         }
 
@@ -266,59 +278,59 @@ public class EventManager {
                             if (bossName.equalsIgnoreCase("*")) {
                                 List<Raid> joinableRaids = new ArrayList<>();
                                 if (category.equalsIgnoreCase("*")) {
-                                    joinableRaids.addAll(nr.activeRaids().values().stream().filter(raid -> raid.stage() == 1).toList());
+                                    joinableRaids.addAll(nr.activeRaids().values().stream().filter(raid -> raid.stage == 1).toList());
                                 } else {
                                     for (Raid raid : nr.activeRaids().values()) {
-                                        if (raid.bossInfo().categoryId().equalsIgnoreCase(category)) {
+                                        if (raid.bossInfo.categoryId.equalsIgnoreCase(category)) {
                                             joinableRaids.add(raid);
                                         }
                                     }
                                 }
 
                                 Map<Integer, SimpleGui> pages = new HashMap<>();
-                                int page_total = GuiUtils.getPageTotal(joinableRaids.size(), nr.guisConfig().passGui.displaySlotTotal());
-                                for (int i = 1; i <= page_total; i++) {
-                                    SimpleGui gui = new SimpleGui(GuiUtils.getScreenSize(nr.guisConfig().passGui.rows), player, false);
-                                    gui.setTitle(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().passGui.title)));
+                                int pageTotal = GuiUtils.getPageTotal(joinableRaids.size(), RAID_PASS_GUI.getTotalSlotsBySymbol(RAID_PASS_GUI.raidDisplayItem.symbol));
+                                for (int i = 1; i <= pageTotal; i++) {
+                                    SimpleGui gui = new SimpleGui(RAID_PASS_GUI.getScreenHandler(), player, false);
+                                    gui.setTitle(TextUtils.deserialize(TextUtils.parse(RAID_PASS_GUI.guiTitle)));
                                     pages.put(i, gui);
                                 }
 
                                 int index = 0;
                                 for (Map.Entry<Integer, SimpleGui> pageEntry : pages.entrySet()) {
-                                    for (Integer slot : nr.guisConfig().passGui.displaySlots()) {
+                                    for (Integer slot : RAID_PASS_GUI.getSlotsBySymbol(RAID_PASS_GUI.raidDisplayItem.symbol)) {
                                         if (index < joinableRaids.size()) {
                                             Raid raid = joinableRaids.get(index);
 
                                             List<Text> lore = new ArrayList<>();
-                                            for (String line : nr.guisConfig().passGui.displayButton.itemLore()) {
+                                            for (String line : RAID_PASS_GUI.raidDisplayItem.itemLore) {
                                                 lore.add(TextUtils.deserialize(TextUtils.parse(line, raid)));
                                             }
 
-                                            ItemStack item = PokemonItem.from(raid.raidBossPokemon());
-                                            item.applyChanges(nr.guisConfig().passGui.displayButton.itemData());
+                                            ItemStack item = PokemonItem.from(raid.bossPokemon);
+                                            // TODO: Get item data and apply it
                                             GuiElement element = new GuiElementBuilder(item)
-                                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().passGui.displayButton.itemName(), raid)))
+                                                    .setName(TextUtils.deserialize(TextUtils.parse(RAID_PASS_GUI.raidDisplayItem.itemName, raid)))
                                                     .setLore(lore)
                                                     .setCallback((num, clickType, slotActionType) -> {
 
                                                         if (!clickType.isLeft) return;
 
-                                                        if (!raid.raidBossCategory().requirePass()) {
-                                                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_no_pass_needed"), raid)));
+                                                        if (!raid.category.raidDetails.requirePass) {
+                                                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.warnings.noPassNeeded, raid)));
                                                             return;
                                                         }
 
-                                                        if (raid.stage() != 1) {
-                                                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_not_joinable"), raid)));
+                                                        if (raid.stage != 1) {
+                                                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.warnings.notJoinable, raid)));
                                                             return;
                                                         }
 
-                                                        boolean hasSpace = raid.participatingPlayers.size() < raid.maxPlayers() ||
-                                                                raid.maxPlayers() == -1 ||
+                                                        boolean hasSpace = raid.participatingPlayers.size() < raid.maxPlayers ||
+                                                                raid.maxPlayers == -1 ||
                                                                 Permissions.check(player, "novaraids.override");
 
                                                         if (!hasSpace) {
-                                                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_max_players"), raid)));
+                                                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.warnings.maxPlayers, raid)));
                                                             return;
                                                         }
 
@@ -326,7 +338,7 @@ public class EventManager {
                                                             itemStack.decrement(1);
                                                             player.setStackInHand(hand, itemStack);
 
-                                                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("joined_raid"), raid)));
+                                                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.joinedRaid, raid)));
 
                                                             pageEntry.getValue().close();
                                                         }
@@ -335,30 +347,28 @@ public class EventManager {
                                             pageEntry.getValue().setSlot(slot, element);
                                             index++;
                                         } else {
-                                            ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().passGui.backgroundButton.item())));
-                                            item.applyChanges(nr.guisConfig().passGui.backgroundButton.itemData());
+                                            ItemStack item = RAID_PASS_GUI.backgroundItem.item.copy();
                                             List<Text> lore = new ArrayList<>();
-                                            for (String line : nr.guisConfig().passGui.backgroundButton.itemLore()) {
+                                            for (String line : RAID_PASS_GUI.backgroundItem.itemLore) {
                                                 lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                                             }
                                             GuiElement element = new GuiElementBuilder(item)
-                                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().passGui.backgroundButton.itemName())))
+                                                    .setName(TextUtils.deserialize(TextUtils.parse(RAID_PASS_GUI.backgroundItem.itemName)))
                                                     .setLore(lore)
                                                     .build();
                                             pageEntry.getValue().setSlot(slot, element);
                                         }
                                     }
 
-                                    if (pageEntry.getKey() < page_total) {
-                                        for (Integer slot : nr.guisConfig().passGui.nextButtonSlots()) {
-                                            ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().passGui.nextButton.item())));
-                                            item.applyChanges(nr.guisConfig().passGui.nextButton.itemData());
+                                    if (pageEntry.getKey() < pageTotal) {
+                                        for (Integer slot : RAID_PASS_GUI.getSlotsBySymbol(RAID_PASS_GUI.nextItem.symbol)) {
+                                            ItemStack item = RAID_PASS_GUI.nextItem.item.copy();
                                             List<Text> lore = new ArrayList<>();
-                                            for (String line : nr.guisConfig().passGui.nextButton.itemLore()) {
+                                            for (String line : RAID_PASS_GUI.nextItem.itemLore) {
                                                 lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                                             }
                                             GuiElement element = new GuiElementBuilder(item)
-                                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().passGui.nextButton.itemName())))
+                                                    .setName(TextUtils.deserialize(TextUtils.parse(RAID_PASS_GUI.nextItem.itemName)))
                                                     .setLore(lore)
                                                     .setCallback(clickType -> {
                                                         pageEntry.getValue().close();
@@ -370,15 +380,14 @@ public class EventManager {
                                     }
 
                                     if (pageEntry.getKey() > 1) {
-                                        for (Integer slot : nr.guisConfig().passGui.previousButtonSlots()) {
-                                            ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().passGui.previousButton.item())));
-                                            item.applyChanges(nr.guisConfig().passGui.previousButton.itemData());
+                                        for (Integer slot : RAID_PASS_GUI.getSlotsBySymbol(RAID_PASS_GUI.previousItem.symbol)) {
+                                            ItemStack item = RAID_PASS_GUI.previousItem.item.copy();
                                             List<Text> lore = new ArrayList<>();
-                                            for (String line : nr.guisConfig().passGui.previousButton.itemLore()) {
+                                            for (String line : RAID_PASS_GUI.previousItem.itemLore) {
                                                 lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                                             }
                                             GuiElement element = new GuiElementBuilder(item)
-                                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().passGui.previousButton.itemName())))
+                                                    .setName(TextUtils.deserialize(TextUtils.parse(RAID_PASS_GUI.previousItem.itemName)))
                                                     .setLore(lore)
                                                     .setCallback(clickType -> {
                                                         pageEntry.getValue().close();
@@ -389,30 +398,28 @@ public class EventManager {
                                         }
                                     }
 
-                                    for (Integer slot : nr.guisConfig().passGui.closeButtonSlots()) {
-                                        ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().passGui.closeButton.item())));
-                                        item.applyChanges(nr.guisConfig().passGui.closeButton.itemData());
+                                    for (Integer slot : RAID_PASS_GUI.getSlotsBySymbol(RAID_PASS_GUI.closeItem.symbol)) {
+                                        ItemStack item = RAID_PASS_GUI.closeItem.item.copy();
                                         List<Text> lore = new ArrayList<>();
-                                        for (String line : nr.guisConfig().passGui.closeButton.itemLore()) {
+                                        for (String line : RAID_PASS_GUI.closeItem.itemLore) {
                                             lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                                         }
                                         GuiElement element = new GuiElementBuilder(item)
-                                                .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().passGui.closeButton.itemName())))
+                                                .setName(TextUtils.deserialize(TextUtils.parse(RAID_PASS_GUI.closeItem.itemName)))
                                                 .setLore(lore)
                                                 .setCallback(clickType -> pageEntry.getValue().close())
                                                 .build();
                                         pageEntry.getValue().setSlot(slot, element);
                                     }
 
-                                    for (Integer slot : nr.guisConfig().passGui.backgroundButtonSlots()) {
-                                        ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().passGui.backgroundButton.item())));
-                                        item.applyChanges(nr.guisConfig().passGui.backgroundButton.itemData());
+                                    for (Integer slot : RAID_PASS_GUI.getSlotsBySymbol(RAID_PASS_GUI.backgroundItem.symbol)) {
+                                        ItemStack item = RAID_PASS_GUI.backgroundItem.item.copy();
                                         List<Text> lore = new ArrayList<>();
-                                        for (String line : nr.guisConfig().passGui.backgroundButton.itemLore()) {
+                                        for (String line : RAID_PASS_GUI.backgroundItem.itemLore) {
                                             lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                                         }
                                         GuiElement element = new GuiElementBuilder(item)
-                                                .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().passGui.backgroundButton.itemName())))
+                                                .setName(TextUtils.deserialize(TextUtils.parse(RAID_PASS_GUI.backgroundItem.itemName)))
                                                 .setLore(lore)
                                                 .build();
                                         pageEntry.getValue().setSlot(slot, element);
@@ -423,72 +430,69 @@ public class EventManager {
                                 }
                             } else {
 
-                                if(PlayerRaidCache.isInRaid(player)) {
+                                if (PlayerRaidCache.isInRaid(player)) {
                                     return TypedActionResult.fail(itemStack);
                                 }
 
                                 for (Raid raid : nr.activeRaids().values()) {
 
-                                    if (raid.bossInfo().bossId().equalsIgnoreCase(bossName)) {
-                                        if (raid.raidBossCategory().requirePass()) {
-                                            if (raid.stage() == 1) {
-                                                if (raid.participatingPlayers.size() < raid.maxPlayers() || raid.maxPlayers() == -1 || Permissions.check(player, "novaraids.override")) {
+                                    if (raid.bossInfo.bossId.equalsIgnoreCase(bossName)) {
+                                        if (raid.category.raidDetails.requirePass) {
+                                            if (raid.stage == 1) {
+                                                if (raid.participatingPlayers.size() < raid.maxPlayers || raid.maxPlayers == -1 || Permissions.check(player, "novaraids.override")) {
                                                     if (raid.addPlayer(player.getUuid(), true)) {
                                                         itemStack.decrement(1);
                                                         player.setStackInHand(hand, itemStack);
 
-                                                        player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("joined_raid"), raid)));
+                                                        player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.joinedRaid, raid)));
                                                     }
                                                 } else {
-                                                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_max_players"), raid)));
+                                                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.warnings.maxPlayers, raid)));
                                                 }
                                             } else {
-                                                player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_not_joinable"), raid)));
+                                                player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.warnings.notJoinable, raid)));
                                             }
                                         } else {
-                                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_no_pass_needed"), raid)));
+                                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.warnings.noPassNeeded, raid)));
                                         }
                                     }
                                 }
                             }
-                        } else if (customData.copyNbt().getString("raid_item").equals("raid_voucher") && nr.config().vouchersEnabled) {
+                        } else if (customData.copyNbt().getString("raid_item").equals("raid_voucher") && CONFIG.itemSettings.voucherSettings.vouchersEnabled) {
                             String bossName = customData.copyNbt().getString("raid_boss");
                             String category = customData.copyNbt().getString("raid_category");
                             if (bossName.equalsIgnoreCase("*")) {
                                 List<Boss> availableRaids = new ArrayList<>();
                                 if (category.equalsIgnoreCase("*")) {
-                                    availableRaids.addAll(nr.bossesConfig().bosses);
+                                    availableRaids.addAll(BOSSES.values());
                                 } else {
-                                    for (Boss boss : nr.bossesConfig().bosses) {
-                                        if (boss.categoryId().equalsIgnoreCase(category)) {
-                                            availableRaids.add(boss);
-                                        }
-                                    }
+                                    availableRaids.addAll(Category.getCategory(category).bosses.values());
                                 }
 
                                 Map<Integer, SimpleGui> pages = new HashMap<>();
-                                int page_total = GuiUtils.getPageTotal(availableRaids.size(), nr.guisConfig().voucherGui.displaySlotTotal());
+                                int page_total = GuiUtils.getPageTotal(availableRaids.size(), RAID_VOUCHER_GUI.getTotalSlotsBySymbol(RAID_VOUCHER_GUI.raidDisplayItem.symbol));
                                 for (int i = 1; i <= page_total; i++) {
-                                    SimpleGui gui = new SimpleGui(GuiUtils.getScreenSize(nr.guisConfig().voucherGui.rows), player, false);
-                                    gui.setTitle(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().voucherGui.title)));
+                                    SimpleGui gui = new SimpleGui(RAID_VOUCHER_GUI.getScreenHandler(), player, false);
+                                    gui.setTitle(TextUtils.deserialize(TextUtils.parse(RAID_VOUCHER_GUI.guiTitle)));
                                     pages.put(i, gui);
                                 }
 
                                 int index = 0;
                                 for (Map.Entry<Integer, SimpleGui> pageEntry : pages.entrySet()) {
-                                    for (Integer slot : nr.guisConfig().voucherGui.displaySlots()) {
+                                    for (Integer slot : RAID_VOUCHER_GUI.getSlotsBySymbol(RAID_VOUCHER_GUI.raidDisplayItem.symbol)) {
                                         if (index < availableRaids.size()) {
                                             Boss boss = availableRaids.get(index);
 
                                             List<Text> lore = new ArrayList<>();
-                                            for (String line : nr.guisConfig().voucherGui.displayButton.itemLore()) {
+                                            for (String line : RAID_VOUCHER_GUI.raidDisplayItem.itemLore) {
                                                 lore.add(TextUtils.deserialize(TextUtils.parse(line, boss)));
                                             }
 
-                                            ItemStack item = PokemonItem.from(boss.pokemonDetails().createPokemon(false, true));
-                                            item.applyChanges(nr.guisConfig().voucherGui.displayButton.itemData());
+                                            // TODO: Check performance of this
+                                            ItemStack item = PokemonItem.from(boss.pokemonDetails.createPokemon());
+                                            // TODO: Apply data
                                             GuiElement element = new GuiElementBuilder(item)
-                                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().voucherGui.displayButton.itemName(), boss)))
+                                                    .setName(TextUtils.deserialize(TextUtils.parse(RAID_VOUCHER_GUI.raidDisplayItem.itemName, boss)))
                                                     .setLore(lore)
                                                     .setCallback((num, clickType, slotActionType) -> {
                                                         if (clickType.isLeft) {
@@ -496,7 +500,7 @@ public class EventManager {
                                                                 itemStack.decrement(1);
                                                                 player.setStackInHand(hand, itemStack);
 
-                                                                player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("used_voucher"), boss)));
+                                                                player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.usedVoucher, boss)));
 
                                                                 pageEntry.getValue().close();
                                                             }
@@ -505,14 +509,13 @@ public class EventManager {
                                             pageEntry.getValue().setSlot(slot, element);
                                             index++;
                                         } else {
-                                            ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().voucherGui.backgroundButton.item())));
-                                            item.applyChanges(nr.guisConfig().voucherGui.backgroundButton.itemData());
+                                            ItemStack item = RAID_VOUCHER_GUI.backgroundItem.item.copy();
                                             List<Text> lore = new ArrayList<>();
-                                            for (String line : nr.guisConfig().voucherGui.backgroundButton.itemLore()) {
+                                            for (String line : RAID_VOUCHER_GUI.backgroundItem.itemLore) {
                                                 lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                                             }
                                             GuiElement element = new GuiElementBuilder(item)
-                                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().voucherGui.backgroundButton.itemName())))
+                                                    .setName(TextUtils.deserialize(TextUtils.parse(RAID_VOUCHER_GUI.backgroundItem.itemName)))
                                                     .setLore(lore)
                                                     .build();
                                             pageEntry.getValue().setSlot(slot, element);
@@ -520,15 +523,14 @@ public class EventManager {
                                     }
 
                                     if (pageEntry.getKey() < page_total) {
-                                        for (Integer slot : nr.guisConfig().voucherGui.nextButtonSlots()) {
-                                            ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().voucherGui.nextButton.item())));
-                                            item.applyChanges(nr.guisConfig().voucherGui.nextButton.itemData());
+                                        for (Integer slot : RAID_VOUCHER_GUI.getSlotsBySymbol(RAID_VOUCHER_GUI.nextItem.symbol)) {
+                                            ItemStack item = RAID_VOUCHER_GUI.nextItem.item.copy();
                                             List<Text> lore = new ArrayList<>();
-                                            for (String line : nr.guisConfig().voucherGui.nextButton.itemLore()) {
+                                            for (String line : RAID_VOUCHER_GUI.nextItem.itemLore) {
                                                 lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                                             }
                                             GuiElement element = new GuiElementBuilder(item)
-                                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().voucherGui.nextButton.itemName())))
+                                                    .setName(TextUtils.deserialize(TextUtils.parse(RAID_VOUCHER_GUI.nextItem.itemName)))
                                                     .setLore(lore)
                                                     .setCallback(clickType -> {
                                                         pageEntry.getValue().close();
@@ -540,15 +542,14 @@ public class EventManager {
                                     }
 
                                     if (pageEntry.getKey() > 1) {
-                                        for (Integer slot : nr.guisConfig().voucherGui.previousButtonSlots()) {
-                                            ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().voucherGui.previousButton.item())));
-                                            item.applyChanges(nr.guisConfig().voucherGui.previousButton.itemData());
+                                        for (Integer slot : RAID_VOUCHER_GUI.getSlotsBySymbol(RAID_VOUCHER_GUI.previousItem.symbol)) {
+                                            ItemStack item = RAID_VOUCHER_GUI.previousItem.item.copy();
                                             List<Text> lore = new ArrayList<>();
-                                            for (String line : nr.guisConfig().voucherGui.previousButton.itemLore()) {
+                                            for (String line : RAID_VOUCHER_GUI.previousItem.itemLore) {
                                                 lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                                             }
                                             GuiElement element = new GuiElementBuilder(item)
-                                                    .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().voucherGui.previousButton.itemName())))
+                                                    .setName(TextUtils.deserialize(TextUtils.parse(RAID_VOUCHER_GUI.previousItem.itemName)))
                                                     .setLore(lore)
                                                     .setCallback(clickType -> {
                                                         pageEntry.getValue().close();
@@ -559,30 +560,28 @@ public class EventManager {
                                         }
                                     }
 
-                                    for (Integer slot : nr.guisConfig().voucherGui.closeButtonSlots()) {
-                                        ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().voucherGui.closeButton.item())));
-                                        item.applyChanges(nr.guisConfig().voucherGui.closeButton.itemData());
+                                    for (Integer slot : RAID_VOUCHER_GUI.getSlotsBySymbol(RAID_VOUCHER_GUI.closeItem.symbol)) {
+                                        ItemStack item = RAID_VOUCHER_GUI.closeItem.item.copy();
                                         List<Text> lore = new ArrayList<>();
-                                        for (String line : nr.guisConfig().voucherGui.closeButton.itemLore()) {
+                                        for (String line : RAID_VOUCHER_GUI.closeItem.itemLore) {
                                             lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                                         }
                                         GuiElement element = new GuiElementBuilder(item)
-                                                .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().voucherGui.closeButton.itemName())))
+                                                .setName(TextUtils.deserialize(TextUtils.parse(RAID_VOUCHER_GUI.closeItem.itemName)))
                                                 .setLore(lore)
                                                 .setCallback(clickType -> pageEntry.getValue().close())
                                                 .build();
                                         pageEntry.getValue().setSlot(slot, element);
                                     }
 
-                                    for (Integer slot : nr.guisConfig().voucherGui.backgroundButtonSlots()) {
-                                        ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(nr.guisConfig().voucherGui.backgroundButton.item())));
-                                        item.applyChanges(nr.guisConfig().voucherGui.backgroundButton.itemData());
+                                    for (Integer slot : RAID_VOUCHER_GUI.getSlotsBySymbol(RAID_VOUCHER_GUI.backgroundItem.symbol)) {
+                                        ItemStack item = RAID_VOUCHER_GUI.backgroundItem.item.copy();
                                         List<Text> lore = new ArrayList<>();
-                                        for (String line : nr.guisConfig().voucherGui.backgroundButton.itemLore()) {
+                                        for (String line : RAID_VOUCHER_GUI.backgroundItem.itemLore) {
                                             lore.add(TextUtils.deserialize(TextUtils.parse(line)));
                                         }
                                         GuiElement element = new GuiElementBuilder(item)
-                                                .setName(TextUtils.deserialize(TextUtils.parse(nr.guisConfig().voucherGui.backgroundButton.itemName())))
+                                                .setName(TextUtils.deserialize(TextUtils.parse(RAID_VOUCHER_GUI.backgroundItem.itemName)))
                                                 .setLore(lore)
                                                 .build();
                                         pageEntry.getValue().setSlot(slot, element);
@@ -594,32 +593,34 @@ public class EventManager {
                             } else if (bossName.equalsIgnoreCase("random")) {
                                 Boss bossInfo;
                                 if (category.equalsIgnoreCase("null")) {
-                                    bossInfo = nr.bossesConfig().getRandomBoss();
+                                    bossInfo = Boss.getRandomBoss(null);
                                 } else {
-                                    bossInfo = nr.bossesConfig().getRandomBoss(category);
+                                    bossInfo = Boss.getRandomBoss(category, null);
                                 }
+
+                                if (bossInfo == null) return TypedActionResult.fail(itemStack);
 
                                 if (nr.raidCommands().start(bossInfo, player, itemStack) != 0) {
                                     itemStack.decrement(1);
                                     player.setStackInHand(hand, itemStack);
 
-                                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("used_voucher"), bossInfo)));
+                                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.usedVoucher, bossInfo)));
                                 }
                             } else {
-                                Boss boss = nr.bossesConfig().getBoss(bossName);
+                                Boss boss = Boss.getBoss(bossName);
                                 if (nr.raidCommands().start(boss, player, itemStack) != 0) {
                                     itemStack.decrement(1);
                                     player.setStackInHand(hand, itemStack);
 
-                                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("used_voucher"), boss)));
+                                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.usedVoucher, boss)));
                                 }
                             }
-                        } else if (customData.copyNbt().getString("raid_item").equals("raid_ball") && nr.config().raidBallsEnabled) {
-                            boolean canThrow = false;
+                        } else if (customData.copyNbt().getString("raid_item").equals("raid_ball") && CONFIG.itemSettings.raidBallSettings.raidBallsEnabled) {
+                            boolean canThrow;
 
-                            if (nr.config().playerLinkedRaidBalls && customData.contains("owner_uuid")) {
+                            if (CONFIG.itemSettings.raidBallSettings.playerLinkedRaidBalls && customData.contains("owner_uuid")) {
                                 if (!customData.copyNbt().getUuid("owner_uuid").equals(player.getUuid())) {
-                                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_not_your_raid_pokeball"))));
+                                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.warnings.notYourRaidPokeball)));
                                     return TypedActionResult.fail(itemStack);
                                 }
                             }
@@ -630,25 +631,23 @@ public class EventManager {
                                 canThrow = false;
 
                                 Raid raid = PlayerRaidCache.currentRaid(player);
-                                if (raid != null && raid.stage() == 4) {
+                                if (raid != null && raid.stage == 4) {
 
-                                    if (customData.contains("raid_categories") || customData.contains("raid_bosses")) {
-                                        // do nothing - same as previous logic
-                                    } else if (customData.contains("raid_boss") && customData.contains("raid_category")) {
+                                    if (customData.contains("raid_boss") && customData.contains("raid_category")) {
                                         String boss = customData.copyNbt().getString("raid_boss");
                                         String category = customData.copyNbt().getString("raid_category");
                                         if (boss.equalsIgnoreCase("*") && category.equalsIgnoreCase("*")) {
-                                            if (raid.bossInfo().itemSettings().allowGlobalPokeballs()) {
+                                            if (raid.bossInfo.itemSettings.allowGlobalPokeballs) {
                                                 canThrow = true;
                                             }
                                         } else if (boss.equalsIgnoreCase("*")) {
-                                            if (raid.bossInfo().categoryId().equalsIgnoreCase(category)) {
-                                                if (raid.bossInfo().itemSettings().allowCategoryPokeballs()) {
+                                            if (raid.bossInfo.categoryId.equalsIgnoreCase(category)) {
+                                                if (raid.bossInfo.itemSettings.allowCategoryPokeballs) {
                                                     canThrow = true;
                                                 }
                                             }
                                         } else {
-                                            if (raid.bossInfo().bossId().equalsIgnoreCase(boss)) {
+                                            if (raid.bossInfo.bossId.equalsIgnoreCase(boss)) {
                                                 canThrow = true;
                                             }
                                         }
@@ -659,12 +658,12 @@ public class EventManager {
                                 }
 
                             } else {
-                                player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_raid_pokeball_outside_raid"))));
+                                player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.warnings.raidPokeballOutsideRaid)));
                                 return TypedActionResult.fail(itemStack);
                             }
 
                             if (!canThrow) {
-                                player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_not_catch_phase"))));
+                                player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.warnings.notCatchPhase)));
                                 return TypedActionResult.fail(itemStack);
                             } else {
                                 return TypedActionResult.pass(itemStack);
@@ -676,22 +675,30 @@ public class EventManager {
                 Raid raid = PlayerRaidCache.currentRaid(player);
                 if (raid == null) return TypedActionResult.pass(itemStack);
 
-                if (isPokeball(itemStack) && nr.config().raidBallsEnabled) {
-                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_deny_normal_pokeball"))));
+                if (isPokeball(itemStack) && CONFIG.itemSettings.raidBallSettings.raidBallsEnabled) {
+                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.warnings.normalPokeball)));
                     return TypedActionResult.fail(itemStack);
                 }
 
-                List<Item> bannedBagItems = nr.config().globalContraband.bannedBagItems();
-                bannedBagItems.addAll(raid.bossInfo().raidDetails().contraband().bannedBagItems());
-                bannedBagItems.addAll(raid.raidBossCategory().contraband().bannedBagItems());
+                List<String> bannedBagItemIDs = CONFIG.raidSettings.globalContraband.bannedBagItems;
+                bannedBagItemIDs.addAll(raid.bossInfo.raidDetails.contraband.bannedBagItems);
+                bannedBagItemIDs.addAll(raid.category.raidDetails.contraband.bannedBagItems);
+
+                List<Item> bannedBagItems = new ArrayList<>();
+                for (String itemID : bannedBagItemIDs) {
+                    if (Registries.ITEM.containsId(Identifier.of(itemID))) {
+                        bannedBagItems.add(Registries.ITEM.get(Identifier.of(itemID)));
+                    }
+                }
+
                 if (bannedBagItems.contains(itemStack.getItem())) {
-                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(messages.getMessage("warning_banned_bag_item").replaceAll("%banned.bag_item%", itemStack.getItem().getName().getString()), raid)));
+                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.warnings.bannedBagItem.replaceAll("%banned%", itemStack.getItem().getName().getString()), raid)));
                     return TypedActionResult.fail(itemStack);
                 }
 
                 return TypedActionResult.pass(itemStack);
             }
-            return null;
+            return TypedActionResult.pass(playerEntity.getStackInHand(hand));
         });
     }
 
@@ -711,7 +718,7 @@ public class EventManager {
             if (raid == null) return;
 
             raid.removePlayer(player);
-            if (raid.stage() > 1 && raid.participatingPlayers.isEmpty()) {
+            if (raid.stage > 1 && raid.participatingPlayers.isEmpty()) {
                 raid.stop();
             }
         }));
@@ -738,7 +745,7 @@ public class EventManager {
 
         CobblemonEvents.POKEMON_SENT_POST.subscribe(event -> {
 
-            if (!nr.config().reduceLargePokemonSize) return;
+            if (!CONFIG.raidSettings.reduceLargePokemonSize) return;
 
             Pokemon pokemon = event.getPokemon();
             if (!pokemon.isPlayerOwned()) return;
@@ -762,10 +769,10 @@ public class EventManager {
         });
 
         CobblemonEvents.POKEMON_ENTITY_SPAWN.subscribe(event -> {
-            if (nr.config().disableSpawnsInArena) {
+            if (CONFIG.raidSettings.disableSpawnsInArena) {
                 BlockPos pos = event.getSpawnablePosition().getPosition();
                 for (Raid raid : nr.activeRaids().values()) {
-                    if (raid.raidBossLocation().isPointInLocation(pos.getX(), pos.getZ())) {
+                    if (raid.location.isPointInLocation(pos.getX(), pos.getZ())) {
                         event.cancel();
                         break;
                     }

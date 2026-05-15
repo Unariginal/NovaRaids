@@ -1,9 +1,12 @@
 package me.unariginal.novaraids.data.items;
 
-import com.google.gson.JsonObject;
-import net.minecraft.component.ComponentChanges;
-import net.minecraft.item.Item;
+import com.cobblemon.mod.common.CobblemonItems;
+import net.minecraft.item.ItemStack;
 
 import java.util.List;
 
-public record RaidBall(JsonObject raidBallObject, String id, Item ballItem, String ballName, List<String> ballLore, ComponentChanges ballData) {}
+public class RaidBall {
+    public ItemStack pokeballItem = CobblemonItems.POKE_BALL.getDefaultStack();
+    public String pokeballName = "<red>Raid Pokeball";
+    public List<String> pokeballLore = List.of("<gray>Use this to try and capture raid bosses!");
+}
