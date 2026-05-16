@@ -42,14 +42,14 @@ public class GsonUtils {
             .registerTypeAdapterFactory(
                     RuntimeTypeAdapterFactory
                             .of(RewardPoolsConfig.RewardItem.class, "type")
-                            .registerSubtype(RewardPoolsConfig.RewardItemUndefined.class, "undefined")
-                            .registerSubtype(RewardPoolsConfig.RewardItemPredefined.class, "predefined")
+                            .registerSubtype(RewardPoolsConfig.RewardItemUndefined.class, "unset")
+                            .registerSubtype(RewardPoolsConfig.RewardItemPredefined.class, "preset")
             )
             .registerTypeAdapterFactory(
                     RuntimeTypeAdapterFactory
                             .of(DistributionSection.RewardPoolSection.class, "type")
-                            .registerSubtype(DistributionSection.UndefinedRewardPoolSection.class, "undefined")
-                            .registerSubtype(DistributionSection.PredefinedRewardPoolSection.class, "predefined")
+                            .registerSubtype(DistributionSection.UndefinedRewardPoolSection.class, "unset")
+                            .registerSubtype(DistributionSection.PredefinedRewardPoolSection.class, "preset")
             )
             .create();
 

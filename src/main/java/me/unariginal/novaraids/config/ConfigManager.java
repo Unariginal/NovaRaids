@@ -1,6 +1,8 @@
 package me.unariginal.novaraids.config;
 
 import com.google.common.reflect.TypeToken;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.config.guis.*;
@@ -11,7 +13,6 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.util.Identifier;
 
 import java.io.*;
-import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.util.HashMap;
@@ -32,9 +33,9 @@ public class ConfigManager {
     public static Map<String, BossbarsConfig> BOSSBARS;
     public static Map<String, RewardPresetsConfig.Reward> REWARD_PRESETS;
     public static Map<String, RewardPoolsConfig.RewardPool> REWARD_POOLS;
-    public static Map<String, Category> CATEGORIES;
-    public static Map<String, Boss> BOSSES;
-    public static Map<Identifier, Event> EVENTS;
+    public static Map<String, Category> CATEGORIES = new HashMap<>();
+    public static Map<String, Boss> BOSSES = new HashMap<>();
+    public static Map<Identifier, Event> EVENTS = new HashMap<>();
 
     public static ContrabandGUIConfig GLOBAL_CONTRABAND_GUI;
     public static ContrabandGUIConfig CATEGORY_CONTRABAND_GUI;
@@ -191,6 +192,7 @@ public class ConfigManager {
                     if (preEventFile.getName().endsWith(".json")) {
                         String preEventFileName = "events/" + eventName + "/pre/" + preEventFile.getName();
                         preEvent = loadFile(preEventFileName, Event.class);
+                        if (preEvent != null) preEvent.eventId = preEventFile.getName().replace(".json", "");
                         fillMissingWithDefaults(preEventFileName, preEvent, Event.class);
                     }
                 }
@@ -202,6 +204,7 @@ public class ConfigManager {
                     if (postEventFile.getName().endsWith(".json")) {
                         String postEventFileName = "events/" + eventName + "/post/" + postEventFile.getName();
                         postEvent = loadFile(postEventFileName, Event.class);
+                        if (postEvent != null) postEvent.eventId = postEventFile.getName().replace(".json", "");
                         fillMissingWithDefaults(postEventFileName, postEvent, Event.class);
                     }
                 }
@@ -254,6 +257,7 @@ public class ConfigManager {
     public static String getJsonString(String fileName) {
         InputStream in = NovaRaids.class.getResourceAsStream("/raid_config_files/" + fileName);
         assert in != null;
+        // TODO: Pretty print
         return JsonParser.parseReader(new InputStreamReader(in)).toString();
     }
 
@@ -265,7 +269,8 @@ public class ConfigManager {
         File file = new File(configDir, fileName);
         if (file.exists()) return;
         try {
-            Files.createDirectories(file.toPath());
+            Files.createDirectories(file.getParentFile().toPath());
+            Files.createFile(file.toPath());
             writeFile(file, getJsonString(fileName));
         } catch (IOException e) {
             LOGGER.error("Failed to create directories for file {}", file.getName(), e);
@@ -275,32 +280,39 @@ public class ConfigManager {
     public static <T> void fillMissingWithDefaults(String fileName, T loaded, Class<T> clazz) {
         File file = new File(configDir, fileName);
         T defaults = loadDefaults(fileName, clazz);
-        try {
-            applyDefaults(loaded, defaults);
-            writeFile(file, gson.toJson(loaded));
-        } catch (IllegalAccessException e) {
-            LOGGER.error("[NovaRaids] Failed to load defaults for file {}", fileName, e);
-        }
+        T updated = applyDefaults(loaded, defaults, clazz);
+        if (updated != null)
+            writeFile(file, gson.toJson(updated));
     }
 
-    public static <T> boolean applyDefaults(T target, T defaults) throws IllegalAccessException {
-        boolean changed = false;
+    public static <T> T applyDefaults(T target, T defaults, Class<T> clazz) {
+        try {
+            JsonObject targetJson = gson.toJsonTree(target).getAsJsonObject();
+            JsonObject defaultJson = gson.toJsonTree(defaults).getAsJsonObject();
 
-        for (Field field : target.getClass().getDeclaredFields()) {
-            field.setAccessible(true);
+            mergeJsonObjects(targetJson, defaultJson);
 
-            Object value = field.get(target);
-            Object defaultValue = field.get(defaults);
+            return gson.fromJson(targetJson, clazz);
+        } catch (IllegalStateException e) {
+            LOGGER.error("[NovaRaids] Failed to merge defaults", e);
+        }
+        return null;
+    }
 
-            if (value == null) {
-                field.set(target, defaultValue);
-                changed = true;
-            } else if (!field.getType().isPrimitive()) {
-                changed |= applyDefaults(value, defaultValue);
+    private static void mergeJsonObjects(JsonObject target, JsonObject defaults) {
+        for (Map.Entry<String, JsonElement> entry : defaults.entrySet()) {
+            String key = entry.getKey();
+            JsonElement defaultValue = entry.getValue();
+
+            if (!target.has(key)) {
+                target.add(key, defaultValue.deepCopy());
+            } else {
+                JsonElement targetValue = target.get(key);
+                if (targetValue.isJsonObject() && defaultValue.isJsonObject()) {
+                    mergeJsonObjects(targetValue.getAsJsonObject(), defaultValue.getAsJsonObject());
+                }
             }
         }
-
-        return changed;
     }
 
     public static void writeFile(File file, String content) {

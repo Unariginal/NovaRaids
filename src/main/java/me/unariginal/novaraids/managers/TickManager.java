@@ -17,7 +17,6 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -27,7 +26,7 @@ import static me.unariginal.novaraids.config.ConfigManager.SCHEDULES;
 
 public class TickManager {
     private static final NovaRaids nr = NovaRaids.INSTANCE;
-    private static ZonedDateTime setTimeBuffer = ZonedDateTime.now(ZoneId.of(SCHEDULES.timezone));
+    private static ZonedDateTime setTimeBuffer = ZonedDateTime.now(SCHEDULES.getTimezone());
     private static int webhookUpdateTimer = CONFIG.discordWebhook.updateRateSeconds * 20;
 
     public static void updateWebhooks() {
@@ -239,7 +238,7 @@ public class TickManager {
     }
 
     public static void scheduledRaids() {
-        ZonedDateTime now = ZonedDateTime.now(ZoneId.of(SCHEDULES.timezone));
+        ZonedDateTime now = ZonedDateTime.now(SCHEDULES.getTimezone());
         Collection<Schedule> schedules = SCHEDULES.schedules;
         for (Schedule schedule : schedules) {
             boolean shouldExecute = false;

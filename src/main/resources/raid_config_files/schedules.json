@@ -3,10 +3,8 @@
   "schedules": [
     {
       "type": "random",
-      "bounds": {
-        "min": 1200,
-        "max": 3600
-      },
+      "min_seconds": 1200,
+      "max_seconds": 3600,
       "bosses": [
         {
           "type": "category",

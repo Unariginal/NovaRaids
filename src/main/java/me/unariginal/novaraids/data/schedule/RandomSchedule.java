@@ -1,30 +1,29 @@
 package me.unariginal.novaraids.data.schedule;
 
-import me.unariginal.novaraids.config.ConfigManager;
-
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Random;
 
+import static me.unariginal.novaraids.config.ConfigManager.SCHEDULES;
+
 public class RandomSchedule extends Schedule {
-    public int min;
-    public int max;
+    public int minSeconds;
+    public int maxSeconds;
     public transient ZonedDateTime nextRandom;
 
-    public RandomSchedule(String type, List<ScheduleBoss> bosses, int min, int max) {
-        super(type, bosses);
-        this.min = min;
-        this.max = max;
+    public RandomSchedule(List<ScheduleBoss> bosses, int minSeconds, int maxSeconds) {
+        super(bosses);
+        this.minSeconds = minSeconds;
+        this.maxSeconds = maxSeconds;
     }
 
     public void setNextRandom(ZonedDateTime date) {
-        int randomSeconds = new Random().nextInt(min, max + 1);
+        int randomSeconds = new Random().nextInt(minSeconds, maxSeconds + 1);
         nextRandom = date.plusSeconds(randomSeconds);
     }
 
     public boolean isNextTime() {
-        ZonedDateTime now = ZonedDateTime.now(ZoneId.of(ConfigManager.SCHEDULES.timezone));
+        ZonedDateTime now = ZonedDateTime.now(SCHEDULES.getTimezone());
         if (nextRandom == null) {
             setNextRandom(now);
         }

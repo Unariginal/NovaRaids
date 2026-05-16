@@ -59,7 +59,6 @@ import net.minecraft.text.Text;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.*;
@@ -469,10 +468,10 @@ public class RaidCommands {
                                                 if (schedule instanceof SpecificSchedule specificSchedule) {
                                                     List<LocalTime> closestTimes = new ArrayList<>();
 
-                                                    for (int i = 0; i < specificSchedule.setTimes.size(); i++) {
-                                                        LocalTime now = LocalTime.now(ZoneId.of(SCHEDULES.timezone));
+                                                    for (int i = 0; i < specificSchedule.times.size(); i++) {
+                                                        LocalTime now = LocalTime.now(SCHEDULES.getTimezone());
                                                         LocalTime closestTime = null;
-                                                        for (LocalTime time : specificSchedule.setTimes) {
+                                                        for (LocalTime time : specificSchedule.localTimes) {
                                                             if (time.isAfter(now) || time.equals(now)) {
                                                                 if ((closestTime == null || time.isBefore(closestTime)) && !closestTimes.contains(time)) {
                                                                     closestTime = time;
@@ -482,7 +481,7 @@ public class RaidCommands {
 
                                                         if (closestTime == null) {
                                                             now = LocalTime.of(0, 0);
-                                                            for (LocalTime time : specificSchedule.setTimes) {
+                                                            for (LocalTime time : specificSchedule.localTimes) {
                                                                 if (time.isAfter(now) || time.equals(now)) {
                                                                     if ((closestTime == null || time.isBefore(closestTime)) && !closestTimes.contains(time)) {
                                                                         closestTime = time;
@@ -499,11 +498,11 @@ public class RaidCommands {
                                                         ctx.getSource().sendMessage(TextUtils.deserialize("<gray><i> - " + time.toString()));
                                                     }
                                                 } else if (schedule instanceof RandomSchedule randomSchedule) {
-                                                    ctx.getSource().sendMessage(TextUtils.deserialize("<red>Random Schedule (<i>" + randomSchedule.min + "s - " + randomSchedule.max + "s<!i>) Next Raid:"));
-                                                    ctx.getSource().sendMessage(TextUtils.deserialize("<gray><i> - " + randomSchedule.nextRandom.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withZone(ZoneId.of(SCHEDULES.timezone)))));
+                                                    ctx.getSource().sendMessage(TextUtils.deserialize("<red>Random Schedule (<i>" + randomSchedule.minSeconds + "s - " + randomSchedule.maxSeconds + "s<!i>) Next Raid:"));
+                                                    ctx.getSource().sendMessage(TextUtils.deserialize("<gray><i> - " + randomSchedule.nextRandom.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withZone(SCHEDULES.getTimezone()))));
                                                 } else if (schedule instanceof CronSchedule cronSchedule) {
                                                     ctx.getSource().sendMessage(TextUtils.deserialize("<red>Cron Schedule (<i>" + cronSchedule.expression + "<!i>) Next Raid:"));
-                                                    ctx.getSource().sendMessage(TextUtils.deserialize("<gray><i> - " + cronSchedule.nextExecution.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withZone(ZoneId.of(SCHEDULES.timezone)))));
+                                                    ctx.getSource().sendMessage(TextUtils.deserialize("<gray><i> - " + cronSchedule.nextExecution.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withZone(SCHEDULES.getTimezone()))));
                                                 }
                                                 ctx.getSource().sendMessage(TextUtils.deserialize(""));
                                             }

@@ -1,25 +1,35 @@
 package me.unariginal.novaraids.data.schedule;
 
-import me.unariginal.novaraids.config.ConfigManager;
+import me.unariginal.novaraids.NovaRaids;
 
 import java.time.LocalTime;
-import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 
-public class SpecificSchedule extends Schedule {
-    public List<LocalTime> setTimes;
+import static me.unariginal.novaraids.config.ConfigManager.SCHEDULES;
 
-    public SpecificSchedule(String type, List<ScheduleBoss> bosses, List<LocalTime> times) {
-        super(type, bosses);
-        this.setTimes = times;
+public class SpecificSchedule extends Schedule {
+    public List<String> times;
+    public transient List<LocalTime> localTimes = new ArrayList<>();
+
+    public SpecificSchedule(List<ScheduleBoss> bosses, List<String> times) {
+        super(bosses);
+        this.times = times;
     }
 
     public boolean isNextTime() {
-        LocalTime now = LocalTime.now(ZoneId.of(ConfigManager.SCHEDULES.timezone));
-        for (LocalTime time : setTimes) {
-            if (time.getHour() == now.getHour() && time.getMinute() == now.getMinute() && time.getSecond() == now.getSecond()) {
-                return true;
+        LocalTime now = LocalTime.now(SCHEDULES.getTimezone());
+
+        if (localTimes != null) {
+            for (LocalTime time : localTimes) {
+                if (time.getHour() == now.getHour() && time.getMinute() == now.getMinute() && time.getSecond() == now.getSecond()) {
+                    return true;
+                }
             }
+        } else {
+            NovaRaids.LOGGER.info("[NovaRaids] localTimes was null! Attempting to fill");
+            localTimes = new ArrayList<>();
+            this.times.forEach(time -> localTimes.add(LocalTime.parse(time)));
         }
         return false;
     }

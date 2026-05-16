@@ -42,14 +42,13 @@ public class NovaRaids implements ModInitializer {
         INSTANCE = this;
 
         raidCommands = new RaidCommands();
+        reloadConfig();
 
         // Set up event handlers and configuration at server load
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             this.server = server;
             this.audience = FabricServerAudiences.of(server);
 
-            load();
-            reloadConfig();
             EventManager.initialiseEvents();
             bossBarHandler = new BossBarHandler();
         });

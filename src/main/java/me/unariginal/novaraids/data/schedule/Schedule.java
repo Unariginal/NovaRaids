@@ -4,11 +4,9 @@ import java.util.List;
 import java.util.Random;
 
 public class Schedule {
-    public String type;
     public List<ScheduleBoss> bosses;
 
-    public Schedule(String type, List<ScheduleBoss> bosses) {
-        this.type = type;
+    public Schedule(List<ScheduleBoss> bosses) {
         this.bosses = bosses;
     }
 

@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class Event {
-    public String eventId;
+    public transient String eventId;
     public List<String> messages;
     public List<String> commands;
     public List<SoundEvent> sounds;

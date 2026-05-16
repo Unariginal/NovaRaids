@@ -4,6 +4,7 @@ import me.unariginal.novaraids.config.ConfigManager;
 import me.unariginal.novaraids.data.bosses.Boss;
 import me.unariginal.novaraids.data.rewards.RewardDistribution;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -13,7 +14,7 @@ public class Category {
     public RaidDetails raidDetails;
     public ItemSettings itemSettings;
     public List<RewardDistribution> rewardDistribution;
-    public transient Map<String, Boss> bosses;
+    public transient Map<String, Boss> bosses = new HashMap<>();
 
     public static Category getCategory(String id) {
         return ConfigManager.CATEGORIES.get(id);

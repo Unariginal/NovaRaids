@@ -68,10 +68,12 @@ public class RewardPoolsConfig {
     }
 
     public static class RewardItem {
+        public String type;
         public double weight;
         private UUID uuid;
 
-        public RewardItem(double weight) {
+        public RewardItem(String type, double weight) {
+            this.type = type;
             this.weight = weight;
             this.uuid = UUID.randomUUID();
         }
@@ -85,8 +87,8 @@ public class RewardPoolsConfig {
     public static class RewardItemPredefined extends RewardItem {
         public String rewardPreset;
 
-        public RewardItemPredefined(double weight, String rewardPreset) {
-            super(weight);
+        public RewardItemPredefined(String type, double weight, String rewardPreset) {
+            super(type, weight);
             this.rewardPreset = rewardPreset;
         }
     }
@@ -94,8 +96,8 @@ public class RewardPoolsConfig {
     public static class RewardItemUndefined extends RewardItem {
         public RewardPresetsConfig.Reward reward;
 
-        public RewardItemUndefined(double weight, RewardPresetsConfig.Reward reward) {
-            super(weight);
+        public RewardItemUndefined(String type, double weight, RewardPresetsConfig.Reward reward) {
+            super(type, weight);
             this.reward = reward;
         }
     }

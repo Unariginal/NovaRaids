@@ -6,20 +6,20 @@ import com.cronutils.model.definition.CronDefinitionBuilder;
 import com.cronutils.model.time.ExecutionTime;
 import com.cronutils.parser.CronParser;
 import me.unariginal.novaraids.NovaRaids;
-import me.unariginal.novaraids.config.ConfigManager;
 
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
+import static me.unariginal.novaraids.config.ConfigManager.SCHEDULES;
+
 public class CronSchedule extends Schedule {
     public String expression;
     public transient ZonedDateTime nextExecution;
 
-    public CronSchedule(String type, List<ScheduleBoss> bosses, String expression) {
-        super(type, bosses);
+    public CronSchedule(List<ScheduleBoss> bosses, String expression) {
+        super(bosses);
         this.expression = expression;
     }
 
@@ -61,7 +61,7 @@ public class CronSchedule extends Schedule {
     }
 
     public boolean isNextTime() {
-        ZonedDateTime now = ZonedDateTime.now(ZoneId.of(ConfigManager.SCHEDULES.timezone));
+        ZonedDateTime now = ZonedDateTime.now(SCHEDULES.getTimezone());
         if (nextExecution == null) {
             setNextExecution(now);
         }

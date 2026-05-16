@@ -201,6 +201,7 @@
           },
           "reward_pools": [
             {
+              "type": "unset",
               "weight": 5.0,
               "pool": {
                 "allow_duplicates": true,
@@ -210,6 +211,7 @@
                 },
                 "rewards": [
                   {
+                    "type": "unset",
                     "weight": 25.0,
                     "reward": {
                       "type": "item",
@@ -222,6 +224,7 @@
                     }
                   },
                   {
+                    "type": "unset",
                     "weight": 50.0,
                     "reward": {
                       "type": "command",

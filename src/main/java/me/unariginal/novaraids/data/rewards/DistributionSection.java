@@ -12,10 +12,12 @@ public class DistributionSection {
     public List<RewardPoolSection> rewardPools;
 
     public static class RewardPoolSection {
+        public String type;
         public double weight;
         private UUID uuid;
 
-        public RewardPoolSection(double weight) {
+        public RewardPoolSection(String type, double weight) {
+            this.type = type;
             this.weight = weight;
             this.uuid = UUID.randomUUID();
         }
@@ -29,8 +31,8 @@ public class DistributionSection {
     public static class PredefinedRewardPoolSection extends RewardPoolSection {
         public String poolPreset;
 
-        public PredefinedRewardPoolSection(double weight, String poolPreset) {
-            super(weight);
+        public PredefinedRewardPoolSection(String type, double weight, String poolPreset) {
+            super(type, weight);
             this.poolPreset = poolPreset;
         }
     }
@@ -38,8 +40,8 @@ public class DistributionSection {
     public static class UndefinedRewardPoolSection extends RewardPoolSection {
         public RewardPoolsConfig.RewardPool pool;
 
-        public UndefinedRewardPoolSection(double weight, RewardPoolsConfig.RewardPool pool) {
-            super(weight);
+        public UndefinedRewardPoolSection(String type, double weight, RewardPoolsConfig.RewardPool pool) {
+            super(type, weight);
             this.pool = pool;
         }
     }
