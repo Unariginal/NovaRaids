@@ -1,5 +1,5 @@
 {
-  "messages": ["%prefix% A raid is starting against %boss.name%!"],
+  "messages": ["<prefix> A raid is starting against <raid_boss_name>!"],
   "commands": [],
   "sounds": [],
   "particles": [],
@@ -8,12 +8,12 @@
   "molang": [],
   "discord_webhook": {
     "message": "<@&role_id_here>",
-    "embed_title": "%boss.name% Raid Has Started",
+    "embed_title": "<raid_boss_name> Raid Has Started",
     "fields": [
       {
         "inline": false,
-        "name": "Players: %player_count%/%max_players%",
-        "value": "Join Now Using `%join_method%`!"
+        "name": "Players: <raid_player_count>/<raid_max_player>",
+        "value": "Join Now Using `<raid_join_method>`!"
       }
     ]
   }

@@ -45,7 +45,7 @@ public class Threading {
             try {
                 runnable.run();
             } catch (Throwable throwable) {
-                NovaRaids.INSTANCE.logger().error(throwable.getMessage(), throwable);
+                NovaRaids.LOGGER.error(throwable.getMessage(), throwable);
             }
         };
     }

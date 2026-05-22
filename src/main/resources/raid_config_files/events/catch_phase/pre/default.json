@@ -1,5 +1,5 @@
 {
-  "messages": ["%prefix% Time to catch %boss.name%!"],
+  "messages": ["<prefix> Time to catch <raid_boss_name>!"],
   "commands": [],
   "sounds": [],
   "particles": [],

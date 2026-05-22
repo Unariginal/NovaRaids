@@ -2,29 +2,29 @@
   "setup_phase_example": {
     "bar_color": "blue",
     "bar_style": "progress",
-    "bar_text": "<blue>Prepare for battle against %boss.form% %boss.species%!",
+    "bar_text": "<blue>Prepare for battle against <raid_boss_name>!",
     "use_actionbar": true,
-    "actionbar_text": "<gold>Raid starts in %raid.phase_timer%"
+    "actionbar_text": "<gold>Raid starts in <raid_phase_timer>"
   },
   "fight_phase_example": {
     "bar_color": "red",
     "bar_style": "notched_20",
-    "bar_text": "<red>Boss %boss.form% %boss.species%",
+    "bar_text": "<red>Boss <raid_boss_name>",
     "use_actionbar": true,
-    "actionbar_text": "<red>Raid ends in %raid.phase_timer% <dark_gray>| <red>HP %boss.currenthp%/%boss.maxhp%"
+    "actionbar_text": "<red>Raid ends in <raid_phase_timer> <dark_gray>| <red>HP <raid_health>/<raid_max_health>"
   },
   "pre_catch_phase_example": {
     "bar_color": "red",
     "bar_style": "progress",
     "bar_text": "<red>Catching event starts soon, get to a safe place!",
     "use_actionbar": true,
-    "actionbar_text": "<red>Catching event starts in %raid.phase_timer%"
+    "actionbar_text": "<red>Catching event starts in <raid_phase_timer>"
   },
   "catch_phase_example": {
     "bar_color": "yellow",
     "bar_style": "progress",
-    "bar_text": "<yellow>Time to catch %boss.form% %boss.species%",
+    "bar_text": "<yellow>Time to catch <raid_boss_name>",
     "use_actionbar": true,
-    "actionbar_text": "<yellow>Catching event ends in %raid.phase_timer%"
+    "actionbar_text": "<yellow>Catching event ends in <raid_phase_timer>"
   }
 }

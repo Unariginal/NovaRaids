@@ -1,5 +1,6 @@
 {
-  "gui_title": "%boss.name% Raid Results",
+  "gui_title": "<raid_boss_name> Raid Results",
+  "use_hopper_gui": false,
   "rows": 6,
   "gui_layout": [
     "#########",
@@ -11,38 +12,44 @@
   ],
   "placement_item": {
     "symbol": "#",
+    "item": {
+      "id": "minecraft:player_head"
+    },
     "item_name": "<gold>[%place%%ordinal%] %player%",
     "item_lore": [
       "<gray>Damage: %damage%"
-    ],
-    "item_data": {}
+    ]
   },
   "background_item": {
     "symbol": "_",
-    "item": "minecraft:air",
+    "item": {
+      "id": "minecraft:air"
+    },
     "item_name": "",
-    "item_lore": [],
-    "item_data": {}
+    "item_lore": []
   },
   "previous_item": {
     "symbol": "P",
-    "item": "minecraft:arrow",
+    "item": {
+      "id": "minecraft:arrow"
+    },
     "item_name": "Previous",
-    "item_lore": [],
-    "item_data": {}
+    "item_lore": []
   },
   "close_item": {
     "symbol": "C",
-    "item": "minecraft:barrier",
+    "item": {
+      "id": "minecraft:barrier"
+    },
     "item_name": "Close",
-    "item_lore": [],
-    "item_data": {}
+    "item_lore": []
   },
   "next_item": {
     "symbol": "N",
-    "item": "minecraft:arrow",
+    "item": {
+      "id": "minecraft:arrow"
+    },
     "item_name": "Next",
-    "item_lore": [],
-    "item_data": {}
+    "item_lore": []
   }
 }

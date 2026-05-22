@@ -1,13 +1,16 @@
 {
   "example_location": {
     "name": "Example Location",
-    "x_pos": 0.0,
-    "y_pos": 100.0,
-    "z_pos": 0.0,
+    "boss_location": {
+      "x_pos": 0.0,
+      "y_pos": 100.0,
+      "z_pos": 0.0,
+      "yaw": 0.0,
+      "pitch": 0.0
+    },
     "world": "minecraft:overworld",
     "border_radius": 30,
     "boss_pushback_radius": 5,
-    "boss_facing_direction": 0.0,
     "use_join_location": true,
     "join_location": {
       "x_pos": 0.0,
@@ -19,13 +22,16 @@
   },
   "another_location": {
     "name": "Another Location",
-    "x_pos": 10.0,
-    "y_pos": 100.0,
-    "z_pos": 0.0,
+    "boss_location": {
+      "x_pos": 10.0,
+      "y_pos": 100.0,
+      "z_pos": 0.0,
+      "yaw": 0.0,
+      "pitch": 0.0
+    },
     "world": "minecraft:overworld",
     "border_radius": 30,
     "boss_pushback_radius": 5,
-    "boss_facing_direction": 0.0,
     "use_join_location": true,
     "join_location": {
       "x_pos": 10.0,

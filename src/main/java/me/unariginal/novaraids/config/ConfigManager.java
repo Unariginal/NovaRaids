@@ -1,9 +1,9 @@
 package me.unariginal.novaraids.config;
 
-import com.google.common.reflect.TypeToken;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.config.guis.*;
 import me.unariginal.novaraids.data.bosses.Boss;
@@ -46,6 +46,8 @@ public class ConfigManager {
     public static RaidItemGUIConfig RAID_PASS_GUI;
     public static RaidItemGUIConfig RAID_VOUCHER_GUI;
 
+    public static PersistentQueue PERSISTENT_QUEUE = new PersistentQueue();
+
     public static String[] eventNames = {
             "boss_damaged",
             "boss_defeated",
@@ -67,10 +69,22 @@ public class ConfigManager {
         SCHEDULES = loadFile("schedules.json", SchedulesConfig.class);
         MESSAGES = loadFile("messages.json", MessagesConfig.class);
 
-        LOCATIONS = castMap(loadMapFile("locations.json", LocationsConfig.class), LocationsConfig.class);
-        BOSSBARS = castMap(loadMapFile("bossbars.json", BossbarsConfig.class), BossbarsConfig.class);
-        REWARD_PRESETS = castMap(loadMapFile("reward_presets.json", RewardPresetsConfig.Reward.class), RewardPresetsConfig.Reward.class);
-        REWARD_POOLS = castMap(loadMapFile("reward_pools.json", RewardPoolsConfig.RewardPool.class), RewardPoolsConfig.RewardPool.class);
+        LOCATIONS = loadMapFile("locations.json", LocationsConfig.class);
+        for (Map.Entry<String, LocationsConfig> entry : LOCATIONS.entrySet()) {
+            entry.getValue().locationId = entry.getKey();
+        }
+        BOSSBARS = loadMapFile("bossbars.json", BossbarsConfig.class);
+        for (Map.Entry<String, BossbarsConfig> entry : BOSSBARS.entrySet()) {
+            entry.getValue().bossbarId = entry.getKey();
+        }
+        REWARD_PRESETS = loadMapFile("reward_presets.json", RewardPresetsConfig.Reward.class);
+        for (Map.Entry<String, RewardPresetsConfig.Reward> entry : REWARD_PRESETS.entrySet()) {
+            entry.getValue().rewardId = entry.getKey();
+        }
+        REWARD_POOLS = loadMapFile("reward_pools.json", RewardPoolsConfig.RewardPool.class);
+        for (Map.Entry<String, RewardPoolsConfig.RewardPool> entry : REWARD_POOLS.entrySet()) {
+            entry.getValue().rewardPoolId = entry.getKey();
+        }
 
         GLOBAL_CONTRABAND_GUI = loadFile("guis/global_contraband.json", ContrabandGUIConfig.class);
         CATEGORY_CONTRABAND_GUI = loadFile("guis/category_contraband.json", ContrabandGUIConfig.class);
@@ -95,6 +109,18 @@ public class ConfigManager {
         fillMissingWithDefaults("guis/raid_queue.json", RAID_QUEUE_GUI, RaidQueueGUIConfig.class);
         fillMissingWithDefaults("guis/raid_pass.json", RAID_PASS_GUI, RaidItemGUIConfig.class);
         fillMissingWithDefaults("guis/raid_voucher.json", RAID_VOUCHER_GUI, RaidItemGUIConfig.class);
+    }
+
+    public static void saveQueue() {
+        File persistentFolder = new File(configDir, "persistent");
+        persistentFolder.mkdirs();
+        File queueFile = new File(persistentFolder, "queue.json");
+
+        writeFile(queueFile, gson.toJson(PERSISTENT_QUEUE));
+    }
+
+    public static void loadQueue() {
+        PERSISTENT_QUEUE = loadFile("persistent/queue.json", PersistentQueue.class);
     }
 
     public static void generateDefaultFiles() {
@@ -215,28 +241,18 @@ public class ConfigManager {
         }
     }
 
-    public static <T> Map<String, T> castMap(Map<String, ?> inputMap, Class<T> castClass) {
-        Map<String, T> result = new HashMap<>();
-        for (Map.Entry<String, ?> inputEntry : inputMap.entrySet()) {
-            if (castClass.isInstance(inputEntry.getValue())) {
-                result.put(inputEntry.getKey(), castClass.cast(inputEntry.getValue()));
-            }
-        }
-        return result;
-    }
-
-    public static <T> Map<String, ?> loadMapFile(String fileName, Class<T> ignored) {
+    public static <T> Map<String, T> loadMapFile(String fileName, Class<T> clazz) {
         File file = new File(configDir, fileName);
-        Type mapType = new TypeToken<Map<String, T>>() {}.getType();
-        try {
-            Files.createDirectories(configDir.toPath());
-            if (file.exists()) {
-                String json = JsonParser.parseReader(new FileReader(file)).toString();
-                return gson.fromJson(json, mapType);
+        Type mapType = TypeToken.getParameterized(Map.class, String.class, clazz).getType();
+
+        if (file.exists()) {
+            try (FileReader reader = new FileReader(file)) {
+                return gson.fromJson(reader, mapType);
+            } catch (IOException e) {
+                LOGGER.error("[NovaRaids] Failed to load config file {}", fileName, e);
             }
-        } catch (IOException e) {
-            LOGGER.error("[NovaRaids] Failed to load config {}", file, e);
         }
+        LOGGER.error("[NovaRaids] Error loading config file {}. File does not exist!", fileName);
         return Map.of();
     }
 
@@ -258,7 +274,7 @@ public class ConfigManager {
         InputStream in = NovaRaids.class.getResourceAsStream("/raid_config_files/" + fileName);
         assert in != null;
         // TODO: Pretty print
-        return JsonParser.parseReader(new InputStreamReader(in)).toString();
+        return gson.toJson(JsonParser.parseReader(new InputStreamReader(in)));
     }
 
     public static <T> T loadDefaults(String fileName, Class<T> clazz) {
@@ -281,8 +297,7 @@ public class ConfigManager {
         File file = new File(configDir, fileName);
         T defaults = loadDefaults(fileName, clazz);
         T updated = applyDefaults(loaded, defaults, clazz);
-        if (updated != null)
-            writeFile(file, gson.toJson(updated));
+        if (updated != null) writeFile(file, gson.toJson(updated));
     }
 
     public static <T> T applyDefaults(T target, T defaults, Class<T> clazz) {

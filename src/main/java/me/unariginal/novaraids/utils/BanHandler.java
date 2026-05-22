@@ -23,12 +23,11 @@ import net.minecraft.util.Identifier;
 import java.util.ArrayList;
 import java.util.List;
 
+import static me.unariginal.novaraids.NovaRaids.logInfo;
 import static me.unariginal.novaraids.config.ConfigManager.CONFIG;
 import static me.unariginal.novaraids.config.ConfigManager.MESSAGES;
 
 public class BanHandler {
-    private static final NovaRaids nr = NovaRaids.INSTANCE;
-
     public static boolean hasContraband(ServerPlayerEntity player, Boss boss) {
         // Party Check!
         PartyStore party = Cobblemon.INSTANCE.getStorage().getParty(player);
@@ -51,7 +50,7 @@ public class BanHandler {
                 Species species = PokemonSpecies.getByName(speciesId);
                 if (species == null) continue;
                 if (pokemon.getSpecies().getName().equals(species.getName())) {
-                    nr.logInfo("Not allowed pokemon");
+                    logInfo("Not allowed pokemon");
                     player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.warnings.bannedPokemon.replaceAll("%banned%", species.getName()))));
                     return true;
                 }
@@ -61,7 +60,7 @@ public class BanHandler {
                 AbilityTemplate ability = Abilities.get(abilityId);
                 if (ability == null) continue;
                 if (pokemon.getAbility().getName().equals(ability.getName())) {
-                    nr.logInfo("Not allowed ability");
+                    logInfo("Not allowed ability");
                     player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.warnings.bannedAbility.replaceAll("%banned%", MiscUtilsKt.asTranslated(ability.getDisplayName()).getString()))));
                     return true;
                 }
@@ -72,7 +71,7 @@ public class BanHandler {
                 if (move == null) continue;
                 for (Move set : pokemon.getMoveSet()) {
                     if (set.getName().equals(move.getName())) {
-                        nr.logInfo("Not allowed move");
+                        logInfo("Not allowed move");
                         player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.warnings.bannedMove.replaceAll("%banned%", move.getDisplayName().getString()))));
                         return true;
                     }
@@ -83,7 +82,7 @@ public class BanHandler {
                 if (!Registries.ITEM.containsId(Identifier.of(itemId))) continue;
                 Item item = Registries.ITEM.get(Identifier.of(itemId));
                 if (pokemon.getHeldItem$common().getItem().equals(item)) {
-                    nr.logInfo("Not allowed held item");
+                    logInfo("Not allowed held item");
                     player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.warnings.bannedHeldItem.replaceAll("%banned%", item.getName().getString()))));
                     return true;
                 }
@@ -100,7 +99,7 @@ public class BanHandler {
             Item item = Registries.ITEM.get(Identifier.of(itemId));
             for (int i = 0; i < inventory.size(); i++) {
                 if (inventory.getStack(i).getItem().equals(item)) {
-                    nr.logInfo("Not allowed bag item");
+                    logInfo("Not allowed bag item");
                     player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.warnings.bannedBagItem.replaceAll("%banned%", item.getName().getString()))));
                     return true;
                 }

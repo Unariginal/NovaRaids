@@ -7,6 +7,12 @@
     "hide_other_catch_encounters": true,
     "hide_other_players_in_raid": false,
     "hide_other_pokemon_in_raid": false,
+    "reduce_large_pokemon_size": true,
+    "disable_spawns_in_arena": true,
+    "bosses_have_infinite_pp": false,
+    "allow_experience_gain": false,
+    "automatic_battles": false,
+    "automatic_battle_delay": 2,
     "global_contraband": {
       "banned_pokemon": ["weedle", "caterpie"],
       "banned_moves": ["tackle", "bite"],
@@ -18,60 +24,61 @@
   "item_settings": {
     "voucher_settings": {
       "vouchers_enabled": true,
-      "default_voucher": {
-        "voucher_item": "minecraft:feather",
-        "voucher_name": "<aqua>Raid Voucher",
-        "voucher_lore": ["<gray>Use to start a raid!"],
-        "voucher_data": {}
-      },
       "global_choice_voucher": {
-        "voucher_item": "minecraft:feather",
-        "voucher_name": "",
-        "voucher_lore": [],
-        "voucher_data": {}
+        "voucher_item": {
+          "id": "minecraft:feather"
+        },
+        "voucher_name": "<light_purple>Global Raid Voucher",
+        "voucher_lore": [
+          "<gray>Use to start a raid!"
+        ]
       },
       "global_random_voucher": {
-        "voucher_item": "minecraft:feather",
-        "voucher_name": "",
-        "voucher_lore": [],
-        "voucher_data": {}
+        "voucher_item": {
+          "id": "minecraft:feather"
+        },
+        "voucher_name": "<aqua>Random Raid Voucher",
+        "voucher_lore": [
+          "<gray>Use to start a random raid!"
+        ]
       }
     },
     "pass_settings": {
       "passes_enabled": true,
-      "default_pass": {
-        "pass_item": "minecraft:paper",
-        "pass_name": "<light_purple>Raid Pass",
-        "pass_lore": ["<gray>Use to join a raid!"],
-        "pass_data": {}
-      },
       "global_pass": {
-        "pass_item": "minecraft:paper",
-        "pass_name": "",
-        "pass_lore": [],
-        "pass_data": {}
+        "pass_item": {
+          "id": "minecraft:paper"
+        },
+        "pass_name": "<light_purple>Global Raid Pass",
+        "pass_lore": [
+          "<gray>Use to join a raid!"
+        ]
       }
     },
     "raid_ball_settings": {
       "raid_balls_enabled": true,
+      "player_linked_raid_balls": true,
       "raid_balls": {
         "premier": {
-          "pokeball": "cobblemon:premier_ball",
+          "pokeball_item": {
+            "id": "cobblemon:premier_ball"
+          },
           "pokeball_name": "<red>Raid Pokeball",
-          "pokeball_lore": ["<gray>Use this to try and capture raid bosses!"],
-          "pokeball_data": {}
+          "pokeball_lore": ["<gray>Use this to try and capture raid bosses!"]
         },
         "ultra": {
-          "pokeball": "cobblemon:ultra_ball",
+          "pokeball_item": {
+            "id": "cobblemon:ultra_ball"
+          },
           "pokeball_name": "<red>Raid Pokeball",
-          "pokeball_lore": ["<gray>Use this to try and capture raid bosses!"],
-          "pokeball_data": {}
+          "pokeball_lore": ["<gray>Use this to try and capture raid bosses!"]
         },
         "master": {
-          "pokeball": "cobblemon:master_ball",
+          "pokeball_item": {
+            "id": "cobblemon:master_ball"
+          },
           "pokeball_name": "<red>Raid Pokeball",
-          "pokeball_lore": ["<gray>Use this to try and capture raid bosses!"],
-          "pokeball_data": {}
+          "pokeball_lore": ["<gray>Use this to try and capture raid bosses!"]
         }
       }
     }

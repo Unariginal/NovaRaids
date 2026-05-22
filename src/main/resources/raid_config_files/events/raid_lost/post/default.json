@@ -1,5 +1,5 @@
 {
-  "messages": ["%prefix% %boss.name% was not defeated on time!"],
+  "messages": ["<prefix> <raid_boss_name> was not defeated on time!"],
   "commands": [],
   "sounds": [],
   "particles": [],
@@ -7,11 +7,11 @@
   "titles": [],
   "molang": [],
   "discord": {
-    "embed_title": "Failed To Defeat %boss.name%!",
+    "embed_title": "Failed To Defeat <raid_boss_name>!",
     "fields": [
       {
         "inline": false,
-        "name": "Dealt %raid.total_damage%/%boss.maxhp% damage!",
+        "name": "Dealt <raid_total_damage>/<raid_max_health> damage!",
         "value": "",
         "insert_leaderboard_after": false
       }

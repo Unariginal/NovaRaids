@@ -16,7 +16,6 @@ import org.incendo.cloud.setting.ManagerSetting;
 import java.util.concurrent.CompletableFuture;
 
 public class CommandManager {
-
     public static final CommandManager INSTANCE = new CommandManager();
 
     private final FabricServerCommandManager<ServerCommandSource> commandManager = FabricServerCommandManager.createNative(

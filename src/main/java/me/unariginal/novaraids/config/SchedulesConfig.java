@@ -37,15 +37,4 @@ public class SchedulesConfig {
 
         return zoneId;
     }
-
-    public Schedule getSchedule(String boss) {
-        for (Schedule schedule : this.schedules) {
-            for (ScheduleBoss scheduleBoss : schedule.bosses) {
-                if (scheduleBoss.id.equalsIgnoreCase(boss)) {
-                    return schedule;
-                }
-            }
-        }
-        return null;
-    }
 }

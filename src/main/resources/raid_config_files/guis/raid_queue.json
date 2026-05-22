@@ -9,43 +9,54 @@
     "#########",
     "P___C___N"
   ],
-  "raid_display_item": {
+  "raid_item": {
     "symbol": "#",
-    "item_name": "<light_purple>%boss.name%",
-    "item_lore": {
-      "default": [],
-      "cancelable": [
-        "<red>Right click to cancel this raid!"
-      ]
+    "item": {
+      "id": "cobblemon:pokemon_model"
     },
-    "item_data": {}
+    "item_name": "<light_purple>%boss.name%",
+    "item_lore": []
+  },
+  "cancelable_raid_item": {
+    "symbol": "#",
+    "item": {
+      "id": "cobblemon:pokemon_model"
+    },
+    "item_name": "<light_purple>%boss.name%",
+    "item_lore": [
+      "<red>Right click to cancel this raid!"
+    ]
   },
   "background_item": {
     "symbol": "_",
-    "item": "minecraft:air",
+    "item": {
+      "id": "minecraft:air"
+    },
     "item_name": "",
-    "item_lore": [],
-    "item_data": {}
+    "item_lore": []
   },
   "previous_item": {
     "symbol": "P",
-    "item": "minecraft:arrow",
+    "item": {
+      "id": "minecraft:arrow"
+    },
     "item_name": "Previous",
-    "item_lore": [],
-    "item_data": {}
+    "item_lore": []
   },
   "close_item": {
     "symbol": "C",
-    "item": "minecraft:barrier",
+    "item": {
+      "id": "minecraft:barrier"
+    },
     "item_name": "Close",
-    "item_lore": [],
-    "item_data": {}
+    "item_lore": []
   },
   "next_item": {
     "symbol": "N",
-    "item": "minecraft:arrow",
+    "item": {
+      "id": "minecraft:arrow"
+    },
     "item_name": "Next",
-    "item_lore": [],
-    "item_data": {}
+    "item_lore": []
   }
 }

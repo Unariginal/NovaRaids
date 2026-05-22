@@ -1,5 +1,5 @@
 {
-  "messages": ["%prefix% %player% did %damage% damage to the boss!"],
+  "messages": ["<prefix> %player% did %damage% damage to the boss!"],
   "commands": [],
   "sounds": [],
   "particles": [],

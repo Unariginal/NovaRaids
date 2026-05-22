@@ -47,8 +47,9 @@
     "gmax_factor": false,
     "dynamax_level": 0,
     "scale": 5.0,
-    "held_item": "cobblemon:leftovers",
-    "held_item_data": {},
+    "held_item": {
+      "id": "cobblemon:leftovers"
+    },
     "moves": [
       "bite",
       "tackle",
@@ -57,20 +58,23 @@
     ],
     "friendship": 50,
     "ivs": {
-      "hp": 31,
-      "atk": 31,
-      "def": 31,
-      "sp_atk": 31,
-      "sp_def": 31,
-      "spd": 31
+      "Base": {
+        "cobblemon:hp": 31,
+        "cobblemon:attack": 31,
+        "cobblemon:defence": 31,
+        "cobblemon:special_attack": 31,
+        "cobblemon:special_defence": 31,
+        "cobblemon:speed": 31
+      },
+      "HyperTrained": {}
     },
     "evs": {
-      "hp": 0,
-      "atk": 0,
-      "def": 0,
-      "sp_atk": 0,
-      "sp_def": 0,
-      "spd": 0
+      "cobblemon:hp": 0,
+      "cobblemon:attack": 0,
+      "cobblemon:defence": 0,
+      "cobblemon:special_attack": 0,
+      "cobblemon:special_defence": 0,
+      "cobblemon:speed": 0
     }
   },
   "boss_details": {
@@ -92,33 +96,37 @@
     "allow_global_pokeballs": true,
     "allow_category_pokeballs": true,
     "boss_voucher": {
-      "voucher_item": "minecraft:feather",
-      "voucher_name": "",
-      "voucher_lore": [],
-      "voucher_data": {}
+      "voucher_item": {
+        "id": "minecraft:feather"
+      },
+      "voucher_name": "%boss.name% Raid Voucher",
+      "voucher_lore": []
     },
     "boss_pass": {
-      "pass_item": "minecraft:paper",
-      "pass_name": "",
-      "pass_lore": [],
-      "pass_data": {}
+      "pass_item": {
+        "id": "minecraft:paper"
+      },
+      "pass_name": "%boss.name% Raid Pass",
+      "pass_lore": []
     },
     "raid_balls": {
       "eevee_premier": {
-        "pokeball": "cobblemon:premier_ball",
+        "pokeball_item": {
+          "id": "cobblemon:premier_ball"
+        },
         "pokeball_name": "<red>Eevee Premier Raid Pokeball",
         "pokeball_lore": [
           "<gray>Use this to try and catch %boss%!"
-        ],
-        "pokeball_data": {}
+        ]
       },
       "eevee_ultra": {
-        "pokeball": "cobblemon:ultra_ball",
+        "pokeball_item": {
+          "id": "cobblemon:ultra_ball"
+        },
         "pokeball_name": "<red>Eevee Ultra Raid Pokeball",
         "pokeball_lore": [
           "<gray>Use this to try and catch %boss%!"
-        ],
-        "pokeball_data": {}
+        ]
       }
     }
   },
@@ -195,32 +203,27 @@
         ],
         "rewards": {
           "allow_duplicates": true,
-          "rolls": {
-            "min": 1,
-            "max": 5
-          },
+          "min_rolls": 1,
+          "max_rolls": 5,
           "reward_pools": [
             {
               "type": "unset",
               "weight": 5.0,
               "pool": {
                 "allow_duplicates": true,
-                "rolls": {
-                  "min": 1,
-                  "max": 5
-                },
+                "min_rolls": 1,
+                "max_rolls": 5,
                 "rewards": [
                   {
                     "type": "unset",
                     "weight": 25.0,
                     "reward": {
                       "type": "item",
-                      "item": "minecraft:dirt",
-                      "data": {},
-                      "count": {
-                        "min": 1,
-                        "max": 16
-                      }
+                      "item": {
+                        "id": "minecraft:dirt"
+                      },
+                      "min_count": 1,
+                      "max_count": 16
                     }
                   },
                   {
@@ -255,7 +258,11 @@
     "randomize_nature": true,
     "randomize_ability": true,
     "reset_moves": true,
+    "moves_override": [],
     "friendship_override": 50,
+    "randomize_tera_type": true,
+    "reset_gmax_factor": true,
+    "dynamax_level_override": 0,
     "places": [
       {
         "place": "participating",

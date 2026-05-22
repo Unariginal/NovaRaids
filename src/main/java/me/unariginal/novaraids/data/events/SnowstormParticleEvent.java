@@ -6,8 +6,8 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 
 public class SnowstormParticleEvent extends ParticleEvent {
-    public SnowstormParticleEvent(String type, String particleResource, double xOffset, double yOffset, double zOffset) {
-        super(type, particleResource, xOffset, yOffset, zOffset);
+    public SnowstormParticleEvent(String particleResource, double xOffset, double yOffset, double zOffset) {
+        super(particleResource, xOffset, yOffset, zOffset);
     }
 
     public void spawnParticle(LocationsConfig location) {

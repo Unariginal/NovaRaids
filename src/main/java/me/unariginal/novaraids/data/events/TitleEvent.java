@@ -1,6 +1,6 @@
 package me.unariginal.novaraids.data.events;
 
-import me.unariginal.novaraids.managers.Raid;
+import me.unariginal.novaraids.raid.Raid;
 import me.unariginal.novaraids.utils.TextUtils;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.title.Title;

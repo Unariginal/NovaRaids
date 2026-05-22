@@ -31,7 +31,7 @@ class StrongBattleAIFix(skill: Int) : BattleAI {
     private val hpWeightConsideration = 0.25 // how much HP difference is a consideration for switchins
     private val hpFractionCoefficient = 0.4 // how much HP differences should be taken into account for switch ins
     private val boostWeightCoefficient = 1 // the amount of boosts considered a baseline to be removed
-    private val switchOutMatchupThreshold = 0 // todo change this to get it feeling just right (-7 never switches)
+    private val switchOutMatchupThreshold = -2 // todo change this to get it feeling just right (-7 never switches)
     private val selfKoMoveMatchupThreshold = 0.3
     private val trickRoomThreshold = 85
     private val recoveryMoveThreshold = 0.50
@@ -253,19 +253,15 @@ class StrongBattleAIFix(skill: Int) : BattleAI {
             .filter { it.second.canBeSentOut() }
 
         if (forceSwitch || activeBattlePokemon.isGone()) {
-            if (battle.turn == 1) {
-                val switchTo = activeBattlePokemon.actor.pokemonList.filter { it.canBeSentOut() }.randomOrNull()
-                    ?: return DefaultActionResponse()
-                switchTo.willBeSwitchedIn = true
-                return SwitchActionResponse(switchTo.uuid)
-            }
-            else {
-                val bestEstimation = availableSwitches.maxByOrNull { estimateMatchup(activeBattlePokemon, aiSide, battle, it.first) }
-                    ?: return PassActionResponse
+            // When forced to switch, pick the Pokemon with the best matchup estimation
+            val bestSwitchScore = availableSwitches.maxOfOrNull { estimateMatchup(activeBattlePokemon, aiSide, battle, it.first) }
+                ?: return PassActionResponse
+            val bestSwitch = availableSwitches.firstOrNull { estimateMatchup(activeBattlePokemon, aiSide, battle, it.first) == bestSwitchScore }
+                ?: return PassActionResponse
 
-                bestEstimation.second.willBeSwitchedIn = true
-                return SwitchActionResponse(bestEstimation.second.uuid)
-            }
+            bestSwitch.second.willBeSwitchedIn = true
+
+            return SwitchActionResponse(bestSwitch.second.uuid)
         }
         if (moveset == null) {
             return PassActionResponse
@@ -304,7 +300,11 @@ class StrongBattleAIFix(skill: Int) : BattleAI {
         if (checkSwitchOutSkill() && shouldSwitchOut(aiSide, battle, activeBattlePokemon, moveset)) {
             considerSwitching(activeBattlePokemon, activeTrackerPokemon, opponents, availableMoves, availableSwitches, battle, aiSide)
         }
-        activeTrackerPokemon.firstTurn = false
+
+        // If HP is below 30% and not switching out, always use the most damaging move
+        if (activeTrackerPokemon.currentHpPercent < 0.3 && !shouldSwitchOut(aiSide, battle, activeBattlePokemon, moveset)) {
+            findAndUseMostDamagingMove(activeBattlePokemon, activeTrackerPokemon, opponents, availableMoves, moveset, battle, aiSide)?.let { return it }
+        }
 
         // Decision-making based on move availability and switch-out condition
         if (!shouldSwitchOut(aiSide, battle, activeBattlePokemon, moveset)) {
@@ -324,8 +324,6 @@ class StrongBattleAIFix(skill: Int) : BattleAI {
                 activeTrackerPokemon.firstTurn = false
                 return chooseMove(fakeOut.first, activeBattlePokemon, targets.firstOrNull { validTarget != null && validTarget.id == it.battlePokemon!!.uuid})
             }
-
-            activeTrackerPokemon.firstTurn = false
 
 
             // Explosion/Self destruct
@@ -549,6 +547,9 @@ class StrongBattleAIFix(skill: Int) : BattleAI {
             return false
 
         val activeTrackerPokemon = activeTracker.alliedSide.activePokemon.first { it.id == activeBattlePokemon.battlePokemon!!.uuid }
+        // Don't switch out if we just switched in
+        if (activeTrackerPokemon.firstTurn)
+            return false
         val actorTracker = activeTracker.alliedSide.actors.first { activeTrackerPokemon in it.activePokemon }
         val availableSwitches = actorTracker.party.filter { it.currentHp!! > 0 }
         val currentAbility = activeTrackerPokemon.pokemon!!.ability
@@ -556,6 +557,18 @@ class StrongBattleAIFix(skill: Int) : BattleAI {
 
         val opponentActiveTracker = activeTracker.opponentSide.activePokemon
         val opponentSpeedEstimations = opponentActiveTracker.map { statEstimationActive(it, Stats.SPEED) }
+
+        // Only switch if a switch-in is significantly better than the current Pokémon
+        val currentScore = estimateMatchup(activeBattlePokemon, side, battle)
+        val bestSwitchScore = availableSwitches.maxOfOrNull { estimateMatchup(activeBattlePokemon, side, battle, it) } ?: currentScore
+        val improvementThreshold = currentScore.absoluteValue * 0.5 + 3
+        if (bestSwitchScore <= currentScore + improvementThreshold) {
+            return false
+        }
+
+        if (bestSwitchScore < 1) {
+            return false
+        }
         // todo add some way to keep track of the player's boosting to see if it needs to switch out to something that can stop it
 
         // if slower speed stat than the opposing pokemon and HP is less than 20% don't switch out

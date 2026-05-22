@@ -1,10 +1,11 @@
 package me.unariginal.novaraids.config;
 
-import me.unariginal.novaraids.managers.Raid;
+import me.unariginal.novaraids.raid.Raid;
 import me.unariginal.novaraids.utils.TextUtils;
 import net.kyori.adventure.bossbar.BossBar;
 
 public class BossbarsConfig {
+    public transient String bossbarId;
     public String barColor = "blue";
     public String barStyle = "progress";
     public String barText = "<blue>Phase Progress Bossbar!";
@@ -16,8 +17,8 @@ public class BossbarsConfig {
     }
 
     public BossBar createBossbar(Raid raid) {
-        BossBar.Color color = BossBar.Color.valueOf(barColor);
-        BossBar.Overlay style = BossBar.Overlay.valueOf(barStyle);
+        BossBar.Color color = BossBar.Color.valueOf(barColor.toUpperCase());
+        BossBar.Overlay style = BossBar.Overlay.valueOf(barStyle.toUpperCase());
         return BossBar.bossBar(TextUtils.deserialize(TextUtils.parse(barText, raid)), 1f, color, style);
     }
 }

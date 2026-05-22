@@ -15,6 +15,7 @@ public class CatchSettings {
     public boolean randomizeNature;
     public boolean randomizeAbility;
     public boolean resetMoves;
+    public List<String> movesOverride;
     public int friendshipOverride;
     public boolean randomizeTeraType;
     public boolean resetGmaxFactor;

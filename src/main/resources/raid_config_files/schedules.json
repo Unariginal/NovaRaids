@@ -8,7 +8,7 @@
       "bosses": [
         {
           "type": "category",
-          "category": "common",
+          "category_id": "common",
           "weight": 5.0,
           "blacklisted_bosses": []
         },
@@ -25,8 +25,9 @@
       "bosses": [
         {
           "type": "category",
-          "category": "common",
-          "weight": 5.0
+          "category_id": "common",
+          "weight": 5.0,
+          "blacklisted_bosses": []
         },
         {
           "type": "boss",
@@ -41,8 +42,9 @@
       "bosses": [
         {
           "type": "category",
-          "category": "common",
-          "weight": 5.0
+          "category_id": "common",
+          "weight": 5.0,
+          "blacklisted_bosses": []
         },
         {
           "type": "boss",
@@ -66,8 +68,9 @@
       "bosses": [
         {
           "type": "category",
-          "category": "common",
-          "weight": 5.0
+          "category_d": "common",
+          "weight": 5.0,
+          "blacklisted_bosses": []
         },
         {
           "type": "boss",

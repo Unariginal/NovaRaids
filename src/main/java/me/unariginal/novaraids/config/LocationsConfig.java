@@ -5,12 +5,13 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Vec3d;
 
 public class LocationsConfig {
+    public transient String locationId;
     public String name;
     public DirectionalLocation bossLocation;
     public String world;
     public int borderRadius;
     public int bossPushbackRadius;
-    public boolean useSetJoinLocation;
+    public boolean useJoinLocation;
     public DirectionalLocation joinLocation;
 
     public static class DirectionalLocation {
@@ -30,8 +31,8 @@ public class LocationsConfig {
     }
 
     public ServerWorld getServerWorld() {
-        ServerWorld returnWorld = NovaRaids.INSTANCE.server().getOverworld();
-        for (ServerWorld world : NovaRaids.INSTANCE.server().getWorlds()) {
+        ServerWorld returnWorld = NovaRaids.INSTANCE.server.getOverworld();
+        for (ServerWorld world : NovaRaids.INSTANCE.server.getWorlds()) {
             String id = world.getRegistryKey().getValue().toString();
             String path = world.getRegistryKey().getValue().getPath();
             if (id.equals(this.world) || path.equals(this.world)) {

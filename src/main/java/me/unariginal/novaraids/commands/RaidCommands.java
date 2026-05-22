@@ -18,13 +18,11 @@ import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.cache.PlayerRaidCache;
 import me.unariginal.novaraids.commands.suggestions.BossSuggestions;
 import me.unariginal.novaraids.commands.suggestions.CategorySuggestions;
-import me.unariginal.novaraids.config.LocationsConfig;
 import me.unariginal.novaraids.config.RewardPoolsConfig;
 import me.unariginal.novaraids.config.RewardPresetsConfig;
 import me.unariginal.novaraids.config.guis.ContrabandGUIConfig;
 import me.unariginal.novaraids.data.*;
 import me.unariginal.novaraids.data.bosses.Boss;
-import me.unariginal.novaraids.data.bosses.BossDetails;
 import me.unariginal.novaraids.data.categories.Category;
 import me.unariginal.novaraids.data.guis.BaseGUI;
 import me.unariginal.novaraids.data.guis.BaseGUIItem;
@@ -38,8 +36,8 @@ import me.unariginal.novaraids.data.schedule.CronSchedule;
 import me.unariginal.novaraids.data.schedule.RandomSchedule;
 import me.unariginal.novaraids.data.schedule.Schedule;
 import me.unariginal.novaraids.data.schedule.SpecificSchedule;
-import me.unariginal.novaraids.managers.Raid;
-import me.unariginal.novaraids.utils.GuiUtils;
+import me.unariginal.novaraids.raid.Raid;
+import me.unariginal.novaraids.raid.RaidManager;
 import me.unariginal.novaraids.utils.TextUtils;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.CommandRegistryAccess;
@@ -63,7 +61,10 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.*;
 
+import static me.unariginal.novaraids.NovaRaids.*;
 import static me.unariginal.novaraids.config.ConfigManager.*;
+import static me.unariginal.novaraids.raid.RaidManager.activeRaids;
+import static me.unariginal.novaraids.raid.RaidManager.queuedRaids;
 
 public class RaidCommands {
     private final NovaRaids nr = NovaRaids.INSTANCE;
@@ -76,7 +77,7 @@ public class RaidCommands {
         return CommandManager.literal("reload")
                 .requires(Permissions.require("novaraids.reload", 4))
                 .executes((ctx) -> {
-                    nr.reloadConfig();
+                    reloadConfig();
                     ctx.getSource().sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.commands.reload)));
                     return 1;
                 });
@@ -90,14 +91,16 @@ public class RaidCommands {
                                 .suggests(new BossSuggestions())
                                 .executes(ctx -> {
                                     ServerPlayerEntity player = ctx.getSource().isExecutedByPlayer() ? ctx.getSource().getPlayer() : null;
-                                    return start(Boss.getBoss(StringArgumentType.getString(ctx, "boss")), player, null);
+                                    RaidManager.queueRaid(Boss.getBoss(StringArgumentType.getString(ctx, "boss")), player, null);
+                                    return 1;
                                 })
                 )
                 .then(
                         CommandManager.literal("random")
                                 .executes(ctx -> {
                                     ServerPlayerEntity player = ctx.getSource().isExecutedByPlayer() ? ctx.getSource().getPlayer() : null;
-                                    return start(Boss.getRandomBoss(null), player, null);
+                                    RaidManager.queueRaid(Boss.getRandomBoss(null), player, null);
+                                    return 1;
                                 })
                                 .then(
                                         CommandManager.argument("category", StringArgumentType.string())
@@ -106,7 +109,8 @@ public class RaidCommands {
                                                     String category = StringArgumentType.getString(ctx, "category");
                                                     Boss boss = Boss.getRandomBoss(category, null);
                                                     ServerPlayerEntity player = ctx.getSource().isExecutedByPlayer() ? ctx.getSource().getPlayer() : null;
-                                                    return start(boss, player, null);
+                                                    RaidManager.queueRaid(boss, player, null);
+                                                    return 1;
                                                 })
                                 )
                 );
@@ -308,22 +312,24 @@ public class RaidCommands {
                 .then(
                         CommandManager.argument("id", IntegerArgumentType.integer(1))
                                 .executes(ctx -> {
+                                    int id = IntegerArgumentType.getInteger(ctx, "id");
+                                    Raid raid = RaidManager.getRaid(id - 1);
+                                    if (raid == null) return 0;
+
                                     if (ctx.getSource().isExecutedByPlayer()) {
                                         ServerPlayerEntity player = ctx.getSource().getPlayer();
                                         if (player != null) {
-                                            if (nr.activeRaids().containsKey(IntegerArgumentType.getInteger(ctx, "id"))) {
-                                                Raid raid = nr.activeRaids().get(IntegerArgumentType.getInteger(ctx, "id"));
-                                                if (raid.participatingPlayers.size() < raid.maxPlayers || Permissions.check(player, "novaraids.override") || raid.maxPlayers == -1) {
-                                                    if (raid.addPlayer(player.getUuid(), false)) {
-                                                        player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.joinedRaid, raid)));
-                                                    }
-                                                } else {
-                                                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.warnings.maxPlayers, raid)));
+                                            if (raid.participatingPlayers.size() < raid.maxPlayers || Permissions.check(player, "novaraids.override") || raid.maxPlayers == -1) {
+                                                if (raid.addPlayer(player.getUuid(), false)) {
+                                                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.joinedRaid, raid)));
+                                                    return 1;
                                                 }
+                                            } else {
+                                                player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.warnings.maxPlayers, raid)));
                                             }
                                         }
                                     }
-                                    return 1;
+                                    return 0;
                                 })
                 );
     }
@@ -395,7 +401,7 @@ public class RaidCommands {
                                         .requires(Permissions.require("novaraids.skipphase", 4))
                                         .then(
                                                 CommandManager.argument("id", IntegerArgumentType.integer(1))
-                                                        .executes(this::skipphase)
+                                                        .executes(this::skipPhase)
                                         )
                         )
                         .then(
@@ -435,24 +441,21 @@ public class RaidCommands {
                                                                 CommandManager.argument("amount", IntegerArgumentType.integer(1))
                                                                         .executes(ctx -> {
                                                                             int id = IntegerArgumentType.getInteger(ctx, "id");
-                                                                            if (nr.activeRaids().containsKey(id)) {
-                                                                                Raid raid = nr.activeRaids().get(id);
-                                                                                if (raid != null) {
-                                                                                    if (ctx.getSource().isExecutedByPlayer()) {
-                                                                                        ServerPlayerEntity player = ctx.getSource().getPlayer();
-                                                                                        if (player != null) {
-                                                                                            int damage = IntegerArgumentType.getInteger(ctx, "amount");
-                                                                                            if (damage > raid.currentHealth) {
-                                                                                                damage = raid.currentHealth;
-                                                                                            }
-
-                                                                                            raid.applyDamage(damage);
-                                                                                            raid.updatePlayerDamage(player.getUuid(), damage);
-                                                                                            // TODO: Consider using the event?
-//                                                                                            raid.participatingBroadcast(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("player_damage_report"), raid, player, damage, -1)));
-                                                                                            player.sendMessage(TextUtils.deserialize("<green>The damage has been applied."));
-                                                                                        }
+                                                                            Raid raid = RaidManager.getRaid(id - 1);
+                                                                            if (raid == null) return 0;
+                                                                            if (ctx.getSource().isExecutedByPlayer()) {
+                                                                                ServerPlayerEntity player = ctx.getSource().getPlayer();
+                                                                                if (player != null) {
+                                                                                    int damage = IntegerArgumentType.getInteger(ctx, "amount");
+                                                                                    if (damage > raid.currentHealth) {
+                                                                                        damage = raid.currentHealth;
                                                                                     }
+
+                                                                                    raid.applyDamage(damage);
+                                                                                    raid.updatePlayerDamage(player.getUuid(), damage);
+                                                                                    // TODO: Consider using the event?
+                                                                                    // raid.participatingBroadcast(TextUtils.deserialize(TextUtils.parse(nr.messagesConfig().getMessage("player_damage_report"), raid, player, damage, -1)));
+                                                                                    player.sendMessage(TextUtils.deserialize("<green>The damage has been applied."));
                                                                                 }
                                                                             }
                                                                             return 1;
@@ -930,7 +933,7 @@ public class RaidCommands {
         }
 
         Map<Integer, SimpleGui> pages = new HashMap<>();
-        int pageTotal = GuiUtils.getPageTotal(displayItems.size(), gui.getTotalSlotsBySymbol(displayGuiItem.symbol));
+        int pageTotal = gui.getPageTotal(displayItems.size(), displayGuiItem.symbol);
         for (int i = 1; i <= pageTotal; i++) {
             SimpleGui mainGui = new SimpleGui(gui.getScreenHandler(), player, false);
             String title = TextUtils.parse(gui.guiTitle);
@@ -1175,7 +1178,7 @@ public class RaidCommands {
             for (RewardDistribution bossReward : bossRewards) {
                 List<Place> places = bossReward.places;
                 for (Place place : places) {
-                    if (place.overrideCategoryReward) {
+                    if (place.overrideCategoryReward != null && place.overrideCategoryReward) {
                         overriddenPlacements.add(place);
                     }
                 }
@@ -1264,18 +1267,18 @@ public class RaidCommands {
                                         pool = undefinedPoolSection.pool;
                                     }
                                     if (pool == null) {
-                                        nr.logError("Pool was null!");
+                                        logError("Pool was null!");
                                         continue;
                                     }
-                                    if (reward.rewards.allowDuplicates || !distributedPools.contains(pool.getUuid())) {
+                                    if (reward.rewards.allowDuplicates || !distributedPools.contains(pool.uuid)) {
                                         List<RewardPresetsConfig.Reward> distributionList = pool.distributeRewards();
                                         distributionList.forEach(distributionItem -> distributionItem.grantReward(player));
-                                        distributedPools.add(pool.getUuid());
+                                        distributedPools.add(pool.uuid);
                                     } else {
                                         i--;
                                     }
                                 } else {
-                                    nr.logError("Pool was null!");
+                                    logError("Pool was null!");
                                 }
                             }
                         }
@@ -1293,90 +1296,28 @@ public class RaidCommands {
         return 1;
     }
 
-    private int skipphase(CommandContext<ServerCommandSource> ctx) {
+    private int skipPhase(CommandContext<ServerCommandSource> ctx) {
         int id = IntegerArgumentType.getInteger(ctx, "id");
-        if (nr.activeRaids().containsKey(id)) {
-            Raid raid = nr.activeRaids().get(id);
-            List<Task> tasks = raid.tasks.entrySet().stream().findFirst().orElseThrow().getValue();
-            raid.removeTask(raid.tasks.entrySet().stream().findFirst().orElseThrow().getKey());
-            for (Task task : tasks) {
-                raid.addTask(task.world(), 1L, task.action());
-            }
+        Raid raid = RaidManager.getRaid(id - 1);
+        if (raid == null) return 0;
+
+        List<Task> tasks = raid.tasks.entrySet().stream().findFirst().orElseThrow().getValue();
+        raid.removeTask(raid.tasks.entrySet().stream().findFirst().orElseThrow().getKey());
+        for (Task task : tasks) {
+            raid.addTask(task.world(), 1L, task.action());
         }
         return 1;
     }
 
-    public int start(Boss bossInfo, ServerPlayerEntity player, ItemStack startingItem) {
-        if (!nr.server().getPlayerManager().getPlayerList().isEmpty() || CONFIG.raidSettings.runRaidsWithNoPlayers) {
-            if (bossInfo != null) {
-                List<BossDetails.WeightedLocation> spawnLocations = bossInfo.bossDetails.locations;
-                List<String> validLocations = new ArrayList<>();
-
-                for (BossDetails.WeightedLocation location : spawnLocations) {
-                    boolean validSpawn = true;
-                    for (Raid raid : nr.activeRaids().values()) {
-                        if (raid.locationId.equalsIgnoreCase(location.location)) {
-                            validSpawn = false;
-                            break;
-                        }
-                    }
-                    if (validSpawn) {
-                        validLocations.add(location.location);
-                    }
-                }
-
-                LocationsConfig spawnLocation;
-                String locationId;
-                if (!validLocations.isEmpty()) {
-                    locationId = validLocations.get(new Random().nextInt(validLocations.size()));
-                    spawnLocation = LocationsConfig.getLocation(locationId);
-                } else {
-                    nr.logInfo("No valid spawn locations found. All possible locations are busy.");
-                    if (player != null) {
-                        player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.noAvailableLocations, bossInfo)));
-                    }
-                    return 0;
-                }
-
-                if (spawnLocation != null) {
-                    if (!CONFIG.raidSettings.useQueueSystem) {
-                        nr.addRaid(new Raid(bossInfo, locationId, (player != null) ? player.getUuid() : null, startingItem));
-                    } else {
-                        nr.addQueueItem(new QueueItem(UUID.randomUUID(), bossInfo, locationId, (player != null) ? player.getUuid() : null, startingItem));
-
-                        if (nr.activeRaids().isEmpty()) {
-                            nr.initNextRaid();
-                        } else {
-                            if (player != null) {
-                                player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.addedToQueue, bossInfo)));
-                            }
-                        }
-                    }
-                } else {
-                    nr.logError("Location was null!");
-                    return 0;
-                }
-                return 1;
-            }
-            nr.logError("Boss was null!");
-            return 0;
-        }
-        return 0;
-    }
-
     private int stop(CommandContext<ServerCommandSource> ctx) {
         int id = IntegerArgumentType.getInteger(ctx, "id");
-        if (nr.activeRaids().containsKey(id)) {
-            if (ctx.getSource().isExecutedByPlayer()) {
-                if (ctx.getSource().getPlayer() != null) {
-                    ctx.getSource().getPlayer().sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.commands.raidStopped, nr.activeRaids().get(id))));
-                }
-            }
-            nr.activeRaids().get(id).stop();
-            nr.removeRaid(nr.activeRaids().get(id));
-            return 1;
-        }
-        return 0;
+        Raid raid = RaidManager.getRaid(id - 1);
+        if (raid == null) return 0;
+
+        ctx.getSource().sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.commands.raidStopped, raid)));
+
+        RaidManager.stopRaid(raid.uuid);
+        return 1;
     }
 
     public int give(ServerPlayerEntity sourcePlayer, ServerPlayerEntity targetPlayer, String itemType, String bossName, String category, String key, int amount) {
@@ -1546,7 +1487,7 @@ public class RaidCommands {
                     categoryID = "null";
                     Boss boss = Boss.getBoss(bossName);
                     if (boss == null) {
-                        nr.logInfo("The boss was null");
+                        logInfo("The boss was null");
                         sourcePlayer.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.commands.giveInvalidBoss.replaceAll("%boss%", bossName), sourcePlayer, targetPlayer, amount, itemType)));
                         return 0;
                     }
@@ -1570,7 +1511,7 @@ public class RaidCommands {
                     bossID = "*";
                     Category cat = Category.getCategory(category);
                     if (cat == null) {
-                        nr.logInfo("Category was null");
+                        logInfo("Category was null");
                         sourcePlayer.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.commands.giveInvalidCategory.replaceAll("%category%", category), sourcePlayer, targetPlayer, amount, itemType)));
                         return 0;
                     }
@@ -1623,13 +1564,13 @@ public class RaidCommands {
     private int list(CommandContext<ServerCommandSource> ctx) {
         ServerPlayerEntity player = ctx.getSource().getPlayer();
         if (player != null) {
-            if (nr.activeRaids().isEmpty()) {
+            if (activeRaids.isEmpty()) {
                 player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.noActiveRaids)));
                 return 0;
             }
 
             Map<Integer, SimpleGui> pages = new HashMap<>();
-            int pageTotal = GuiUtils.getPageTotal(nr.activeRaids().size(), RAID_LIST_GUI.getTotalSlotsBySymbol(RAID_LIST_GUI.joinableRaidItem.symbol));
+            int pageTotal = BaseGUI.getPageTotal(activeRaids.size(), RAID_LIST_GUI.getTotalSlotsBySymbol(RAID_LIST_GUI.joinableRaidItem.symbol));
             for (int i = 1; i <= pageTotal; i++) {
                 SimpleGui gui = new SimpleGui(RAID_LIST_GUI.getScreenHandler(), player, false);
                 gui.setTitle(TextUtils.deserialize(TextUtils.parse(RAID_LIST_GUI.guiTitle)));
@@ -1639,8 +1580,8 @@ public class RaidCommands {
             int index = 0;
             for (Map.Entry<Integer, SimpleGui> pageEntry : pages.entrySet()) {
                 for (Integer slot : RAID_LIST_GUI.getSlotsBySymbol(RAID_LIST_GUI.joinableRaidItem.symbol)) {
-                    if (nr.activeRaids().containsKey(index + 1)) {
-                        Raid raid = nr.activeRaids().get(index + 1);
+                    Raid raid = RaidManager.getRaid(index);
+                    if (raid != null) {
                         List<Text> lore = new ArrayList<>();
 
                         if (!raid.category.raidDetails.requirePass && raid.stage == 1) {
@@ -1763,13 +1704,13 @@ public class RaidCommands {
     private int queue(CommandContext<ServerCommandSource> ctx, int pageToOpen) {
         ServerPlayerEntity player = ctx.getSource().getPlayer();
         if (player != null) {
-            if (nr.queuedRaids().isEmpty()) {
+            if (queuedRaids.isEmpty()) {
                 player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.noQueuedRaids)));
                 return 0;
             }
 
             Map<Integer, SimpleGui> pages = new HashMap<>();
-            int pageTotal = GuiUtils.getPageTotal(nr.queuedRaids().size(), RAID_QUEUE_GUI.getTotalSlotsBySymbol(RAID_QUEUE_GUI.raidItem.symbol));
+            int pageTotal = BaseGUI.getPageTotal(queuedRaids.size(), RAID_QUEUE_GUI.getTotalSlotsBySymbol(RAID_QUEUE_GUI.raidItem.symbol));
             for (int i = 1; i <= pageTotal; i++) {
                 SimpleGui gui = new SimpleGui(RAID_QUEUE_GUI.getScreenHandler(), player, false);
                 gui.setTitle(TextUtils.deserialize(TextUtils.parse(RAID_QUEUE_GUI.guiTitle)));
@@ -1779,8 +1720,8 @@ public class RaidCommands {
             int index = 0;
             for (Map.Entry<Integer, SimpleGui> pageEntry : pages.entrySet()) {
                 for (Integer slot : RAID_QUEUE_GUI.getSlotsBySymbol(RAID_QUEUE_GUI.raidItem.symbol)) {
-                    if (index < nr.queuedRaids().size()) {
-                        Boss boss = nr.queuedRaids().stream().toList().get(index).bossInfo();
+                    if (index < queuedRaids.size()) {
+                        Boss boss = queuedRaids.stream().toList().get(index).boss;
 
                         List<Text> lore = new ArrayList<>();
                         if (Permissions.check(player, "novaraids.cancelqueue", 4)) {
@@ -1802,9 +1743,9 @@ public class RaidCommands {
                                     if (clickType.isRight) {
                                         if (Permissions.check(player, "novaraids.cancelqueue", 4)) {
                                             pageEntry.getValue().close();
-                                            nr.queuedRaids().stream().toList().get(finalIndex).cancelItem();
+                                            queuedRaids.stream().toList().get(finalIndex).cancelItem();
                                             player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.queueItemCancelled, boss)));
-                                            nr.queuedRaids().remove(nr.queuedRaids().stream().toList().get(finalIndex));
+                                            queuedRaids.remove(queuedRaids.stream().toList().get(finalIndex));
                                             queue(ctx, pageEntry.getKey());
                                         }
                                     }

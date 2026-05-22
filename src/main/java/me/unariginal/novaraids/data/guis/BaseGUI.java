@@ -72,4 +72,12 @@ public class BaseGUI {
         }
         return count;
     }
+
+    public static int getPageTotal(int totalElements, int size) {
+        return (int) Math.ceil((double) totalElements / size);
+    }
+
+    public int getPageTotal(int totalElements, String symbol) {
+        return getPageTotal(totalElements, getTotalSlotsBySymbol(symbol));
+    }
 }

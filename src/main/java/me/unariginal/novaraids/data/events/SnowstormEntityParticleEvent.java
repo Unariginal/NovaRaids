@@ -10,8 +10,8 @@ import java.util.List;
 public class SnowstormEntityParticleEvent extends ParticleEvent {
     public List<String> locators;
 
-    public SnowstormEntityParticleEvent(String type, String particleResource, double xOffset, double yOffset, double zOffset, List<String> locators) {
-        super(type, particleResource, xOffset, yOffset, zOffset);
+    public SnowstormEntityParticleEvent(String particleResource, double xOffset, double yOffset, double zOffset, List<String> locators) {
+        super(particleResource, xOffset, yOffset, zOffset);
         this.locators = locators;
     }
 

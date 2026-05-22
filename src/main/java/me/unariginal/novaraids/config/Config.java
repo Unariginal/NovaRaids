@@ -41,14 +41,12 @@ public class Config {
         public static class VoucherSettings {
             public boolean vouchersEnabled = true;
             public boolean vouchersJoinRaids = false;
-            public Voucher defaultVoucher = new Voucher();
             public Voucher globalChoiceVoucher = new Voucher();
             public Voucher globalRandomVoucher = new Voucher();
         }
 
         public static class PassSettings {
             public boolean passesEnabled = true;
-            public Pass defaultPass = new Pass();
             public Pass globalPass = new Pass();
         }
 

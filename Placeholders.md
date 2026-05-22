@@ -1,0 +1,38 @@
+- novaraids_prefix | prefix
+---
+- raid_uuid
+- raid_total_damage
+- raid_timer
+- raid_phase_timer
+- raid_phase
+- raid_player_count
+- raid_minimum_players | raid_min_players
+- raid_minimum_level | raid_min_level
+- raid_maximum_players | raid_max_players
+- raid_maximum_level | raid_max_players
+- raid_maximum_health | raid_max_health
+- raid_location
+- raid_join_method
+- raid_health
+- raid_defeated_time
+- raid_completion_time
+- raid_category_id
+- raid_category
+---
+- raid_boss_tera_type
+- raid_boss_species
+- raid_boss_shiny
+- raid_boss_scale
+- raid_boss_nature
+- raid_boss_name
+- raid_boss_moves
+- raid_boss_level
+- raid_boss_ivs
+- raid_boss_held_item
+- raid_boss_gmax_factor
+- raid_boss_gender
+- raid_boss_friendship
+- raid_boss_form
+- raid_boss_evs
+- raid_boss_dynamax_level | raid_boss_dmax_level
+- raid_boss_ability

@@ -16,7 +16,6 @@ public class VanillaParticleEvent extends ParticleEvent {
     public double speed;
 
     public VanillaParticleEvent(
-            String type,
             String particleResource,
             double xOffset,
             double yOffset,
@@ -27,7 +26,7 @@ public class VanillaParticleEvent extends ParticleEvent {
             double deltaZ,
             double speed
     ) {
-        super(type, particleResource, xOffset, yOffset, zOffset);
+        super(particleResource, xOffset, yOffset, zOffset);
         this.count = count;
         this.deltaX = deltaX;
         this.deltaY = deltaY;

@@ -79,7 +79,7 @@ public class DistributionSection {
 
                 if (rewardToGive != null) {
                     rewardsToDistribute.addAll(rewardToGive.distributeRewards());
-                    appliedRewards.add(rewardToGive.getUuid());
+                    appliedRewards.add(rewardToGive.uuid);
                 }
             }
         }

@@ -1,7 +1,7 @@
 package me.unariginal.novaraids.cache;
 
 import com.google.common.collect.Maps;
-import me.unariginal.novaraids.managers.Raid;
+import me.unariginal.novaraids.raid.Raid;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.jetbrains.annotations.Nullable;
 
@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.UUID;
 
 public class PlayerRaidCache {
-
     private static final Map<UUID, Raid> playersInRaid = Maps.newConcurrentMap();
 
     @Nullable

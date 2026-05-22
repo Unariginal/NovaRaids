@@ -5,23 +5,17 @@ import com.cronutils.model.definition.CronDefinition;
 import com.cronutils.model.definition.CronDefinitionBuilder;
 import com.cronutils.model.time.ExecutionTime;
 import com.cronutils.parser.CronParser;
-import me.unariginal.novaraids.NovaRaids;
 
 import java.time.ZonedDateTime;
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
+import static me.unariginal.novaraids.NovaRaids.logError;
 import static me.unariginal.novaraids.config.ConfigManager.SCHEDULES;
 
 public class CronSchedule extends Schedule {
     public String expression;
     public transient ZonedDateTime nextExecution;
-
-    public CronSchedule(List<ScheduleBoss> bosses, String expression) {
-        super(bosses);
-        this.expression = expression;
-    }
 
     public void setNextExecution(ZonedDateTime date) throws NoSuchElementException, IllegalArgumentException {
         CronDefinition cronDefinition = CronDefinitionBuilder.defineCron()
@@ -50,12 +44,12 @@ public class CronSchedule extends Schedule {
             try {
                 this.nextExecution = nextExecution.orElseThrow();
             } catch (NullPointerException e) {
-                NovaRaids.INSTANCE.logError("Cron Schedule's next execution time is null!");
+                logError("Cron Schedule's next execution time is null!");
             }
         } catch (IllegalArgumentException e) {
-            NovaRaids.INSTANCE.logError("Cron Schedule's expression is invalid! " + e.getMessage());
+            logError("Cron Schedule's expression is invalid! " + e.getMessage());
             for (StackTraceElement el : e.getStackTrace()) {
-                NovaRaids.INSTANCE.logError("  " + el.toString());
+                logError("  " + el.toString());
             }
         }
     }

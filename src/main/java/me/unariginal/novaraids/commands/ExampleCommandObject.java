@@ -7,7 +7,6 @@ import org.incendo.cloud.annotations.Command;
 import org.incendo.cloud.annotations.Permission;
 
 public class ExampleCommandObject {
-
     @Command("raids start <boss>")
     @Permission("novaraids.start")
     public void onBoss(

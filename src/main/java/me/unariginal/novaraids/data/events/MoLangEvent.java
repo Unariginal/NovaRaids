@@ -8,6 +8,8 @@ import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 
+import java.util.Map;
+
 import static com.cobblemon.mod.common.util.MoLangExtensionsKt.asExpressionLike;
 import static com.cobblemon.mod.common.util.MoLangExtensionsKt.withQueryValue;
 
@@ -24,6 +26,6 @@ public class MoLangEvent {
         }
 
         if (type.equals("script")) CobblemonScripts.run(Identifier.of(molang), runtime);
-        else asExpressionLike(molang).resolve(runtime, runtime.getEnvironment().context.getMap());
+        else asExpressionLike(molang).resolve(runtime, runtime.getEnvironment().context == null ? Map.of() : runtime.getEnvironment().context.getMap());
     }
 }

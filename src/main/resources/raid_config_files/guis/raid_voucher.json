@@ -1,5 +1,6 @@
 {
   "gui_title": "Pick A Raid",
+  "use_hopper_gui": false,
   "rows": 6,
   "gui_layout": [
     "#########",
@@ -11,36 +12,43 @@
   ],
   "raid_display_item": {
     "symbol": "#",
+    "item": {
+      "id": "cobblemon:pokemon_model"
+    },
     "item_name": "<light_purple>%boss.name%",
     "item_lore": [],
     "item_data": {}
   },
   "background_item": {
     "symbol": "_",
-    "item": "minecraft:air",
+    "item": {
+      "id": "minecraft:air"
+    },
     "item_name": "",
-    "item_lore": [],
-    "item_data": {}
+    "item_lore": []
   },
   "previous_item": {
     "symbol": "P",
-    "item": "minecraft:arrow",
+    "item": {
+      "id": "minecraft:arrow"
+    },
     "item_name": "Previous",
-    "item_lore": [],
-    "item_data": {}
+    "item_lore": []
   },
   "close_item": {
     "symbol": "C",
-    "item": "minecraft:barrier",
+    "item": {
+      "id": "minecraft:barrier"
+    },
     "item_name": "Close",
-    "item_lore": [],
-    "item_data": {}
+    "item_lore": []
   },
   "next_item": {
     "symbol": "N",
-    "item": "minecraft:arrow",
+    "item": {
+      "id": "minecraft:arrow"
+    },
     "item_name": "Next",
-    "item_lore": [],
-    "item_data": {}
+    "item_lore": []
   }
 }

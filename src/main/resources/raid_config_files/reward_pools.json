@@ -1,24 +1,23 @@
 {
   "pool_example_1": {
     "allow_duplicates": true,
-    "rolls": {
-      "min": 1,
-      "max": 5
-    },
+    "min_rolls": 1,
+    "max_rolls": 5,
     "rewards": [
       {
+        "type": "unset",
         "weight": 25.0,
         "reward": {
           "type": "item",
-          "item": "minecraft:dirt",
-          "data": {},
-          "count": {
-            "min": 1,
-            "max": 16
-          }
+          "item": {
+            "id": "minecraft:dirt"
+          },
+          "min_count": 1,
+          "max_count": 16
         }
       },
       {
+        "type": "unset",
         "weight": 50.0,
         "reward": {
           "type": "command",
@@ -29,6 +28,7 @@
         }
       },
       {
+        "type": "preset",
         "weight": 5.0,
         "reward_preset": "pokemon_reward_example"
       }
@@ -36,16 +36,16 @@
   },
   "pool_example_2": {
     "allow_duplicates": false,
-    "rolls": {
-      "min": 1,
-      "max": 1
-    },
+    "min_rolls": 1,
+    "max_rolls": 1,
     "rewards": [
       {
+        "type": "preset",
         "weight": 5.0,
         "reward_preset": "pokemon_reward_example"
       },
       {
+        "type": "preset",
         "weight": 2.0,
         "reward_preset": "command_reward_example"
       }

@@ -4,22 +4,18 @@ import java.util.List;
 import java.util.Random;
 
 public class Schedule {
-    public List<ScheduleBoss> bosses;
+    public List<ScheduleSection> bosses;
 
-    public Schedule(List<ScheduleBoss> bosses) {
-        this.bosses = bosses;
-    }
-
-    public ScheduleBoss getBoss() {
+    public ScheduleSection getBoss() {
         double totalWeight = 0;
-        for (ScheduleBoss boss : bosses) {
+        for (ScheduleSection boss : bosses) {
             totalWeight += boss.weight;
         }
-        double random_weight = new Random().nextDouble(totalWeight);
+        double randomWeight = new Random().nextDouble(totalWeight);
         totalWeight = 0;
-        for (ScheduleBoss boss : bosses) {
+        for (ScheduleSection boss : bosses) {
             totalWeight += boss.weight;
-            if (random_weight < totalWeight) {
+            if (randomWeight < totalWeight) {
                 return boss;
             }
         }

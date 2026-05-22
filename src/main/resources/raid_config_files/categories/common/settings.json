@@ -3,10 +3,8 @@
   "category_name": "Common",
   "raid_details": {
     "require_pass": false,
-    "player_count": {
-      "min": 1,
-      "max": -1
-    },
+    "min_player_count": 1,
+    "max_player_count": -1,
     "contraband": {
       "banned_pokemon": [],
       "banned_moves": [],
@@ -23,35 +21,41 @@
   },
   "item_settings": {
     "category_choice_voucher": {
-      "voucher_item": "minecraft:feather",
-      "voucher_name": "",
-      "voucher_lore": [],
-      "voucher_data": {}
+      "voucher_item": {
+        "id": "minecraft:feather"
+      },
+      "voucher_name": "Common Raid Voucher",
+      "voucher_lore": []
     },
     "category_random_voucher": {
-      "voucher_item": "minecraft:feather",
-      "voucher_name": "",
+      "voucher_item": {
+        "id": "minecraft:feather"
+      },
+      "voucher_name": "Random Common Raid Voucher",
       "voucher_lore": [],
       "voucher_data": {}
     },
     "category_pass": {
-      "pass_item": "minecraft:paper",
-      "pass_name": "",
-      "pass_lore": [],
-      "pass_data": {}
+      "pass_item": {
+        "id": "minecraft:paper"
+      },
+      "pass_name": "Common Raid Pass",
+      "pass_lore": []
     },
     "raid_balls": {
       "common_premier": {
-        "pokeball": "cobblemon:premier_ball",
+        "pokeball_item": {
+          "id": "cobblemon:premier_ball"
+        },
         "pokeball_name": "<red>Common Premier Raid Pokeball",
-        "pokeball_lore": ["<gray>Use this to try and catch common bosses!"],
-        "pokeball_data": {}
+        "pokeball_lore": ["<gray>Use this to try and catch common bosses!"]
       },
       "common_ultra": {
-        "pokeball": "cobblemon:ultra_ball",
+        "pokeball_item": {
+          "id": "cobblemon:ultra_ball"
+        },
         "pokeball_name": "<red>Common Ultra Raid Pokeball",
-        "pokeball_lore": ["<gray>Use this to try and catch common bosses!"],
-        "pokeball_data": {}
+        "pokeball_lore": ["<gray>Use this to try and catch common bosses!"]
       }
     }
   },
@@ -66,10 +70,8 @@
       ],
       "rewards": {
         "allow_duplicates": true,
-        "rolls": {
-          "min": 1,
-          "max": 5
-        },
+        "min_rolls": 1,
+        "max_rolls": 5,
         "reward_pools": [
           {
             "type": "preset",
@@ -81,22 +83,19 @@
             "weight": 5.0,
             "pool": {
               "allow_duplicates": true,
-              "rolls": {
-                "min": 1,
-                "max": 5
-              },
+              "min_rolls": 1,
+              "max_rolls": 5,
               "rewards": [
                 {
                   "type": "unset",
                   "weight": 25.0,
                   "reward": {
                     "type": "item",
-                    "item": "minecraft:dirt",
-                    "data": {},
-                    "count": {
-                      "min": 1,
-                      "max": 16
-                    }
+                    "item": {
+                      "id": "minecraft:dirt"
+                    },
+                    "min_count": 1,
+                    "max_count": 16
                   }
                 },
                 {

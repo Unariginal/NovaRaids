@@ -5,24 +5,12 @@ import java.util.*;
 
 public class RewardPoolsConfig {
     public static class RewardPool {
-        private UUID uuid;
+        public transient String rewardPoolId;
+        public final transient UUID uuid = UUID.randomUUID();
         public boolean allowDuplicates;
         public int minRolls;
         public int maxRolls;
         public List<RewardItem> rewards;
-
-        public RewardPool(boolean allowDuplicates, int minRolls, int maxRolls, List<RewardItem> rewards) {
-            this.uuid = UUID.randomUUID();
-            this.allowDuplicates = allowDuplicates;
-            this.minRolls = minRolls;
-            this.maxRolls = maxRolls;
-            this.rewards = rewards;
-        }
-
-        public UUID getUuid() {
-            if (uuid == null) uuid = UUID.randomUUID();
-            return uuid;
-        }
 
         public List<RewardPresetsConfig.Reward> distributeRewards() {
             List<RewardPresetsConfig.Reward> rewardsToDistribute = new ArrayList<>();
@@ -32,7 +20,7 @@ public class RewardPoolsConfig {
             for (int i = 0; i < rolls; i++) {
                 double totalWeight = 0;
                 for (RewardItem reward : rewards) {
-                    if (allowDuplicates || !appliedRewards.contains(reward.getUuid())) {
+                    if (allowDuplicates || !appliedRewards.contains(reward.uuid)) {
                         totalWeight += reward.weight;
                     }
                 }
@@ -42,7 +30,7 @@ public class RewardPoolsConfig {
                     totalWeight = 0;
                     RewardItem rewardToGive = null;
                     for (RewardItem reward : rewards) {
-                        if (allowDuplicates || !appliedRewards.contains(reward.getUuid())) {
+                        if (allowDuplicates || !appliedRewards.contains(reward.uuid)) {
                             totalWeight += reward.weight;
                             if (randomWeight < totalWeight) {
                                 rewardToGive = reward;
@@ -58,7 +46,7 @@ public class RewardPoolsConfig {
                             rewardsToDistribute.add(rewardItemUndefined.reward);
                         }
 
-                        appliedRewards.add(rewardToGive.getUuid());
+                        appliedRewards.add(rewardToGive.uuid);
                     }
                 }
             }
@@ -68,38 +56,16 @@ public class RewardPoolsConfig {
     }
 
     public static class RewardItem {
-        public String type;
         public double weight;
-        private UUID uuid;
-
-        public RewardItem(String type, double weight) {
-            this.type = type;
-            this.weight = weight;
-            this.uuid = UUID.randomUUID();
-        }
-
-        public UUID getUuid() {
-            if (uuid == null) uuid = UUID.randomUUID();
-            return uuid;
-        }
+        public transient UUID uuid = UUID.randomUUID();
     }
 
     public static class RewardItemPredefined extends RewardItem {
         public String rewardPreset;
-
-        public RewardItemPredefined(String type, double weight, String rewardPreset) {
-            super(type, weight);
-            this.rewardPreset = rewardPreset;
-        }
     }
 
     public static class RewardItemUndefined extends RewardItem {
         public RewardPresetsConfig.Reward reward;
-
-        public RewardItemUndefined(String type, double weight, RewardPresetsConfig.Reward reward) {
-            super(type, weight);
-            this.reward = reward;
-        }
     }
 
     public static RewardPool getRewardPool(String id) {

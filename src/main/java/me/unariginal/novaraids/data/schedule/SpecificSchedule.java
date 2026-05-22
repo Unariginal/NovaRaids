@@ -12,11 +12,6 @@ public class SpecificSchedule extends Schedule {
     public List<String> times;
     public transient List<LocalTime> localTimes = new ArrayList<>();
 
-    public SpecificSchedule(List<ScheduleBoss> bosses, List<String> times) {
-        super(bosses);
-        this.times = times;
-    }
-
     public boolean isNextTime() {
         LocalTime now = LocalTime.now(SCHEDULES.getTimezone());
 

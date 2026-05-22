@@ -3,7 +3,7 @@ package me.unariginal.novaraids.data.events;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import me.unariginal.novaraids.config.ConfigManager;
 import me.unariginal.novaraids.config.LocationsConfig;
-import me.unariginal.novaraids.managers.Raid;
+import me.unariginal.novaraids.raid.Raid;
 import me.unariginal.novaraids.utils.TextUtils;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -18,6 +18,7 @@ public class Event {
     public List<String> messages;
     public List<String> commands;
     public List<SoundEvent> sounds;
+    public List<EffectEvent> effects;
     public List<ParticleEvent> particles;
     public List<TitleEvent> titles;
     public List<MoLangEvent> molang;
@@ -39,6 +40,14 @@ public class Event {
 
     public void playSounds(LocationsConfig location) {
         sounds.forEach(soundEvent -> soundEvent.playSound(location));
+    }
+
+    public void applyEffects(ServerPlayerEntity player) {
+        effects.forEach(effectEvent -> effectEvent.applyEffect(player));
+    }
+
+    public void clearEffects(ServerPlayerEntity player) {
+        effects.forEach(effectEvent -> effectEvent.clearEffect(player));
     }
 
     public void spawnParticles(LocationsConfig location, PokemonEntity pokemonEntity) {

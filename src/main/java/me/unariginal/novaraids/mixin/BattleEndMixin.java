@@ -10,8 +10,8 @@ import com.cobblemon.mod.common.pokemon.Pokemon;
 import me.unariginal.novaraids.ai.StrongBattleAIFix;
 import me.unariginal.novaraids.cache.PlayerRaidCache;
 import me.unariginal.novaraids.events.RaidEvents;
-import me.unariginal.novaraids.managers.BattleManager;
-import me.unariginal.novaraids.managers.Raid;
+import me.unariginal.novaraids.handlers.BattleHandler;
+import me.unariginal.novaraids.raid.Raid;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -80,7 +80,7 @@ public class BattleEndMixin {
         if (CONFIG.raidSettings.automaticBattles) {
             if (raid.currentHealth > 0) {
                 ServerPlayerEntity finalPlayer = player;
-                raid.addTask(player.getServerWorld(), CONFIG.raidSettings.automaticBattleDelay * 20L, () -> BattleManager.invokeBattle(raid, finalPlayer));
+                raid.addTask(player.getServerWorld(), CONFIG.raidSettings.automaticBattleDelay * 20L, () -> BattleHandler.invokeBattle(raid, finalPlayer));
             }
         }
     }

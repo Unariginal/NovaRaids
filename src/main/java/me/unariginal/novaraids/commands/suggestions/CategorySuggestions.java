@@ -10,7 +10,6 @@ import net.minecraft.server.command.ServerCommandSource;
 import java.util.concurrent.CompletableFuture;
 
 public class CategorySuggestions implements SuggestionProvider<ServerCommandSource> {
-
     @Override
     public CompletableFuture<Suggestions> getSuggestions(CommandContext<ServerCommandSource> context, SuggestionsBuilder builder) {
         ConfigManager.CATEGORIES.keySet().forEach(builder::suggest);
