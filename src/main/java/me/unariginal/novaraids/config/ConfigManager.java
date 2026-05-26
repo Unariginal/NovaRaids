@@ -65,6 +65,18 @@ public class ConfigManager {
 
         generateDefaultFiles();
 
+        fillMissingWithDefaults("config.json");
+        fillMissingWithDefaults("schedules.json");
+        fillMissingWithDefaults("messages.json");
+        fillMissingWithDefaults("guis/global_contraband.json");
+        fillMissingWithDefaults("guis/category_contraband.json");
+        fillMissingWithDefaults("guis/boss_contraband.json");
+        fillMissingWithDefaults("guis/leaderboard.json");
+        fillMissingWithDefaults("guis/raid_list.json");
+        fillMissingWithDefaults("guis/raid_queue.json");
+        fillMissingWithDefaults("guis/raid_pass.json");
+        fillMissingWithDefaults("guis/raid_voucher.json");
+
         CONFIG = loadFile("config.json", Config.class);
         SCHEDULES = loadFile("schedules.json", SchedulesConfig.class);
         MESSAGES = loadFile("messages.json", MessagesConfig.class);
@@ -97,18 +109,6 @@ public class ConfigManager {
 
         loadCategories();
         loadEvents();
-
-        fillMissingWithDefaults("config.json", CONFIG, Config.class);
-        fillMissingWithDefaults("schedules.json", SCHEDULES, SchedulesConfig.class);
-        fillMissingWithDefaults("messages.json", MESSAGES, MessagesConfig.class);
-        fillMissingWithDefaults("guis/global_contraband.json", GLOBAL_CONTRABAND_GUI, ContrabandGUIConfig.class);
-        fillMissingWithDefaults("guis/category_contraband.json", CATEGORY_CONTRABAND_GUI, ContrabandGUIConfig.class);
-        fillMissingWithDefaults("guis/boss_contraband.json", BOSS_CONTRABAND_GUI, ContrabandGUIConfig.class);
-        fillMissingWithDefaults("guis/leaderboard.json", LEADERBOARD_GUI, LeaderboardGUIConfig.class);
-        fillMissingWithDefaults("guis/raid_list.json", RAID_LIST_GUI, RaidListGUIConfig.class);
-        fillMissingWithDefaults("guis/raid_queue.json", RAID_QUEUE_GUI, RaidQueueGUIConfig.class);
-        fillMissingWithDefaults("guis/raid_pass.json", RAID_PASS_GUI, RaidItemGUIConfig.class);
-        fillMissingWithDefaults("guis/raid_voucher.json", RAID_VOUCHER_GUI, RaidItemGUIConfig.class);
     }
 
     public static void saveQueue() {
@@ -121,6 +121,13 @@ public class ConfigManager {
 
     public static void loadQueue() {
         PERSISTENT_QUEUE = loadFile("persistent/queue.json", PersistentQueue.class);
+    }
+
+    public static void saveRaid(RaidHistory raidHistory) {
+        File historyFolder = new File(configDir, "persistent/history");
+        historyFolder.mkdirs();
+        File historyFile = new File(historyFolder, raidHistory.uuid + ".json");
+        writeFile(historyFile, gson.toJson(raidHistory));
     }
 
     public static void generateDefaultFiles() {
@@ -139,6 +146,7 @@ public class ConfigManager {
         generateDefaultFile("guis/raid_queue.json");
         generateDefaultFile("guis/raid_pass.json");
         generateDefaultFile("guis/raid_voucher.json");
+        generateDefaultFile("persistent/queue.json");
 
         File categoriesFolder = new File(configDir, "categories");
         File bossesFolder = new File(configDir, "bosses");
@@ -171,9 +179,9 @@ public class ConfigManager {
             for (File categoryFolder : categoryFolders) {
                 if (categoryFolder.isDirectory()) {
                     String categoryFileName = "categories/" + categoryFolder.getName() + "/settings.json";
+                    fillMissingWithDefaults(categoryFileName);
                     Category category = loadFile(categoryFileName, Category.class);
                     if (category != null) {
-                        fillMissingWithDefaults(categoryFileName, category, Category.class);
                         CATEGORIES.put(category.categoryId, category);
                     }
                     else continue;
@@ -184,10 +192,10 @@ public class ConfigManager {
                         for (File bossFile : bossFiles) {
                             if (bossFile.getName().endsWith(".json")) {
                                 String bossFileName = "categories/" + categoryFolder.getName() + "/bosses/" + bossFile.getName();
+                                fillMissingWithDefaults(bossFileName);
                                 Boss boss = loadFile(bossFileName, Boss.class);
                                 if (boss != null)  {
                                     boss.categoryId = category.categoryId;
-                                    fillMissingWithDefaults(bossFileName, boss, Boss.class);
                                     BOSSES.put(boss.bossId, boss);
                                 }
                             }
@@ -206,7 +214,6 @@ public class ConfigManager {
         for (String eventName : eventNames) {
             File eventFolder = new File(eventsFolder, eventName);
             File preFolder = new File(eventFolder, "pre");
-//            File ongoingFolder = new File(eventFolder, "ongoing");
             File postFolder = new File(eventFolder, "post");
 
             Event preEvent = null;
@@ -217,9 +224,9 @@ public class ConfigManager {
                 for (File preEventFile : preEventFiles) {
                     if (preEventFile.getName().endsWith(".json")) {
                         String preEventFileName = "events/" + eventName + "/pre/" + preEventFile.getName();
+                        fillMissingWithDefaults(preEventFileName);
                         preEvent = loadFile(preEventFileName, Event.class);
                         if (preEvent != null) preEvent.eventId = preEventFile.getName().replace(".json", "");
-                        fillMissingWithDefaults(preEventFileName, preEvent, Event.class);
                     }
                 }
             }
@@ -229,9 +236,9 @@ public class ConfigManager {
                 for (File postEventFile : postEventFiles) {
                     if (postEventFile.getName().endsWith(".json")) {
                         String postEventFileName = "events/" + eventName + "/post/" + postEventFile.getName();
+                        fillMissingWithDefaults(postEventFileName);
                         postEvent = loadFile(postEventFileName, Event.class);
                         if (postEvent != null) postEvent.eventId = postEventFile.getName().replace(".json", "");
-                        fillMissingWithDefaults(postEventFileName, postEvent, Event.class);
                     }
                 }
             }
@@ -270,15 +277,10 @@ public class ConfigManager {
         return null;
     }
 
-    public static String getJsonString(String fileName) {
+    public static String getDefaultJsonString(String fileName) {
         InputStream in = NovaRaids.class.getResourceAsStream("/raid_config_files/" + fileName);
         assert in != null;
-        // TODO: Pretty print
         return gson.toJson(JsonParser.parseReader(new InputStreamReader(in)));
-    }
-
-    public static <T> T loadDefaults(String fileName, Class<T> clazz) {
-        return gson.fromJson(getJsonString(fileName), clazz);
     }
 
     public static void generateDefaultFile(String fileName) {
@@ -287,31 +289,24 @@ public class ConfigManager {
         try {
             Files.createDirectories(file.getParentFile().toPath());
             Files.createFile(file.toPath());
-            writeFile(file, getJsonString(fileName));
+            writeFile(file, getDefaultJsonString(fileName));
         } catch (IOException e) {
             LOGGER.error("Failed to create directories for file {}", file.getName(), e);
         }
     }
 
-    public static <T> void fillMissingWithDefaults(String fileName, T loaded, Class<T> clazz) {
-        File file = new File(configDir, fileName);
-        T defaults = loadDefaults(fileName, clazz);
-        T updated = applyDefaults(loaded, defaults, clazz);
-        if (updated != null) writeFile(file, gson.toJson(updated));
-    }
-
-    public static <T> T applyDefaults(T target, T defaults, Class<T> clazz) {
+    public static <T> void fillMissingWithDefaults(String fileName) {
         try {
-            JsonObject targetJson = gson.toJsonTree(target).getAsJsonObject();
-            JsonObject defaultJson = gson.toJsonTree(defaults).getAsJsonObject();
-
+            File file = new File(configDir, fileName);
+            InputStream in = NovaRaids.class.getResourceAsStream("/raid_config_files/" + fileName);
+            assert in != null;
+            JsonObject defaultJson = JsonParser.parseReader(new InputStreamReader(in)).getAsJsonObject();
+            JsonObject targetJson = JsonParser.parseReader(new FileReader(file)).getAsJsonObject();
             mergeJsonObjects(targetJson, defaultJson);
-
-            return gson.fromJson(targetJson, clazz);
-        } catch (IllegalStateException e) {
-            LOGGER.error("[NovaRaids] Failed to merge defaults", e);
+            writeFile(file, gson.toJson(targetJson));
+        } catch (IOException e) {
+            LOGGER.error("[NovaRaids] Failed to parse json for filling defaults.", e);
         }
-        return null;
     }
 
     private static void mergeJsonObjects(JsonObject target, JsonObject defaults) {
@@ -323,7 +318,7 @@ public class ConfigManager {
                 target.add(key, defaultValue.deepCopy());
             } else {
                 JsonElement targetValue = target.get(key);
-                if (targetValue.isJsonObject() && defaultValue.isJsonObject()) {
+                if (!targetValue.isJsonArray() && targetValue.isJsonObject() && defaultValue.isJsonObject()) {
                     mergeJsonObjects(targetValue.getAsJsonObject(), defaultValue.getAsJsonObject());
                 }
             }

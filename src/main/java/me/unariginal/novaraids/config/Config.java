@@ -46,7 +46,6 @@ public class Config {
         }
 
         public static class PassSettings {
-            public boolean passesEnabled = true;
             public Pass globalPass = new Pass();
         }
 

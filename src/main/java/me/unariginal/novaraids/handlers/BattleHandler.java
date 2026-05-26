@@ -5,6 +5,7 @@ import com.cobblemon.mod.common.api.drop.DropTable;
 import com.cobblemon.mod.common.api.events.CobblemonEvents;
 import com.cobblemon.mod.common.api.events.pokemon.ShinyChanceCalculationEvent;
 import com.cobblemon.mod.common.api.moves.MoveTemplate;
+import com.cobblemon.mod.common.api.moves.Moves;
 import com.cobblemon.mod.common.api.pokemon.Natures;
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
 import com.cobblemon.mod.common.api.pokemon.PokemonSpecies;
@@ -116,6 +117,20 @@ public class BattleHandler {
                 pokemon.getMoveSet().setMove(slot, move.create());
                 slot++;
                 if (slot > 4) break;
+            }
+        }
+
+        if (!settings.movesOverride.isEmpty()) {
+            pokemon.getMoveSet().clear();
+
+            for (int i = 0; i < settings.movesOverride.size() || i < 4; i++) {
+                MoveTemplate moveTemplate = Moves.getByName(settings.movesOverride.get(i));
+                if (moveTemplate == null) {
+                    i--;
+                    continue;
+                }
+
+                pokemon.getMoveSet().setMove(i, moveTemplate.create(moveTemplate.getMaxPp()));
             }
         }
 

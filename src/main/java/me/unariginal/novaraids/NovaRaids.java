@@ -65,7 +65,9 @@ public class NovaRaids implements ModInitializer {
             if (usingPlaceholderAPI) placeholderAPIService = new PlaceholderAPIService();
 
             registerPlaceholders();
+        });
 
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             while (PERSISTENT_QUEUE.queue.peek() != null) {
                 PersistentQueue.QueueItemData queueItemData = PERSISTENT_QUEUE.queue.remove();
                 if (!RaidManager.queueRaid(queueItemData)) {
@@ -124,7 +126,7 @@ public class NovaRaids implements ModInitializer {
             saveQueue();
 
             bossBarHandler.schedule.cancel(true);
-            WebhookHandler.webhook.close();
+            if (WebhookHandler.webhook != null) WebhookHandler.webhook.close();
         });
     }
 

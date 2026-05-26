@@ -62,7 +62,7 @@ public class TextUtils {
                 .replaceAll("%raid.timer%", TextUtils.hms(raid.raidTimer() / 20))
                 .replaceAll("%raid.player_count%", String.valueOf(raid.participatingPlayers.size()))
                 .replaceAll("%raid.max_players%", (raid.maxPlayers == -1) ? "∞" : String.valueOf(raid.maxPlayers))
-                .replaceAll("%raid.phase%", raid.getPhase())
+                .replaceAll("%raid.phase%", raid.phase.getName())
                 .replaceAll("%raid.category%", raid.category.categoryName)
                 .replaceAll("%raid.category.id%", raid.category.categoryId)
                 .replaceAll("%raid.id%", String.valueOf(getRaidId(raid.uuid)))

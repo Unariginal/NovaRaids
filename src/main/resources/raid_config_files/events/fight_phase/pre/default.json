@@ -1,5 +1,5 @@
 {
-  "messages": ["<prefix> Time to fight <raid_boss_name> (<raid_max_health> HP)!"],
+  "messages": ["%novaraids:prefix% Time to fight %novaraids:raid_boss_name% (%novaraids:raid_max_health% HP)!"],
   "commands": [],
   "sounds": [],
   "particles": [],

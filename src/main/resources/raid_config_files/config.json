@@ -26,7 +26,8 @@
       "vouchers_enabled": true,
       "global_choice_voucher": {
         "voucher_item": {
-          "id": "minecraft:feather"
+          "id": "minecraft:feather",
+          "count": 1
         },
         "voucher_name": "<light_purple>Global Raid Voucher",
         "voucher_lore": [
@@ -35,7 +36,8 @@
       },
       "global_random_voucher": {
         "voucher_item": {
-          "id": "minecraft:feather"
+          "id": "minecraft:feather",
+          "count": 1
         },
         "voucher_name": "<aqua>Random Raid Voucher",
         "voucher_lore": [
@@ -44,10 +46,10 @@
       }
     },
     "pass_settings": {
-      "passes_enabled": true,
       "global_pass": {
         "pass_item": {
-          "id": "minecraft:paper"
+          "id": "minecraft:paper",
+          "count": 1
         },
         "pass_name": "<light_purple>Global Raid Pass",
         "pass_lore": [
@@ -61,21 +63,24 @@
       "raid_balls": {
         "premier": {
           "pokeball_item": {
-            "id": "cobblemon:premier_ball"
+            "id": "cobblemon:premier_ball",
+            "count": 1
           },
           "pokeball_name": "<red>Raid Pokeball",
           "pokeball_lore": ["<gray>Use this to try and capture raid bosses!"]
         },
         "ultra": {
           "pokeball_item": {
-            "id": "cobblemon:ultra_ball"
+            "id": "cobblemon:ultra_ball",
+            "count": 1
           },
           "pokeball_name": "<red>Raid Pokeball",
           "pokeball_lore": ["<gray>Use this to try and capture raid bosses!"]
         },
         "master": {
           "pokeball_item": {
-            "id": "cobblemon:master_ball"
+            "id": "cobblemon:master_ball",
+            "count": 1
           },
           "pokeball_name": "<red>Raid Pokeball",
           "pokeball_lore": ["<gray>Use this to try and capture raid bosses!"]

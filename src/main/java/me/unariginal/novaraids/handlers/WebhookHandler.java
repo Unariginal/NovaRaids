@@ -18,6 +18,7 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import static me.unariginal.novaraids.NovaRaids.logError;
@@ -165,11 +166,11 @@ public class WebhookHandler {
         for (WebhookEvent.EmbedField field : event.fields) {
             embedBuilder.addField(new WebhookEmbed.EmbedField(field.inline, TextUtils.parse(field.name, raid), TextUtils.parse(field.value, raid)));
             if (field.insertLeaderboardAfter != null && field.insertLeaderboardAfter && event.leaderboardFieldLayout != null) {
-                List<Map.Entry<String, Integer>> entries = raid.getDamageLeaderboard();
-                for (int i = 0; i < Math.min(entries.size(), 10); i++) {
-                    Map.Entry<String, Integer> entry = entries.get(i);
+                Map<UUID, Integer> leaderboard = raid.getDamageLeaderboard();
+                for (int i = 0; i < Math.min(leaderboard.size(), 10); i++) {
+                    Map.Entry<UUID, Integer> entry = leaderboard.entrySet().stream().toList().get(i);
                     if (cache != null) {
-                        GameProfile user = cache.findByName(entry.getKey()).orElseThrow();
+                        GameProfile user = cache.getByUuid(entry.getKey()).orElseThrow();
                         String name = TextUtils.parse(event.leaderboardFieldLayout.name, raid, user, entry.getValue(), i + 1);
                         String value = TextUtils.parse(event.leaderboardFieldLayout.value, raid, user, entry.getValue(), i + 1);
                         embedBuilder.addField(new WebhookEmbed.EmbedField(event.leaderboardFieldLayout.inline, name, value));

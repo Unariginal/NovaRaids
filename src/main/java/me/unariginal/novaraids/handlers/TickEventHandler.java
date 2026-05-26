@@ -14,6 +14,7 @@ import me.unariginal.novaraids.data.schedule.*;
 import me.unariginal.novaraids.events.RaidEvents;
 import me.unariginal.novaraids.raid.Raid;
 import me.unariginal.novaraids.raid.RaidManager;
+import me.unariginal.novaraids.raid.RaidPhase;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
@@ -60,7 +61,7 @@ public class TickEventHandler {
                 if (id == 0) {
                     continue;
                 }
-                if (raid.stage == 1 || raid.stage == 2) {
+                if (raid.phase == RaidPhase.SETUP || raid.phase == RaidPhase.FIGHT) {
                     WebhookHandler.editWebhookEmbed(raid.currentWebhookEvent, raid);
                 }
             }
@@ -72,7 +73,7 @@ public class TickEventHandler {
         for (Raid raid : raids) {
             raid.fixBossPosition();
             Collection<PokemonEntity> clones = raid.clones.keySet();
-            if (raid.stage == 2 || raid.stage == 4) {
+            if (raid.phase == RaidPhase.FIGHT || raid.phase == RaidPhase.CATCH) {
                 List<PokemonEntity> toRemove = new ArrayList<>();
                 for (PokemonEntity pokemonEntity : clones) {
                     UUID playerUUID = raid.clones.get(pokemonEntity);
@@ -91,7 +92,7 @@ public class TickEventHandler {
                 }
             }
 
-            if (raid.stage > 1 && raid.participatingPlayers.isEmpty()) {
+            if (raid.phase != RaidPhase.INIT && raid.phase != RaidPhase.SETUP && raid.phase != RaidPhase.STOPPING && raid.participatingPlayers.isEmpty()) {
                 raid.stop();
             }
         }
@@ -132,7 +133,7 @@ public class TickEventHandler {
                         if (hyp < raidPushback) {
                             distance = raidPushback + 1;
                         } else if (hyp > raidRadius) {
-                            if (raid.stage < 3 && raid.participatingPlayers.contains(player.getUuid()) && raid.stage != -1) {
+                            if ((raid.phase == RaidPhase.FIGHT || raid.phase == RaidPhase.SETUP) && raid.participatingPlayers.contains(player.getUuid())) {
                                 distance = raidRadius - 1;
                             }
                         }
@@ -157,12 +158,12 @@ public class TickEventHandler {
         List<Raid> toRemove = new ArrayList<>();
         Collection<Raid> raids = activeRaids.values();
         for (Raid raid : raids) {
-            if (raid.stage == -1) {
+            if (raid.phase == RaidPhase.STOPPING) {
                 toRemove.add(raid);
                 continue;
             }
 
-            if (raid.stage == 2) {
+            if (raid.phase == RaidPhase.FIGHT) {
                 if (raid.currentHealth <= 0) {
                     RaidEvents.BOSS_DEFEATED_EVENT_PRE.invoker().onBossDefeatedPre(raid);
                     raid.preCatchPhase();
@@ -201,7 +202,7 @@ public class TickEventHandler {
 
         for (Raid raid : raids) {
             Collection<UUID> participatingUUIDs = raid.participatingPlayers;
-            if (raid.stage == 2) {
+            if (raid.phase == RaidPhase.FIGHT) {
                 for (UUID playerUUID : participatingUUIDs) {
 
                     ServerPlayerEntity player = nr.server.getPlayerManager().getPlayer(playerUUID);

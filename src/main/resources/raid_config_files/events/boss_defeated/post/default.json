@@ -1,5 +1,5 @@
 {
-  "messages": ["<prefix> <raid_boss_name> has been defeated in <raid_defeated_time>!"],
+  "messages": ["%novaraids:prefix% %novaraids:raid_boss_name% has been defeated in %novaraids:raid_defeated_time%!"],
   "commands": [],
   "sounds": [],
   "particles": [],
@@ -7,7 +7,7 @@
   "titles": [],
   "molang": [],
   "discord_webhook": {
-    "embed_title": "<raid_boss_name> Raid Has Ended",
+    "embed_title": "%novaraids:raid_boss_name% Raid Has Ended",
     "fields": [
       {
         "inline": false,

@@ -7,6 +7,7 @@ import com.cobblemon.mod.common.battles.pokemon.BattlePokemon;
 import com.cobblemon.mod.common.battles.runner.ShowdownService;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import me.unariginal.novaraids.raid.Raid;
+import me.unariginal.novaraids.raid.RaidPhase;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -62,7 +63,7 @@ public abstract class GimmickActionMixin {
         PokemonEntity pokemonEntity = battlePokemon.getEntity();
         if (pokemonEntity == null) return;
         for (Raid raid : activeRaids.values()) {
-            if (raid.stage != 2) continue;
+            if (raid.phase != RaidPhase.FIGHT) continue;
             if (raid.clones.containsKey(pokemonEntity)) {
                 String gimmick = raid.baseGimmick;
                 if (raid.boss.bossDetails.rerollGimmickEachBattle) {

@@ -48,7 +48,8 @@
     "dynamax_level": 0,
     "scale": 5.0,
     "held_item": {
-      "id": "cobblemon:leftovers"
+      "id": "cobblemon:leftovers",
+      "count": 1
     },
     "moves": [
       "bite",
@@ -97,14 +98,16 @@
     "allow_category_pokeballs": true,
     "boss_voucher": {
       "voucher_item": {
-        "id": "minecraft:feather"
+        "id": "minecraft:feather",
+        "count": 1
       },
       "voucher_name": "%boss.name% Raid Voucher",
       "voucher_lore": []
     },
     "boss_pass": {
       "pass_item": {
-        "id": "minecraft:paper"
+        "id": "minecraft:paper",
+        "count": 1
       },
       "pass_name": "%boss.name% Raid Pass",
       "pass_lore": []
@@ -112,7 +115,8 @@
     "raid_balls": {
       "eevee_premier": {
         "pokeball_item": {
-          "id": "cobblemon:premier_ball"
+          "id": "cobblemon:premier_ball",
+          "count": 1
         },
         "pokeball_name": "<red>Eevee Premier Raid Pokeball",
         "pokeball_lore": [
@@ -121,7 +125,8 @@
       },
       "eevee_ultra": {
         "pokeball_item": {
-          "id": "cobblemon:ultra_ball"
+          "id": "cobblemon:ultra_ball",
+          "count": 1
         },
         "pokeball_name": "<red>Eevee Ultra Raid Pokeball",
         "pokeball_lore": [
@@ -220,7 +225,8 @@
                     "reward": {
                       "type": "item",
                       "item": {
-                        "id": "minecraft:dirt"
+                        "id": "minecraft:dirt",
+                        "count": 1
                       },
                       "min_count": 1,
                       "max_count": 16

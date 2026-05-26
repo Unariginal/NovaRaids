@@ -1,5 +1,5 @@
 {
-  "messages": ["<prefix> Prepare to catch <raid_boss_name>"],
+  "messages": ["%novaraids:prefix% Prepare to catch %novaraids:raid_boss_name%"],
   "commands": [],
   "sounds": [],
   "particles": [],

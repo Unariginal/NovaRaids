@@ -2,7 +2,8 @@
   "item_reward_example": {
     "type": "item",
     "item": {
-      "id": "minecraft:dirt"
+      "id": "minecraft:dirt",
+      "count": 1
     },
     "min_count": 1,
     "max_count": 16

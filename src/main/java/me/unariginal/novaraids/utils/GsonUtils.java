@@ -1,9 +1,11 @@
 package me.unariginal.novaraids.utils;
 
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
-import com.cobblemon.mod.common.pokemon.Pokemon;
+import com.cobblemon.mod.common.pokemon.EVs;
+import com.cobblemon.mod.common.pokemon.IVs;
 import com.cobblemon.mod.common.util.adapters.PokemonPropertiesAdapter;
 import com.google.gson.*;
+import com.google.gson.internal.Streams;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import com.mojang.serialization.DataResult;
@@ -18,20 +20,18 @@ import me.unariginal.novaraids.data.rewards.DistributionSection;
 import me.unariginal.novaraids.data.schedule.*;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-
-import static java.lang.System.out;
 
 public class GsonUtils {
     public static Gson gson = new GsonBuilder()
             .disableHtmlEscaping()
             .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
             .setPrettyPrinting()
-            .registerTypeHierarchyAdapter(ItemStack.class, new ItemStackTypeAdapter())
-            .registerTypeHierarchyAdapter(Pokemon.class, new PokemonTypeAdapter())
-            .registerTypeHierarchyAdapter(PokemonProperties.class, new PokemonPropertiesAdapter(true))
+            .registerTypeAdapter(ItemStack.class, new ItemStackTypeAdapter())
+            .registerTypeAdapter(PokemonProperties.class, new PokemonPropertiesAdapter(true))
+            .registerTypeAdapter(IVs.class, new IVsTypeAdapter())
+            .registerTypeAdapter(EVs.class, new EVsTypeAdapter())
             .registerTypeAdapterFactory(
                     RuntimeTypeAdapterFactory
                             .of(Schedule.class, "type")
@@ -92,7 +92,7 @@ public class GsonUtils {
                 element = object;
             }
 
-            new Gson().toJson(element, out);
+            Streams.write(element, jsonWriter);
         }
 
         @Override
@@ -112,81 +112,65 @@ public class GsonUtils {
         }
     }
 
-    public static class PokemonTypeAdapter extends TypeAdapter<Pokemon> {
+    public static class IVsTypeAdapter extends TypeAdapter<IVs> {
         @Override
-        public void write(JsonWriter jsonWriter, Pokemon pokemon) throws IOException {
-            if (pokemon == null) {
+        public void write(JsonWriter jsonWriter, IVs ivs) throws IOException {
+            if (ivs == null) {
                 jsonWriter.nullValue();
                 return;
             }
-            JsonElement element;
-            try {
-                DataResult<JsonElement> result = Pokemon.Companion.getCODEC().encodeStart(JsonOps.INSTANCE, pokemon);
 
-                element = result.getOrThrow();
-            } catch (IllegalStateException e) {
-                // This is from minecraft:air, so let's manually set it to air in this case!
-                JsonObject object = new JsonObject();
-                object.addProperty("id", "minecraft:air");
-                element = object;
-            }
+            DataResult<JsonElement> result = IVs.getCODEC().encodeStart(JsonOps.INSTANCE, ivs);
+            JsonElement element = result.getOrThrow();
 
-            new Gson().toJson(element, out);
+            Streams.write(element, jsonWriter);
         }
 
         @Override
-        public @Nullable Pokemon read(JsonReader jsonReader) {
+        public IVs read(JsonReader jsonReader) {
             JsonElement element = JsonParser.parseReader(jsonReader);
 
-            Pokemon pokemon;
+            IVs ivs;
             try {
-                DataResult<Pokemon> result = Pokemon.Companion.getCODEC().parse(JsonOps.INSTANCE, element);
+                DataResult<IVs> result = IVs.getCODEC().parse(JsonOps.INSTANCE, element);
 
-                pokemon = result.getOrThrow();
+                ivs = result.getOrThrow();
             } catch (IllegalStateException e) {
-                pokemon = null;
+                ivs = new IVs();
             }
 
-            return pokemon;
+            return ivs;
         }
     }
 
-//    public static class PokemonPropertiesTypeAdapter extends TypeAdapter<PokemonProperties> {
-//        @Override
-//        public void write(JsonWriter jsonWriter, Pokemon pokemon) throws IOException {
-//            if (pokemon == null) {
-//                jsonWriter.nullValue();
-//                return;
-//            }
-//            JsonElement element;
-//            try {
-//                DataResult<JsonElement> result = Pokemon.Companion.getCODEC().encodeStart(JsonOps.INSTANCE, pokemon);
-//
-//                element = result.getOrThrow();
-//            } catch (IllegalStateException e) {
-//                // This is from minecraft:air, so let's manually set it to air in this case!
-//                JsonObject object = new JsonObject();
-//                object.addProperty("id", "minecraft:air");
-//                element = object;
-//            }
-//
-//            new Gson().toJson(element, out);
-//        }
-//
-//        @Override
-//        public @Nullable Pokemon read(JsonReader jsonReader) {
-//            JsonElement element = JsonParser.parseReader(jsonReader);
-//
-//            Pokemon pokemon;
-//            try {
-//                DataResult<Pokemon> result = Pokemon.Companion.getCODEC().parse(JsonOps.INSTANCE, element);
-//
-//                pokemon = result.getOrThrow();
-//            } catch (IllegalStateException e) {
-//                pokemon = null;
-//            }
-//
-//            return pokemon;
-//        }
-//    }
+    public static class EVsTypeAdapter extends TypeAdapter<EVs> {
+        @Override
+        public void write(JsonWriter jsonWriter, EVs evs) throws IOException {
+            if (evs == null) {
+                jsonWriter.nullValue();
+                return;
+            }
+
+            DataResult<JsonElement> result = EVs.getCODEC().encodeStart(JsonOps.INSTANCE, evs);
+            JsonElement element = result.getOrThrow();
+
+            Streams.write(element, jsonWriter);
+        }
+
+        @Override
+        public EVs read(JsonReader jsonReader) {
+            JsonElement element = JsonParser.parseReader(jsonReader);
+
+            EVs evs;
+            try {
+                DataResult<EVs> result = EVs.getCODEC().parse(JsonOps.INSTANCE, element);
+
+                evs = result.getOrThrow();
+            } catch (IllegalStateException e) {
+                evs = new EVs();
+            }
+
+            return evs;
+        }
+    }
 }

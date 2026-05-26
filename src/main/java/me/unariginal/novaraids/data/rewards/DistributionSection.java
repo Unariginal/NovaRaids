@@ -12,38 +12,16 @@ public class DistributionSection {
     public List<RewardPoolSection> rewardPools;
 
     public static class RewardPoolSection {
-        public String type;
         public double weight;
-        private UUID uuid;
-
-        public RewardPoolSection(String type, double weight) {
-            this.type = type;
-            this.weight = weight;
-            this.uuid = UUID.randomUUID();
-        }
-
-        public UUID getUuid() {
-            if (uuid == null) uuid = UUID.randomUUID();
-            return uuid;
-        }
+        public transient UUID uuid = UUID.randomUUID();
     }
 
     public static class PredefinedRewardPoolSection extends RewardPoolSection {
         public String poolPreset;
-
-        public PredefinedRewardPoolSection(String type, double weight, String poolPreset) {
-            super(type, weight);
-            this.poolPreset = poolPreset;
-        }
     }
 
     public static class UndefinedRewardPoolSection extends RewardPoolSection {
         public RewardPoolsConfig.RewardPool pool;
-
-        public UndefinedRewardPoolSection(String type, double weight, RewardPoolsConfig.RewardPool pool) {
-            super(type, weight);
-            this.pool = pool;
-        }
     }
 
     public List<RewardPresetsConfig.Reward> distributeRewards() {
@@ -54,7 +32,7 @@ public class DistributionSection {
         for (int i = 0; i < rolls; i++) {
             double totalWeight = 0;
             for (RewardPoolSection rewardPool : rewardPools) {
-                if (allowDuplicates || !appliedRewards.contains(rewardPool.getUuid())) {
+                if (allowDuplicates || !appliedRewards.contains(rewardPool.uuid)) {
                     totalWeight += rewardPool.weight;
                 }
             }
@@ -64,7 +42,7 @@ public class DistributionSection {
                 totalWeight = 0;
                 RewardPoolsConfig.RewardPool rewardToGive = null;
                 for (RewardPoolSection rewardPool : rewardPools) {
-                    if (allowDuplicates || !appliedRewards.contains(rewardPool.getUuid())) {
+                    if (allowDuplicates || !appliedRewards.contains(rewardPool.uuid)) {
                         totalWeight += rewardPool.weight;
                         if (randomWeight < totalWeight) {
                             if (rewardPool instanceof PredefinedRewardPoolSection predefinedRewardPoolSection) {

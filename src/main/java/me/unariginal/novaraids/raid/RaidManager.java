@@ -4,6 +4,7 @@ import com.google.common.collect.Maps;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.config.LocationsConfig;
 import me.unariginal.novaraids.config.PersistentQueue;
+import me.unariginal.novaraids.config.RaidHistory;
 import me.unariginal.novaraids.data.QueueItem;
 import me.unariginal.novaraids.data.bosses.Boss;
 import me.unariginal.novaraids.data.bosses.BossDetails;
@@ -95,6 +96,58 @@ public class RaidManager {
         if (raid == null) return;
         raid.stop();
         removeRaid(uuid);
+    }
+
+    public static RaidHistory writeHistory(UUID uuid) {
+        Raid raid = activeRaids.get(uuid);
+        if (raid == null) return null;
+        List<String> moves = new ArrayList<>();
+        raid.bossPokemon.getMoveSet().getMoves().forEach(move -> moves.add(move.getName()));
+        RaidHistory.BossInformation bossInformation = new RaidHistory.BossInformation(
+                raid.boss.bossId,
+                raid.boss.bossDetails.displayName,
+                raid.boss.pokemonDetails.species,
+                raid.boss.pokemonDetails.level,
+                raid.bossPokemon.getForm().formOnlyShowdownId(),
+                raid.bossPokemon.getAbility().getName(),
+                raid.bossPokemon.getNature().getName().toString(),
+                raid.bossPokemon.getGender(),
+                raid.boss.pokemonDetails.shiny,
+                raid.baseGimmick,
+                raid.boss.pokemonDetails.teraType,
+                raid.boss.pokemonDetails.gmaxFactor,
+                raid.boss.pokemonDetails.dynamaxLevel,
+                raid.boss.pokemonDetails.scale,
+                raid.boss.pokemonDetails.heldItem,
+                moves,
+                raid.boss.pokemonDetails.friendship,
+                raid.boss.pokemonDetails.ivs,
+                raid.boss.pokemonDetails.evs
+        );
+
+        LinkedHashMap<String, Integer> convertedLeaderboard = new LinkedHashMap<>();
+        for (Map.Entry<UUID, Integer> entry : raid.getDamageLeaderboard().entrySet()) {
+            convertedLeaderboard.put(entry.getKey().toString(), entry.getValue());
+        }
+        return new RaidHistory(
+                uuid.toString(),
+                raid.raidStatus,
+                bossInformation,
+                raid.category.categoryId,
+                raid.category.categoryName,
+                raid.location.locationId,
+                raid.location.name,
+                raid.boss.bossDetails.aiSkillLevel,
+                raid.minPlayers,
+                raid.maxPlayers,
+                raid.maxHealth,
+                raid.startTime,
+                raid.endTime,
+                raid.fightStartTime,
+                raid.fightEndTime,
+                convertedLeaderboard,
+                raid.catchPhaseResults
+        );
     }
 
     public static int getRaidId(UUID uuid) {

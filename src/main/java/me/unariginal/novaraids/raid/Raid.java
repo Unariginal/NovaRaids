@@ -8,7 +8,6 @@ import com.cobblemon.mod.common.entity.pokeball.EmptyPokeBallEntity;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.cobblemon.mod.common.pokemon.properties.UncatchableProperty;
-import com.mojang.authlib.GameProfile;
 import kotlin.Unit;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import me.unariginal.novaraids.NovaRaids;
@@ -35,10 +34,11 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
-import net.minecraft.util.UserCache;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -62,20 +62,27 @@ public class Raid {
     public final Category category;
     public final UUID startingPlayer;
     public final ItemStack startingItem;
+
     public final int minPlayers;
     public final int maxPlayers;
+
     public final List<UUID> participatingPlayers = new ArrayList<>();
     public final List<UUID> markForDeletion = new ArrayList<>();
+
     public final Map<UUID, Integer> damageByPlayer = new HashMap<>();
     public final List<UUID> latestDamage = new ArrayList<>();
-    public final List<UUID> fleeingPlayers = new ArrayList<>();
+
     public final Map<Long, List<Task>> tasks = new HashMap<>();
+
     public final Map<UUID, BossBar> playerBossbars = new HashMap<>();
+    public final List<UUID> fleeingPlayers = new ArrayList<>();
     public final Map<PokemonEntity, UUID> clones = new HashMap<>();
     public final List<EmptyPokeBallEntity> pokeballsCapturing = new ArrayList<>();
+    public final Map<String, RaidHistory.CatchDetails> catchPhaseResults = new HashMap<>();
+
     public int currentHealth;
     public int maxHealth;
-    public long startTime = 0;
+    public long startTime = nr.server.getOverworld().getTime();
     public long endTime = 0;
     public long phaseLength;
     public long phaseStartTime;
@@ -86,16 +93,17 @@ public class Raid {
     public long webhookID = 0;
     public WebhookEvent currentWebhookEvent = null;
 
-    public int stage;
+    public RaidStatus raidStatus = RaidStatus.IN_PROGRESS;
+    public RaidPhase phase = RaidPhase.INIT;
 
-    public Raid(Boss boss, String locationId, ServerPlayerEntity startingPlayer, ItemStack startingItem) {
+    public Raid(@NotNull Boss boss, @NotNull String locationId, @Nullable ServerPlayerEntity startingPlayer, @Nullable ItemStack startingItem) {
         this.boss = boss;
         this.locationId = locationId;
         this.location = LocationsConfig.getLocation(locationId);
         this.startingPlayer = startingPlayer == null ? null : startingPlayer.getUuid();
-        this.startingItem = startingItem;
-        if (startingItem != null) startingItem.setCount(1);
+        this.startingItem = startingItem == null ? null : startingItem.copyWithCount(1);
 
+        // TODO: Maybe move this to the setup phase
         bossPokemon = boss.pokemonDetails.createPokemon();
         bossPokemonUncatchable.copyFrom(bossPokemon);
         bossPokemonUncatchable.getCustomProperties().add(UncatchableProperty.INSTANCE.uncatchable());
@@ -110,13 +118,11 @@ public class Raid {
         minPlayers = category.raidDetails.minPlayerCount;
         maxPlayers = category.raidDetails.maxPlayerCount;
 
-        stage = 0;
-        startTime = nr.server.getOverworld().getTime();
         setupPhase();
     }
 
     public void stop() {
-        stage = -1;
+        phase = RaidPhase.STOPPING;
 
         if (bossEntity != null && bossEntity.isAlive() && !bossEntity.isRemoved()) {
             bossEntity.kill();
@@ -153,11 +159,10 @@ public class Raid {
         PlayerRaidCache.clearFromRaid(uuid);
 
         endTime = nr.server.getOverworld().getTime();
-//        nr.initNextRaid();
     }
 
     public void setupPhase() {
-        stage = 1;
+        phase = RaidPhase.SETUP;
 
         bossbarData = BossbarsConfig.getBossbar(boss.raidDetails.bossbars.setup);
         showBossbar(bossbarData);
@@ -182,7 +187,7 @@ public class Raid {
     public void fightPhase() {
         RaidEvents.SETUP_PHASE_EVENT_POST.invoker().onSetupPhasePost(this);
         if (participatingPlayers.size() >= minPlayers && !participatingPlayers.isEmpty()) {
-            stage = 2;
+            phase = RaidPhase.FIGHT;
 
             bossbarData = BossbarsConfig.getBossbar(boss.raidDetails.bossbars.fight);
             showBossbar(bossbarData);
@@ -195,7 +200,7 @@ public class Raid {
 
             addTask(location.getServerWorld(), phaseLength * 20L, this::raidLost);
         } else {
-            stage = -1;
+            phase = RaidPhase.STOPPING;
             participatingBroadcast(TextUtils.deserialize(TextUtils.parse(MESSAGES.notEnoughPlayers, this)));
             if (category.raidDetails.requirePass) {
                 if (startingItem != null) {
@@ -213,15 +218,22 @@ public class Raid {
 
     public void raidLost() {
         RaidEvents.RAID_LOST_EVENT_PRE.invoker().onRaidLostPre(this);
-        stage = -1;
+        phase = RaidPhase.STOPPING;
         tasks.clear();
         endTime = nr.server.getOverworld().getTime();
+        raidStatus = RaidStatus.LOST;
+        RaidHistory raidHistory = RaidManager.writeHistory(uuid);
+        if (raidHistory != null) {
+            ConfigManager.saveRaid(raidHistory);
+        } else {
+            logError("Failed to save raid history! History was null.");
+        }
         RaidEvents.RAID_LOST_EVENT_POST.invoker().onRaidLostPost(this);
     }
 
     public void preCatchPhase() {
         RaidEvents.FIGHT_PHASE_EVENT_POST.invoker().onFightPhasePost(this);
-        stage = 3;
+        phase = RaidPhase.PRE_CATCH;
 
         if (boss.raidDetails.doCatchPhase) {
             bossbarData = BossbarsConfig.getBossbar(boss.raidDetails.bossbars.preCatch);
@@ -239,13 +251,6 @@ public class Raid {
         bossEntity.kill();
         handleRewards();
 
-        // TODO: Raid history (probably also run it after catch phase if it exists)
-//        try {
-//            CONFIG.writeResults(this);
-//        } catch (IOException | NoSuchElementException e) {
-//            nr.logError("Failed to write raid information to history file.");
-//        }
-
         if (boss.raidDetails.doCatchPhase) {
             RaidEvents.CATCH_WARNING_PHASE_EVENT_PRE.invoker().onCatchWarningPhasePre(this);
             addTask(location.getServerWorld(), phaseLength * 20L, this::catchPhase);
@@ -256,7 +261,7 @@ public class Raid {
 
     public void catchPhase() {
         RaidEvents.CATCH_WARNING_PHASE_EVENT_POST.invoker().onCatchWarningPhasePost(this);
-        stage = 4;
+        phase = RaidPhase.CATCH;
 
         bossbarData = BossbarsConfig.getBossbar(boss.raidDetails.bossbars.catchPhase);
         showBossbar(bossbarData);
@@ -271,7 +276,7 @@ public class Raid {
                 int placeIndex = Integer.parseInt(placement.place);
                 placeIndex--;
                 if (placeIndex >= 0 && placeIndex < getDamageLeaderboard().size()) {
-                    ServerPlayerEntity player = nr.server.getPlayerManager().getPlayer(getDamageLeaderboard().get(placeIndex).getKey());
+                    ServerPlayerEntity player = nr.server.getPlayerManager().getPlayer(getDamageLeaderboard().keySet().stream().toList().get(placeIndex));
                     if (player != null) {
                         if (!alreadyCatching.contains(player)) {
                             if (!placement.requireDamage || (damageByPlayer.containsKey(player.getUuid()) && damageByPlayer.get(player.getUuid()) > 0)) {
@@ -286,7 +291,7 @@ public class Raid {
                     int percent = Integer.parseInt(percentStr);
                     double positions = getDamageLeaderboard().size() * ((double) percent / 100);
                     for (int i = 0; i < ((int) positions); i++) {
-                        ServerPlayerEntity player = nr.server.getPlayerManager().getPlayer(getDamageLeaderboard().get(i).getKey());
+                        ServerPlayerEntity player = nr.server.getPlayerManager().getPlayer(getDamageLeaderboard().keySet().stream().toList().get(i));
                         if (player != null) {
                             if (!alreadyCatching.contains(player)) {
                                 if (!placement.requireDamage || (damageByPlayer.containsKey(player.getUuid()) && damageByPlayer.get(player.getUuid()) > 0)) {
@@ -328,7 +333,6 @@ public class Raid {
     }
 
     public void raidWon() {
-        stage = -1;
         tasks.clear();
 
         endTime = nr.server.getOverworld().getTime();
@@ -336,14 +340,24 @@ public class Raid {
         if (boss.raidDetails.doCatchPhase) {
             RaidEvents.CATCH_PHASE_EVENT_POST.invoker().onCatchPhasePost(this);
         }
+        raidStatus = RaidStatus.WON;
+        RaidHistory raidHistory = RaidManager.writeHistory(uuid);
+        if (raidHistory != null) {
+            ConfigManager.saveRaid(raidHistory);
+        } else {
+            logError("Failed to save raid history! History was null.");
+        }
+        // TODO: This shouldn't be like this
         RaidEvents.RAID_END_EVENT_PRE.invoker().onRaidEndPre(this);
         RaidEvents.RAID_END_EVENT_POST.invoker().onRaidEndPost(this);
+
+        phase = RaidPhase.STOPPING;
     }
 
     public void handleRewards() {
         participatingBroadcast(TextUtils.deserialize(TextUtils.parse(MESSAGES.leaderboard.header, this)));
         int placeIndex = 0;
-        for (Map.Entry<String, Integer> entry : getDamageLeaderboard()) {
+        for (Map.Entry<UUID, Integer> entry : getDamageLeaderboard().entrySet()) {
             ServerPlayerEntity player = nr.server.getPlayerManager().getPlayer(entry.getKey());
             if (player != null) {
                 placeIndex++;
@@ -354,7 +368,7 @@ public class Raid {
             }
         }
         placeIndex = 0;
-        for (Map.Entry<String, Integer> entry : getDamageLeaderboard()) {
+        for (Map.Entry<UUID, Integer> entry : getDamageLeaderboard().entrySet()) {
             ServerPlayerEntity player = nr.server.getPlayerManager().getPlayer(entry.getKey());
             if (player != null) {
                 placeIndex++;
@@ -406,7 +420,7 @@ public class Raid {
                     int placeAsInt = Integer.parseInt(place.place);
                     placeAsInt--;
                     if (placeAsInt >= 0 && placeAsInt < getDamageLeaderboard().size()) {
-                        ServerPlayerEntity player = nr.server.getPlayerManager().getPlayer(getDamageLeaderboard().get(placeAsInt).getKey());
+                        ServerPlayerEntity player = nr.server.getPlayerManager().getPlayer(getDamageLeaderboard().keySet().stream().toList().get(placeAsInt));
                         if (player != null) {
                             if (damageByPlayer.containsKey(player.getUuid())) {
                                 if (!place.requireDamage || damageByPlayer.get(player.getUuid()) > 0) {
@@ -421,7 +435,7 @@ public class Raid {
                         int percent = Integer.parseInt(percentStr);
                         double positions = getDamageLeaderboard().size() * ((double) percent / 100);
                         for (int i = 0; i < ((int) Math.ceil(positions)); i++) {
-                            ServerPlayerEntity player = nr.server.getPlayerManager().getPlayer(getDamageLeaderboard().get(i).getKey());
+                            ServerPlayerEntity player = nr.server.getPlayerManager().getPlayer(getDamageLeaderboard().keySet().stream().toList().get(i));
                             if (player != null) {
                                 if (damageByPlayer.containsKey(player.getUuid())) {
                                     if (!place.requireDamage || damageByPlayer.get(player.getUuid()) > 0) {
@@ -524,7 +538,7 @@ public class Raid {
     }
 
     public void fixBossPosition() {
-        if (stage != -1 && stage != 0) {
+        if (phase != RaidPhase.STOPPING && phase != RaidPhase.INIT) {
             if (bossEntity != null) {
                 if (bossEntity.getPos() != location.bossLocation.getPos()) {
                     bossEntity.teleport(location.getServerWorld(), location.bossLocation.xPos, location.bossLocation.yPos, location.bossLocation.zPos, null, location.bossLocation.yaw, 0);
@@ -567,18 +581,6 @@ public class Raid {
         }
     }
 
-    public String getPhase() {
-        return switch (stage) {
-            case -1 -> "Stopping";
-            case 0 -> "Constructor";
-            case 1 -> "Setup";
-            case 2 -> "Fight";
-            case 3 -> "Pre-Catch";
-            case 4 -> "Catch";
-            default -> "Error";
-        };
-    }
-
     public long raidCompletionTime() {
         if (endTime > 0) {
             return endTime - startTime;
@@ -600,10 +602,6 @@ public class Raid {
 
     public void applyDamage(int damage) {
         currentHealth -= damage;
-    }
-
-    public void broadcast(Text text) {
-        nr.server.getPlayerManager().getPlayerList().forEach(p -> p.sendMessage(text));
     }
 
     public void participatingBroadcast(Text text) {
@@ -692,7 +690,7 @@ public class Raid {
     }
 
     public void removePlayers() {
-        if (stage == 1) {
+        if (phase == RaidPhase.SETUP) {
             for (UUID ignored : markForDeletion) {
                 maxHealth = Math.max(maxHealth - boss.bossDetails.healthIncreasePerPlayer, boss.bossDetails.baseHealth);
                 currentHealth = Math.max(currentHealth - boss.bossDetails.healthIncreasePerPlayer, boss.bossDetails.baseHealth);
@@ -721,7 +719,7 @@ public class Raid {
                     return false;
                 }
 
-                if (stage != 1) {
+                if (phase != RaidPhase.SETUP) {
                     player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.warnings.notJoinable, this)));
                     return false;
                 }
@@ -779,65 +777,36 @@ public class Raid {
         latestDamage.add(playerUUID);
     }
 
-    public List<Map.Entry<String, Integer>> getDamageLeaderboard() {
-        List<Map.Entry<UUID, Integer>> leaderboardList = new ArrayList<>(damageByPlayer.entrySet());
+    public LinkedHashMap<UUID, Integer> getDamageLeaderboard() {
+        Map<UUID, Integer> latestIndex = new HashMap<>();
 
-        Map<Integer, Long> damageFrequencies = leaderboardList.stream().collect(
-                Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)).values().stream().collect(
-                Collectors.groupingBy(value -> value, Collectors.counting()));
-
-        List<Integer> duplicates = damageFrequencies.entrySet().stream().filter(
-                entry -> entry.getValue() > 1).map(Map.Entry::getKey).toList();
-
-        leaderboardList.sort((o1, o2) -> o2.getValue().compareTo(o1.getValue()));
-
-        for (int n = leaderboardList.size(); n > 0; n--) {
-            if (n == 1) {
-                break;
-            }
-            for (int i = 0; i < n - 1; i++) {
-                Map.Entry<UUID, Integer> e1 = leaderboardList.get(i);
-                Map.Entry<UUID, Integer> e2 = leaderboardList.get(i + 1);
-                boolean duplicate = false;
-                for (int value : duplicates) {
-                    if (e1.getValue() == value) {
-                        duplicate = true;
-                        break;
-                    }
-                    if (e2.getValue() == value) {
-                        duplicate = true;
-                        break;
-                    }
-                }
-                if (duplicate && e1.getValue().compareTo(e2.getValue()) == 0) {
-                    for (UUID uDmg : latestDamage) {
-                        if (e1.getKey().equals(uDmg)) {
-                            break;
-                        }
-                        if (e2.getKey().equals(uDmg)) {
-                            Map.Entry<UUID, Integer> temp = leaderboardList.get(i);
-                            leaderboardList.set(i, leaderboardList.get(i + 1));
-                            leaderboardList.set(i + 1, temp);
-                            break;
-                        }
-                    }
-                }
-            }
+        // Store the FIRST time each player appeared
+        for (int i = 0; i < latestDamage.size(); i++) {
+            latestIndex.putIfAbsent(latestDamage.get(i), i);
         }
 
-        List<Map.Entry<String, Integer>> sortedLeaderboard = new ArrayList<>();
-        UserCache cache = nr.server.getUserCache();
-        if (cache != null) {
-            for (Map.Entry<UUID, Integer> entry : leaderboardList) {
-                Optional<GameProfile> profile = cache.getByUuid(entry.getKey());
-                if (profile.isPresent()) {
-                    String name = profile.get().getName();
-                    sortedLeaderboard.add(Map.entry(name, entry.getValue()));
-                }
-            }
-        }
+        return damageByPlayer.entrySet()
+                .stream()
+                .sorted((a, b) -> {
+                    // Higher damage first
+                    int damageCompare = Integer.compare(b.getValue(), a.getValue());
 
-        return sortedLeaderboard;
+                    if (damageCompare != 0) {
+                        return damageCompare;
+                    }
+
+                    // Earlier damage reach wins ties
+                    int aIndex = latestIndex.getOrDefault(a.getKey(), Integer.MAX_VALUE);
+                    int bIndex = latestIndex.getOrDefault(b.getKey(), Integer.MAX_VALUE);
+
+                    return Integer.compare(aIndex, bIndex);
+                })
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (x, y) -> x,
+                        LinkedHashMap::new
+                ));
     }
 
     public void addPokeballsCapturing(EmptyPokeBallEntity entity) {

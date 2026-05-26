@@ -1,6 +1,7 @@
 package me.unariginal.novaraids.handlers;
 
 import me.unariginal.novaraids.raid.Raid;
+import me.unariginal.novaraids.raid.RaidPhase;
 import me.unariginal.novaraids.utils.Threading;
 import net.kyori.adventure.bossbar.BossBar;
 
@@ -26,7 +27,7 @@ public class BossBarHandler {
             for (Map.Entry<UUID, BossBar> entry : raid.playerBossbars.entrySet()) {
                 BossBar bossBar = entry.getValue();
                 try {
-                    if (raid.stage == 2) {
+                    if (raid.phase == RaidPhase.FIGHT) {
                         float progress = Math.clamp((float) raid.currentHealth / raid.maxHealth, 0, 1);
                         bossBar.progress(progress);
                         continue;

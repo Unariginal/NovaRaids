@@ -22,14 +22,16 @@
   "item_settings": {
     "category_choice_voucher": {
       "voucher_item": {
-        "id": "minecraft:feather"
+        "id": "minecraft:feather",
+        "count": 1
       },
       "voucher_name": "Common Raid Voucher",
       "voucher_lore": []
     },
     "category_random_voucher": {
       "voucher_item": {
-        "id": "minecraft:feather"
+        "id": "minecraft:feather",
+        "count": 1
       },
       "voucher_name": "Random Common Raid Voucher",
       "voucher_lore": [],
@@ -37,7 +39,8 @@
     },
     "category_pass": {
       "pass_item": {
-        "id": "minecraft:paper"
+        "id": "minecraft:paper",
+        "count": 1
       },
       "pass_name": "Common Raid Pass",
       "pass_lore": []
@@ -45,14 +48,16 @@
     "raid_balls": {
       "common_premier": {
         "pokeball_item": {
-          "id": "cobblemon:premier_ball"
+          "id": "cobblemon:premier_ball",
+          "count": 1
         },
         "pokeball_name": "<red>Common Premier Raid Pokeball",
         "pokeball_lore": ["<gray>Use this to try and catch common bosses!"]
       },
       "common_ultra": {
         "pokeball_item": {
-          "id": "cobblemon:ultra_ball"
+          "id": "cobblemon:ultra_ball",
+          "count": 1
         },
         "pokeball_name": "<red>Common Ultra Raid Pokeball",
         "pokeball_lore": ["<gray>Use this to try and catch common bosses!"]
@@ -92,7 +97,8 @@
                   "reward": {
                     "type": "item",
                     "item": {
-                      "id": "minecraft:dirt"
+                      "id": "minecraft:dirt",
+                      "count": 1
                     },
                     "min_count": 1,
                     "max_count": 16

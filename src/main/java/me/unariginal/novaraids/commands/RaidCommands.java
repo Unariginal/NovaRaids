@@ -38,6 +38,7 @@ import me.unariginal.novaraids.data.schedule.Schedule;
 import me.unariginal.novaraids.data.schedule.SpecificSchedule;
 import me.unariginal.novaraids.raid.Raid;
 import me.unariginal.novaraids.raid.RaidManager;
+import me.unariginal.novaraids.raid.RaidPhase;
 import me.unariginal.novaraids.utils.TextUtils;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.CommandRegistryAccess;
@@ -1584,11 +1585,11 @@ public class RaidCommands {
                     if (raid != null) {
                         List<Text> lore = new ArrayList<>();
 
-                        if (!raid.category.raidDetails.requirePass && raid.stage == 1) {
+                        if (!raid.category.raidDetails.requirePass && raid.phase == RaidPhase.SETUP) {
                             for (String line : RAID_LIST_GUI.joinableRaidItem.itemLore) {
                                 lore.add(TextUtils.deserialize(TextUtils.parse(line, raid)));
                             }
-                        } else if (raid.stage != 1) {
+                        } else if (raid.phase != RaidPhase.SETUP) {
                             for (String line : RAID_LIST_GUI.inProgressRaidItem.itemLore) {
                                 lore.add(TextUtils.deserialize(TextUtils.parse(line, raid)));
                             }

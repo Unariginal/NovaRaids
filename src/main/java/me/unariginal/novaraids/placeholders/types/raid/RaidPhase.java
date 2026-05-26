@@ -21,7 +21,7 @@ public class RaidPhase implements ServerPlaceholder {
         Raid raid = RaidManager.getRaid(raidSlot - 1);
         if (raid == null) return GenericResult.invalid("No Active Raid");
 
-        return GenericResult.valid(raid.getPhase());
+        return GenericResult.valid(raid.phase.getName());
     }
 
     @Override
