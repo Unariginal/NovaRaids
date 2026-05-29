@@ -13,13 +13,13 @@ public class SetupPhaseEventHandler {
 
     private static ActionResult setupPhasePre(Raid raid) {
         Event event = Event.getEvent("setup_phase_pre", raid.boss.raidDetails.events.setupPhase.pre);
-        if (event != null) RaidEventHandler.runEvent(event, raid, null,false);
+        if (event != null) RaidEventHandler.runEvent(event, raid, null);
         return ActionResult.PASS;
     }
 
     private static ActionResult setupPhasePost(Raid raid) {
         Event event = Event.getEvent("setup_phase_post", raid.boss.raidDetails.events.setupPhase.post);
-        if (event != null) RaidEventHandler.runEvent(event, raid, null, false);
+        if (event != null) RaidEventHandler.runEvent(event, raid, null);
         return ActionResult.PASS;
     }
 }

@@ -6,21 +6,22 @@ import me.unariginal.novaraids.config.LocationsConfig;
 import me.unariginal.novaraids.config.PersistentQueue;
 import me.unariginal.novaraids.config.RaidHistory;
 import me.unariginal.novaraids.data.QueueItem;
-import me.unariginal.novaraids.data.bosses.Boss;
-import me.unariginal.novaraids.data.bosses.BossDetails;
-import me.unariginal.novaraids.data.bosses.BossDetails.WeightedLocation;
+import me.unariginal.novaraids.data.categories.bosses.Boss;
+import me.unariginal.novaraids.data.categories.bosses.BossDetails;
+import me.unariginal.novaraids.data.categories.bosses.BossDetails.WeightedLocation;
 import me.unariginal.novaraids.events.RaidEvents;
 import me.unariginal.novaraids.utils.TextUtils;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.*;
 
 import static me.unariginal.novaraids.NovaRaids.logError;
 import static me.unariginal.novaraids.NovaRaids.logInfo;
-import static me.unariginal.novaraids.config.ConfigManager.CONFIG;
-import static me.unariginal.novaraids.config.ConfigManager.MESSAGES;
+import static me.unariginal.novaraids.config.ConfigManager.*;
 
 public class RaidManager {
     public static final Queue<QueueItem> queuedRaids = new LinkedList<>();
@@ -32,7 +33,8 @@ public class RaidManager {
         if (boss == null) return false;
         QueueItem queueItem = new QueueItem(boss, startingPlayer, startingItem);
         queuedRaids.add(queueItem);
-        // TODO put this in the right spot; player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.addedToQueue, bossInfo)));
+        if (CONFIG.raidSettings.useQueueSystem && startingPlayer != null)
+            startingPlayer.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.addedToQueue, boss)));
         return true;
     }
 
@@ -132,6 +134,8 @@ public class RaidManager {
         return new RaidHistory(
                 uuid.toString(),
                 raid.raidStatus,
+                raid.realStartTime.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withZone(SCHEDULES.getTimezone())),
+                raid.realEndTime.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withZone(SCHEDULES.getTimezone())),
                 bossInformation,
                 raid.category.categoryId,
                 raid.category.categoryName,

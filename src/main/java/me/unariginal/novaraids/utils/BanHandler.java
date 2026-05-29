@@ -11,8 +11,7 @@ import com.cobblemon.mod.common.api.storage.party.PartyStore;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.cobblemon.mod.common.pokemon.Species;
 import com.cobblemon.mod.common.util.MiscUtilsKt;
-import me.unariginal.novaraids.NovaRaids;
-import me.unariginal.novaraids.data.bosses.Boss;
+import me.unariginal.novaraids.data.categories.bosses.Boss;
 import me.unariginal.novaraids.data.categories.Category;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
@@ -31,19 +30,21 @@ public class BanHandler {
     public static boolean hasContraband(ServerPlayerEntity player, Boss boss) {
         // Party Check!
         PartyStore party = Cobblemon.INSTANCE.getStorage().getParty(player);
+        Category category = Category.getCategory(boss.categoryId);
+        if (category == null) return true;
 
         List<String> bannedPokemon = new ArrayList<>(CONFIG.raidSettings.globalContraband.bannedPokemon);
         bannedPokemon.addAll(boss.raidDetails.contraband.bannedPokemon);
-        bannedPokemon.addAll(Category.getCategory(boss.categoryId).raidDetails.contraband.bannedPokemon);
+        bannedPokemon.addAll(category.raidDetails.contraband.bannedPokemon);
         List<String> bannedAbilities = new ArrayList<>(CONFIG.raidSettings.globalContraband.bannedAbilities);
         bannedAbilities.addAll(boss.raidDetails.contraband.bannedAbilities);
-        bannedAbilities.addAll(Category.getCategory(boss.categoryId).raidDetails.contraband.bannedAbilities);
+        bannedAbilities.addAll(category.raidDetails.contraband.bannedAbilities);
         List<String> bannedMoves = new ArrayList<>(CONFIG.raidSettings.globalContraband.bannedMoves);
         bannedMoves.addAll(boss.raidDetails.contraband.bannedMoves);
-        bannedMoves.addAll(Category.getCategory(boss.categoryId).raidDetails.contraband.bannedMoves);
+        bannedMoves.addAll(category.raidDetails.contraband.bannedMoves);
         List<String> bannedHeldItems = new ArrayList<>(CONFIG.raidSettings.globalContraband.bannedHeldItems);
         bannedHeldItems.addAll(boss.raidDetails.contraband.bannedHeldItems);
-        bannedHeldItems.addAll(Category.getCategory(boss.categoryId).raidDetails.contraband.bannedHeldItems);
+        bannedHeldItems.addAll(category.raidDetails.contraband.bannedHeldItems);
 
         for (Pokemon pokemon : party) {
             for (String speciesId : bannedPokemon) {
@@ -93,7 +94,7 @@ public class BanHandler {
         PlayerInventory inventory = player.getInventory();
         List<String> bannedBagItems = new ArrayList<>(CONFIG.raidSettings.globalContraband.bannedBagItems);
         bannedBagItems.addAll(boss.raidDetails.contraband.bannedBagItems);
-        bannedBagItems.addAll(Category.getCategory(boss.categoryId).raidDetails.contraband.bannedBagItems);
+        bannedBagItems.addAll(category.raidDetails.contraband.bannedBagItems);
         for (String itemId : bannedBagItems) {
             if (!Registries.ITEM.containsId(Identifier.of(itemId))) continue;
             Item item = Registries.ITEM.get(Identifier.of(itemId));

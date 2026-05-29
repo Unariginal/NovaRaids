@@ -2,7 +2,7 @@ package me.unariginal.novaraids.utils;
 
 import com.mojang.authlib.GameProfile;
 import me.unariginal.novaraids.NovaRaids;
-import me.unariginal.novaraids.data.bosses.Boss;
+import me.unariginal.novaraids.data.categories.bosses.Boss;
 import me.unariginal.novaraids.raid.Raid;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
@@ -65,7 +65,7 @@ public class TextUtils {
                 .replaceAll("%raid.phase%", raid.phase.getName())
                 .replaceAll("%raid.category%", raid.category.categoryName)
                 .replaceAll("%raid.category.id%", raid.category.categoryId)
-                .replaceAll("%raid.id%", String.valueOf(getRaidId(raid.uuid)))
+                .replaceAll("%raid.id%", String.valueOf(getRaidId(raid.uuid) + 1))
                 .replaceAll("%raid.min_players%", String.valueOf(raid.minPlayers))
                 .replaceAll("%raid.join_method%", (raid.category.raidDetails.requirePass) ? "A Raid Pass" : "/raid list")
                 .replaceAll("%raid.location%", raid.location.name);

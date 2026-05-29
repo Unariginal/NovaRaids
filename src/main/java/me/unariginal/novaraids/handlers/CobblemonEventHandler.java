@@ -31,7 +31,7 @@ import me.lucko.fabric.api.permissions.v0.Permissions;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.cache.PlayerRaidCache;
 import me.unariginal.novaraids.config.RaidHistory;
-import me.unariginal.novaraids.data.bosses.Boss;
+import me.unariginal.novaraids.data.categories.bosses.Boss;
 import me.unariginal.novaraids.data.categories.Category;
 import me.unariginal.novaraids.data.guis.BaseGUI;
 import me.unariginal.novaraids.handlers.custom.*;
@@ -385,8 +385,7 @@ public class CobblemonEventHandler {
                                             lore.add(TextUtils.deserialize(TextUtils.parse(line, raid)));
                                         }
 
-                                        ItemStack item = PokemonItem.from(raid.bossPokemon);
-                                        // TODO: Get item data and apply it
+                                        ItemStack item = RAID_PASS_GUI.raidDisplayItem.item.copyComponentsToNewStack(PokemonItem.from(raid.bossPokemon).getItem(), 1);
                                         GuiElement element = new GuiElementBuilder(item)
                                                 .setName(TextUtils.deserialize(TextUtils.parse(RAID_PASS_GUI.raidDisplayItem.itemName, raid)))
                                                 .setLore(lore)
@@ -537,14 +536,15 @@ public class CobblemonEventHandler {
                             }
                         }
                     } else if (customData.copyNbt().getString("raid_item").equals("raid_voucher") && CONFIG.itemSettings.voucherSettings.vouchersEnabled) {
-                        String bossName = customData.copyNbt().getString("raid_boss");
-                        String category = customData.copyNbt().getString("raid_category");
-                        if (bossName.equalsIgnoreCase("*")) {
+                        String bossId = customData.copyNbt().getString("raid_boss");
+                        String categoryId = customData.copyNbt().getString("raid_category");
+                        if (bossId.equalsIgnoreCase("*")) {
                             List<Boss> availableRaids = new ArrayList<>();
-                            if (category.equalsIgnoreCase("*")) {
+                            if (categoryId.equalsIgnoreCase("*")) {
                                 availableRaids.addAll(BOSSES.values());
                             } else {
-                                availableRaids.addAll(Category.getCategory(category).bosses.values());
+                                Category category = Category.getCategory(categoryId);
+                                if (category != null) availableRaids.addAll(category.bosses.values());
                             }
 
                             Map<Integer, SimpleGui> pages = new HashMap<>();
@@ -566,9 +566,8 @@ public class CobblemonEventHandler {
                                             lore.add(TextUtils.deserialize(TextUtils.parse(line, boss)));
                                         }
 
-                                        // TODO: Check performance of this
-                                        ItemStack item = PokemonItem.from(boss.pokemonDetails.createPokemon());
-                                        // TODO: Apply data
+                                        // TODO: Check performance of calling createPokemon() each time!
+                                        ItemStack item = RAID_VOUCHER_GUI.raidDisplayItem.item.copyComponentsToNewStack(PokemonItem.from(boss.pokemonDetails.createPokemon()).getItem(), 1);
                                         GuiElement element = new GuiElementBuilder(item)
                                                 .setName(TextUtils.deserialize(TextUtils.parse(RAID_VOUCHER_GUI.raidDisplayItem.itemName, boss)))
                                                 .setLore(lore)
@@ -667,12 +666,12 @@ public class CobblemonEventHandler {
                             if (!pages.isEmpty()) {
                                 pages.get(1).open();
                             }
-                        } else if (bossName.equalsIgnoreCase("random")) {
+                        } else if (bossId.equalsIgnoreCase("random")) {
                             Boss bossInfo;
-                            if (category.equalsIgnoreCase("null")) {
+                            if (categoryId.equalsIgnoreCase("null")) {
                                 bossInfo = Boss.getRandomBoss(null);
                             } else {
-                                bossInfo = Boss.getRandomBoss(category, null);
+                                bossInfo = Boss.getRandomBoss(categoryId, null);
                             }
 
                             if (bossInfo == null) return TypedActionResult.fail(itemStack);
@@ -683,12 +682,12 @@ public class CobblemonEventHandler {
 
                             player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.usedVoucher, bossInfo)));
                         } else {
-                            Boss boss = Boss.getBoss(bossName);
+                            Boss boss = Boss.getBoss(bossId);
                             RaidManager.queueRaid(boss, player, itemStack);
                             itemStack.decrement(1);
                             player.setStackInHand(hand, itemStack);
 
-                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.usedVoucher, boss)));
+                            if (boss != null) player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.usedVoucher, boss)));
                         }
                     } else if (customData.copyNbt().getString("raid_item").equals("raid_ball") && CONFIG.itemSettings.raidBallSettings.raidBallsEnabled) {
                         boolean canThrow;

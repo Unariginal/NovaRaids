@@ -6,8 +6,9 @@ import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.config.guis.*;
-import me.unariginal.novaraids.data.bosses.Boss;
+import me.unariginal.novaraids.data.categories.bosses.Boss;
 import me.unariginal.novaraids.data.categories.Category;
+import me.unariginal.novaraids.data.categories.modifiers.CategoryModifier;
 import me.unariginal.novaraids.data.events.Event;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.util.Identifier;
@@ -34,6 +35,7 @@ public class ConfigManager {
     public static Map<String, RewardPresetsConfig.Reward> REWARD_PRESETS;
     public static Map<String, RewardPoolsConfig.RewardPool> REWARD_POOLS;
     public static Map<String, Category> CATEGORIES = new HashMap<>();
+    public static Map<String, CategoryModifier> CATEGORY_MODIFIERS = new HashMap<>();
     public static Map<String, Boss> BOSSES = new HashMap<>();
     public static Map<Identifier, Event> EVENTS = new HashMap<>();
 
@@ -186,6 +188,24 @@ public class ConfigManager {
                     }
                     else continue;
 
+                    File modifiersFolder = new File(categoryFolder, "modifiers");
+                    File[] modifierFiles = modifiersFolder.listFiles();
+                    if (modifierFiles != null) {
+                        for (File modifierFile : modifierFiles) {
+                            if (modifierFile.getName().endsWith(".json")) {
+                                String modifierFileName = "categories/" + categoryFolder.getName() + "/modifiers/" + modifierFile.getName();
+                                fillMissingWithDefaults(modifierFileName);
+                                CategoryModifier categoryModifier = loadFile(modifierFileName, CategoryModifier.class);
+                                if (categoryModifier != null) {
+                                    categoryModifier.categoryId = category.categoryId;
+                                    CATEGORY_MODIFIERS.put(categoryModifier.modifierId, categoryModifier);
+                                }
+                            }
+                        }
+                    }
+
+                    category.fillModifiers();
+
                     File bossesFolder = new File(categoryFolder, "bosses");
                     File[] bossFiles = bossesFolder.listFiles();
                     if (bossFiles != null) {
@@ -295,7 +315,7 @@ public class ConfigManager {
         }
     }
 
-    public static <T> void fillMissingWithDefaults(String fileName) {
+    public static void fillMissingWithDefaults(String fileName) {
         try {
             File file = new File(configDir, fileName);
             InputStream in = NovaRaids.class.getResourceAsStream("/raid_config_files/" + fileName);

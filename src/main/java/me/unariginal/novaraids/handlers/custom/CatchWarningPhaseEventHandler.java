@@ -13,13 +13,13 @@ public class CatchWarningPhaseEventHandler {
 
     private static ActionResult catchWarningPhasePre(Raid raid) {
         Event event = Event.getEvent("catch_warning_phase_pre", raid.boss.raidDetails.events.catchWarningPhase.pre);
-        if (event != null) RaidEventHandler.runEvent(event, raid, null,false);
+        if (event != null) RaidEventHandler.runEvent(event, raid, null);
         return ActionResult.PASS;
     }
 
     private static ActionResult catchWarningPhasePost(Raid raid) {
         Event event = Event.getEvent("catch_warning_phase_post", raid.boss.raidDetails.events.catchWarningPhase.post);
-        if (event != null) RaidEventHandler.runEvent(event, raid, null, false);
+        if (event != null) RaidEventHandler.runEvent(event, raid, null);
         return ActionResult.PASS;
     }
 }

@@ -13,13 +13,13 @@ public class FightPhaseEventHandler {
 
     private static ActionResult fightPhasePre(Raid raid) {
         Event event = Event.getEvent("fight_phase_pre", raid.boss.raidDetails.events.fightPhase.pre);
-        if (event != null) RaidEventHandler.runEvent(event, raid, null,false);
+        if (event != null) RaidEventHandler.runEvent(event, raid, null);
         return ActionResult.PASS;
     }
 
     private static ActionResult fightPhasePost(Raid raid) {
         Event event = Event.getEvent("fight_phase_post", raid.boss.raidDetails.events.fightPhase.post);
-        if (event != null) RaidEventHandler.runEvent(event, raid, null, false);
+        if (event != null) RaidEventHandler.runEvent(event, raid, null);
         return ActionResult.PASS;
     }
 }

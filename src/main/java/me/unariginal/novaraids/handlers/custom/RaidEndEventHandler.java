@@ -13,13 +13,13 @@ public class RaidEndEventHandler {
 
     private static ActionResult raidEndPre(Raid raid) {
         Event event = Event.getEvent("raid_end_pre", raid.boss.raidDetails.events.raidEnd.pre);
-        if (event != null) RaidEventHandler.runEvent(event, raid, null,false);
+        if (event != null) RaidEventHandler.runEvent(event, raid, null);
         return ActionResult.PASS;
     }
 
     private static ActionResult raidEndPost(Raid raid) {
         Event event = Event.getEvent("raid_end_post", raid.boss.raidDetails.events.raidEnd.post);
-        if (event != null) RaidEventHandler.runEvent(event, raid, null, true);
+        if (event != null) RaidEventHandler.runEvent(event, raid, null);
         return ActionResult.PASS;
     }
 }

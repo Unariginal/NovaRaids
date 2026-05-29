@@ -1,6 +1,8 @@
 {
+  "global": true,
   "messages": ["%novaraids:prefix% A raid is starting against %novaraids:raid_boss_name%!"],
-  "commands": [],
+  "player_commands": [],
+  "global_commands": [],
   "sounds": [],
   "particles": [],
   "effects": [],

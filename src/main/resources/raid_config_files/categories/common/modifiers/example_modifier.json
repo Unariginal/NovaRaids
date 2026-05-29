@@ -1,0 +1,66 @@
+{
+  "modifier_id": "example",
+  "modifier_name": "Example",
+  "modifier_weight": 1,
+  "boss_pokemon_modifiers": {
+    "level_offset": 10,
+    "shiny_override": false,
+    "dynamax_level_offset": 0,
+    "scale_offset": 1.0,
+    "ivs_override_toggle": false,
+    "ivs_modifier": {
+      "Base": {
+        "cobblemon:hp": 0,
+        "cobblemon:attack": 0,
+        "cobblemon:defence": 0,
+        "cobblemon:special_attack": 0,
+        "cobblemon:special_defence": 0,
+        "cobblemon:speed": 0
+      },
+      "HyperTrained": {}
+    },
+    "evs_override_toggle": false,
+    "evs_modifier": {
+      "cobblemon:hp": 0,
+      "cobblemon:attack": 0,
+      "cobblemon:defence": 0,
+      "cobblemon:special_attack": 0,
+      "cobblemon:special_defence": 0,
+      "cobblemon:speed": 0
+    }
+  },
+  "boss_detail_modifiers": {
+    "base_health_offset": 1000,
+    "health_increase_offset": 500,
+    "glowing_override": false,
+    "glow_color_override_toggle": false,
+    "glow_color_override": "yellow",
+    "skill_level_offset": 0
+  },
+  "raid_detail_modifiers": {
+    "minimum_level_offset": 0,
+    "maximum_level_offset": 0,
+    "setup_phase_time_offset": 0,
+    "fight_phase_time_offset": 0,
+    "catch_phase_override_toggle": false,
+    "do_catch_phase_override": false,
+    "pre_catch_phase_time_offset": 0,
+    "catch_phase_time_offset": 0,
+    "minimum_party_size_offset": 0,
+    "maximum_party_size_offset": 0,
+    "override_category_distribution": false,
+    "reward_distribution": []
+  },
+  "catch_setting_modifiers": {
+    "level_override_offset": 0,
+    "place_modifiers": [
+      {
+        "place": "participating",
+        "override_shiny_chance": false,
+        "shiny_chance": 0.0,
+        "override_min_perfect_ivs": false,
+        "min_perfect_ivs": 0
+      }
+    ]
+  }
+}

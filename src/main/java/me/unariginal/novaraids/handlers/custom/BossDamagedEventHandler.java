@@ -13,13 +13,13 @@ public class BossDamagedEventHandler {
 
     private static ActionResult bossDamagedPre(Raid raid, int damage) {
         Event event = Event.getEvent("boss_damaged_pre", raid.boss.raidDetails.events.bossDamaged.pre);
-        if (event != null) RaidEventHandler.runEvent(event, raid, damage, false);
+        if (event != null) RaidEventHandler.runEvent(event, raid, damage);
         return ActionResult.PASS;
     }
 
     private static ActionResult bossDamagedPost(Raid raid, int damage) {
         Event event = Event.getEvent("boss_damaged_post", raid.boss.raidDetails.events.bossDamaged.post);
-        if (event != null) RaidEventHandler.runEvent(event, raid, damage, false);
+        if (event != null) RaidEventHandler.runEvent(event, raid, damage);
         return ActionResult.PASS;
     }
 }

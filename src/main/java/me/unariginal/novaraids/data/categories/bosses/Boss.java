@@ -1,4 +1,4 @@
-package me.unariginal.novaraids.data.bosses;
+package me.unariginal.novaraids.data.categories.bosses;
 
 import me.unariginal.novaraids.config.ConfigManager;
 import me.unariginal.novaraids.data.categories.Category;
@@ -18,11 +18,11 @@ public class Boss {
     public RaidDetails raidDetails;
     public CatchSettings catchSettings;
 
-    public static Boss getBoss(String id) {
+    public static @Nullable Boss getBoss(String id) {
         return ConfigManager.BOSSES.get(id);
     }
 
-    public static Boss getRandomBoss(@Nullable List<String> blacklist) {
+    public static @Nullable Boss getRandomBoss(@Nullable List<String> blacklist) {
         double totalWeight = 0;
         for (Boss boss : ConfigManager.BOSSES.values()) {
             if (blacklist == null || !blacklist.contains(boss.bossId))
@@ -44,10 +44,11 @@ public class Boss {
         return null;
     }
 
-    public static Boss getRandomBoss(String categoryId, @Nullable List<String> blacklist) {
-        double totalWeight = 0;
+    public static @Nullable Boss getRandomBoss(String categoryId, @Nullable List<String> blacklist) {
         Category category = Category.getCategory(categoryId);
         if (category == null) return null;
+
+        double totalWeight = 0;
         for (Boss boss : category.bosses.values()) {
             if (blacklist == null || !blacklist.contains(boss.bossId))
                 totalWeight += boss.categoryWeight;

@@ -1,6 +1,8 @@
 {
+  "global": false,
   "messages": ["%novaraids:prefix% %novaraids:raid_boss_name% has been defeated in %novaraids:raid_defeated_time%!"],
-  "commands": [],
+  "player_commands": [],
+  "global_commands": [],
   "sounds": [],
   "particles": [],
   "effects": [],

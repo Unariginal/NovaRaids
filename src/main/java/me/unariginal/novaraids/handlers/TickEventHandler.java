@@ -7,7 +7,7 @@ import com.cobblemon.mod.common.battles.BattleRegistry;
 import com.cobblemon.mod.common.battles.pokemon.BattlePokemon;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import me.unariginal.novaraids.NovaRaids;
-import me.unariginal.novaraids.data.bosses.Boss;
+import me.unariginal.novaraids.data.categories.bosses.Boss;
 import me.unariginal.novaraids.data.categories.Category;
 import me.unariginal.novaraids.data.Task;
 import me.unariginal.novaraids.data.schedule.*;
@@ -102,6 +102,7 @@ public class TickEventHandler {
         Collection<Raid> raids = activeRaids.values();
         Collection<ServerPlayerEntity> players = nr.server.getPlayerManager().getPlayerList();
         for (Raid raid : raids) {
+            if (raid.phase != RaidPhase.FIGHT && raid.phase != RaidPhase.SETUP) continue;
             for (ServerPlayerEntity player : players) {
                 if (player != null) {
                     int raidRadius = raid.location.borderRadius;

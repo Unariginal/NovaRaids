@@ -12,9 +12,9 @@ import java.util.List;
 import static me.unariginal.novaraids.config.ConfigManager.CONFIG;
 
 public class RaidEventHandler {
-    public static void runEvent(Event event, Raid raid, Integer damage, boolean global) {
+    public static void runEvent(Event event, Raid raid, Integer damage) {
         List<ServerPlayerEntity> players = new ArrayList<>();
-        if (global) players.addAll(NovaRaids.INSTANCE.server.getPlayerManager().getPlayerList());
+        if (event.global) players.addAll(NovaRaids.INSTANCE.server.getPlayerManager().getPlayerList());
         else {
             raid.participatingPlayers.forEach(uuid -> {
                 ServerPlayerEntity player = NovaRaids.INSTANCE.server.getPlayerManager().getPlayer(uuid);
@@ -30,6 +30,7 @@ public class RaidEventHandler {
             event.runMolang(player, raid.bossEntity, damage);
         });
 
+        event.executeCommands();
         event.playSounds(raid.location);
         event.spawnParticles(raid.location, raid.bossEntity);
 

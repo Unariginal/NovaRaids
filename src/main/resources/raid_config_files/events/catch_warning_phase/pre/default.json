@@ -1,9 +1,12 @@
 {
+  "global": false,
   "messages": ["%novaraids:prefix% Prepare to catch %novaraids:raid_boss_name%"],
-  "commands": [],
+  "player_commands": [],
+  "global_commands": [],
   "sounds": [],
   "particles": [],
   "effects": [],
   "titles": [],
-  "molang": []
+  "molang": [],
+  "discord_webhook": {}
 }

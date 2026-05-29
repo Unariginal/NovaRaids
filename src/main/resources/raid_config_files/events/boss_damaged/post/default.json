@@ -1,9 +1,12 @@
 {
-  "messages": ["<prefix> %player% did %damage% damage to the boss!"],
-  "commands": [],
+  "global": false,
+  "messages": ["%novaraids:prefix% %player% did %damage% damage to the boss!"],
+  "player_commands": [],
+  "global_commands": [],
   "sounds": [],
   "particles": [],
   "effects": [],
   "titles": [],
-  "molang": []
+  "molang": [],
+  "discord_webhook": {}
 }

@@ -23,7 +23,7 @@ import com.cobblemon.mod.common.pokemon.properties.UncatchableProperty;
 import kotlin.Unit;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.ai.StrongBattleAIFix;
-import me.unariginal.novaraids.data.bosses.CatchSettings;
+import me.unariginal.novaraids.data.categories.bosses.CatchSettings;
 import me.unariginal.novaraids.raid.Raid;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
@@ -107,7 +107,7 @@ public class BattleHandler {
         if (settings.randomizeAbility) pokemon.updateAbility(pokemon.getForm().getAbilities().select(pokemon.getSpecies(), pokemon.getAspects()).getFirst());
         else pokemon.updateAbility(raid.bossPokemon.getAbility());
 
-        pokemon.setLevel(settings.levelOverride);
+        pokemon.setLevel(raid.modifier == null ? settings.levelOverride : settings.levelOverride + raid.modifier.catchSettingModifiers.levelOverrideOffset);
 
         if (settings.resetMoves) {
             pokemon.getMoveSet().clear();
@@ -154,7 +154,7 @@ public class BattleHandler {
 
         if (bossClone != null) {
             raid.addClone(bossClone, player);
-            pveOverride(player, bossClone, null, BattleFormat.Companion.getGEN_9_SINGLES(), false, raid.boss.raidDetails.healPartyOnChallenge, Cobblemon.config.getDefaultFleeDistance(), party, raid.boss.bossDetails.aiSkillLevel);
+            pveOverride(player, bossClone, null, BattleFormat.Companion.getGEN_9_SINGLES(), false, raid.boss.raidDetails.healPartyOnChallenge, Cobblemon.config.getDefaultFleeDistance(), party, raid.boss.bossDetails.aiSkillLevel + (raid.modifier == null ? 0 : raid.modifier.bossDetailModifiers.skillLevelOffset));
         }
     }
 
@@ -186,7 +186,7 @@ public class BattleHandler {
 
         if (bossClone != null) {
             raid.addClone(bossClone, player);
-            pveOverride(player, bossClone, null, BattleFormat.Companion.getGEN_9_SINGLES(), false, raid.boss.raidDetails.healPartyOnChallenge, raid.location.borderRadius * 2, party, raid.boss.bossDetails.aiSkillLevel);
+            pveOverride(player, bossClone, null, BattleFormat.Companion.getGEN_9_SINGLES(), false, raid.boss.raidDetails.healPartyOnChallenge, raid.location.borderRadius * 2, party, raid.boss.bossDetails.aiSkillLevel + (raid.modifier == null ? 0 : raid.modifier.bossDetailModifiers.skillLevelOffset));
         }
     }
 

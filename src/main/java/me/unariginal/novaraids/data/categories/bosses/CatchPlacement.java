@@ -1,8 +1,8 @@
-package me.unariginal.novaraids.data.bosses;
+package me.unariginal.novaraids.data.categories.bosses;
 
 public class CatchPlacement {
     public String place;
     public boolean requireDamage;
-    public double shinyChance;
+    public float shinyChance;
     public int minPerfectIvs;
 }

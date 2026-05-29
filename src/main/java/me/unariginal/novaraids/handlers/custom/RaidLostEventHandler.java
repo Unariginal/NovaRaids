@@ -13,13 +13,13 @@ public class RaidLostEventHandler {
 
     private static ActionResult raidLostPre(Raid raid) {
         Event event = Event.getEvent("raid_lost_pre", raid.boss.raidDetails.events.raidLost.pre);
-        if (event != null) RaidEventHandler.runEvent(event, raid, null,false);
+        if (event != null) RaidEventHandler.runEvent(event, raid, null);
         return ActionResult.PASS;
     }
 
     private static ActionResult raidLostPost(Raid raid) {
         Event event = Event.getEvent("raid_lost_post", raid.boss.raidDetails.events.raidLost.post);
-        if (event != null) RaidEventHandler.runEvent(event, raid, null, true);
+        if (event != null) RaidEventHandler.runEvent(event, raid, null);
         return ActionResult.PASS;
     }
 }

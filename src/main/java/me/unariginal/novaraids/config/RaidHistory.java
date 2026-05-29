@@ -13,6 +13,8 @@ import java.util.Map;
 public class RaidHistory {
     public String uuid;
     public RaidStatus raidStatus;
+    public String realStartTime;
+    public String realEndTime;
     public BossInformation boss;
     public String categoryId;
     public String categoryName;
@@ -32,6 +34,8 @@ public class RaidHistory {
     public RaidHistory(
             String uuid,
             RaidStatus raidStatus,
+            String realStartTime,
+            String realEndTime,
             BossInformation boss,
             String categoryId,
             String categoryName,
@@ -50,6 +54,8 @@ public class RaidHistory {
     ) {
         this.uuid = uuid;
         this.raidStatus = raidStatus;
+        this.realStartTime = realStartTime;
+        this.realEndTime = realEndTime;
         this.boss = boss;
         this.categoryId = categoryId;
         this.categoryName = categoryName;

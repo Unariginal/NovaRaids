@@ -1,4 +1,4 @@
-package me.unariginal.novaraids.data.bosses;
+package me.unariginal.novaraids.data.categories.bosses;
 
 import me.unariginal.novaraids.data.BossbarSelection;
 import me.unariginal.novaraids.data.Contraband;
@@ -15,6 +15,8 @@ public class RaidDetails {
     public boolean doCatchPhase;
     public int preCatchPhaseTime;
     public int catchPhaseTime;
+    public int minimumPartySize;
+    public int maximumPartySize;
     public boolean healPartyOnChallenge;
     public Contraband contraband;
     public BossbarSelection bossbars;

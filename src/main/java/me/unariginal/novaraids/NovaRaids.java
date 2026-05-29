@@ -16,6 +16,7 @@ import me.unariginal.novaraids.placeholders.types.boss.*;
 import me.unariginal.novaraids.placeholders.types.raid.*;
 import me.unariginal.novaraids.raid.RaidManager;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.loader.api.FabricLoader;
@@ -36,7 +37,6 @@ public class NovaRaids implements ModInitializer {
 
     public MinecraftServer server;
     public FabricServerAudiences audience;
-    public RaidCommands raidCommands;
     public boolean usingMiniPlaceholders = false;
     public MiniPlaceholdersService miniPlaceholdersService;
     public boolean usingPlaceholderAPI = false;
@@ -51,7 +51,7 @@ public class NovaRaids implements ModInitializer {
     public void onInitialize() {
         INSTANCE = this;
 
-        raidCommands = new RaidCommands();
+        CommandRegistrationCallback.EVENT.register(RaidCommands::register);
         reloadConfig();
         loadQueue();
 
@@ -176,8 +176,10 @@ public class NovaRaids implements ModInitializer {
                 new RaidLocation(),
                 new RaidMaximumHealth(),
                 new RaidMaximumLevel(),
+                new RaidMaximumPartySize(),
                 new RaidMaximumPlayers(),
                 new RaidMinimumLevel(),
+                new RaidMinimumPartySize(),
                 new RaidMinimumPlayers(),
                 new RaidParticipatingPlayers(),
                 new RaidPhase(),

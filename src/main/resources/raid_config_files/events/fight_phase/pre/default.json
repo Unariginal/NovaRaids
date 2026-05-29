@@ -1,9 +1,12 @@
 {
+  "global": false,
   "messages": ["%novaraids:prefix% Time to fight %novaraids:raid_boss_name% (%novaraids:raid_max_health% HP)!"],
-  "commands": [],
+  "player_commands": [],
+  "global_commands": [],
   "sounds": [],
   "particles": [],
   "effects": [],
   "titles": [],
-  "molang": []
+  "molang": [],
+  "discord_webhook": {}
 }

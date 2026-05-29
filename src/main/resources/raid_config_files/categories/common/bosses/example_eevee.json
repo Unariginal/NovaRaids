@@ -83,6 +83,7 @@
     "base_health": 1000,
     "health_increase_per_player": 500,
     "apply_glowing": true,
+    "glow_color": "white",
     "ai_skill_level": 3,
     "reroll_features_each_battle": false,
     "reroll_gimmick_each_battle": true,
@@ -143,6 +144,8 @@
     "do_catch_phase": true,
     "pre_catch_phase_time": 30,
     "catch_phase_time": 180,
+    "minimum_party_size": 1,
+    "maximum_party_size": 6,
     "heal_party_on_challenge": false,
     "contraband": {
       "banned_pokemon": [],

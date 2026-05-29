@@ -1,17 +1,21 @@
-package me.unariginal.novaraids.data.bosses;
+package me.unariginal.novaraids.data.categories.bosses;
 
 import com.cobblemon.mod.common.api.moves.MoveTemplate;
 import com.cobblemon.mod.common.api.moves.Moves;
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
+import com.cobblemon.mod.common.api.pokemon.stats.Stats;
 import com.cobblemon.mod.common.pokemon.EVs;
 import com.cobblemon.mod.common.pokemon.Gender;
 import com.cobblemon.mod.common.pokemon.IVs;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import me.unariginal.novaraids.NovaRaids;
+import me.unariginal.novaraids.data.categories.modifiers.CategoryModifier;
 import net.minecraft.item.ItemStack;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 
 import static me.unariginal.novaraids.config.ConfigManager.CONFIG;
@@ -131,29 +135,84 @@ public class PokemonDetails {
         return "";
     }
 
-    // TODO: Check usage locations of this method and determine performance impact
     public Pokemon createPokemon() {
+        return createPokemon(null);
+    }
+
+    // TODO: Check usage locations of this method and determine performance impact
+    public Pokemon createPokemon(@Nullable CategoryModifier modifier) {
         PokemonProperties pokemonProperties = PokemonProperties.Companion.parse(getRandomFeature());
         pokemonProperties.setSpecies(species);
         pokemonProperties.setGender(Gender.valueOf(getRandomGender().toUpperCase()));
-        pokemonProperties.setShiny(shiny);
+        pokemonProperties.setShiny(modifier != null && modifier.bossPokemonModifiers.shinyOverride || shiny);
         pokemonProperties.setTeraType(teraType);
         pokemonProperties.setGmaxFactor(gmaxFactor);
-        pokemonProperties.setDmaxLevel(dynamaxLevel);
-        pokemonProperties.setScaleModifier(scale);
+
+        int finalDynamaxLevel = dynamaxLevel;
+        if (modifier != null) finalDynamaxLevel += modifier.bossPokemonModifiers.dynamaxLevelOffset;
+        finalDynamaxLevel = Math.clamp(finalDynamaxLevel, 0, 10);
+        pokemonProperties.setDmaxLevel(finalDynamaxLevel);
+
+        float finalScale = scale;
+        if (modifier != null) finalScale += modifier.bossPokemonModifiers.scaleOffset;
+        pokemonProperties.setScaleModifier(finalScale);
+
         pokemonProperties.setFriendship(friendship);
-        pokemonProperties.setIvs(ivs);
-        pokemonProperties.setEvs(evs);
+
+        IVs finalIvs = new IVs();
+        if (modifier != null && modifier.bossPokemonModifiers.ivsOverrideToggle) {
+            finalIvs = modifier.bossPokemonModifiers.ivsModifier;
+        } else if (modifier != null) {
+            finalIvs.set(Stats.HP, Objects.requireNonNullElse(ivs.get(Stats.HP), 0)
+                    + Objects.requireNonNullElse(modifier.bossPokemonModifiers.ivsModifier.get(Stats.HP), 0));
+            finalIvs.set(Stats.ATTACK, Objects.requireNonNullElse(ivs.get(Stats.ATTACK), 0)
+                    + Objects.requireNonNullElse(modifier.bossPokemonModifiers.ivsModifier.get(Stats.ATTACK), 0));
+            finalIvs.set(Stats.DEFENCE, Objects.requireNonNullElse(ivs.get(Stats.DEFENCE), 0)
+                    + Objects.requireNonNullElse(modifier.bossPokemonModifiers.ivsModifier.get(Stats.DEFENCE), 0));
+            finalIvs.set(Stats.SPECIAL_ATTACK, Objects.requireNonNullElse(ivs.get(Stats.SPECIAL_ATTACK), 0)
+                    + Objects.requireNonNullElse(modifier.bossPokemonModifiers.ivsModifier.get(Stats.SPECIAL_ATTACK), 0));
+            finalIvs.set(Stats.DEFENCE, Objects.requireNonNullElse(ivs.get(Stats.SPECIAL_DEFENCE), 0)
+                    + Objects.requireNonNullElse(modifier.bossPokemonModifiers.ivsModifier.get(Stats.SPECIAL_DEFENCE), 0));
+            finalIvs.set(Stats.SPEED, Objects.requireNonNullElse(ivs.get(Stats.SPEED), 0)
+                    + Objects.requireNonNullElse(modifier.bossPokemonModifiers.ivsModifier.get(Stats.SPEED), 0));
+        } else {
+            finalIvs = ivs;
+        }
+        pokemonProperties.setIvs(finalIvs);
+
+        EVs finalEvs = new EVs();
+        if (modifier != null && modifier.bossPokemonModifiers.evsOverrideToggle) {
+            finalEvs = modifier.bossPokemonModifiers.evsModifier;
+        } else if (modifier != null) {
+            finalEvs.set(Stats.HP, Objects.requireNonNullElse(evs.get(Stats.HP), 0)
+                    + Objects.requireNonNullElse(modifier.bossPokemonModifiers.evsModifier.get(Stats.HP), 0));
+            finalEvs.set(Stats.ATTACK, Objects.requireNonNullElse(evs.get(Stats.ATTACK), 0)
+                    + Objects.requireNonNullElse(modifier.bossPokemonModifiers.evsModifier.get(Stats.ATTACK), 0));
+            finalEvs.set(Stats.DEFENCE, Objects.requireNonNullElse(evs.get(Stats.DEFENCE), 0)
+                    + Objects.requireNonNullElse(modifier.bossPokemonModifiers.evsModifier.get(Stats.DEFENCE), 0));
+            finalEvs.set(Stats.SPECIAL_ATTACK, Objects.requireNonNullElse(evs.get(Stats.SPECIAL_ATTACK), 0)
+                    + Objects.requireNonNullElse(modifier.bossPokemonModifiers.evsModifier.get(Stats.SPECIAL_ATTACK), 0));
+            finalEvs.set(Stats.DEFENCE, Objects.requireNonNullElse(evs.get(Stats.SPECIAL_DEFENCE), 0)
+                    + Objects.requireNonNullElse(modifier.bossPokemonModifiers.evsModifier.get(Stats.SPECIAL_DEFENCE), 0));
+            finalEvs.set(Stats.SPEED, Objects.requireNonNullElse(evs.get(Stats.SPEED), 0)
+                    + Objects.requireNonNullElse(modifier.bossPokemonModifiers.evsModifier.get(Stats.SPEED), 0));
+        } else {
+            finalEvs = evs;
+        }
+        pokemonProperties.setEvs(finalEvs);
+
         pokemonProperties.setAbility(getRandomAbility());
         pokemonProperties.setNature(getRandomNature());
 
         Pokemon pokemon = pokemonProperties.create();
-        if (level <= 100) pokemon.setLevel(level);
+        int finalLevel = level;
+        if (modifier != null) finalLevel += modifier.bossPokemonModifiers.levelOffset;
+        if (finalLevel <= 100) pokemon.setLevel(finalLevel);
         else {
             try {
                 Field levelField = pokemon.getClass().getDeclaredField("level");
                 levelField.setAccessible(true);
-                levelField.set(pokemon, level);
+                levelField.set(pokemon, finalLevel);
             } catch (NoSuchFieldException | IllegalAccessException e) {
                 NovaRaids.LOGGER.error("[NovaRaids] Failed to set pokemon level above 100.", e);
             }

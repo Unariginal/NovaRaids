@@ -1,6 +1,7 @@
 package me.unariginal.novaraids.data.events;
 
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
+import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.config.ConfigManager;
 import me.unariginal.novaraids.config.LocationsConfig;
 import me.unariginal.novaraids.raid.Raid;
@@ -15,8 +16,10 @@ import java.util.Objects;
 
 public class Event {
     public transient String eventId;
+    public boolean global;
     public List<String> messages;
-    public List<String> commands;
+    public List<String> playerCommands;
+    public List<String> globalCommands;
     public List<SoundEvent> sounds;
     public List<EffectEvent> effects;
     public List<ParticleEvent> particles;
@@ -33,8 +36,16 @@ public class Event {
     public void executeCommands(ServerPlayerEntity player) {
         CommandManager cmdManager = Objects.requireNonNull(player.getServer()).getCommandManager();
         ServerCommandSource source = player.getServer().getCommandSource();
-        for (String command : commands) {
+        for (String command : playerCommands) {
             cmdManager.executeWithPrefix(source, command.replaceAll("%player%", player.getNameForScoreboard()));
+        }
+    }
+
+    public void executeCommands() {
+        CommandManager cmdManager = Objects.requireNonNull(NovaRaids.INSTANCE.server).getCommandManager();
+        ServerCommandSource source = NovaRaids.INSTANCE.server.getCommandSource();
+        for (String command : globalCommands) {
+            cmdManager.executeWithPrefix(source, command);
         }
     }
 
@@ -44,10 +55,6 @@ public class Event {
 
     public void applyEffects(ServerPlayerEntity player) {
         effects.forEach(effectEvent -> effectEvent.applyEffect(player));
-    }
-
-    public void clearEffects(ServerPlayerEntity player) {
-        effects.forEach(effectEvent -> effectEvent.clearEffect(player));
     }
 
     public void spawnParticles(LocationsConfig location, PokemonEntity pokemonEntity) {

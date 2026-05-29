@@ -1,6 +1,7 @@
 {
   "category_id": "common",
   "category_name": "Common",
+  "no_modifier_weight": 99,
   "raid_details": {
     "require_pass": false,
     "min_player_count": 1,

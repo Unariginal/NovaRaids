@@ -28,6 +28,7 @@ public class GsonUtils {
             .disableHtmlEscaping()
             .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
             .setPrettyPrinting()
+            .serializeNulls()
             .registerTypeAdapter(ItemStack.class, new ItemStackTypeAdapter())
             .registerTypeAdapter(PokemonProperties.class, new PokemonPropertiesAdapter(true))
             .registerTypeAdapter(IVs.class, new IVsTypeAdapter())

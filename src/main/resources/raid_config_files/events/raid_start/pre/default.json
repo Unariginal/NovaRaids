@@ -1,6 +1,8 @@
 {
+  "global": true,
   "messages": [],
-  "commands": [],
+  "player_commands": [],
+  "global_commands": [],
   "sounds": [],
   "particles": [],
   "effects": [],

@@ -1,12 +1,14 @@
 {
+  "global": false,
   "messages": ["%novaraids:prefix% %novaraids:raid_boss_name% was not defeated on time!"],
-  "commands": [],
+  "player_commands": [],
+  "global_commands": [],
   "sounds": [],
   "particles": [],
   "effects": [],
   "titles": [],
   "molang": [],
-  "discord": {
+  "discord_webhook": {
     "embed_title": "Failed To Defeat %novaraids:raid_boss_name%!",
     "fields": [
       {

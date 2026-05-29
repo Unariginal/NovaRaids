@@ -1,4 +1,4 @@
-package me.unariginal.novaraids.data.bosses;
+package me.unariginal.novaraids.data.categories.bosses;
 
 import java.util.List;
 

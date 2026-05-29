@@ -3,6 +3,7 @@ package me.unariginal.novaraids.mixin;
 import com.cobblemon.mod.common.entity.pokeball.EmptyPokeBallEntity;
 import com.cobblemon.mod.common.item.PokeBallItem;
 import com.cobblemon.mod.common.pokeball.PokeBall;
+import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.cache.PlayerRaidCache;
 import me.unariginal.novaraids.data.DataPokeBallEntity;
 import me.unariginal.novaraids.raid.Raid;
@@ -37,6 +38,7 @@ public abstract class PokeBallItemMixin extends Item {
 
     @Inject(method = "use", at = @At("HEAD"), cancellable = true)
     private void useInject(World world, PlayerEntity player, Hand usedHand, CallbackInfoReturnable<TypedActionResult<ItemStack>> cir) {
+        NovaRaids.LOGGER.error("[NovaRaids] Entering use injection!");
         ServerPlayerEntity serverPlayerEntity = (ServerPlayerEntity) player;
         Raid raid = PlayerRaidCache.currentRaid(serverPlayerEntity);
         if (raid == null) return;
@@ -50,6 +52,7 @@ public abstract class PokeBallItemMixin extends Item {
 
     @Unique
     private void throwPokeBallAlternative(World world, ServerPlayerEntity player, ItemStack originalStack) {
+        NovaRaids.LOGGER.error("[NovaRaids] Entering alternative throw method!");
         EmptyPokeBallEntity emptyPokeBallEntity = new EmptyPokeBallEntity(pokeBall, player.getWorld(), player, EMPTY_POKEBALL);
         float overhandFactor;
         if (player.getPitch() < 0) {
@@ -64,6 +67,9 @@ public abstract class PokeBallItemMixin extends Item {
 
         world.spawnEntity(emptyPokeBallEntity);
         NbtComponent component = originalStack.getComponents().get(DataComponentTypes.CUSTOM_DATA);
-        if (component != null) ((DataPokeBallEntity) (Object) emptyPokeBallEntity).novaRaids$setCustomData(component.copyNbt());
+        if (component != null) {
+            NovaRaids.LOGGER.error("[NovaRaids] Applying custom data!");
+            ((DataPokeBallEntity) (Object) emptyPokeBallEntity).novaRaids$setCustomData(component.copyNbt());
+        }
     }
 }

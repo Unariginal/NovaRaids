@@ -5,10 +5,8 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "BattleEndMixin",
-    "EmptyPokeBallEntityMixin",
     "GimmickActionMixin",
     "HidePlayersAndPokemon",
-    "PokeBallItemMixin",
     "PreventDrops",
     "PreventHeldItems"
   ],

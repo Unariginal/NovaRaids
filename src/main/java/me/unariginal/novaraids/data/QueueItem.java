@@ -1,7 +1,7 @@
 package me.unariginal.novaraids.data;
 
 import me.unariginal.novaraids.NovaRaids;
-import me.unariginal.novaraids.data.bosses.Boss;
+import me.unariginal.novaraids.data.categories.bosses.Boss;
 import me.unariginal.novaraids.raid.RaidManager;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;

@@ -39,6 +39,7 @@ public class MessagesConfig {
             public String noPassNeeded;
             public String notJoinable;
             public String notEnoughPokemon;
+            public String tooManyPokemon;
             public String maxPlayers;
             public String minimumLevel;
             public String maximumLevel;

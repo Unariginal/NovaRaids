@@ -1,4 +1,4 @@
-package me.unariginal.novaraids.data.bosses;
+package me.unariginal.novaraids.data.categories.bosses;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -10,6 +10,7 @@ public class BossDetails {
     public int baseHealth;
     public int healthIncreasePerPlayer;
     public boolean applyGlowing;
+    public String glowColor;
     public int aiSkillLevel;
     public boolean rerollFeaturesEachBattle;
     public boolean rerollGimmickEachBattle;
