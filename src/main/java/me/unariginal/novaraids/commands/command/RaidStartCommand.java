@@ -1,6 +1,7 @@
 package me.unariginal.novaraids.commands.command;
 
 import com.mojang.brigadier.Command;
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import me.lucko.fabric.api.permissions.v0.Permissions;
@@ -20,19 +21,34 @@ public class RaidStartCommand {
                 .then(argument("boss", StringArgumentType.string())
                         .suggests(new BossSuggestions())
                         .executes(ctx -> {
-                            RaidManager.queueRaid(Boss.getBoss(StringArgumentType.getString(ctx, "boss")), ctx.getSource().getPlayer(), null);
+                            RaidManager.queueRaid(Boss.getBoss(StringArgumentType.getString(ctx, "boss")), ctx.getSource().getPlayer(), null, null);
                             return Command.SINGLE_SUCCESS;
-                        }))
+                        })
+                        .then(argument("require_pass", BoolArgumentType.bool())
+                                .executes(ctx -> {
+                                    RaidManager.queueRaid(Boss.getBoss(StringArgumentType.getString(ctx, "boss")), ctx.getSource().getPlayer(), null, BoolArgumentType.getBool(ctx, "require_pass"));
+                                    return Command.SINGLE_SUCCESS;
+                                })))
                 .then(literal("random")
+                        .then(argument("require_pass", BoolArgumentType.bool())
+                                .executes(ctx -> {
+                                    RaidManager.queueRaid(Boss.getRandomBoss(null), ctx.getSource().getPlayer(), null, BoolArgumentType.getBool(ctx, "require_pass"));
+                                    return Command.SINGLE_SUCCESS;
+                                }))
                         .executes(ctx -> {
-                            RaidManager.queueRaid(Boss.getRandomBoss(null), ctx.getSource().getPlayer(), null);
+                            RaidManager.queueRaid(Boss.getRandomBoss(null), ctx.getSource().getPlayer(), null, null);
                             return Command.SINGLE_SUCCESS;
                         })
                         .then(argument("category", StringArgumentType.string())
                                 .suggests(new CategorySuggestions())
                                 .executes(ctx -> {
-                                    RaidManager.queueRaid(Boss.getRandomBoss(StringArgumentType.getString(ctx, "category"), null), ctx.getSource().getPlayer(), null);
+                                    RaidManager.queueRaid(Boss.getRandomBoss(StringArgumentType.getString(ctx, "category"), null), ctx.getSource().getPlayer(), null, null);
                                     return Command.SINGLE_SUCCESS;
-                                })));
+                                })
+                                .then(argument("require_pass", BoolArgumentType.bool())
+                                        .executes(ctx -> {
+                                            RaidManager.queueRaid(Boss.getRandomBoss(StringArgumentType.getString(ctx, "category"), null), ctx.getSource().getPlayer(), null, BoolArgumentType.getBool(ctx, "require_pass"));
+                                            return Command.SINGLE_SUCCESS;
+                                        }))));
     }
 }

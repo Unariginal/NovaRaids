@@ -67,7 +67,7 @@ public class TextUtils {
                 .replaceAll("%raid.category.id%", raid.category.categoryId)
                 .replaceAll("%raid.id%", String.valueOf(getRaidId(raid.uuid) + 1))
                 .replaceAll("%raid.min_players%", String.valueOf(raid.minPlayers))
-                .replaceAll("%raid.join_method%", (raid.category.raidDetails.requirePass) ? "A Raid Pass" : "/raid list")
+                .replaceAll("%raid.join_method%", (raid.requiresPass) ? "A Raid Pass" : "/raid list")
                 .replaceAll("%raid.location%", raid.location.name);
     }
 

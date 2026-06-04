@@ -5,6 +5,7 @@ import me.unariginal.novaraids.data.categories.bosses.Boss;
 import me.unariginal.novaraids.raid.RaidManager;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
@@ -13,17 +14,19 @@ public class QueueItem {
     public Boss boss;
     public UUID startingPlayerUuid;
     public ItemStack startingItem;
+    public Boolean requirePass;
 
-    public QueueItem(Boss boss, ServerPlayerEntity startingPlayer, ItemStack startingItem) {
+    public QueueItem(Boss boss, @Nullable ServerPlayerEntity startingPlayer, @Nullable ItemStack startingItem, @Nullable Boolean requirePass) {
         this.boss = boss;
         this.startingPlayerUuid = startingPlayer == null ? null : startingPlayer.getUuid();
         this.startingItem = startingItem;
+        this.requirePass = requirePass;
     }
 
     public boolean startRaid() {
         ServerPlayerEntity player = null;
         if (startingPlayerUuid != null) player = NovaRaids.INSTANCE.server.getPlayerManager().getPlayer(startingPlayerUuid);
-        if (!RaidManager.startRaid(boss, player, startingItem)) {
+        if (!RaidManager.startRaid(boss, player, startingItem, requirePass)) {
             cancelItem();
             return false;
         }

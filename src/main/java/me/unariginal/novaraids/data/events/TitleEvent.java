@@ -16,10 +16,10 @@ public class TitleEvent {
     public long stay;
     public long fadeOut;
 
-    public void showTitle(ServerPlayerEntity player, Raid raid) {
+    public void showTitle(ServerPlayerEntity player, Raid raid, Integer damage) {
         Title title = Title.title(
-                MiniMessage.miniMessage().deserialize(TextUtils.parse(this.title, raid)),
-                MiniMessage.miniMessage().deserialize(TextUtils.parse(subtitle, raid)),
+                MiniMessage.miniMessage().deserialize(TextUtils.parse(this.title.replaceAll("%damage%", String.valueOf(damage)).replaceAll("%player%", player.getNameForScoreboard()), raid)),
+                MiniMessage.miniMessage().deserialize(TextUtils.parse(subtitle.replaceAll("%damage%", String.valueOf(damage)).replaceAll("%player%", player.getNameForScoreboard()), raid)),
                 Title.Times.times(
                         Duration.of(fadeIn * 50, ChronoUnit.MILLIS),
                         Duration.of(stay * 50, ChronoUnit.MILLIS),

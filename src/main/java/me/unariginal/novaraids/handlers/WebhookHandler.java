@@ -127,8 +127,8 @@ public class WebhookHandler {
         deleteWebhook(raid.webhookID);
     }
 
-    public static CompletableFuture<Long> editWebhookEmbed(WebhookEvent event, Raid raid) {
-        return webhook.edit(raid.webhookID, buildWebhookEmbed(event, raid).build())
+    public static CompletableFuture<Long> editWebhookEmbed(WebhookEvent event, Raid raid, Integer damage) {
+        return webhook.edit(raid.webhookID, buildWebhookEmbed(event, raid, damage).build())
                 .thenApply(ReadonlyMessage::getId)
                 .exceptionally(e -> {
                     logError("Failed to edit webhook embed: " + e.getMessage());
@@ -136,20 +136,21 @@ public class WebhookHandler {
                 });
     }
 
-    public static CompletableFuture<Long> sendWebhookEmbed(WebhookEvent event, Raid raid) {
+    public static CompletableFuture<Long> sendWebhookEmbed(WebhookEvent event, Raid raid, Integer damage) {
         if (raid.webhookID == 0) {
-            return webhook.send(buildWebhookEmbed(event, raid).build())
+            return webhook.send(buildWebhookEmbed(event, raid, damage).build())
                     .thenApply(ReadonlyMessage::getId)
                     .exceptionally(e -> {
                         logError("Failed to send webhook embed: " + e.getMessage());
                         return 0L;
                     });
         } else {
-            return editWebhookEmbed(event, raid);
+            return editWebhookEmbed(event, raid, damage);
         }
     }
 
-    public static WebhookMessageBuilder buildWebhookEmbed(WebhookEvent event, Raid raid) {
+    public static WebhookMessageBuilder buildWebhookEmbed(WebhookEvent event, Raid raid, Integer damage) {
+        raid.webhookDamage = damage;
         Pokemon pokemon = raid.bossPokemon;
         int randColor = genTypeColor(pokemon);
         String thumbnailUrl = getThumbnailUrl(pokemon);
@@ -158,21 +159,21 @@ public class WebhookHandler {
                 .setColor(randColor)
                 .setAuthor(
                         new WebhookEmbed.EmbedAuthor(
-                                TextUtils.parse(event.embedTitle, raid),
+                                TextUtils.parse(event.embedTitle.replaceAll("%damage%", String.valueOf(damage)), raid),
                                 "",
                                 thumbnailUrl
                         )
                 );
         for (WebhookEvent.EmbedField field : event.fields) {
-            embedBuilder.addField(new WebhookEmbed.EmbedField(field.inline, TextUtils.parse(field.name, raid), TextUtils.parse(field.value, raid)));
+            embedBuilder.addField(new WebhookEmbed.EmbedField(field.inline, TextUtils.parse(field.name.replaceAll("%damage%", String.valueOf(damage)), raid), TextUtils.parse(field.value.replaceAll("%damage%", String.valueOf(damage)), raid)));
             if (field.insertLeaderboardAfter != null && field.insertLeaderboardAfter && event.leaderboardFieldLayout != null) {
                 Map<UUID, Integer> leaderboard = raid.getDamageLeaderboard();
                 for (int i = 0; i < Math.min(leaderboard.size(), 10); i++) {
                     Map.Entry<UUID, Integer> entry = leaderboard.entrySet().stream().toList().get(i);
                     if (cache != null) {
                         GameProfile user = cache.getByUuid(entry.getKey()).orElseThrow();
-                        String name = TextUtils.parse(event.leaderboardFieldLayout.name, raid, user, entry.getValue(), i + 1);
-                        String value = TextUtils.parse(event.leaderboardFieldLayout.value, raid, user, entry.getValue(), i + 1);
+                        String name = TextUtils.parse(event.leaderboardFieldLayout.name.replaceAll("%damage%", String.valueOf(damage)), raid, user, entry.getValue(), i + 1);
+                        String value = TextUtils.parse(event.leaderboardFieldLayout.value.replaceAll("%damage%", String.valueOf(damage)), raid, user, entry.getValue(), i + 1);
                         embedBuilder.addField(new WebhookEmbed.EmbedField(event.leaderboardFieldLayout.inline, name, value));
                     }
                 }
@@ -181,7 +182,7 @@ public class WebhookHandler {
         embedBuilder.setThumbnailUrl(thumbnailUrl);
         WebhookEmbed embed = embedBuilder.build();
         return new WebhookMessageBuilder()
-                .setContent(event.message)
+                .setContent(event.message.replaceAll("%damage%", String.valueOf(damage)))
                 .setUsername(CONFIG.discordWebhook.username)
                 .setAvatarUrl(CONFIG.discordWebhook.avatarUrl)
                 .addEmbeds(embed);

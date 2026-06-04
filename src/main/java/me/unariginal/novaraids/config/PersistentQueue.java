@@ -10,5 +10,6 @@ public class PersistentQueue {
         public String boss;
         public String startingPlayerUuid;
         public ItemStack startingItem;
+        public Boolean requirePass;
     }
 }

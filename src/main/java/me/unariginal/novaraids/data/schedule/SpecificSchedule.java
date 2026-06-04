@@ -28,4 +28,9 @@ public class SpecificSchedule extends Schedule {
         }
         return false;
     }
+
+    public void fillLocalTimes() {
+        localTimes = new ArrayList<>();
+        this.times.forEach(time -> localTimes.add(LocalTime.parse(time)));
+    }
 }

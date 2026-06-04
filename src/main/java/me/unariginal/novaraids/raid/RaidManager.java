@@ -29,9 +29,9 @@ public class RaidManager {
     public static final Map<UUID, Raid> activeRaids = Maps.newConcurrentMap();
     public static final List<String> busyLocations = new ArrayList<>();
 
-    public static boolean queueRaid(@Nullable Boss boss, @Nullable ServerPlayerEntity startingPlayer, @Nullable ItemStack startingItem) {
+    public static boolean queueRaid(@Nullable Boss boss, @Nullable ServerPlayerEntity startingPlayer, @Nullable ItemStack startingItem, @Nullable Boolean requirePass) {
         if (boss == null) return false;
-        QueueItem queueItem = new QueueItem(boss, startingPlayer, startingItem);
+        QueueItem queueItem = new QueueItem(boss, startingPlayer, startingItem, requirePass);
         queuedRaids.add(queueItem);
         if (CONFIG.raidSettings.useQueueSystem && startingPlayer != null)
             startingPlayer.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.addedToQueue, boss)));
@@ -44,7 +44,7 @@ public class RaidManager {
         if (queueItemData.startingPlayerUuid != null) {
             player = NovaRaids.INSTANCE.server.getPlayerManager().getPlayer(UUID.fromString(queueItemData.startingPlayerUuid));
         }
-        return queueRaid(boss, player, queueItemData.startingItem);
+        return queueRaid(boss, player, queueItemData.startingItem, queueItemData.requirePass);
     }
 
     public static void startNextQueuedRaid() {
@@ -56,7 +56,7 @@ public class RaidManager {
         }
     }
 
-    public static boolean startRaid(@Nullable Boss boss, @Nullable ServerPlayerEntity startingPlayer, @Nullable ItemStack startingItem) {
+    public static boolean startRaid(@Nullable Boss boss, @Nullable ServerPlayerEntity startingPlayer, @Nullable ItemStack startingItem, @Nullable Boolean requiresPass) {
         if (boss == null) return false;
         if (CONFIG.raidSettings.runRaidsWithNoPlayers && NovaRaids.INSTANCE.server.getPlayerManager().getCurrentPlayerCount() == 0) return false;
 
@@ -85,7 +85,7 @@ public class RaidManager {
             return false;
         }
 
-        Raid raid = new Raid(boss, locationId, startingPlayer, startingItem);
+        Raid raid = new Raid(boss, locationId, startingPlayer, startingItem, requiresPass);
         RaidEvents.RAID_START_EVENT_PRE.invoker().onRaidStartPre(raid);
         activeRaids.put(raid.uuid, raid);
         raidIds.add(raid.uuid);

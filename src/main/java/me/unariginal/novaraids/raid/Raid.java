@@ -68,6 +68,8 @@ public class Raid {
     public int minPlayers = 0;
     public int maxPlayers = -1;
 
+    public Boolean requiresPass;
+
     public final List<UUID> participatingPlayers = new ArrayList<>();
     public final List<UUID> markForDeletion = new ArrayList<>();
 
@@ -95,12 +97,13 @@ public class Raid {
     public BossbarsConfig bossbarData;
 
     public long webhookID = 0;
+    public Integer webhookDamage = null;
     public WebhookEvent currentWebhookEvent = null;
 
     public RaidStatus raidStatus = RaidStatus.IN_PROGRESS;
     public RaidPhase phase = RaidPhase.INIT;
 
-    public Raid(@NotNull Boss boss, @NotNull String locationId, @Nullable ServerPlayerEntity startingPlayer, @Nullable ItemStack startingItem) {
+    public Raid(@NotNull Boss boss, @NotNull String locationId, @Nullable ServerPlayerEntity startingPlayer, @Nullable ItemStack startingItem, @Nullable Boolean requiresPass) {
         this.boss = boss;
         this.locationId = locationId;
         this.location = LocationsConfig.getLocation(locationId);
@@ -112,6 +115,7 @@ public class Raid {
             modifier = CategoryModifier.getRandomModifier(category.categoryId);
             minPlayers = category.raidDetails.minPlayerCount;
             maxPlayers = category.raidDetails.maxPlayerCount;
+            this.requiresPass = requiresPass == null ? category.raidDetails.requirePass : requiresPass;
 
             setupPhase();
         } else {
@@ -213,7 +217,7 @@ public class Raid {
         } else {
             phase = RaidPhase.STOPPING;
             participatingBroadcast(TextUtils.deserialize(TextUtils.parse(MESSAGES.notEnoughPlayers, this)));
-            if (category.raidDetails.requirePass) {
+            if (requiresPass) {
                 if (startingItem != null) {
                     ServerPlayerEntity player = nr.server.getPlayerManager().getPlayer(startingPlayer);
                     if (player != null) {
@@ -755,7 +759,7 @@ public class Raid {
             }
 
             if (!Permissions.check(player, "novaraids.override")) {
-                if (category.raidDetails.requirePass && !usedPass) {
+                if (requiresPass && !usedPass) {
                     player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.warnings.noPass, this)));
                     return false;
                 }

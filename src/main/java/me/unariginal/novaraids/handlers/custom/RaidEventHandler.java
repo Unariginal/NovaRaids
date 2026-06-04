@@ -23,14 +23,14 @@ public class RaidEventHandler {
         }
 
         players.forEach(player -> {
-            event.sendMessages(player, raid);
-            event.executeCommands(player);
+            event.sendMessages(player, raid, damage);
+            event.executeCommands(player, damage);
             event.applyEffects(player);
-            event.showTitles(player, raid);
+            event.showTitles(player, raid, damage);
             event.runMolang(player, raid.bossEntity, damage);
         });
 
-        event.executeCommands();
+        event.executeCommands(damage);
         event.playSounds(raid.location);
         event.spawnParticles(raid.location, raid.bossEntity);
 
@@ -38,7 +38,7 @@ public class RaidEventHandler {
                 !CONFIG.discordWebhook.blacklistedCategories.contains(raid.category.categoryId) &&
                 !CONFIG.discordWebhook.blacklistedBosses.contains(raid.boss.bossId)) {
             if (event.discordWebhook != null) {
-                WebhookHandler.sendWebhookEmbed(event.discordWebhook, raid).thenAccept(id -> {
+                WebhookHandler.sendWebhookEmbed(event.discordWebhook, raid, damage).thenAccept(id -> {
                     raid.currentWebhookEvent = event.discordWebhook;
                     raid.webhookID = id;
                 });

@@ -206,7 +206,6 @@ public class CobblemonEventHandler {
             Raid raid = PlayerRaidCache.currentRaid(player);
             if (raid != null) {
                 player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.warnings.battleDuringRaid, raid)));
-                event.setReason(null);
                 event.cancel();
             }
         }
@@ -393,7 +392,7 @@ public class CobblemonEventHandler {
 
                                                     if (!clickType.isLeft) return;
 
-                                                    if (!raid.category.raidDetails.requirePass) {
+                                                    if (!raid.requiresPass) {
                                                         player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.warnings.noPassNeeded, raid)));
                                                         return;
                                                     }
@@ -514,7 +513,7 @@ public class CobblemonEventHandler {
 
                             for (Raid raid : activeRaids.values()) {
                                 if (raid.boss.bossId.equalsIgnoreCase(bossName)) {
-                                    if (raid.category.raidDetails.requirePass) {
+                                    if (raid.requiresPass) {
                                         if (raid.phase == RaidPhase.SETUP) {
                                             if (raid.participatingPlayers.size() < raid.maxPlayers || raid.maxPlayers == -1 || Permissions.check(player, "novaraids.override")) {
                                                 if (raid.addPlayer(player.getUuid(), true)) {
@@ -573,7 +572,7 @@ public class CobblemonEventHandler {
                                                 .setLore(lore)
                                                 .setCallback((num, clickType, slotActionType) -> {
                                                     if (clickType.isLeft) {
-                                                        RaidManager.queueRaid(boss, player, itemStack);
+                                                        RaidManager.queueRaid(boss, player, itemStack, null);
                                                         itemStack.decrement(1);
                                                         player.setStackInHand(hand, itemStack);
 
@@ -676,14 +675,14 @@ public class CobblemonEventHandler {
 
                             if (bossInfo == null) return TypedActionResult.fail(itemStack);
 
-                            RaidManager.queueRaid(bossInfo, player, itemStack);
+                            RaidManager.queueRaid(bossInfo, player, itemStack, null);
                             itemStack.decrement(1);
                             player.setStackInHand(hand, itemStack);
 
                             player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.usedVoucher, bossInfo)));
                         } else {
                             Boss boss = Boss.getBoss(bossId);
-                            RaidManager.queueRaid(boss, player, itemStack);
+                            RaidManager.queueRaid(boss, player, itemStack, null);
                             itemStack.decrement(1);
                             player.setStackInHand(hand, itemStack);
 

@@ -36,15 +36,15 @@ public class GuiUtils {
             gui = pokemonSubGUIItem.guiSettings;
             displayGuiItem = pokemonSubGUIItem.guiSettings.pokemonDisplayItem;
             if (boss != null && category != null) {
-                for (Species species : boss.raidDetails.contraband.parsedPokemon) {
+                for (Species species : boss.raidDetails.contraband.getBannedPokemonSpecies()) {
                     displayItems.put(PokemonItem.from(species), TextUtils.parse(pokemonSubGUIItem.guiSettings.pokemonDisplayItem.itemName.replaceAll("%pokemon%", species.getName()).replaceAll("%category%", category.categoryName), boss));
                 }
             } else if (category != null) {
-                for (Species species : category.raidDetails.contraband.parsedPokemon) {
+                for (Species species : category.raidDetails.contraband.getBannedPokemonSpecies()) {
                     displayItems.put(PokemonItem.from(species), TextUtils.parse(pokemonSubGUIItem.guiSettings.pokemonDisplayItem.itemName.replaceAll("%pokemon%", species.getName()).replaceAll("%category%", category.categoryName)));
                 }
             } else {
-                for (Species species : CONFIG.raidSettings.globalContraband.parsedPokemon) {
+                for (Species species : CONFIG.raidSettings.globalContraband.getBannedPokemonSpecies()) {
                     displayItems.put(PokemonItem.from(species), TextUtils.parse(pokemonSubGUIItem.guiSettings.pokemonDisplayItem.itemName.replaceAll("%pokemon%", species.getName())));
                 }
             }
@@ -52,15 +52,15 @@ public class GuiUtils {
             gui = movesSubGUIItem.guiSettings;
             displayGuiItem = movesSubGUIItem.guiSettings.moveDisplayItem;
             if (boss != null && category != null) {
-                for (MoveTemplate move : boss.raidDetails.contraband.parsedMoves) {
+                for (MoveTemplate move : boss.raidDetails.contraband.getBannedMoves()) {
                     displayItems.put(movesSubGUIItem.guiSettings.moveDisplayItem.item.copy(), TextUtils.parse(movesSubGUIItem.guiSettings.moveDisplayItem.itemName.replaceAll("%move%", move.getDisplayName().getString()).replaceAll("%category%", category.categoryName), boss));
                 }
             } else if (category != null) {
-                for (MoveTemplate move : category.raidDetails.contraband.parsedMoves) {
+                for (MoveTemplate move : category.raidDetails.contraband.getBannedMoves()) {
                     displayItems.put(movesSubGUIItem.guiSettings.moveDisplayItem.item.copy(), TextUtils.parse(movesSubGUIItem.guiSettings.moveDisplayItem.itemName.replaceAll("%move%", move.getDisplayName().getString()).replaceAll("%category%", category.categoryName)));
                 }
             } else {
-                for (MoveTemplate move : CONFIG.raidSettings.globalContraband.parsedMoves) {
+                for (MoveTemplate move : CONFIG.raidSettings.globalContraband.getBannedMoves()) {
                     displayItems.put(movesSubGUIItem.guiSettings.moveDisplayItem.item.copy(), TextUtils.parse(movesSubGUIItem.guiSettings.moveDisplayItem.itemName.replaceAll("%move%", move.getDisplayName().getString())));
                 }
             }
@@ -68,15 +68,15 @@ public class GuiUtils {
             gui = abilitiesSubGUIItem.guiSettings;
             displayGuiItem = abilitiesSubGUIItem.guiSettings.abilityDisplayItem;
             if (boss != null && category != null) {
-                for (AbilityTemplate ability : boss.raidDetails.contraband.parsedAbilities) {
+                for (AbilityTemplate ability : boss.raidDetails.contraband.getBannedAbilities()) {
                     displayItems.put(abilitiesSubGUIItem.guiSettings.abilityDisplayItem.item.copy(), TextUtils.parse(abilitiesSubGUIItem.guiSettings.abilityDisplayItem.itemName.replaceAll("%ability%", MiscUtilsKt.asTranslated(ability.getDisplayName()).getString()).replaceAll("%category%", category.categoryName), boss));
                 }
             } else if (category != null) {
-                for (AbilityTemplate ability : category.raidDetails.contraband.parsedAbilities) {
+                for (AbilityTemplate ability : category.raidDetails.contraband.getBannedAbilities()) {
                     displayItems.put(abilitiesSubGUIItem.guiSettings.abilityDisplayItem.item.copy(), TextUtils.parse(abilitiesSubGUIItem.guiSettings.abilityDisplayItem.itemName.replaceAll("%ability%", MiscUtilsKt.asTranslated(ability.getDisplayName()).getString()).replaceAll("%category%", category.categoryName)));
                 }
             } else {
-                for (AbilityTemplate ability : CONFIG.raidSettings.globalContraband.parsedAbilities) {
+                for (AbilityTemplate ability : CONFIG.raidSettings.globalContraband.getBannedAbilities()) {
                     displayItems.put(abilitiesSubGUIItem.guiSettings.abilityDisplayItem.item.copy(), TextUtils.parse(abilitiesSubGUIItem.guiSettings.abilityDisplayItem.itemName.replaceAll("%ability%", MiscUtilsKt.asTranslated(ability.getDisplayName()).getString())));
                 }
             }
@@ -84,15 +84,15 @@ public class GuiUtils {
             gui = heldItemsSubGUIItem.guiSettings;
             displayGuiItem = heldItemsSubGUIItem.guiSettings.heldItemDisplayItem;
             if (boss != null && category != null) {
-                for (Item item : boss.raidDetails.contraband.parsedHeldItems) {
+                for (Item item : boss.raidDetails.contraband.getBannedHeldItems()) {
                     displayItems.put(item.getDefaultStack(), TextUtils.parse(heldItemsSubGUIItem.guiSettings.heldItemDisplayItem.itemName.replaceAll("%item%", item.getName().getString()).replaceAll("%category%", category.categoryName), boss));
                 }
             } else if (category != null) {
-                for (Item item : category.raidDetails.contraband.parsedHeldItems) {
+                for (Item item : category.raidDetails.contraband.getBannedHeldItems()) {
                     displayItems.put(item.getDefaultStack(), TextUtils.parse(heldItemsSubGUIItem.guiSettings.heldItemDisplayItem.itemName.replaceAll("%item%", item.getName().getString()).replaceAll("%category%", category.categoryName)));
                 }
             } else {
-                for (Item item : CONFIG.raidSettings.globalContraband.parsedHeldItems) {
+                for (Item item : CONFIG.raidSettings.globalContraband.getBannedHeldItems()) {
                     displayItems.put(item.getDefaultStack(), TextUtils.parse(heldItemsSubGUIItem.guiSettings.heldItemDisplayItem.itemName.replaceAll("%item%", item.getName().getString())));
                 }
             }
@@ -100,15 +100,15 @@ public class GuiUtils {
             gui = bagItemsSubGUIItem.guiSettings;
             displayGuiItem = bagItemsSubGUIItem.guiSettings.bagItemDisplayItem;
             if (boss != null && category != null) {
-                for (Item item : boss.raidDetails.contraband.parsedBagItems) {
+                for (Item item : boss.raidDetails.contraband.getBannedBagItems()) {
                     displayItems.put(item.getDefaultStack(), TextUtils.parse(bagItemsSubGUIItem.guiSettings.bagItemDisplayItem.itemName.replaceAll("%item%", item.getName().getString()).replaceAll("%category%", category.categoryName), boss));
                 }
             } else if (category != null) {
-                for (Item item : category.raidDetails.contraband.parsedBagItems) {
+                for (Item item : category.raidDetails.contraband.getBannedBagItems()) {
                     displayItems.put(item.getDefaultStack(), TextUtils.parse(bagItemsSubGUIItem.guiSettings.bagItemDisplayItem.itemName.replaceAll("%item%", item.getName().getString()).replaceAll("%category%", category.categoryName)));
                 }
             } else {
-                for (Item item : CONFIG.raidSettings.globalContraband.parsedBagItems) {
+                for (Item item : CONFIG.raidSettings.globalContraband.getBannedBagItems()) {
                     displayItems.put(item.getDefaultStack(), TextUtils.parse(bagItemsSubGUIItem.guiSettings.bagItemDisplayItem.itemName.replaceAll("%item%", item.getName().getString())));
                 }
             }

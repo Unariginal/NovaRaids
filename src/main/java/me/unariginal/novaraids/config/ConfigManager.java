@@ -10,6 +10,7 @@ import me.unariginal.novaraids.data.categories.bosses.Boss;
 import me.unariginal.novaraids.data.categories.Category;
 import me.unariginal.novaraids.data.categories.modifiers.CategoryModifier;
 import me.unariginal.novaraids.data.events.Event;
+import me.unariginal.novaraids.data.schedule.SpecificSchedule;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.util.Identifier;
 
@@ -67,34 +68,48 @@ public class ConfigManager {
 
         generateDefaultFiles();
 
-        fillMissingWithDefaults("config.json");
-        fillMissingWithDefaults("schedules.json");
-        fillMissingWithDefaults("messages.json");
-        fillMissingWithDefaults("guis/global_contraband.json");
-        fillMissingWithDefaults("guis/category_contraband.json");
-        fillMissingWithDefaults("guis/boss_contraband.json");
-        fillMissingWithDefaults("guis/leaderboard.json");
-        fillMissingWithDefaults("guis/raid_list.json");
-        fillMissingWithDefaults("guis/raid_queue.json");
-        fillMissingWithDefaults("guis/raid_pass.json");
-        fillMissingWithDefaults("guis/raid_voucher.json");
+        fillMissingWithDefaults("config.json", null, false);
+        fillMissingWithDefaults("schedules.json", null, false);
+        fillMissingWithDefaults("messages.json", null, false);
+        fillMissingWithDefaults("guis/global_contraband.json", null, false);
+        fillMissingWithDefaults("guis/category_contraband.json", null, false);
+        fillMissingWithDefaults("guis/boss_contraband.json", null, false);
+        fillMissingWithDefaults("guis/leaderboard.json", null, false);
+        fillMissingWithDefaults("guis/raid_list.json", null, false);
+        fillMissingWithDefaults("guis/raid_queue.json", null, false);
+        fillMissingWithDefaults("guis/raid_pass.json", null, false);
+        fillMissingWithDefaults("guis/raid_voucher.json", null, false);
 
         CONFIG = loadFile("config.json", Config.class);
         SCHEDULES = loadFile("schedules.json", SchedulesConfig.class);
+        if (SCHEDULES != null) {
+            SCHEDULES.schedules.forEach(schedule -> {
+                if (schedule instanceof SpecificSchedule specificSchedule) {
+                    specificSchedule.fillLocalTimes();
+                }
+            });
+        }
         MESSAGES = loadFile("messages.json", MessagesConfig.class);
 
+        fillMissingWithDefaults("locations.json", null, true);
         LOCATIONS = loadMapFile("locations.json", LocationsConfig.class);
         for (Map.Entry<String, LocationsConfig> entry : LOCATIONS.entrySet()) {
             entry.getValue().locationId = entry.getKey();
         }
+
+        fillMissingWithDefaults("bossbars.json", null, true);
         BOSSBARS = loadMapFile("bossbars.json", BossbarsConfig.class);
         for (Map.Entry<String, BossbarsConfig> entry : BOSSBARS.entrySet()) {
             entry.getValue().bossbarId = entry.getKey();
         }
+
+        fillMissingWithDefaults("reward_presets.json", null, true);
         REWARD_PRESETS = loadMapFile("reward_presets.json", RewardPresetsConfig.Reward.class);
         for (Map.Entry<String, RewardPresetsConfig.Reward> entry : REWARD_PRESETS.entrySet()) {
             entry.getValue().rewardId = entry.getKey();
         }
+
+        fillMissingWithDefaults("reward_pools.json", null, true);
         REWARD_POOLS = loadMapFile("reward_pools.json", RewardPoolsConfig.RewardPool.class);
         for (Map.Entry<String, RewardPoolsConfig.RewardPool> entry : REWARD_POOLS.entrySet()) {
             entry.getValue().rewardPoolId = entry.getKey();
@@ -158,6 +173,7 @@ public class ConfigManager {
         if (!categoriesFolder.exists()) {
             generateDefaultFile("categories/common/settings.json");
             generateDefaultFile("categories/common/bosses/example_eevee.json");
+            generateDefaultFile("categories/common/modifiers/example_modifier.json");
         }
 
         for (String eventName : eventNames) {
@@ -181,7 +197,8 @@ public class ConfigManager {
             for (File categoryFolder : categoryFolders) {
                 if (categoryFolder.isDirectory()) {
                     String categoryFileName = "categories/" + categoryFolder.getName() + "/settings.json";
-                    fillMissingWithDefaults(categoryFileName);
+                    String defaultCategoryFileName = "categories/common/settings.json";
+                    fillMissingWithDefaults(categoryFileName, defaultCategoryFileName, false);
                     Category category = loadFile(categoryFileName, Category.class);
                     if (category != null) {
                         CATEGORIES.put(category.categoryId, category);
@@ -194,7 +211,8 @@ public class ConfigManager {
                         for (File modifierFile : modifierFiles) {
                             if (modifierFile.getName().endsWith(".json")) {
                                 String modifierFileName = "categories/" + categoryFolder.getName() + "/modifiers/" + modifierFile.getName();
-                                fillMissingWithDefaults(modifierFileName);
+                                String defaultModifierFileName = "categories/common/modifiers/example_modifier.json";
+                                fillMissingWithDefaults(modifierFileName, defaultModifierFileName, false);
                                 CategoryModifier categoryModifier = loadFile(modifierFileName, CategoryModifier.class);
                                 if (categoryModifier != null) {
                                     categoryModifier.categoryId = category.categoryId;
@@ -212,7 +230,8 @@ public class ConfigManager {
                         for (File bossFile : bossFiles) {
                             if (bossFile.getName().endsWith(".json")) {
                                 String bossFileName = "categories/" + categoryFolder.getName() + "/bosses/" + bossFile.getName();
-                                fillMissingWithDefaults(bossFileName);
+                                String defaultBossFileName = "categories/common/bosses/example_eevee.json";
+                                fillMissingWithDefaults(bossFileName, defaultBossFileName, false);
                                 Boss boss = loadFile(bossFileName, Boss.class);
                                 if (boss != null)  {
                                     boss.categoryId = category.categoryId;
@@ -244,7 +263,8 @@ public class ConfigManager {
                 for (File preEventFile : preEventFiles) {
                     if (preEventFile.getName().endsWith(".json")) {
                         String preEventFileName = "events/" + eventName + "/pre/" + preEventFile.getName();
-                        fillMissingWithDefaults(preEventFileName);
+                        String defaultEventFileName = "events/" + eventName + "/pre/default.json";
+                        fillMissingWithDefaults(preEventFileName, defaultEventFileName, false);
                         preEvent = loadFile(preEventFileName, Event.class);
                         if (preEvent != null) preEvent.eventId = preEventFile.getName().replace(".json", "");
                     }
@@ -256,7 +276,8 @@ public class ConfigManager {
                 for (File postEventFile : postEventFiles) {
                     if (postEventFile.getName().endsWith(".json")) {
                         String postEventFileName = "events/" + eventName + "/post/" + postEventFile.getName();
-                        fillMissingWithDefaults(postEventFileName);
+                        String defaultEventFileName = "events/" + eventName + "/post/default.json";
+                        fillMissingWithDefaults(postEventFileName, defaultEventFileName, false);
                         postEvent = loadFile(postEventFileName, Event.class);
                         if (postEvent != null) postEvent.eventId = postEventFile.getName().replace(".json", "");
                     }
@@ -315,31 +336,61 @@ public class ConfigManager {
         }
     }
 
-    public static void fillMissingWithDefaults(String fileName) {
+    public static void fillMissingWithDefaults(String fileName, String defaultFileName, boolean isMapFile) {
         try {
             File file = new File(configDir, fileName);
-            InputStream in = NovaRaids.class.getResourceAsStream("/raid_config_files/" + fileName);
+            if (defaultFileName == null) defaultFileName = fileName;
+            InputStream in = NovaRaids.class.getResourceAsStream("/raid_config_files/" + defaultFileName);
             assert in != null;
             JsonObject defaultJson = JsonParser.parseReader(new InputStreamReader(in)).getAsJsonObject();
             JsonObject targetJson = JsonParser.parseReader(new FileReader(file)).getAsJsonObject();
-            mergeJsonObjects(targetJson, defaultJson);
+            mergeJsonObjects(targetJson, defaultJson, isMapFile);
             writeFile(file, gson.toJson(targetJson));
         } catch (IOException e) {
             LOGGER.error("[NovaRaids] Failed to parse json for filling defaults.", e);
         }
     }
 
-    private static void mergeJsonObjects(JsonObject target, JsonObject defaults) {
-        for (Map.Entry<String, JsonElement> entry : defaults.entrySet()) {
-            String key = entry.getKey();
-            JsonElement defaultValue = entry.getValue();
+    private static void mergeJsonObjects(JsonObject target, JsonObject defaults, boolean isMapFile) {
+        if (!isMapFile) {
+            for (Map.Entry<String, JsonElement> entry : defaults.entrySet()) {
+                String key = entry.getKey();
+                JsonElement defaultValue = entry.getValue();
 
-            if (!target.has(key)) {
-                target.add(key, defaultValue.deepCopy());
-            } else {
-                JsonElement targetValue = target.get(key);
-                if (!targetValue.isJsonArray() && targetValue.isJsonObject() && defaultValue.isJsonObject()) {
-                    mergeJsonObjects(targetValue.getAsJsonObject(), defaultValue.getAsJsonObject());
+                // Special handling for maps
+                if ("raid_balls".equals(key) && target.has(key) && target.get(key).isJsonObject() && defaultValue.isJsonObject()) {
+                    JsonObject targetMap = target.getAsJsonObject(key);
+                    JsonObject defaultMap = defaultValue.getAsJsonObject();
+                    Map.Entry<String, JsonElement> defaultMapEntry = defaultMap.entrySet().stream().findFirst().isPresent() ? defaultMap.entrySet().stream().findFirst().get() : null;
+
+                    // Only merge existing map entries
+                    if (defaultMapEntry != null && defaultMapEntry.getValue().isJsonObject()) {
+                        for (Map.Entry<String, JsonElement> mapEntry : targetMap.entrySet()) {
+                            if (mapEntry.getValue().isJsonObject()) {
+                                mergeJsonObjects(mapEntry.getValue().getAsJsonObject(), defaultMapEntry.getValue().getAsJsonObject(), false);
+                            }
+                        }
+                    }
+
+                    continue;
+                }
+
+                if (!target.has(key)) {
+                    target.add(key, defaultValue.deepCopy());
+                } else {
+                    JsonElement targetValue = target.get(key);
+                    if (!targetValue.isJsonArray() && targetValue.isJsonObject() && defaultValue.isJsonObject()) {
+                        mergeJsonObjects(targetValue.getAsJsonObject(), defaultValue.getAsJsonObject(), false);
+                    }
+                }
+            }
+        } else {
+            Map.Entry<String, JsonElement> defaultMapEntry = defaults.entrySet().stream().findFirst().isPresent() ? defaults.entrySet().stream().findFirst().get() : null;
+            if (defaultMapEntry != null && defaultMapEntry.getValue().isJsonObject()) {
+                for (Map.Entry<String, JsonElement> mapEntry : target.entrySet()) {
+                    if (mapEntry.getValue().isJsonObject()) {
+                        mergeJsonObjects(mapEntry.getValue().getAsJsonObject(), defaultMapEntry.getValue().getAsJsonObject(), false);
+                    }
                 }
             }
         }

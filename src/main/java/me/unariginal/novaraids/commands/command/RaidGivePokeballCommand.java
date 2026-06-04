@@ -31,26 +31,27 @@ import static net.minecraft.server.command.CommandManager.literal;
 public class RaidGivePokeballCommand {
     public static LiteralArgumentBuilder<ServerCommandSource> register() {
         return literal("pokeball")
-                .then(argument("boss", StringArgumentType.string())
-                        .suggests(new BossSuggestions())
-                        .then(argument("pokeball", StringArgumentType.string())
-                                .suggests((ctx, builder) -> {
-                                    Boss boss = Boss.getBoss(StringArgumentType.getString(ctx, "boss"));
-                                    if (boss != null) boss.itemSettings.raidBalls.keySet().forEach(builder::suggest);
-                                    return builder.buildFuture();
-                                })
-                                .then(argument("count", IntegerArgumentType.integer(1))
-                                        .executes(ctx -> {
-                                            RaidGivePokeballCommand.execute(
-                                                    ctx.getSource().getPlayer(),
-                                                    EntityArgumentType.getPlayers(ctx, "players").stream().toList(),
-                                                    StringArgumentType.getString(ctx, "pokeball"),
-                                                    Boss.getBoss(StringArgumentType.getString(ctx, "boss")),
-                                                    null,
-                                                    IntegerArgumentType.getInteger(ctx, "count")
-                                            );
-                                            return Command.SINGLE_SUCCESS;
-                                        })))
+                .then(literal("boss")
+                        .then(argument("boss", StringArgumentType.string())
+                                .suggests(new BossSuggestions())
+                                .then(argument("pokeball", StringArgumentType.string())
+                                        .suggests((ctx, builder) -> {
+                                            Boss boss = Boss.getBoss(StringArgumentType.getString(ctx, "boss"));
+                                            if (boss != null) boss.itemSettings.raidBalls.keySet().forEach(builder::suggest);
+                                            return builder.buildFuture();
+                                        })
+                                        .then(argument("count", IntegerArgumentType.integer(1))
+                                                .executes(ctx -> {
+                                                    RaidGivePokeballCommand.execute(
+                                                            ctx.getSource().getPlayer(),
+                                                            EntityArgumentType.getPlayers(ctx, "player").stream().toList(),
+                                                            StringArgumentType.getString(ctx, "pokeball"),
+                                                            Boss.getBoss(StringArgumentType.getString(ctx, "boss")),
+                                                            null,
+                                                            IntegerArgumentType.getInteger(ctx, "count")
+                                                    );
+                                                    return Command.SINGLE_SUCCESS;
+                                                })))))
                 .then(literal("category")
                         .then(argument("category", StringArgumentType.string())
                                 .suggests(new CategorySuggestions())
@@ -64,14 +65,14 @@ public class RaidGivePokeballCommand {
                                                 .executes(ctx -> {
                                                     RaidGivePokeballCommand.execute(
                                                             ctx.getSource().getPlayer(),
-                                                            EntityArgumentType.getPlayers(ctx, "players").stream().toList(),
+                                                            EntityArgumentType.getPlayers(ctx, "player").stream().toList(),
                                                             StringArgumentType.getString(ctx, "pokeball"),
                                                             null,
                                                             Category.getCategory(StringArgumentType.getString(ctx, "category")),
                                                             IntegerArgumentType.getInteger(ctx, "count")
                                                     );
                                                     return Command.SINGLE_SUCCESS;
-                                                }))))))
+                                                })))))
                 .then(literal("global")
                         .then(argument("pokeball", StringArgumentType.string())
                                 .suggests((ctx, builder) -> {
@@ -82,7 +83,7 @@ public class RaidGivePokeballCommand {
                                         .executes(ctx -> {
                                             RaidGivePokeballCommand.execute(
                                                     ctx.getSource().getPlayer(),
-                                                    EntityArgumentType.getPlayers(ctx, "players").stream().toList(),
+                                                    EntityArgumentType.getPlayers(ctx, "player").stream().toList(),
                                                     StringArgumentType.getString(ctx, "pokeball"),
                                                     null,
                                                     null,

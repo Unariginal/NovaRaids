@@ -35,7 +35,7 @@ public class RaidListCommand {
                 .executes(RaidListCommand::execute);
     }
 
-    private static int execute(CommandContext<ServerCommandSource> ctx) {
+    public static int execute(CommandContext<ServerCommandSource> ctx) {
         ServerPlayerEntity player = ctx.getSource().getPlayer();
         if (player == null) return 0;
 
@@ -59,7 +59,7 @@ public class RaidListCommand {
                 if (raid != null) {
                     List<Text> lore = new ArrayList<>();
 
-                    if (!raid.category.raidDetails.requirePass && raid.phase == RaidPhase.SETUP) {
+                    if (!raid.requiresPass && raid.phase == RaidPhase.SETUP) {
                         for (String line : RAID_LIST_GUI.joinableRaidItem.itemLore) {
                             lore.add(TextUtils.deserialize(TextUtils.parse(line, raid)));
                         }

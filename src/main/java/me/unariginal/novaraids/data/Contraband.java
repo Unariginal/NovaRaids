@@ -19,11 +19,6 @@ public class Contraband {
     public List<String> bannedAbilities;
     public List<String> bannedHeldItems;
     public List<String> bannedBagItems;
-    public transient List<Species> parsedPokemon;
-    public transient List<MoveTemplate> parsedMoves;
-    public transient List<AbilityTemplate> parsedAbilities;
-    public transient List<Item> parsedHeldItems;
-    public transient List<Item> parsedBagItems;
 
     public Contraband(
             List<String> bannedPokemon,
@@ -37,12 +32,6 @@ public class Contraband {
         this.bannedAbilities = bannedAbilities;
         this.bannedHeldItems = bannedHeldItems;
         this.bannedBagItems = bannedBagItems;
-
-        this.parsedPokemon = getBannedPokemonSpecies();
-        this.parsedMoves = getBannedMoves();
-        this.parsedAbilities = getBannedAbilities();
-        this.parsedHeldItems = getBannedHeldItems();
-        this.parsedBagItems = getBannedBagItems();
     }
 
     public List<Species> getBannedPokemonSpecies() {

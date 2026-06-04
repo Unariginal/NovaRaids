@@ -19,6 +19,7 @@ public class RaidJoinCommand {
     public static LiteralArgumentBuilder<ServerCommandSource> register() {
         return literal("join")
                 .requires(Permissions.require("novaraids.join", 4))
+                .executes(RaidListCommand::execute)
                 .then(CommandManager.argument("id", IntegerArgumentType.integer(1))
                         .executes(RaidJoinCommand::execute));
     }

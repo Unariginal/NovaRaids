@@ -27,25 +27,25 @@ public class Event {
     public List<MoLangEvent> molang;
     public WebhookEvent discordWebhook;
 
-    public void sendMessages(ServerPlayerEntity player, Raid raid) {
+    public void sendMessages(ServerPlayerEntity player, Raid raid, Integer damage) {
         for (String message : messages) {
-            player.sendMessage(TextUtils.deserialize(TextUtils.parse(message, raid)));
+            player.sendMessage(TextUtils.deserialize(TextUtils.parse(message.replaceAll("%damage%", String.valueOf(damage)).replaceAll("%player%", player.getNameForScoreboard()), raid)));
         }
     }
 
-    public void executeCommands(ServerPlayerEntity player) {
+    public void executeCommands(ServerPlayerEntity player, Integer damage) {
         CommandManager cmdManager = Objects.requireNonNull(player.getServer()).getCommandManager();
         ServerCommandSource source = player.getServer().getCommandSource();
         for (String command : playerCommands) {
-            cmdManager.executeWithPrefix(source, command.replaceAll("%player%", player.getNameForScoreboard()));
+            cmdManager.executeWithPrefix(source, command.replaceAll("%damage%", String.valueOf(damage)).replaceAll("%player%", player.getNameForScoreboard()));
         }
     }
 
-    public void executeCommands() {
+    public void executeCommands(Integer damage) {
         CommandManager cmdManager = Objects.requireNonNull(NovaRaids.INSTANCE.server).getCommandManager();
         ServerCommandSource source = NovaRaids.INSTANCE.server.getCommandSource();
         for (String command : globalCommands) {
-            cmdManager.executeWithPrefix(source, command);
+            cmdManager.executeWithPrefix(source, command.replaceAll("%damage%", String.valueOf(damage)));
         }
     }
 
@@ -69,8 +69,8 @@ public class Event {
         });
     }
 
-    public void showTitles(ServerPlayerEntity player, Raid raid) {
-        titles.forEach(titleEvent -> titleEvent.showTitle(player, raid));
+    public void showTitles(ServerPlayerEntity player, Raid raid, Integer damage) {
+        titles.forEach(titleEvent -> titleEvent.showTitle(player, raid, damage));
     }
 
     public void runMolang(ServerPlayerEntity player, PokemonEntity pokemonEntity, Integer damage) {

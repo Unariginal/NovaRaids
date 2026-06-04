@@ -105,6 +105,7 @@ public class NovaRaids implements ModInitializer {
                 queueItemData.boss = raid.boss.bossId;
                 queueItemData.startingPlayerUuid = raid.startingPlayer == null ? null : raid.startingPlayer.toString();
                 queueItemData.startingItem = raid.startingItem;
+                queueItemData.requirePass = raid.requiresPass;
                 PERSISTENT_QUEUE.queue.add(queueItemData);
             }
 
@@ -113,6 +114,7 @@ public class NovaRaids implements ModInitializer {
                 queueItemData.boss = queue.boss.bossId;
                 queueItemData.startingPlayerUuid = queue.startingPlayerUuid == null ? null : queue.startingPlayerUuid.toString();
                 queueItemData.startingItem = queue.startingItem;
+                queueItemData.requirePass = queue.requirePass;
                 PERSISTENT_QUEUE.queue.add(queueItemData);
                 queue.cancelItem();
             }
@@ -186,7 +188,9 @@ public class NovaRaids implements ModInitializer {
                 new RaidPhaseTimer(),
                 new RaidTimer(),
                 new RaidTotalDamage(),
-                new RaidUUID()
+                new RaidUUID(),
+                new RaidModifier(),
+                new RaidModifierId()
         );
 
 //        List<PlayerPlaceholder> playerPlaceholders = List.of();

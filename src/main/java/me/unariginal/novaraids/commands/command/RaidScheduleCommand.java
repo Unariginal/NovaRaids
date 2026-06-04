@@ -10,7 +10,6 @@ import me.unariginal.novaraids.data.schedule.Schedule;
 import me.unariginal.novaraids.data.schedule.SpecificSchedule;
 import me.unariginal.novaraids.utils.TextUtils;
 import net.minecraft.server.command.ServerCommandSource;
-import org.jetbrains.annotations.NotNull;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -31,7 +30,32 @@ public class RaidScheduleCommand {
     private static int execute(CommandContext<ServerCommandSource> ctx) {
         for (Schedule schedule : SCHEDULES.schedules) {
             if (schedule instanceof SpecificSchedule specificSchedule) {
-                List<LocalTime> closestTimes = createClosestTimes(specificSchedule);
+                List<LocalTime> closestTimes = new ArrayList<>();
+
+                for (int i = 0; i < specificSchedule.localTimes.size(); i++) {
+                    LocalTime now = LocalTime.now(SCHEDULES.getTimezone());
+                    LocalTime closestTime = null;
+                    for (LocalTime time : specificSchedule.localTimes) {
+                        if (time.isAfter(now) || time.equals(now)) {
+                            if ((closestTime == null || time.isBefore(closestTime)) && !closestTimes.contains(time)) {
+                                closestTime = time;
+                            }
+                        }
+                    }
+
+                    if (closestTime == null) {
+                        now = LocalTime.of(0, 0);
+                        for (LocalTime time : specificSchedule.localTimes) {
+                            if (time.isAfter(now) || time.equals(now)) {
+                                if ((closestTime == null || time.isBefore(closestTime)) && !closestTimes.contains(time)) {
+                                    closestTime = time;
+                                }
+                            }
+                        }
+                    }
+
+                    closestTimes.add(closestTime);
+                }
 
                 ctx.getSource().sendMessage(TextUtils.deserialize("<red>Specific Schedule Nearest Times:"));
                 for (LocalTime time : closestTimes) {
@@ -47,35 +71,5 @@ public class RaidScheduleCommand {
             ctx.getSource().sendMessage(TextUtils.deserialize(""));
         }
         return Command.SINGLE_SUCCESS;
-    }
-
-    private static @NotNull List<LocalTime> createClosestTimes(SpecificSchedule specificSchedule) {
-        List<LocalTime> closestTimes = new ArrayList<>();
-
-        for (int i = 0; i < specificSchedule.times.size(); i++) {
-            LocalTime now = LocalTime.now(SCHEDULES.getTimezone());
-            LocalTime closestTime = null;
-            for (LocalTime time : specificSchedule.localTimes) {
-                if (time.isAfter(now) || time.equals(now)) {
-                    if ((closestTime == null || time.isBefore(closestTime)) && !closestTimes.contains(time)) {
-                        closestTime = time;
-                    }
-                }
-            }
-
-            if (closestTime == null) {
-                now = LocalTime.of(0, 0);
-                for (LocalTime time : specificSchedule.localTimes) {
-                    if (time.isAfter(now) || time.equals(now)) {
-                        if ((closestTime == null || time.isBefore(closestTime)) && !closestTimes.contains(time)) {
-                            closestTime = time;
-                        }
-                    }
-                }
-            }
-
-            closestTimes.add(closestTime);
-        }
-        return closestTimes;
     }
 }

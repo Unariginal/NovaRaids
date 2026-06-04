@@ -62,7 +62,7 @@ public class TickEventHandler {
                     continue;
                 }
                 if (raid.phase == RaidPhase.SETUP || raid.phase == RaidPhase.FIGHT) {
-                    WebhookHandler.editWebhookEmbed(raid.currentWebhookEvent, raid);
+                    WebhookHandler.editWebhookEmbed(raid.currentWebhookEvent, raid, raid.webhookDamage);
                 }
             }
         }
@@ -313,7 +313,7 @@ public class TickEventHandler {
                                 if (randomWeight < totalWeight) {
                                     Boss boss = Boss.getRandomBoss(category.categoryId, scheduleCategory.blacklistedBosses);
                                     if (boss != null) {
-                                        RaidManager.queueRaid(boss, null, null);
+                                        RaidManager.queueRaid(boss, null, null, null);
                                         break;
                                     } else {
                                         logError("Failed to start scheduled raid. Boss was null!");
@@ -325,7 +325,7 @@ public class TickEventHandler {
                             if (boss != null) {
                                 totalWeight += scheduleBoss.weight;
                                 if (randomWeight < totalWeight) {
-                                    RaidManager.queueRaid(boss, null, null);
+                                    RaidManager.queueRaid(boss, null, null, null);
                                     break;
                                 }
                             }
