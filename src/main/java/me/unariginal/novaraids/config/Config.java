@@ -12,6 +12,8 @@ import java.util.*;
 public class Config {
     public boolean debug = false;
     public boolean useExperimentalSharedBattles = false;
+    public int maxLoadedHistoryFiles = 100;
+    public boolean usePlaceholderApi = true;
     public RaidSettings raidSettings = new RaidSettings();
     public ItemSettings itemSettings = new ItemSettings();
     public DiscordSettings discordWebhook = new DiscordSettings();

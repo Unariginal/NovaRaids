@@ -7,12 +7,13 @@ import com.mojang.brigadier.context.CommandContext;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import me.unariginal.novaraids.raid.Raid;
 import me.unariginal.novaraids.raid.RaidManager;
-import me.unariginal.novaraids.utils.TextUtils;
+import me.unariginal.novaraids.placeholders.ParseContext;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 import static me.unariginal.novaraids.config.ConfigManager.MESSAGES;
+import static me.unariginal.novaraids.utils.TextUtils.deserialize;
 import static net.minecraft.server.command.CommandManager.literal;
 
 public class RaidJoinCommand {
@@ -32,15 +33,17 @@ public class RaidJoinCommand {
         ServerPlayerEntity player = ctx.getSource().getPlayer();
         if (player == null) return 0;
 
+        ParseContext parseContext = ParseContext.builder().player(player).raid(raid).build();
+
         if (raid.participatingPlayers.size() < raid.maxPlayers || Permissions.check(player, "novaraids.override") || raid.maxPlayers == -1) {
             if (raid.addPlayer(player.getUuid(), false)) {
-                player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.joinedRaid, raid)));
+                player.sendMessage(deserialize(MESSAGES.feedback.joinedRaid, parseContext));
                 return Command.SINGLE_SUCCESS;
             } else {
                 return 0;
             }
         } else {
-            player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.warnings.maxPlayers, raid)));
+            player.sendMessage(deserialize(MESSAGES.feedback.warnings.maxPlayers, parseContext));
             return 0;
         }
     }

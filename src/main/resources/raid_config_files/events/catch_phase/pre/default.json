@@ -1,6 +1,6 @@
 {
   "global": false,
-  "messages": ["%novaraids:prefix% Time to catch %novaraids:raid_boss_name%!"],
+  "messages": ["%prefix% Time to catch %boss_name%!"],
   "player_commands": [],
   "global_commands": [],
   "sounds": [],

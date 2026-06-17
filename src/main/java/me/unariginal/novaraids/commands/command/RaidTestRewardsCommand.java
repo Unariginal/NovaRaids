@@ -41,6 +41,7 @@ public class RaidTestRewardsCommand {
                                     Category category = Category.getCategory(boss.categoryId);
                                     if (category == null) return builder.buildFuture();
                                     category.modifiers.keySet().forEach(builder::suggest);
+                                    builder.suggest("no_modifier");
                                     return builder.buildFuture();
                                 })
                                 .then(argument("placement", IntegerArgumentType.integer())
@@ -51,16 +52,7 @@ public class RaidTestRewardsCommand {
                                                         CategoryModifier.getModifier(StringArgumentType.getString(ctx, "modifier")),
                                                         IntegerArgumentType.getInteger(ctx, "placement"),
                                                         IntegerArgumentType.getInteger(ctx, "total_players")
-                                                )))))
-                        .then(argument("placement", IntegerArgumentType.integer())
-                                .then(argument("total_players", IntegerArgumentType.integer())
-                                        .executes(ctx -> execute(
-                                                ctx.getSource().getPlayer(),
-                                                Boss.getBoss(StringArgumentType.getString(ctx, "boss")),
-                                                null,
-                                                IntegerArgumentType.getInteger(ctx, "placement"),
-                                                IntegerArgumentType.getInteger(ctx, "total_players")
-                                        )))));
+                                                ))))));
     }
 
     private static int execute(ServerPlayerEntity player, Boss boss, @Nullable CategoryModifier modifier, int placement, int totalPlayers) {

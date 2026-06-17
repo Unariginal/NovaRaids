@@ -4,11 +4,10 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import me.lucko.fabric.api.permissions.v0.Permissions;
-import me.unariginal.novaraids.data.schedule.CronSchedule;
-import me.unariginal.novaraids.data.schedule.RandomSchedule;
-import me.unariginal.novaraids.data.schedule.Schedule;
-import me.unariginal.novaraids.data.schedule.SpecificSchedule;
-import me.unariginal.novaraids.utils.TextUtils;
+import me.unariginal.novaraids.data.schedules.CronSchedule;
+import me.unariginal.novaraids.data.schedules.RandomSchedule;
+import me.unariginal.novaraids.data.schedules.Schedule;
+import me.unariginal.novaraids.data.schedules.SpecificSchedule;
 import net.minecraft.server.command.ServerCommandSource;
 
 import java.time.LocalTime;
@@ -18,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static me.unariginal.novaraids.config.ConfigManager.SCHEDULES;
+import static me.unariginal.novaraids.utils.TextUtils.deserialize;
 import static net.minecraft.server.command.CommandManager.literal;
 
 public class RaidScheduleCommand {
@@ -57,18 +57,18 @@ public class RaidScheduleCommand {
                     closestTimes.add(closestTime);
                 }
 
-                ctx.getSource().sendMessage(TextUtils.deserialize("<red>Specific Schedule Nearest Times:"));
+                ctx.getSource().sendMessage(deserialize("<red>Specific Schedule Nearest Times:"));
                 for (LocalTime time : closestTimes) {
-                    ctx.getSource().sendMessage(TextUtils.deserialize("<gray><i> - " + time.toString()));
+                    ctx.getSource().sendMessage(deserialize("<gray><i> - " + time.toString()));
                 }
             } else if (schedule instanceof RandomSchedule randomSchedule) {
-                ctx.getSource().sendMessage(TextUtils.deserialize("<red>Random Schedule (<i>" + randomSchedule.minSeconds + "s - " + randomSchedule.maxSeconds + "s<!i>) Next Raid:"));
-                ctx.getSource().sendMessage(TextUtils.deserialize("<gray><i> - " + randomSchedule.nextRandom.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withZone(SCHEDULES.getTimezone()))));
+                ctx.getSource().sendMessage(deserialize("<red>Random Schedule (<i>" + randomSchedule.minSeconds + "s - " + randomSchedule.maxSeconds + "s<!i>) Next Raid:"));
+                ctx.getSource().sendMessage(deserialize("<gray><i> - " + randomSchedule.nextRandom.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withZone(SCHEDULES.getTimezone()))));
             } else if (schedule instanceof CronSchedule cronSchedule) {
-                ctx.getSource().sendMessage(TextUtils.deserialize("<red>Cron Schedule (<i>" + cronSchedule.expression + "<!i>) Next Raid:"));
-                ctx.getSource().sendMessage(TextUtils.deserialize("<gray><i> - " + cronSchedule.nextExecution.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withZone(SCHEDULES.getTimezone()))));
+                ctx.getSource().sendMessage(deserialize("<red>Cron Schedule (<i>" + cronSchedule.expression + "<!i>) Next Raid:"));
+                ctx.getSource().sendMessage(deserialize("<gray><i> - " + cronSchedule.nextExecution.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withZone(SCHEDULES.getTimezone()))));
             }
-            ctx.getSource().sendMessage(TextUtils.deserialize(""));
+            ctx.getSource().sendMessage(deserialize(""));
         }
         return Command.SINGLE_SUCCESS;
     }

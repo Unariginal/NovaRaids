@@ -1,7 +1,7 @@
 package me.unariginal.novaraids.placeholders.types;
 
 import me.unariginal.novaraids.placeholders.GenericResult;
-import me.unariginal.novaraids.placeholders.ServerPlaceholder;
+import me.unariginal.novaraids.placeholders.interfaces.ServerPlaceholder;
 
 import java.util.List;
 

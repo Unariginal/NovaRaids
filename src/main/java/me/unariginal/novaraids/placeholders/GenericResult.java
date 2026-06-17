@@ -35,6 +35,10 @@ public class GenericResult {
         return valid(result.toString());
     }
 
+    public static GenericResult valid(Long result) {
+        return valid(result.toString());
+    }
+
     public static GenericResult invalid(String result) {
         return new GenericResult(result, false);
     }

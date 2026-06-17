@@ -5,13 +5,11 @@ import me.unariginal.novaraids.config.PersistentQueue;
 import me.unariginal.novaraids.data.QueueItem;
 import me.unariginal.novaraids.handlers.BossBarHandler;
 import me.unariginal.novaraids.handlers.CobblemonEventHandler;
+import me.unariginal.novaraids.placeholders.types.categoryModifier.*;
+import me.unariginal.novaraids.placeholders.types.history.*;
 import me.unariginal.novaraids.raid.Raid;
 import me.unariginal.novaraids.handlers.TickEventHandler;
 import me.unariginal.novaraids.handlers.WebhookHandler;
-import me.unariginal.novaraids.placeholders.ServerPlaceholder;
-import me.unariginal.novaraids.placeholders.services.MiniPlaceholdersService;
-import me.unariginal.novaraids.placeholders.services.PlaceholderAPIService;
-import me.unariginal.novaraids.placeholders.types.NovaRaidsPrefix;
 import me.unariginal.novaraids.placeholders.types.boss.*;
 import me.unariginal.novaraids.placeholders.types.raid.*;
 import me.unariginal.novaraids.raid.RaidManager;
@@ -19,7 +17,6 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.fabricmc.loader.api.FabricLoader;
 import net.kyori.adventure.platform.fabric.FabricServerAudiences;
 import net.minecraft.server.MinecraftServer;
 import org.slf4j.Logger;
@@ -28,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 import static me.unariginal.novaraids.config.ConfigManager.*;
+import static me.unariginal.novaraids.placeholders.PlaceholderManager.registerPlaceholders;
 import static me.unariginal.novaraids.raid.RaidManager.activeRaids;
 
 public class NovaRaids implements ModInitializer {
@@ -37,10 +35,6 @@ public class NovaRaids implements ModInitializer {
 
     public MinecraftServer server;
     public FabricServerAudiences audience;
-    public boolean usingMiniPlaceholders = false;
-    public MiniPlaceholdersService miniPlaceholdersService;
-    public boolean usingPlaceholderAPI = false;
-    public PlaceholderAPIService placeholderAPIService = null;
 
     public List<UUID> ignorePlayerVisibility = new ArrayList<>();
     public List<UUID> ignorePokemonVisibility = new ArrayList<>();
@@ -58,11 +52,6 @@ public class NovaRaids implements ModInitializer {
         ServerLifecycleEvents.SERVER_STARTING.register(server -> {
             this.audience = FabricServerAudiences.of(server);
             this.server = server;
-
-            usingMiniPlaceholders = FabricLoader.getInstance().isModLoaded("miniplaceholders");
-            if (usingMiniPlaceholders) miniPlaceholdersService = new MiniPlaceholdersService();
-            usingPlaceholderAPI = FabricLoader.getInstance().isModLoaded("placeholder-api");
-            if (usingPlaceholderAPI) placeholderAPIService = new PlaceholderAPIService();
 
             registerPlaceholders();
         });
@@ -140,71 +129,10 @@ public class NovaRaids implements ModInitializer {
     }
 
     public static void logInfo(String message) {
-        if (CONFIG.debug) {
-            LOGGER.info("[NovaRaids] {}", message);
-        }
+        if (CONFIG.debug) LOGGER.info("[NovaRaids] {}", message);
     }
 
     public static void logError(String message) {
         LOGGER.error("[NovaRaids] {}", message);
-    }
-
-    public void registerPlaceholders() {
-        List<ServerPlaceholder> serverPlaceholders = List.of(
-                new NovaRaidsPrefix(),
-                new RaidBossAbility(),
-                new RaidBossDynamaxLevel(),
-                new RaidBossEvs(),
-                new RaidBossForm(),
-                new RaidBossFriendship(),
-                new RaidBossGender(),
-                new RaidBossGmaxFactor(),
-                new RaidBossHeldItem(),
-                new RaidBossIvs(),
-                new RaidBossLevel(),
-                new RaidBossMoves(),
-                new RaidBossName(),
-                new RaidBossNature(),
-                new RaidBossScale(),
-                new RaidBossShiny(),
-                new RaidBossSpecies(),
-                new RaidBossTeraType(),
-                new RaidCategory(),
-                new RaidCategoryId(),
-                new RaidCompletionTime(),
-                new RaidDefeatedTime(),
-                new RaidHealth(),
-                new RaidJoinMethod(),
-                new RaidLocation(),
-                new RaidMaximumHealth(),
-                new RaidMaximumLevel(),
-                new RaidMaximumPartySize(),
-                new RaidMaximumPlayers(),
-                new RaidMinimumLevel(),
-                new RaidMinimumPartySize(),
-                new RaidMinimumPlayers(),
-                new RaidParticipatingPlayers(),
-                new RaidPhase(),
-                new RaidPhaseTimer(),
-                new RaidTimer(),
-                new RaidTotalDamage(),
-                new RaidUUID(),
-                new RaidModifier(),
-                new RaidModifierId()
-        );
-
-//        List<PlayerPlaceholder> playerPlaceholders = List.of();
-
-        serverPlaceholders.forEach(placeholder -> {
-            if (usingMiniPlaceholders) miniPlaceholdersService.registerServer(placeholder);
-            if (usingPlaceholderAPI) placeholderAPIService.registerServer(placeholder);
-        });
-
-//        playerPlaceholders.forEach(placeholder -> {
-//            if (usingMiniPlaceholders) miniPlaceholdersService.registerPlayer(placeholder);
-//            if (usingPlaceholderAPI) placeholderAPIService.registerPlayer(placeholder);
-//        });
-
-        if (usingMiniPlaceholders) miniPlaceholdersService.registerBuilder();
     }
 }

@@ -8,10 +8,11 @@ import me.lucko.fabric.api.permissions.v0.Permissions;
 import me.unariginal.novaraids.events.RaidEvents;
 import me.unariginal.novaraids.raid.Raid;
 import me.unariginal.novaraids.raid.RaidManager;
-import me.unariginal.novaraids.utils.TextUtils;
+import me.unariginal.novaraids.placeholders.ParseContext;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 
+import static me.unariginal.novaraids.utils.TextUtils.deserialize;
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
@@ -34,14 +35,14 @@ public class RaidDamageCommand {
             ServerPlayerEntity player = ctx.getSource().getPlayer();
             if (player != null) {
                 int damage = IntegerArgumentType.getInteger(ctx, "amount");
-                if (damage > raid.currentHealth) {
-                    damage = raid.currentHealth;
-                }
+                if (damage > raid.currentHealth) damage = raid.currentHealth;
+
                 RaidEvents.BOSS_DAMAGED_EVENT_PRE.invoker().onBossDamagedPre(raid, damage);
                 raid.applyDamage(damage);
                 raid.updatePlayerDamage(player.getUuid(), damage);
                 RaidEvents.BOSS_DAMAGED_EVENT_POST.invoker().onBossDamagedPost(raid, damage);
-                player.sendMessage(TextUtils.deserialize("<green>The damage has been applied."));
+
+                player.sendMessage(deserialize("<green>The damage has been applied.", ParseContext.builder().player(player).raid(raid).build()));
             }
         }
         return Command.SINGLE_SUCCESS;

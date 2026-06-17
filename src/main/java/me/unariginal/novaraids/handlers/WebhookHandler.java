@@ -10,7 +10,6 @@ import com.mojang.authlib.GameProfile;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.events.WebhookEvent;
 import me.unariginal.novaraids.raid.Raid;
-import me.unariginal.novaraids.utils.TextUtils;
 import net.minecraft.util.UserCache;
 
 import java.awt.*;
@@ -23,6 +22,7 @@ import java.util.concurrent.CompletableFuture;
 
 import static me.unariginal.novaraids.NovaRaids.logError;
 import static me.unariginal.novaraids.config.ConfigManager.CONFIG;
+import static me.unariginal.novaraids.utils.TextUtils.parse;
 
 public class WebhookHandler {
     private static final UserCache cache = NovaRaids.INSTANCE.server.getUserCache();
@@ -159,21 +159,21 @@ public class WebhookHandler {
                 .setColor(randColor)
                 .setAuthor(
                         new WebhookEmbed.EmbedAuthor(
-                                TextUtils.parse(event.embedTitle.replaceAll("%damage%", String.valueOf(damage)), raid),
+                                parse(event.embedTitle.replaceAll("%damage%", String.valueOf(damage)), raid),
                                 "",
                                 thumbnailUrl
                         )
                 );
         for (WebhookEvent.EmbedField field : event.fields) {
-            embedBuilder.addField(new WebhookEmbed.EmbedField(field.inline, TextUtils.parse(field.name.replaceAll("%damage%", String.valueOf(damage)), raid), TextUtils.parse(field.value.replaceAll("%damage%", String.valueOf(damage)), raid)));
+            embedBuilder.addField(new WebhookEmbed.EmbedField(field.inline, parse(field.name.replaceAll("%damage%", String.valueOf(damage)), raid), parse(field.value.replaceAll("%damage%", String.valueOf(damage)), raid)));
             if (field.insertLeaderboardAfter != null && field.insertLeaderboardAfter && event.leaderboardFieldLayout != null) {
                 Map<UUID, Integer> leaderboard = raid.getDamageLeaderboard();
                 for (int i = 0; i < Math.min(leaderboard.size(), 10); i++) {
                     Map.Entry<UUID, Integer> entry = leaderboard.entrySet().stream().toList().get(i);
                     if (cache != null) {
                         GameProfile user = cache.getByUuid(entry.getKey()).orElseThrow();
-                        String name = TextUtils.parse(event.leaderboardFieldLayout.name.replaceAll("%damage%", String.valueOf(damage)), raid, user, entry.getValue(), i + 1);
-                        String value = TextUtils.parse(event.leaderboardFieldLayout.value.replaceAll("%damage%", String.valueOf(damage)), raid, user, entry.getValue(), i + 1);
+                        String name = parse(parse(event.leaderboardFieldLayout.name.replaceAll("%damage%", String.valueOf(damage)), raid), user, entry.getValue(), i + 1);
+                        String value = parse(parse(event.leaderboardFieldLayout.value.replaceAll("%damage%", String.valueOf(damage)), raid), user, entry.getValue(), i + 1);
                         embedBuilder.addField(new WebhookEmbed.EmbedField(event.leaderboardFieldLayout.inline, name, value));
                     }
                 }

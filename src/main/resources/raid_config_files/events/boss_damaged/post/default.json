@@ -1,6 +1,6 @@
 {
   "global": false,
-  "messages": ["%novaraids:prefix% %player% did %damage% damage to the boss!"],
+  "messages": ["%prefix% %player% did %damage% damage to the boss!"],
   "player_commands": [],
   "global_commands": [],
   "sounds": [],

@@ -1,0 +1,65 @@
+{
+  "gui_title": "Raid History",
+  "use_hopper_gui": false,
+  "rows": 6,
+  "gui_layout": [
+    "#########",
+    "#########",
+    "#########",
+    "#########",
+    "#########",
+    "P___C___N"
+  ],
+  "raid_display_item": {
+    "symbol": "#",
+    "item": {
+      "id": "cobblemon:pokemon_model"
+    },
+    "item_name": "<light_purple>%history_boss_name%",
+    "item_lore": [
+      "Status: %history_status%",
+      "",
+      "Level: %history_boss_level%",
+      "Modifier: %history_modifier%",
+      "Category: %history_category%",
+      "",
+      "Players: %history_player_count%",
+      "Health: %history_health%",
+      "Duration: %history_duration%",
+      "",
+      "<gray>Click for more details!"
+    ]
+  },
+  "background_item": {
+    "symbol": "_",
+    "item": {
+      "id": "minecraft:air"
+    },
+    "item_name": "",
+    "item_lore": []
+  },
+  "previous_item": {
+    "symbol": "P",
+    "item": {
+      "id": "minecraft:arrow"
+    },
+    "item_name": "Previous",
+    "item_lore": []
+  },
+  "close_item": {
+    "symbol": "C",
+    "item": {
+      "id": "minecraft:barrier"
+    },
+    "item_name": "Close",
+    "item_lore": []
+  },
+  "next_item": {
+    "symbol": "N",
+    "item": {
+      "id": "minecraft:arrow"
+    },
+    "item_name": "Next",
+    "item_lore": []
+  }
+}

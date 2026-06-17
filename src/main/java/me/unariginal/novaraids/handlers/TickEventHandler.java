@@ -10,7 +10,7 @@ import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.categories.bosses.Boss;
 import me.unariginal.novaraids.data.categories.Category;
 import me.unariginal.novaraids.data.Task;
-import me.unariginal.novaraids.data.schedule.*;
+import me.unariginal.novaraids.data.schedules.*;
 import me.unariginal.novaraids.events.RaidEvents;
 import me.unariginal.novaraids.raid.Raid;
 import me.unariginal.novaraids.raid.RaidManager;

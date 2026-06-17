@@ -1,0 +1,34 @@
+package me.unariginal.novaraids.placeholders.types.boss;
+
+import me.unariginal.novaraids.data.categories.bosses.Boss;
+import me.unariginal.novaraids.placeholders.interfaces.BossPlaceholder;
+import me.unariginal.novaraids.raid.Raid;
+import me.unariginal.novaraids.placeholders.GenericResult;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
+
+import static me.unariginal.novaraids.placeholders.RaidGetter.getRaid;
+
+public class BossLevel implements BossPlaceholder {
+    @Override
+    public GenericResult handle(@Nullable Raid raid, @Nullable Boss boss, Boolean prioritizeRaid, List<String> args) {
+        if (prioritizeRaid || boss == null) {
+            if (raid == null) {
+                raid = getRaid(args);
+                if (raid == null) {
+                    if (boss != null) return GenericResult.valid(boss.pokemonDetails.level);
+                    return GenericResult.invalid("No Active Raid");
+                }
+            }
+            return GenericResult.valid(raid.bossPokemon.getLevel());
+        }
+
+        return GenericResult.valid(boss.pokemonDetails.level);
+    }
+
+    @Override
+    public List<String> id() {
+        return List.of("boss_level");
+    }
+}

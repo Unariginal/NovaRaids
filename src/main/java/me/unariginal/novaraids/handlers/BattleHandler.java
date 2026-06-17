@@ -19,7 +19,6 @@ import com.cobblemon.mod.common.battles.actor.PokemonBattleActor;
 import com.cobblemon.mod.common.battles.pokemon.BattlePokemon;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.pokemon.*;
-import com.cobblemon.mod.common.pokemon.properties.UncatchableProperty;
 import kotlin.Unit;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.ai.StrongBattleAIFix;
@@ -44,11 +43,12 @@ public class BattleHandler {
         CatchSettings settings = raid.boss.catchSettings;
         Pokemon pokemon = new Pokemon();
         pokemon.copyFrom(raid.bossPokemon);
+
         NbtCompound data = new NbtCompound();
         data.putBoolean("raid_entity", true);
         data.putBoolean("boss_clone", true);
         data.putBoolean("catch_encounter", true);
-        pokemon.setPersistentData$common(data);
+        pokemon.getPersistentData().put("raid_data", data);
 
         if (!settings.speciesOverride.equalsIgnoreCase(raid.boss.pokemonDetails.species)) {
             Species species = PokemonSpecies.getByName(settings.speciesOverride);
@@ -159,17 +159,16 @@ public class BattleHandler {
     }
 
     public static void invokeBattle(Raid raid, ServerPlayerEntity player) {
-        Pokemon pokemon = raid.boss.pokemonDetails.createPokemon();
-        if (!raid.boss.bossDetails.rerollFeaturesEachBattle) pokemon.setFeatures(raid.bossPokemonUncatchable.getFeatures());
-        pokemon.getCustomProperties().add(UncatchableProperty.INSTANCE.uncatchable());
-        pokemon.setAbility$common(raid.bossPokemonUncatchable.getAbility());
-        pokemon.setGender(raid.bossPokemonUncatchable.getGender());
-        pokemon.setNature(raid.bossPokemonUncatchable.getNature());
+        Pokemon pokemon = new Pokemon();
+        pokemon.copyFrom(raid.bossPokemonUncatchable);
+        if (!raid.boss.bossDetails.rerollFeaturesEachBattle) PokemonProperties.Companion.parse(raid.boss.pokemonDetails.getRandomFeature());
+
         NbtCompound data = new NbtCompound();
         data.putBoolean("raid_entity", true);
         data.putBoolean("boss_clone", true);
         data.putBoolean("battle_clone", true);
-        pokemon.setPersistentData$common(data);
+        pokemon.getPersistentData().put("raid_data", data);
+
         pokemon.setShiny(false);
         pokemon.setScaleModifier(0.1f);
 

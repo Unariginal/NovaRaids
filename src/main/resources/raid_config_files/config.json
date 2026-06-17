@@ -1,6 +1,8 @@
 {
   "debug": false,
   "use_experimental_shared_battles": false,
+  "max_loaded_history_files": 100,
+  "use_placeholder_api": false,
   "raid_settings": {
     "use_queue_system": false,
     "run_raids_with_no_players": false,

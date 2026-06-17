@@ -1,5 +1,5 @@
 {
-  "gui_title": "%novaraids:raid_boss_name% Raid Results",
+  "gui_title": "%boss_name% Raid Results",
   "use_hopper_gui": false,
   "rows": 6,
   "gui_layout": [

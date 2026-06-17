@@ -1,0 +1,64 @@
+package me.unariginal.novaraids.data.schedules;
+
+import com.cronutils.model.Cron;
+import com.cronutils.model.definition.CronDefinition;
+import com.cronutils.model.definition.CronDefinitionBuilder;
+import com.cronutils.model.time.ExecutionTime;
+import com.cronutils.parser.CronParser;
+
+import java.time.ZonedDateTime;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+
+import static me.unariginal.novaraids.NovaRaids.logError;
+import static me.unariginal.novaraids.config.ConfigManager.SCHEDULES;
+
+public class CronSchedule extends Schedule {
+    public String expression;
+    public transient ZonedDateTime nextExecution;
+
+    public void setNextExecution(ZonedDateTime date) throws NoSuchElementException, IllegalArgumentException {
+        CronDefinition cronDefinition = CronDefinitionBuilder.defineCron()
+                .withSeconds().and()
+                .withMinutes().and()
+                .withHours().and()
+                .withDayOfMonth()
+                    .supportsHash().supportsL().supportsW().supportsQuestionMark().and()
+                .withMonth().and()
+                .withDayOfWeek()
+                    .withIntMapping(7, 0)
+                    .supportsHash().supportsL().supportsW().supportsQuestionMark().and()
+                .withSupportedNicknameDaily()
+                .withSupportedNicknameHourly()
+                .withSupportedNicknameMidnight()
+                .withSupportedNicknameMonthly()
+                .withSupportedNicknameWeekly()
+                .withSupportedNicknameAnnually()
+                .withSupportedNicknameYearly()
+                .instance();
+        CronParser cronParser = new CronParser(cronDefinition);
+        try {
+            Cron cron = cronParser.parse(expression);
+            ExecutionTime executionTime = ExecutionTime.forCron(cron);
+            Optional<ZonedDateTime> nextExecution = executionTime.nextExecution(date);
+            try {
+                this.nextExecution = nextExecution.orElseThrow();
+            } catch (NullPointerException e) {
+                logError("Cron Schedule's next execution time is null!");
+            }
+        } catch (IllegalArgumentException e) {
+            logError("Cron Schedule's expression is invalid! " + e.getMessage());
+            for (StackTraceElement el : e.getStackTrace()) {
+                logError("  " + el.toString());
+            }
+        }
+    }
+
+    public boolean isNextTime() {
+        ZonedDateTime now = ZonedDateTime.now(SCHEDULES.getTimezone());
+        if (nextExecution == null) {
+            setNextExecution(now);
+        }
+        return now.isAfter(nextExecution);
+    }
+}

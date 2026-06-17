@@ -1,6 +1,6 @@
 {
   "global": true,
-  "messages": ["%novaraids:prefix% A raid is starting against %novaraids:raid_boss_name%!"],
+  "messages": ["%prefix% A raid is starting against %boss_name%!"],
   "player_commands": [],
   "global_commands": [],
   "sounds": [],
@@ -10,12 +10,12 @@
   "molang": [],
   "discord_webhook": {
     "message": "<@&role_id_here>",
-    "embed_title": "%novaraids:raid_boss_name% Raid Has Started",
+    "embed_title": "%boss_name% Raid Has Started",
     "fields": [
       {
         "inline": false,
-        "name": "Players: %novaraids:raid_player_count%/%novaraids:raid_max_player%",
-        "value": "Join Now Using `%novaraids:raid_join_method%`!"
+        "name": "Players: %raid_player_count%/%raid_max_player%",
+        "value": "Join Now Using `%raid_join_method%`!"
       }
     ]
   }

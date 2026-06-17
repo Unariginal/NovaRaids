@@ -1,6 +1,6 @@
 {
   "global": true,
-  "messages": ["%novaraids:prefix% The %novaraids:raid_boss_name% raid has finished."],
+  "messages": ["%prefix% The %boss_name% raid has finished."],
   "player_commands": [],
   "global_commands": [],
   "sounds": [],

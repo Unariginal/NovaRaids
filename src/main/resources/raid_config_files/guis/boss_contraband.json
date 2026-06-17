@@ -1,5 +1,5 @@
 {
-  "gui_title": "%boss.name% Boss Contraband",
+  "gui_title": "%boss_name% Boss Contraband",
   "use_hopper_gui": true,
   "rows": 0,
   "gui_layout": [
@@ -13,7 +13,7 @@
     "item_name": "<red>Banned Pokemon",
     "item_lore": [],
     "gui_settings": {
-      "gui_title": "%boss.name% Banned Pokemon",
+      "gui_title": "%boss_name% Banned Pokemon",
       "use_hopper_gui": false,
       "rows": 6,
       "gui_layout": [
@@ -74,7 +74,7 @@
     "item_name": "<red>Banned Moves",
     "item_lore": [],
     "gui_settings": {
-      "gui_title": "%boss.name% Banned Moves",
+      "gui_title": "%boss_name% Banned Moves",
       "use_hopper_gui": false,
       "rows": 6,
       "gui_layout": [
@@ -135,7 +135,7 @@
     "item_name": "<red>Banned Abilities",
     "item_lore": [],
     "gui_settings": {
-      "gui_title": "%boss.name% Banned Abilities",
+      "gui_title": "%boss_name% Banned Abilities",
       "use_hopper_gui": false,
       "rows": 6,
       "gui_layout": [
@@ -196,7 +196,7 @@
     "item_name": "<red>Banned Held Items",
     "item_lore": [],
     "gui_settings": {
-      "gui_title": "%boss.name% Banned Held Items",
+      "gui_title": "%boss_name% Banned Held Items",
       "use_hopper_gui": false,
       "rows": 6,
       "gui_layout": [
@@ -255,7 +255,7 @@
     "item_name": "<red>Banned Bag Items",
     "item_lore": [],
     "gui_settings": {
-      "gui_title": "%boss.name% Banned Bag Items",
+      "gui_title": "%boss_name% Banned Bag Items",
       "use_hopper_gui": false,
       "rows": 6,
       "gui_layout": [

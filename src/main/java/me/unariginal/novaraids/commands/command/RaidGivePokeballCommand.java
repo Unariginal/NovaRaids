@@ -9,7 +9,7 @@ import me.unariginal.novaraids.commands.suggestions.CategorySuggestions;
 import me.unariginal.novaraids.data.categories.Category;
 import me.unariginal.novaraids.data.categories.bosses.Boss;
 import me.unariginal.novaraids.data.items.RaidBall;
-import me.unariginal.novaraids.utils.TextUtils;
+import me.unariginal.novaraids.placeholders.ParseContext;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.LoreComponent;
@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static me.unariginal.novaraids.config.ConfigManager.CONFIG;
+import static me.unariginal.novaraids.utils.TextUtils.deserialize;
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
@@ -103,29 +104,36 @@ public class RaidGivePokeballCommand {
         LoreComponent lore;
 
         if (boss != null) {
+            ParseContext parseContext = ParseContext.builder().boss(boss).prioritizeRaid(false).build();
+            
             raidBoss = boss.bossId;
             raidCategory = "null";
             raidBall = boss.itemSettings.getRaidBall(raidBallId);
 
-            itemName = TextUtils.deserialize(TextUtils.parse(raidBall.pokeballName, boss));
+            itemName = deserialize(raidBall.pokeballName, parseContext);
             List<Text> loreText = new ArrayList<>();
             for (String loreLine : raidBall.pokeballLore) {
-                loreText.add(TextUtils.deserialize(TextUtils.parse(loreLine, boss)));
+                loreText.add(deserialize(loreLine, parseContext));
             }
             lore = new LoreComponent(loreText);
         } else {
+            ParseContext.Builder parseContextBuilder = ParseContext.builder();
+
             raidBoss = "*";
             if (category != null) {
+                parseContextBuilder.category(category);
                 raidCategory = category.categoryId;
                 raidBall = category.itemSettings.getRaidBall(raidBallId);
             } else {
                 raidCategory = "*";
                 raidBall = CONFIG.getRaidBall(raidBallId);
             }
-            itemName = TextUtils.deserialize(TextUtils.parse(raidBall.pokeballName));
+            ParseContext parseContext = parseContextBuilder.build();
+
+            itemName = deserialize(raidBall.pokeballName, parseContext);
             List<Text> loreText = new ArrayList<>();
             for (String loreLine : raidBall.pokeballLore) {
-                loreText.add(TextUtils.deserialize(TextUtils.parse(loreLine)));
+                loreText.add(deserialize(loreLine, parseContext));
             }
             lore = new LoreComponent(loreText);
         }

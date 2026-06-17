@@ -1,13 +1,14 @@
 package me.unariginal.novaraids.data.events;
 
 import me.unariginal.novaraids.raid.Raid;
-import me.unariginal.novaraids.utils.TextUtils;
-import net.kyori.adventure.text.minimessage.MiniMessage;
+import me.unariginal.novaraids.placeholders.ParseContext;
 import net.kyori.adventure.title.Title;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+
+import static me.unariginal.novaraids.utils.TextUtils.deserialize;
 
 public class TitleEvent {
     public String title;
@@ -17,9 +18,10 @@ public class TitleEvent {
     public long fadeOut;
 
     public void showTitle(ServerPlayerEntity player, Raid raid, Integer damage) {
+        ParseContext parseContext = ParseContext.builder().player(player).raid(raid).build();
         Title title = Title.title(
-                MiniMessage.miniMessage().deserialize(TextUtils.parse(this.title.replaceAll("%damage%", String.valueOf(damage)).replaceAll("%player%", player.getNameForScoreboard()), raid)),
-                MiniMessage.miniMessage().deserialize(TextUtils.parse(subtitle.replaceAll("%damage%", String.valueOf(damage)).replaceAll("%player%", player.getNameForScoreboard()), raid)),
+                deserialize(this.title.replaceAll("%damage%", String.valueOf(damage)), parseContext).asComponent(),
+                deserialize(this.subtitle.replaceAll("%damage%", String.valueOf(damage)), parseContext).asComponent(),
                 Title.Times.times(
                         Duration.of(fadeIn * 50, ChronoUnit.MILLIS),
                         Duration.of(stay * 50, ChronoUnit.MILLIS),

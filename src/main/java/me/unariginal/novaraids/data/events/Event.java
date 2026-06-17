@@ -5,7 +5,7 @@ import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.config.ConfigManager;
 import me.unariginal.novaraids.config.LocationsConfig;
 import me.unariginal.novaraids.raid.Raid;
-import me.unariginal.novaraids.utils.TextUtils;
+import me.unariginal.novaraids.placeholders.ParseContext;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -13,6 +13,8 @@ import net.minecraft.util.Identifier;
 
 import java.util.List;
 import java.util.Objects;
+
+import static me.unariginal.novaraids.utils.TextUtils.deserialize;
 
 public class Event {
     public transient String eventId;
@@ -29,7 +31,7 @@ public class Event {
 
     public void sendMessages(ServerPlayerEntity player, Raid raid, Integer damage) {
         for (String message : messages) {
-            player.sendMessage(TextUtils.deserialize(TextUtils.parse(message.replaceAll("%damage%", String.valueOf(damage)).replaceAll("%player%", player.getNameForScoreboard()), raid)));
+            player.sendMessage(deserialize(message.replaceAll("%damage%", String.valueOf(damage)), ParseContext.builder().raid(raid).player(player).build()));
         }
     }
 

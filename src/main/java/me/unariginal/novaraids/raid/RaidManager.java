@@ -10,7 +10,7 @@ import me.unariginal.novaraids.data.categories.bosses.Boss;
 import me.unariginal.novaraids.data.categories.bosses.BossDetails;
 import me.unariginal.novaraids.data.categories.bosses.BossDetails.WeightedLocation;
 import me.unariginal.novaraids.events.RaidEvents;
-import me.unariginal.novaraids.utils.TextUtils;
+import me.unariginal.novaraids.placeholders.ParseContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.jetbrains.annotations.Nullable;
@@ -22,6 +22,7 @@ import java.util.*;
 import static me.unariginal.novaraids.NovaRaids.logError;
 import static me.unariginal.novaraids.NovaRaids.logInfo;
 import static me.unariginal.novaraids.config.ConfigManager.*;
+import static me.unariginal.novaraids.utils.TextUtils.deserialize;
 
 public class RaidManager {
     public static final Queue<QueueItem> queuedRaids = new LinkedList<>();
@@ -34,7 +35,7 @@ public class RaidManager {
         QueueItem queueItem = new QueueItem(boss, startingPlayer, startingItem, requirePass);
         queuedRaids.add(queueItem);
         if (CONFIG.raidSettings.useQueueSystem && startingPlayer != null)
-            startingPlayer.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.addedToQueue, boss)));
+            startingPlayer.sendMessage(deserialize(MESSAGES.feedback.addedToQueue, ParseContext.builder().boss(boss).prioritizeRaid(false).build()));
         return true;
     }
 
@@ -68,7 +69,7 @@ public class RaidManager {
         }
 
         if (availableLocations.isEmpty()) {
-            if (startingPlayer != null) startingPlayer.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.noAvailableLocations, boss)));
+            if (startingPlayer != null) startingPlayer.sendMessage(deserialize(MESSAGES.noAvailableLocations, ParseContext.builder().boss(boss).prioritizeRaid(false).build()));
             logInfo("Failed to start raid. All raid locations are busy.");
             return false;
         }
@@ -103,8 +104,10 @@ public class RaidManager {
     public static RaidHistory writeHistory(UUID uuid) {
         Raid raid = activeRaids.get(uuid);
         if (raid == null) return null;
+
         List<String> moves = new ArrayList<>();
         raid.bossPokemon.getMoveSet().getMoves().forEach(move -> moves.add(move.getName()));
+
         RaidHistory.BossInformation bossInformation = new RaidHistory.BossInformation(
                 raid.boss.bossId,
                 raid.boss.bossDetails.displayName,
@@ -128,17 +131,22 @@ public class RaidManager {
         );
 
         LinkedHashMap<String, Integer> convertedLeaderboard = new LinkedHashMap<>();
+        int placement = 1;
         for (Map.Entry<UUID, Integer> entry : raid.getDamageLeaderboard().entrySet()) {
             convertedLeaderboard.put(entry.getKey().toString(), entry.getValue());
+            raid.playerRaidData.get(entry.getKey().toString()).leaderboardPlacement = placement;
+            placement++;
         }
+
         return new RaidHistory(
                 uuid.toString(),
                 raid.raidStatus,
                 raid.realStartTime.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withZone(SCHEDULES.getTimezone())),
                 raid.realEndTime.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withZone(SCHEDULES.getTimezone())),
-                bossInformation,
                 raid.category.categoryId,
                 raid.category.categoryName,
+                raid.modifier == null ? "No Modifier" : raid.modifier.modifierId,
+                raid.modifier == null ? "No Modifier" : raid.modifier.modifierName,
                 raid.location.locationId,
                 raid.location.name,
                 raid.boss.bossDetails.aiSkillLevel,
@@ -149,8 +157,9 @@ public class RaidManager {
                 raid.endTime,
                 raid.fightStartTime,
                 raid.fightEndTime,
+                bossInformation,
                 convertedLeaderboard,
-                raid.catchPhaseResults
+                raid.playerRaidData
         );
     }
 

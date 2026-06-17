@@ -1,6 +1,6 @@
 {
   "global": false,
-  "messages": ["%novaraids:prefix% Prepare to catch %novaraids:raid_boss_name%"],
+  "messages": ["%prefix% Prepare to catch %boss_name%"],
   "player_commands": [],
   "global_commands": [],
   "sounds": [],

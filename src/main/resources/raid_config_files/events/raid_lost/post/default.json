@@ -1,6 +1,6 @@
 {
   "global": false,
-  "messages": ["%novaraids:prefix% %novaraids:raid_boss_name% was not defeated on time!"],
+  "messages": ["%prefix% %boss_name% was not defeated on time!"],
   "player_commands": [],
   "global_commands": [],
   "sounds": [],
@@ -9,11 +9,11 @@
   "titles": [],
   "molang": [],
   "discord_webhook": {
-    "embed_title": "Failed To Defeat %novaraids:raid_boss_name%!",
+    "embed_title": "Failed To Defeat %boss_name%!",
     "fields": [
       {
         "inline": false,
-        "name": "Dealt %novaraids:raid_total_damage%/%novaraids:raid_max_health% damage!",
+        "name": "Dealt %raid_total_damage%/%raid_max_health% damage!",
         "value": "",
         "insert_leaderboard_after": false
       }

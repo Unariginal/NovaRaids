@@ -14,7 +14,7 @@
     "item": {
       "id": "cobblemon:pokemon_model"
     },
-    "item_name": "<light_purple>%boss.name%",
+    "item_name": "<light_purple>%boss_name%",
     "item_lore": []
   },
   "cancelable_raid_item": {
@@ -22,7 +22,7 @@
     "item": {
       "id": "cobblemon:pokemon_model"
     },
-    "item_name": "<light_purple>%boss.name%",
+    "item_name": "<light_purple>%boss_name%",
     "item_lore": [
       "<red>Right click to cancel this raid!"
     ]

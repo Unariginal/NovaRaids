@@ -10,15 +10,19 @@ import me.unariginal.novaraids.data.categories.bosses.Boss;
 import me.unariginal.novaraids.data.categories.Category;
 import me.unariginal.novaraids.data.categories.modifiers.CategoryModifier;
 import me.unariginal.novaraids.data.events.Event;
-import me.unariginal.novaraids.data.schedule.SpecificSchedule;
+import me.unariginal.novaraids.data.schedules.SpecificSchedule;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.util.Identifier;
 
 import java.io.*;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
-import java.util.HashMap;
-import java.util.Map;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
+import java.util.*;
+import java.util.stream.Stream;
 
 import static me.unariginal.novaraids.NovaRaids.LOGGER;
 import static me.unariginal.novaraids.utils.GsonUtils.gson;
@@ -48,8 +52,10 @@ public class ConfigManager {
     public static RaidQueueGUIConfig RAID_QUEUE_GUI;
     public static RaidItemGUIConfig RAID_PASS_GUI;
     public static RaidItemGUIConfig RAID_VOUCHER_GUI;
+    public static RaidItemGUIConfig RAID_HISTORY_GUI;
 
     public static PersistentQueue PERSISTENT_QUEUE = new PersistentQueue();
+    public static Map<String, List<RaidHistory>> RAID_HISTORY = new HashMap<>();
 
     public static String[] eventNames = {
             "boss_damaged",
@@ -79,6 +85,7 @@ public class ConfigManager {
         fillMissingWithDefaults("guis/raid_queue.json", null, false);
         fillMissingWithDefaults("guis/raid_pass.json", null, false);
         fillMissingWithDefaults("guis/raid_voucher.json", null, false);
+        fillMissingWithDefaults("guis/raid_history.json", null, false);
 
         CONFIG = loadFile("config.json", Config.class);
         SCHEDULES = loadFile("schedules.json", SchedulesConfig.class);
@@ -123,9 +130,11 @@ public class ConfigManager {
         RAID_QUEUE_GUI = loadFile("guis/raid_queue.json", RaidQueueGUIConfig.class);
         RAID_PASS_GUI = loadFile("guis/raid_pass.json", RaidItemGUIConfig.class);
         RAID_VOUCHER_GUI = loadFile("guis/raid_voucher.json", RaidItemGUIConfig.class);
+        RAID_HISTORY_GUI = loadFile("guis/raid_history.json", RaidItemGUIConfig.class);
 
         loadCategories();
         loadEvents();
+        loadHistory();
     }
 
     public static void saveQueue() {
@@ -141,10 +150,83 @@ public class ConfigManager {
     }
 
     public static void saveRaid(RaidHistory raidHistory) {
-        File historyFolder = new File(configDir, "persistent/history");
+        File historyFolder = new File(configDir, "persistent/history/" + raidHistory.categoryId);
         historyFolder.mkdirs();
-        File historyFile = new File(historyFolder, raidHistory.uuid + ".json");
+        File historyFile = new File(historyFolder, raidHistory.boss.bossId + "_" + raidHistory.uuid + ".json");
         writeFile(historyFile, gson.toJson(raidHistory));
+
+        if (RAID_HISTORY.containsKey(raidHistory.categoryId)) {
+            RAID_HISTORY.get(raidHistory.categoryId).addFirst(raidHistory);
+        } else {
+            RAID_HISTORY.put(raidHistory.categoryId, List.of(raidHistory));
+        }
+    }
+
+    public static void loadHistory() {
+        RAID_HISTORY.clear();
+        File historyFolder = new File(configDir, "persistent/history");
+
+        File[] historyFolders = historyFolder.listFiles();
+        if (historyFolders != null) {
+            for (File historyFolderFile : historyFolders) {
+                if (historyFolderFile.isDirectory()) {
+                    String categoryId = historyFolderFile.getName();
+                    File[] raidHistoryFiles = historyFolderFile.listFiles();
+
+                    try (Stream<Path> stream = Files.list(historyFolderFile.toPath())) {
+                        List<Path> pathList = stream
+                                .filter(p -> p.toString().endsWith(".json"))
+                                .map(p -> Map.entry(p, Objects.requireNonNullElse(extractDateTime(p), null)))
+                                .filter(e -> e.getValue() != null)
+                                .sorted(Map.Entry.<Path, LocalDateTime>comparingByValue().reversed())
+                                .limit(CONFIG.maxLoadedHistoryFiles)
+                                .map(Map.Entry::getKey)
+                                .toList();
+
+                        List<RaidHistory> raidHistoryList = new ArrayList<>();
+                        if (raidHistoryFiles != null) {
+                            for (Path path : pathList) {
+                                File file = path.toFile();
+                                String raidHistoryFileName = "persistent/history/" + categoryId + "/" + file.getName();
+                                RaidHistory raidHistory = loadFile(raidHistoryFileName, RaidHistory.class);
+                                raidHistoryList.add(raidHistory);
+                            }
+                        }
+                        RAID_HISTORY.put(categoryId, raidHistoryList);
+                    } catch (IOException e) {
+                        //
+                    }
+                }
+            }
+        }
+    }
+
+    private static LocalDateTime extractDateTime(Path path) {
+        try {
+            String content = Files.readString(path);
+            String dateValue = extractJsonField(content, "real_start_time");
+            if (dateValue == null) return null;
+            return LocalDateTime.parse(dateValue, DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private static String extractJsonField(String json, String fieldName) {
+        String key = "\"" + fieldName + "\"";
+        int keyIdx = json.indexOf(key);
+        if (keyIdx == -1) return null;
+
+        int colon = json.indexOf(':', keyIdx + key.length());
+        if (colon == -1) return null;
+
+        int start = json.indexOf('"', colon + 1);
+        if (start == -1) return null;
+
+        int end = json.indexOf('"', start + 1);
+        if (end == -1) return null;
+
+        return json.substring(start + 1, end);
     }
 
     public static void generateDefaultFiles() {
@@ -159,6 +241,7 @@ public class ConfigManager {
         generateDefaultFile("guis/category_contraband.json");
         generateDefaultFile("guis/boss_contraband.json");
         generateDefaultFile("guis/leaderboard.json");
+        generateDefaultFile("guis/raid_history.json");
         generateDefaultFile("guis/raid_list.json");
         generateDefaultFile("guis/raid_queue.json");
         generateDefaultFile("guis/raid_pass.json");

@@ -1,9 +1,7 @@
 package me.unariginal.novaraids.config;
 
-import com.google.gson.*;
-import me.unariginal.novaraids.data.schedule.*;
+import me.unariginal.novaraids.data.schedules.*;
 
-import java.io.*;
 import java.time.DateTimeException;
 import java.time.ZoneId;
 import java.time.ZoneOffset;

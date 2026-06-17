@@ -3,6 +3,7 @@ package me.unariginal.novaraids.config;
 import com.cobblemon.mod.common.pokemon.EVs;
 import com.cobblemon.mod.common.pokemon.Gender;
 import com.cobblemon.mod.common.pokemon.IVs;
+import me.unariginal.novaraids.data.players.PlayerRaidData;
 import me.unariginal.novaraids.raid.RaidStatus;
 import net.minecraft.item.ItemStack;
 
@@ -12,33 +13,36 @@ import java.util.Map;
 
 public class RaidHistory {
     public String uuid;
-    public RaidStatus raidStatus;
+    public RaidStatus raidStatus;//
     public String realStartTime;
     public String realEndTime;
-    public BossInformation boss;
     public String categoryId;
-    public String categoryName;
+    public String categoryName;//
+    public String modifierId;
+    public String modifierName;//
     public String locationId;
     public String locationName;
     public int aiSkillLevel;
     public int minPlayers;
     public int maxPlayers;
-    public int maxHealth;
-    public long startTime;
-    public long endTime;
+    public int maxHealth;//
+    public long startTime;//
+    public long endTime;//
     public long fightStartTime;
     public long fightEndTime;
-    public LinkedHashMap<String, Integer> damageLeaderboard;
-    public Map<String, CatchDetails> catchPhaseResults;
+    public BossInformation boss;//
+    public LinkedHashMap<String, Integer> damageLeaderboard;//
+    public Map<String, PlayerRaidData> playerRaidData;
 
     public RaidHistory(
             String uuid,
             RaidStatus raidStatus,
             String realStartTime,
             String realEndTime,
-            BossInformation boss,
             String categoryId,
             String categoryName,
+            String modifierId,
+            String modifierName,
             String locationId,
             String locationName,
             int aiSkillLevel,
@@ -49,16 +53,18 @@ public class RaidHistory {
             long endTime,
             long fightStartTime,
             long fightEndTime,
+            BossInformation boss,
             LinkedHashMap<String, Integer> damageLeaderboard,
-            Map<String, CatchDetails> catchPhaseResults
+            Map<String, PlayerRaidData> playerRaidData
     ) {
         this.uuid = uuid;
         this.raidStatus = raidStatus;
         this.realStartTime = realStartTime;
         this.realEndTime = realEndTime;
-        this.boss = boss;
         this.categoryId = categoryId;
         this.categoryName = categoryName;
+        this.modifierId = modifierId;
+        this.modifierName = modifierName;
         this.locationId = locationId;
         this.locationName = locationName;
         this.aiSkillLevel = aiSkillLevel;
@@ -69,15 +75,16 @@ public class RaidHistory {
         this.endTime = endTime;
         this.fightStartTime = fightStartTime;
         this.fightEndTime = fightEndTime;
+        this.boss = boss;
         this.damageLeaderboard = damageLeaderboard;
-        this.catchPhaseResults = catchPhaseResults;
+        this.playerRaidData = playerRaidData;
     }
 
     public static class BossInformation {
         public String bossId;
-        public String displayName;
+        public String displayName;//
         public String species;
-        public int level;
+        public int level;//
         public String formId;
         public String ability;
         public String nature;
@@ -134,34 +141,6 @@ public class RaidHistory {
             this.friendship = friendship;
             this.ivs = ivs;
             this.evs = evs;
-        }
-    }
-
-    public static class CatchDetails {
-        public String uuid;
-        public String username;
-        public String species;
-        public String formId;
-        public IVs ivs;
-        public EVs evs;
-        public boolean shiny;
-
-        public CatchDetails(
-                String uuid,
-                String username,
-                String species,
-                String formId,
-                IVs ivs,
-                EVs evs,
-                boolean shiny
-        ) {
-            this.uuid = uuid;
-            this.username = username;
-            this.species = species;
-            this.formId = formId;
-            this.ivs = ivs;
-            this.evs = evs;
-            this.shiny = shiny;
         }
     }
 }
