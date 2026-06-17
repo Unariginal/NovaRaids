@@ -269,6 +269,8 @@ public class ConfigManager {
     }
 
     public static void loadCategories() {
+        CATEGORIES.clear();
+        BOSSES.clear();
         File categoriesFolder = new File(configDir, "categories");
         File oldBossesFolder = new File(configDir, "bosses");
         if (oldBossesFolder.exists()) {
@@ -331,6 +333,7 @@ public class ConfigManager {
     }
 
     public static void loadEvents() {
+        EVENTS.clear();
         File eventsFolder = new File(configDir, "events");
 
         for (String eventName : eventNames) {

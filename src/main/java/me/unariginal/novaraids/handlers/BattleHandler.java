@@ -30,6 +30,7 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -162,6 +163,22 @@ public class BattleHandler {
         Pokemon pokemon = new Pokemon();
         pokemon.copyFrom(raid.bossPokemonUncatchable);
         if (!raid.boss.bossDetails.rerollFeaturesEachBattle) PokemonProperties.Companion.parse(raid.boss.pokemonDetails.getRandomFeature());
+
+        if (raid.boss.pokemonDetails.level > 100) {
+            int finalLevel = raid.boss.pokemonDetails.level;
+            if (raid.modifier != null) finalLevel += raid.modifier.bossPokemonModifiers.levelOffset;
+            if (finalLevel <= 100) pokemon.setLevel(finalLevel);
+            else {
+                try {
+                    Field levelField = pokemon.getClass().getDeclaredField("level");
+                    levelField.setAccessible(true);
+                    levelField.set(pokemon, finalLevel);
+                } catch (NoSuchFieldException | IllegalAccessException e) {
+                    NovaRaids.LOGGER.error("[NovaRaids] Failed to set pokemon level above 100.", e);
+                }
+            }
+        }
+        pokemon.heal();
 
         NbtCompound data = new NbtCompound();
         data.putBoolean("raid_entity", true);

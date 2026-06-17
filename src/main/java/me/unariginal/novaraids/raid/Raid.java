@@ -44,6 +44,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -179,6 +180,21 @@ public class Raid {
 
         bossPokemon = boss.pokemonDetails.createPokemon(modifier);
         bossPokemonUncatchable.copyFrom(bossPokemon);
+        if (boss.pokemonDetails.level > 100) {
+            int finalLevel = boss.pokemonDetails.level;
+            if (modifier != null) finalLevel += modifier.bossPokemonModifiers.levelOffset;
+            if (finalLevel <= 100) bossPokemonUncatchable.setLevel(finalLevel);
+            else {
+                try {
+                    Field levelField = bossPokemonUncatchable.getClass().getDeclaredField("level");
+                    levelField.setAccessible(true);
+                    levelField.set(bossPokemonUncatchable, finalLevel);
+                } catch (NoSuchFieldException | IllegalAccessException e) {
+                    NovaRaids.LOGGER.error("[NovaRaids] Failed to set pokemon level above 100.", e);
+                }
+            }
+        }
+        bossPokemonUncatchable.heal();
         bossPokemonUncatchable.getCustomProperties().add(UncatchableProperty.INSTANCE.uncatchable());
         baseGimmick = boss.pokemonDetails.getRandomGimmick();
         bossEntity = generateBossEntity();
