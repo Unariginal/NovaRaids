@@ -30,6 +30,7 @@ import me.unariginal.novaraids.handlers.WebhookHandler;
 import me.unariginal.novaraids.utils.ContrabandUtils;
 import me.unariginal.novaraids.utils.GlowUtils;
 import me.unariginal.novaraids.placeholders.ParseContext;
+import me.unariginal.novaraids.utils.TextUtils;
 import net.kyori.adventure.bossbar.BossBar;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.effect.StatusEffectInstance;
@@ -569,7 +570,7 @@ public class Raid {
                             if (poolSection != null) {
                                 RewardPoolsConfig.RewardPool pool = null;
                                 if (poolSection instanceof DistributionSection.PredefinedRewardPoolSection predefinedPoolSection) {
-                                    pool = RewardPoolsConfig.getRewardPool(predefinedPoolSection.poolPreset);
+                                    pool = RewardPoolsConfig.getRewardPool(TextUtils.parse(predefinedPoolSection.poolPreset.replaceAll("%player%", player.getNameForScoreboard()), ParseContext.builder().player(player).boss(boss).build()));
                                 } else if (poolSection instanceof DistributionSection.UndefinedRewardPoolSection undefinedPoolSection) {
                                     pool = undefinedPoolSection.pool;
                                 }
@@ -580,8 +581,8 @@ public class Raid {
                                 }
 
                                 if (reward.rewards.allowDuplicates || !distributedPools.contains(pool.uuid)) {
-                                    List<RewardPresetsConfig.Reward> distributionList = pool.distributeRewards();
-                                    distributionList.forEach(distributionItem -> distributionItem.grantReward(player));
+                                    List<RewardPresetsConfig.Reward> distributionList = pool.distributeRewards(player, boss);
+                                    distributionList.forEach(distributionItem -> distributionItem.grantReward(player, boss));
                                     distributedPools.add(pool.uuid);
                                 } else i--;
                             } else logError("RewardPoolSection was null!");

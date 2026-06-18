@@ -51,6 +51,7 @@ public class PlaceholderManager {
 
     public static final List<BossPlaceholder> bossPlaceholders = List.of(
             new BossName(),
+            new BossId(),
             new BossAbility(),
             new BossDynamaxLevel(),
             new BossEvs(),

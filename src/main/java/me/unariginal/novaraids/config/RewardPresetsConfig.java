@@ -5,6 +5,9 @@ import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
 import com.cobblemon.mod.common.api.storage.party.PlayerPartyStore;
 import com.cobblemon.mod.common.pokemon.*;
 import me.unariginal.novaraids.NovaRaids;
+import me.unariginal.novaraids.data.categories.bosses.Boss;
+import me.unariginal.novaraids.placeholders.ParseContext;
+import me.unariginal.novaraids.utils.TextUtils;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -18,7 +21,7 @@ public class RewardPresetsConfig {
         public transient String rewardId;
         public final transient UUID uuid = UUID.randomUUID();
 
-        public void grantReward(ServerPlayerEntity player) {}
+        public void grantReward(ServerPlayerEntity player, Boss boss) {}
     }
 
     public static class ItemReward extends Reward {
@@ -27,7 +30,7 @@ public class RewardPresetsConfig {
         public int maxCount;
 
         @Override
-        public void grantReward(ServerPlayerEntity player) {
+        public void grantReward(ServerPlayerEntity player, Boss boss) {
             player.giveItemStack(item.copyWithCount(new Random().nextInt(minCount, maxCount + 1)));
         }
     }
@@ -36,11 +39,11 @@ public class RewardPresetsConfig {
         public List<String> commands;
 
         @Override
-        public void grantReward(ServerPlayerEntity player) {
+        public void grantReward(ServerPlayerEntity player, Boss boss) {
             CommandManager cmdManager = Objects.requireNonNull(player.getServer()).getCommandManager();
             ServerCommandSource source = player.getServer().getCommandSource();
             for (String command : commands) {
-                cmdManager.executeWithPrefix(source, command.replaceAll("%player%", player.getNameForScoreboard()));
+                cmdManager.executeWithPrefix(source, TextUtils.parse(command.replaceAll("%player%", player.getNameForScoreboard()), ParseContext.builder().player(player).boss(boss).build()));
             }
         }
     }
@@ -49,7 +52,7 @@ public class RewardPresetsConfig {
         public PokemonProperties pokemon;
 
         @Override
-        public void grantReward(ServerPlayerEntity player) {
+        public void grantReward(ServerPlayerEntity player, Boss boss) {
             PlayerPartyStore party = Cobblemon.INSTANCE.getStorage().getParty(player);
             if (pokemon != null) party.add(pokemon.create(player));
             else NovaRaids.LOGGER.error("Pokemon was null!");

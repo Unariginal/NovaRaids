@@ -34,8 +34,17 @@ public class TextUtils {
     }
 
     public static Text deserialize(String text, ParseContext parseContext) {
+
+//        if (!CONFIG.usePlaceholderApi || (!nr.usingPlaceholderAPI && !nr.usingMiniPlaceholders)) {
+//
+//        }
+        text = parse(text, parseContext);
         text = "<!i>" + text;
 
+        return NovaRaids.INSTANCE.audience.toNative(MiniMessage.miniMessage().deserialize(text));
+    }
+
+    public static String parse(String text, ParseContext parseContext) {
         if (CONFIG.usePlaceholderApi && usingPlaceholderAPI) text = placeholderAPIService.parse(text, parseContext);
         if (usingMiniPlaceholders) text = miniPlaceholdersService.parse(text, parseContext.getPlayer(), parseContext.getRaidHistory());
 
@@ -49,11 +58,7 @@ public class TextUtils {
         if (category != null) text = parse(text, category);
         if (parseContext.getRaidHistory() != null) text = parse(text, parseContext.getRaidHistory());
         if (parseContext.getPlayerRaidData() != null) text = parse(text, parseContext.getPlayerRaidData());
-//        if (!CONFIG.usePlaceholderApi || (!nr.usingPlaceholderAPI && !nr.usingMiniPlaceholders)) {
-//
-//        }
-
-        return NovaRaids.INSTANCE.audience.toNative(MiniMessage.miniMessage().deserialize(text));
+        return text;
     }
 
     public static String parse(String text) {

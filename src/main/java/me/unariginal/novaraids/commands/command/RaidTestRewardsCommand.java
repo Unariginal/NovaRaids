@@ -15,7 +15,9 @@ import me.unariginal.novaraids.data.categories.modifiers.CategoryModifier;
 import me.unariginal.novaraids.data.rewards.DistributionSection;
 import me.unariginal.novaraids.data.rewards.Place;
 import me.unariginal.novaraids.data.rewards.RewardDistribution;
+import me.unariginal.novaraids.placeholders.ParseContext;
 import me.unariginal.novaraids.raid.Raid;
+import me.unariginal.novaraids.utils.TextUtils;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.apache.commons.lang3.StringUtils;
@@ -111,7 +113,7 @@ public class RaidTestRewardsCommand {
                             if (poolSection != null) {
                                 RewardPoolsConfig.RewardPool pool = null;
                                 if (poolSection instanceof DistributionSection.PredefinedRewardPoolSection predefinedPoolSection) {
-                                    pool = RewardPoolsConfig.getRewardPool(predefinedPoolSection.poolPreset);
+                                    pool = RewardPoolsConfig.getRewardPool(TextUtils.parse(predefinedPoolSection.poolPreset.replaceAll("%player%", serverPlayer.getNameForScoreboard()), ParseContext.builder().player(serverPlayer).boss(boss).build()));
                                 } else if (poolSection instanceof DistributionSection.UndefinedRewardPoolSection undefinedPoolSection) {
                                     pool = undefinedPoolSection.pool;
                                 }
@@ -122,8 +124,8 @@ public class RaidTestRewardsCommand {
                                 }
 
                                 if (reward.rewards.allowDuplicates || !distributedPools.contains(pool.uuid)) {
-                                    List<RewardPresetsConfig.Reward> distributionList = pool.distributeRewards();
-                                    distributionList.forEach(distributionItem -> distributionItem.grantReward(serverPlayer));
+                                    List<RewardPresetsConfig.Reward> distributionList = pool.distributeRewards(serverPlayer, boss);
+                                    distributionList.forEach(distributionItem -> distributionItem.grantReward(serverPlayer, boss));
                                     distributedPools.add(pool.uuid);
                                 } else i--;
                             } else logError("RewardPoolSection was null!");
