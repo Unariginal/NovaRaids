@@ -158,7 +158,7 @@ public class ConfigManager {
         if (RAID_HISTORY.containsKey(raidHistory.categoryId)) {
             RAID_HISTORY.get(raidHistory.categoryId).addFirst(raidHistory);
         } else {
-            RAID_HISTORY.put(raidHistory.categoryId, List.of(raidHistory));
+            RAID_HISTORY.put(raidHistory.categoryId, new ArrayList<>(List.of(raidHistory)));
         }
     }
 
