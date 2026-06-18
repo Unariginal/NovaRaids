@@ -34,6 +34,8 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static me.unariginal.novaraids.NovaRaids.logError;
+
 public class BattleHandler {
     public static boolean checkRate(float shinyRate) {
         if (shinyRate >= 1) return (kotlin.random.Random.Default.nextFloat() < (1 / shinyRate));
@@ -214,6 +216,7 @@ public class BattleHandler {
         ErroredBattleStart errors = new ErroredBattleStart();
 
         if (!playerTeam.isEmpty() && playerTeam.getFirst().getHealth() <= 0) {
+            logError("Not enough pokemon");
             errors.getParticipantErrors().get(playerActor).add(
                     BattleStartError.Companion.insufficientPokemon(
                             player,
@@ -224,6 +227,7 @@ public class BattleHandler {
         }
 
         if (playerActor.getPokemonList().size() < battleFormat.getBattleType().getSlotsPerActor()) {
+            logError("Not enough pokemon");
             errors.getParticipantErrors().get(playerActor).add(
                     BattleStartError.Companion.insufficientPokemon(
                             player,
@@ -237,12 +241,19 @@ public class BattleHandler {
             if (pokemon.getEntity() != null) return pokemon.getEntity().isBusy();
             return false;
         })) {
+            logError("Target is busy");
             errors.getParticipantErrors().get(playerActor).add(BattleStartError.Companion.targetIsBusy(player.getDisplayName() != null ? player.getDisplayName() : player.getName()));
         }
 
-        if (BattleRegistry.getBattleByParticipatingPlayer(player) != null) errors.getParticipantErrors().get(playerActor).add(BattleStartError.Companion.alreadyInBattle(playerActor));
+        if (BattleRegistry.getBattleByParticipatingPlayer(player) != null) {
+            logError("Already in battle");
+            errors.getParticipantErrors().get(playerActor).add(BattleStartError.Companion.alreadyInBattle(playerActor));
+        }
 
-        if (pokemonEntity.getBattleId() != null) errors.getParticipantErrors().get(wildActor).add(BattleStartError.Companion.alreadyInBattle(wildActor));
+        if (pokemonEntity.getBattleId() != null) {
+            logError("Already in battle");
+            errors.getParticipantErrors().get(wildActor).add(BattleStartError.Companion.alreadyInBattle(wildActor));
+        }
 
         try {
             playerActor.setBattleTheme(pokemonEntity.getBattleTheme());

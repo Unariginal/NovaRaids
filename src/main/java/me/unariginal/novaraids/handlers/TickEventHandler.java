@@ -76,14 +76,24 @@ public class TickEventHandler {
             if (raid.phase == RaidPhase.FIGHT || raid.phase == RaidPhase.CATCH) {
                 List<PokemonEntity> toRemove = new ArrayList<>();
                 for (PokemonEntity pokemonEntity : clones) {
+                    boolean removable = false;
+                    if (!raid.cloneRemovalBuffer.containsKey(pokemonEntity) || raid.cloneRemovalBuffer.get(pokemonEntity) <= 0) {
+                        raid.cloneRemovalBuffer.remove(pokemonEntity);
+                        removable = true;
+                    } else if (raid.cloneRemovalBuffer.containsKey(pokemonEntity)) {
+                        raid.cloneRemovalBuffer.put(pokemonEntity, raid.cloneRemovalBuffer.get(pokemonEntity) - 1);
+                    }
+
                     UUID playerUUID = raid.clones.get(pokemonEntity);
                     ServerPlayerEntity player = nr.server.getPlayerManager().getPlayer(playerUUID);
                     if (player != null) {
                         PokemonBattle battle = BattleRegistry.getBattleByParticipatingPlayer(player);
-                        if (battle == null) {
+                        if (battle == null && removable) {
+                            logError("Battle is null. Setting clone to be removed.");
                             toRemove.add(pokemonEntity);
                         }
-                    } else {
+                    } else if (removable) {
+                        logError("Player is null. Setting clone to be removed.");
                         toRemove.add(pokemonEntity);
                     }
                 }

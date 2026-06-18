@@ -86,6 +86,7 @@ public class Raid {
     public final Map<UUID, BossBar> playerBossbars = new HashMap<>();
     public final List<UUID> fleeingPlayers = new ArrayList<>();
     public final Map<PokemonEntity, UUID> clones = new HashMap<>();
+    public final Map<PokemonEntity, Long> cloneRemovalBuffer = new HashMap<>();
     public final List<EmptyPokeBallEntity> pokeballsCapturing = new ArrayList<>();
     public final Map<String, PlayerRaidData> playerRaidData = new HashMap<>();
 
@@ -695,6 +696,7 @@ public class Raid {
             }
         }
         clones.put(pokemon, player.getUuid());
+        cloneRemovalBuffer.put(pokemon, 40L);
     }
 
     public void removeClone(PokemonEntity clone, boolean fromFlee) {
