@@ -51,7 +51,9 @@ public class BattleHandler {
         data.putBoolean("raid_entity", true);
         data.putBoolean("boss_clone", true);
         data.putBoolean("catch_encounter", true);
-        pokemon.getPersistentData().put("raid_data", data);
+        NbtCompound persistentData = new NbtCompound();
+        persistentData.put("raid_data", data);
+        pokemon.setPersistentData$common(persistentData);
 
         if (!settings.speciesOverride.equalsIgnoreCase(raid.boss.pokemonDetails.species)) {
             Species species = PokemonSpecies.getByName(settings.speciesOverride);
@@ -70,7 +72,12 @@ public class BattleHandler {
 
         if (!settings.keepScale) pokemon.setScaleModifier(1.0f);
 
-        if (!settings.keepFeatures) PokemonProperties.Companion.parse(settings.featuresOverride).apply(pokemon);
+        if (!settings.keepFeatures) {
+            pokemon.setFeatures(new ArrayList<>());
+            pokemon.updateAspects();
+            pokemon.updateForm();
+            PokemonProperties.Companion.parse(settings.featuresOverride).apply(pokemon);
+        }
 
         if (!settings.keepHeldItem) pokemon.removeHeldItem();
 
@@ -186,7 +193,9 @@ public class BattleHandler {
         data.putBoolean("raid_entity", true);
         data.putBoolean("boss_clone", true);
         data.putBoolean("battle_clone", true);
-        pokemon.getPersistentData().put("raid_data", data);
+        NbtCompound persistentData = new NbtCompound();
+        persistentData.put("raid_data", data);
+        pokemon.setPersistentData$common(persistentData);
 
         pokemon.setShiny(false);
         pokemon.setScaleModifier(0.1f);

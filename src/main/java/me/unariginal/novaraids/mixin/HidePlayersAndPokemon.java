@@ -7,6 +7,7 @@ import com.cobblemon.mod.common.pokemon.Pokemon;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.cache.PlayerRaidCache;
 import net.minecraft.entity.Entity;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -25,11 +26,14 @@ public class HidePlayersAndPokemon {
         if (self instanceof PokemonEntity pokemonEntity) {
             Pokemon pokemon = pokemonEntity.getPokemon();
             if (pokemon != null) {
-                if (pokemon.getPersistentData().contains("raid_entity")
-                        && pokemon.getPersistentData().contains("boss_clone")
-                        && pokemon.getPersistentData().contains("battle_clone")) {
-                    if (!CONFIG.debug) {
-                        cir.setReturnValue(false);
+                if (pokemon.getPersistentData().contains("raid_data")) {
+                    NbtCompound raidData = pokemon.getPersistentData().getCompound("raid_data");
+                    if (raidData.contains("raid_entity")
+                            && raidData.contains("boss_clone")
+                            && raidData.contains("battle_clone")) {
+                        if (!CONFIG.debug) {
+                            cir.setReturnValue(false);
+                        }
                     }
                 }
             }
@@ -39,14 +43,17 @@ public class HidePlayersAndPokemon {
             if (CONFIG.raidSettings.hideOtherCatchEncounters) {
                 if (PlayerRaidCache.isInRaid(spectator)) {
                     if (pokemon != null) {
-                        if (pokemon.getPersistentData().contains("catch_encounter")) {
-                            if (pokemonEntity.isBattling()) {
-                                UUID battleID = pokemonEntity.getBattleId();
-                                if (battleID != null) {
-                                    PokemonBattle battle = BattleRegistry.getBattle(battleID);
-                                    if (battle != null) {
-                                        if (!battle.getPlayers().contains(spectator)) {
-                                            cir.setReturnValue(false);
+                        if (pokemon.getPersistentData().contains("raid_data")) {
+                            NbtCompound raidData = pokemon.getPersistentData().getCompound("raid_data");
+                            if (raidData.contains("catch_encounter")) {
+                                if (pokemonEntity.isBattling()) {
+                                    UUID battleID = pokemonEntity.getBattleId();
+                                    if (battleID != null) {
+                                        PokemonBattle battle = BattleRegistry.getBattle(battleID);
+                                        if (battle != null) {
+                                            if (!battle.getPlayers().contains(spectator)) {
+                                                cir.setReturnValue(false);
+                                            }
                                         }
                                     }
                                 }
@@ -59,7 +66,7 @@ public class HidePlayersAndPokemon {
             if (CONFIG.raidSettings.hideOtherPokemonInRaid) {
                 if (PlayerRaidCache.isInRaid(spectator)) {
                     if (pokemon != null) {
-                        if (!pokemon.getPersistentData().contains("raid_entity")) {
+                        if (!pokemon.getPersistentData().contains("raid_data")) {
                             if (pokemon.isPlayerOwned()) {
                                 ServerPlayerEntity owner = pokemon.getOwnerPlayer();
                                 if (owner != null) {

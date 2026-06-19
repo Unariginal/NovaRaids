@@ -14,7 +14,7 @@
     "fields": [
       {
         "inline": false,
-        "name": "Players: %raid_player_count%/%raid_max_player%",
+        "name": "Players: %raid_player_count%/%raid_max_players%",
         "value": "Join Now Using `%raid_join_method%`!"
       }
     ]

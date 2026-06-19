@@ -1,13 +1,14 @@
 package me.unariginal.novaraids.events;
 
 import me.unariginal.novaraids.raid.Raid;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 
 public interface BossDamagedEvent {
     interface Pre {
-        ActionResult onBossDamagedPre(Raid raid, int damage);
+        ActionResult onBossDamagedPre(Raid raid, int damage, ServerPlayerEntity eventPlayer);
     }
     interface Post {
-        ActionResult onBossDamagedPost(Raid raid, int damage);
+        ActionResult onBossDamagedPost(Raid raid, int damage, ServerPlayerEntity eventPlayer);
     }
 }

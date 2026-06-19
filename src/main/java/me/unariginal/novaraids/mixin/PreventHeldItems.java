@@ -14,10 +14,8 @@ public class PreventHeldItems {
         PokemonEntity entity = (PokemonEntity) (Object) this;
         Pokemon pokemon = entity.getPokemon();
         if (!pokemon.isPlayerOwned()) {
-            if (pokemon.getPersistentData().contains("raid_entity")) {
-                if (pokemon.getPersistentData().getBoolean("raid_entity")) {
-                    pokemon.removeHeldItem();
-                }
+            if (pokemon.getPersistentData().contains("raid_data") && pokemon.getPersistentData().getCompound("raid_data").contains("raid_entity")) {
+                pokemon.removeHeldItem();
             }
         }
     }

@@ -9,6 +9,7 @@ import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.mojang.authlib.GameProfile;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.events.WebhookEvent;
+import me.unariginal.novaraids.placeholders.ParseContext;
 import me.unariginal.novaraids.raid.Raid;
 import net.minecraft.util.UserCache;
 
@@ -154,26 +155,27 @@ public class WebhookHandler {
         Pokemon pokemon = raid.bossPokemon;
         int randColor = genTypeColor(pokemon);
         String thumbnailUrl = getThumbnailUrl(pokemon);
+        ParseContext parseContext = ParseContext.builder().raid(raid).build();
 
         WebhookEmbedBuilder embedBuilder = new WebhookEmbedBuilder()
                 .setColor(randColor)
                 .setAuthor(
                         new WebhookEmbed.EmbedAuthor(
-                                parse(event.embedTitle.replaceAll("%damage%", String.valueOf(damage)), raid),
+                                parse(event.embedTitle.replaceAll("%damage%", String.valueOf(damage)), parseContext),
                                 "",
                                 thumbnailUrl
                         )
                 );
         for (WebhookEvent.EmbedField field : event.fields) {
-            embedBuilder.addField(new WebhookEmbed.EmbedField(field.inline, parse(field.name.replaceAll("%damage%", String.valueOf(damage)), raid), parse(field.value.replaceAll("%damage%", String.valueOf(damage)), raid)));
+            embedBuilder.addField(new WebhookEmbed.EmbedField(field.inline, parse(field.name.replaceAll("%damage%", String.valueOf(damage)), parseContext), parse(field.value.replaceAll("%damage%", String.valueOf(damage)), parseContext)));
             if (field.insertLeaderboardAfter != null && field.insertLeaderboardAfter && event.leaderboardFieldLayout != null) {
                 Map<UUID, Integer> leaderboard = raid.getDamageLeaderboard();
                 for (int i = 0; i < Math.min(leaderboard.size(), 10); i++) {
                     Map.Entry<UUID, Integer> entry = leaderboard.entrySet().stream().toList().get(i);
                     if (cache != null) {
                         GameProfile user = cache.getByUuid(entry.getKey()).orElseThrow();
-                        String name = parse(parse(event.leaderboardFieldLayout.name.replaceAll("%damage%", String.valueOf(damage)), raid), user, entry.getValue(), i + 1);
-                        String value = parse(parse(event.leaderboardFieldLayout.value.replaceAll("%damage%", String.valueOf(damage)), raid), user, entry.getValue(), i + 1);
+                        String name = parse(parse(event.leaderboardFieldLayout.name, parseContext), user, entry.getValue(), i + 1);
+                        String value = parse(parse(event.leaderboardFieldLayout.value, parseContext), user, entry.getValue(), i + 1);
                         embedBuilder.addField(new WebhookEmbed.EmbedField(event.leaderboardFieldLayout.inline, name, value));
                     }
                 }
@@ -182,7 +184,7 @@ public class WebhookHandler {
         embedBuilder.setThumbnailUrl(thumbnailUrl);
         WebhookEmbed embed = embedBuilder.build();
         return new WebhookMessageBuilder()
-                .setContent(event.message.replaceAll("%damage%", String.valueOf(damage)))
+                .setContent(parse(event.message.replaceAll("%damage%", String.valueOf(damage)), parseContext))
                 .setUsername(CONFIG.discordWebhook.username)
                 .setAvatarUrl(CONFIG.discordWebhook.avatarUrl)
                 .addEmbeds(embed);

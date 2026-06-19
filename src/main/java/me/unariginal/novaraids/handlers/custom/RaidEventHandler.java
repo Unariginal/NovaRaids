@@ -5,6 +5,7 @@ import me.unariginal.novaraids.data.events.Event;
 import me.unariginal.novaraids.raid.Raid;
 import me.unariginal.novaraids.handlers.WebhookHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +13,11 @@ import java.util.List;
 import static me.unariginal.novaraids.config.ConfigManager.CONFIG;
 
 public class RaidEventHandler {
-    public static void runEvent(Event event, Raid raid, Integer damage) {
+    public static void runEvent(Event event, Raid raid, @Nullable Integer damage) {
+        runEvent(event, raid, damage, null);
+    }
+
+    public static void runEvent(Event event, Raid raid, @Nullable Integer damage, @Nullable ServerPlayerEntity eventPlayer) {
         List<ServerPlayerEntity> players = new ArrayList<>();
         if (event.global) players.addAll(NovaRaids.INSTANCE.server.getPlayerManager().getPlayerList());
         else {
@@ -23,7 +28,7 @@ public class RaidEventHandler {
         }
 
         players.forEach(player -> {
-            event.sendMessages(player, raid, damage);
+            event.sendMessages(player, raid, damage, eventPlayer);
             event.executeCommands(player, damage);
             event.applyEffects(player);
             event.showTitles(player, raid, damage);
@@ -42,8 +47,6 @@ public class RaidEventHandler {
                     raid.currentWebhookEvent = event.discordWebhook;
                     raid.webhookID = id;
                 });
-            } else {
-                raid.currentWebhookEvent = null;
             }
         }
     }

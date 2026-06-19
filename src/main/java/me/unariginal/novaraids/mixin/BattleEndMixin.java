@@ -16,6 +16,7 @@ import me.unariginal.novaraids.events.RaidEvents;
 import me.unariginal.novaraids.handlers.BattleHandler;
 import me.unariginal.novaraids.raid.Raid;
 import me.unariginal.novaraids.raid.RaidPhase;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -41,10 +42,11 @@ public class BattleEndMixin {
             switch (actor) {
                 case PokemonBattleActor pokemonBattleActor -> {
                     pokemon = pokemonBattleActor.getPokemon().getEffectedPokemon();
-                    if (pokemon.getPersistentData().contains("raid_entity")) {
-                        if (pokemon.getPersistentData().contains("catch_encounter")) {
+                    if (pokemon.getPersistentData().contains("raid_data")) {
+                        NbtCompound raidData = pokemon.getPersistentData().getCompound("raid_data");
+                        if (raidData.contains("catch_encounter")) {
                             catchEncounter = true;
-                        } else if (pokemon.getPersistentData().contains("battle_clone")) {
+                        } else if (raidData.contains("battle_clone")) {
                             damage = Math.abs(pokemon.getCurrentHealth() - pokemon.getMaxHealth());
                             if (pokemonBattleActor.getBattleAI() instanceof StrongBattleAIFix) {
                                 ((StrongBattleAIFix) pokemonBattleActor.getBattleAI()).cleanUp();
@@ -89,10 +91,10 @@ public class BattleEndMixin {
                 }
 
                 if (damage > 0) {
-                    RaidEvents.BOSS_DAMAGED_EVENT_PRE.invoker().onBossDamagedPre(raid, damage);
+                    RaidEvents.BOSS_DAMAGED_EVENT_PRE.invoker().onBossDamagedPre(raid, damage, player);
                     raid.applyDamage(damage);
                     raid.updatePlayerDamage(player.getUuid(), damage);
-                    RaidEvents.BOSS_DAMAGED_EVENT_POST.invoker().onBossDamagedPost(raid, damage);
+                    RaidEvents.BOSS_DAMAGED_EVENT_POST.invoker().onBossDamagedPost(raid, damage, player);
                 }
             }
 

@@ -11,6 +11,7 @@ import com.cobblemon.mod.common.pokemon.Pokemon;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.categories.modifiers.CategoryModifier;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
@@ -228,7 +229,9 @@ public class PokemonDetails {
             else pokemon.getMoveSet().setMove(i, moveTemplate.create(moveTemplate.getMaxPp()));
         }
         pokemon.swapHeldItem(heldItem, true, false);
-        pokemon.getPersistentData().putBoolean("raid_entity", true);
+        NbtCompound data = new NbtCompound();
+        data.putBoolean("raid_entity", true);
+        pokemon.getPersistentData().put("raid_data", data);
         pokemon.heal();
 
         return pokemon;

@@ -79,9 +79,9 @@ public final class RaidEvents {
 
     public static final Event<BossDamagedEvent.Pre> BOSS_DAMAGED_EVENT_PRE = EventFactory.createArrayBacked(
             BossDamagedEvent.Pre.class,
-            listeners -> (raid, damage) -> {
+            listeners -> (raid, damage, eventPlayer) -> {
                 for (BossDamagedEvent.Pre listener : listeners) {
-                    ActionResult result = listener.onBossDamagedPre(raid, damage);
+                    ActionResult result = listener.onBossDamagedPre(raid, damage, eventPlayer);
                     if (result != ActionResult.PASS) {
                         return result;
                     }
@@ -91,9 +91,9 @@ public final class RaidEvents {
 
     public static final Event<BossDamagedEvent.Post> BOSS_DAMAGED_EVENT_POST = EventFactory.createArrayBacked(
             BossDamagedEvent.Post.class,
-            listeners -> (raid, damage) -> {
+            listeners -> (raid, damage, eventPlayer) -> {
                 for (BossDamagedEvent.Post listener : listeners) {
-                    ActionResult result = listener.onBossDamagedPost(raid, damage);
+                    ActionResult result = listener.onBossDamagedPost(raid, damage, eventPlayer);
                     if (result != ActionResult.PASS) {
                         return result;
                     }

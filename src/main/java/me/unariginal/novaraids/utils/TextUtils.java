@@ -56,6 +56,7 @@ public class TextUtils {
         Category category = parseContext.getCategory();
         if (category == null && parseContext.getRaid() != null) category = parseContext.getRaid().category;
         if (category != null) text = parse(text, category);
+        if (parseContext.getPlayer() != null) text = parse(text, parseContext.getPlayer());
         if (parseContext.getRaidHistory() != null) text = parse(text, parseContext.getRaidHistory());
         if (parseContext.getPlayerRaidData() != null) text = parse(text, parseContext.getPlayerRaidData());
         return text;
@@ -96,6 +97,10 @@ public class TextUtils {
             }
         }
         return text;
+    }
+
+    public static String parse(String text, ServerPlayerEntity player) {
+        return text.replaceAll("%player%", player.getNameForScoreboard());
     }
 
     public static String parse(String text, RaidHistory raidHistory) {

@@ -3,6 +3,7 @@ package me.unariginal.novaraids.handlers.custom;
 import me.unariginal.novaraids.data.events.Event;
 import me.unariginal.novaraids.events.RaidEvents;
 import me.unariginal.novaraids.raid.Raid;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 
 public class BossDamagedEventHandler {
@@ -11,15 +12,15 @@ public class BossDamagedEventHandler {
         RaidEvents.BOSS_DAMAGED_EVENT_POST.register(BossDamagedEventHandler::bossDamagedPost);
     }
 
-    private static ActionResult bossDamagedPre(Raid raid, int damage) {
+    private static ActionResult bossDamagedPre(Raid raid, int damage, ServerPlayerEntity eventPlayer) {
         Event event = Event.getEvent("boss_damaged_pre", raid.boss.raidDetails.events.bossDamaged.pre);
-        if (event != null) RaidEventHandler.runEvent(event, raid, damage);
+        if (event != null) RaidEventHandler.runEvent(event, raid, damage, eventPlayer);
         return ActionResult.PASS;
     }
 
-    private static ActionResult bossDamagedPost(Raid raid, int damage) {
+    private static ActionResult bossDamagedPost(Raid raid, int damage, ServerPlayerEntity eventPlayer) {
         Event event = Event.getEvent("boss_damaged_post", raid.boss.raidDetails.events.bossDamaged.post);
-        if (event != null) RaidEventHandler.runEvent(event, raid, damage);
+        if (event != null) RaidEventHandler.runEvent(event, raid, damage, eventPlayer);
         return ActionResult.PASS;
     }
 }

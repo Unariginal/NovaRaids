@@ -37,10 +37,10 @@ public class RaidDamageCommand {
                 int damage = IntegerArgumentType.getInteger(ctx, "amount");
                 if (damage > raid.currentHealth) damage = raid.currentHealth;
 
-                RaidEvents.BOSS_DAMAGED_EVENT_PRE.invoker().onBossDamagedPre(raid, damage);
+                RaidEvents.BOSS_DAMAGED_EVENT_PRE.invoker().onBossDamagedPre(raid, damage, player);
                 raid.applyDamage(damage);
                 raid.updatePlayerDamage(player.getUuid(), damage);
-                RaidEvents.BOSS_DAMAGED_EVENT_POST.invoker().onBossDamagedPost(raid, damage);
+                RaidEvents.BOSS_DAMAGED_EVENT_POST.invoker().onBossDamagedPost(raid, damage, player);
 
                 player.sendMessage(deserialize("<green>The damage has been applied.", ParseContext.builder().player(player).raid(raid).build()));
             }

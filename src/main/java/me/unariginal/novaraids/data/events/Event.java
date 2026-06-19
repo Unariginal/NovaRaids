@@ -10,6 +10,7 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
@@ -29,9 +30,9 @@ public class Event {
     public List<MoLangEvent> molang;
     public WebhookEvent discordWebhook;
 
-    public void sendMessages(ServerPlayerEntity player, Raid raid, Integer damage) {
+    public void sendMessages(ServerPlayerEntity player, Raid raid, @Nullable Integer damage, @Nullable ServerPlayerEntity eventPlayer) {
         for (String message : messages) {
-            player.sendMessage(deserialize(message.replaceAll("%damage%", String.valueOf(damage)), ParseContext.builder().raid(raid).player(player).build()));
+            player.sendMessage(deserialize(message.replaceAll("%damage%", String.valueOf(damage)), ParseContext.builder().raid(raid).player(eventPlayer).build()));
         }
     }
 

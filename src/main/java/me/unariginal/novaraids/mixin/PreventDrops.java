@@ -16,11 +16,9 @@ public class PreventDrops {
         if (entity instanceof PokemonEntity pokemonEntity) {
             Pokemon pokemon = pokemonEntity.getPokemon();
             if (!pokemon.isPlayerOwned()) {
-                if (pokemon.getPersistentData().contains("raid_entity")) {
-                    if (pokemon.getPersistentData().getBoolean("raid_entity")) {
-                        pokemon.removeHeldItem();
-                        pokemonEntity.teleport(pokemonEntity.getX(), -1000, pokemonEntity.getZ(), false);
-                    }
+                if (pokemon.getPersistentData().contains("raid_data") && pokemon.getPersistentData().getCompound("raid_data").contains("raid_entity")) {
+                    pokemon.removeHeldItem();
+                    pokemonEntity.teleport(pokemonEntity.getX(), -1000, pokemonEntity.getZ(), false);
                 }
             }
         }
@@ -32,10 +30,8 @@ public class PreventDrops {
         if (entity instanceof PokemonEntity pokemonEntity) {
             Pokemon pokemon = pokemonEntity.getPokemon();
             if (!pokemon.isPlayerOwned()) {
-                if (pokemon.getPersistentData().contains("raid_entity")) {
-                    if (pokemon.getPersistentData().getBoolean("raid_entity")) {
-                        ci.cancel();
-                    }
+                if (pokemon.getPersistentData().contains("raid_data") && pokemon.getPersistentData().getCompound("raid_data").contains("raid_entity")) {
+                    ci.cancel();
                 }
             }
         }
@@ -47,10 +43,8 @@ public class PreventDrops {
         if (entity instanceof PokemonEntity pokemonEntity) {
             Pokemon pokemon = pokemonEntity.getPokemon();
             if (!pokemon.isPlayerOwned()) {
-                if (pokemon.getPersistentData().contains("raid_entity")) {
-                    if (pokemon.getPersistentData().getBoolean("raid_entity")) {
-                        ci.cancel();
-                    }
+                if (pokemon.getPersistentData().contains("raid_data") && pokemon.getPersistentData().getCompound("raid_data").contains("raid_entity")) {
+                    ci.cancel();
                 }
             }
         }

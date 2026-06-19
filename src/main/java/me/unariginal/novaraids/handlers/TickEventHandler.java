@@ -51,18 +51,19 @@ public class TickEventHandler {
     }
 
     public static void updateWebhooks() {
-        webhookUpdateTimer--;
-        if (webhookUpdateTimer <= 0) {
-            webhookUpdateTimer = CONFIG.discordWebhook.updateRateSeconds * 20;
+        if (CONFIG.discordWebhook.enabled) {
+            webhookUpdateTimer--;
+            if (webhookUpdateTimer <= 0) {
+                webhookUpdateTimer = CONFIG.discordWebhook.updateRateSeconds * 20;
 
-            Collection<Raid> raids = activeRaids.values();
-            for (Raid raid : raids) {
-                long id = raid.webhookID;
-                if (id == 0) {
-                    continue;
-                }
-                if (raid.phase == RaidPhase.SETUP || raid.phase == RaidPhase.FIGHT) {
-                    WebhookHandler.editWebhookEmbed(raid.currentWebhookEvent, raid, raid.webhookDamage);
+                Collection<Raid> raids = activeRaids.values();
+                for (Raid raid : raids) {
+                    if (raid.webhookID == 0 || raid.currentWebhookEvent == null) {
+                        continue;
+                    }
+                    if (raid.phase == RaidPhase.SETUP || raid.phase == RaidPhase.FIGHT) {
+                        WebhookHandler.editWebhookEmbed(raid.currentWebhookEvent, raid, raid.webhookDamage).thenAccept(id -> raid.webhookID = id);
+                    }
                 }
             }
         }

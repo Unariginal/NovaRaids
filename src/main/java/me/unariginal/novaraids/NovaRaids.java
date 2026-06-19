@@ -53,6 +53,10 @@ public class NovaRaids implements ModInitializer {
             this.audience = FabricServerAudiences.of(server);
             this.server = server;
 
+            if (CONFIG.discordWebhook.enabled) {
+                WebhookHandler.connectWebhook();
+            }
+
             registerPlaceholders();
         });
 
@@ -123,7 +127,7 @@ public class NovaRaids implements ModInitializer {
 
     public static void reloadConfig() {
         load();
-        if (CONFIG.discordWebhook.enabled) {
+        if (INSTANCE.server != null && CONFIG.discordWebhook.enabled) {
             WebhookHandler.connectWebhook();
         }
     }

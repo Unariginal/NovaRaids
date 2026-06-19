@@ -111,7 +111,7 @@ public class CobblemonEventHandler {
     private static Unit onThrownPokeballHit(ThrownPokeballHitEvent event) {
         PokemonEntity pokemonEntity = event.getPokemon();
         Pokemon pokemon = pokemonEntity.getPokemon();
-        if (pokemon.getPersistentData().contains("raid_entity")) {
+        if (pokemon.getPersistentData().contains("raid_data") && pokemon.getPersistentData().getCompound("raid_data").contains("raid_entity")) {
             for (Raid raid : activeRaids.values()) {
                 for (PokemonEntity clone : raid.clones.keySet()) {
                     if (clone.getUuid().equals(pokemonEntity.getUuid())) {
@@ -249,7 +249,7 @@ public class CobblemonEventHandler {
         LivingEntity entity = event.getEntity();
         if (entity instanceof PokemonEntity pokemonEntity) {
             Pokemon pokemon = pokemonEntity.getPokemon();
-            if (pokemon.getPersistentData().contains("raid_entity")) event.cancel();
+            if (pokemon.getPersistentData().contains("raid_data") && pokemon.getPersistentData().getCompound("raid_data").contains("raid_entity")) event.cancel();
         }
         return unit();
     }

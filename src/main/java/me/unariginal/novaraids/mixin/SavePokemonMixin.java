@@ -12,7 +12,7 @@ public class SavePokemonMixin {
     @Inject(method = "writeNbt", at = @At("HEAD"), cancellable = true)
     public void cancelSave(NbtCompound nbt, CallbackInfoReturnable<NbtCompound> cir) {
         PokemonEntity pokemonEntity = (PokemonEntity) (Object) this;
-        if (pokemonEntity.getPokemon().getPersistentData().contains("raid_entity")) {
+        if (pokemonEntity.getPokemon().getPersistentData().contains("raid_data") && pokemonEntity.getPokemon().getPersistentData().getCompound("raid_data").contains("raid_entity")) {
             cir.cancel();
         }
     }
