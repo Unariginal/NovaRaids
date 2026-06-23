@@ -3,7 +3,7 @@ package me.unariginal.novaraids.data.events;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.config.ConfigManager;
-import me.unariginal.novaraids.config.LocationsConfig;
+import me.unariginal.novaraids.config.LocationConfig;
 import me.unariginal.novaraids.raid.Raid;
 import me.unariginal.novaraids.placeholders.ParseContext;
 import net.minecraft.server.command.CommandManager;
@@ -52,7 +52,7 @@ public class Event {
         }
     }
 
-    public void playSounds(LocationsConfig location) {
+    public void playSounds(LocationConfig location) {
         sounds.forEach(soundEvent -> soundEvent.playSound(location));
     }
 
@@ -60,7 +60,7 @@ public class Event {
         effects.forEach(effectEvent -> effectEvent.applyEffect(player));
     }
 
-    public void spawnParticles(LocationsConfig location, PokemonEntity pokemonEntity) {
+    public void spawnParticles(LocationConfig location, PokemonEntity pokemonEntity) {
         particles.forEach(particleEvent -> {
             if (particleEvent instanceof VanillaParticleEvent vanillaParticleEvent) {
                 vanillaParticleEvent.spawnParticle(location);

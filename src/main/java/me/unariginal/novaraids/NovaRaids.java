@@ -13,6 +13,7 @@ import me.unariginal.novaraids.handlers.WebhookHandler;
 import me.unariginal.novaraids.placeholders.types.boss.*;
 import me.unariginal.novaraids.placeholders.types.raid.*;
 import me.unariginal.novaraids.raid.RaidManager;
+import me.unariginal.novaraids.utils.Threading;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -120,7 +121,7 @@ public class NovaRaids implements ModInitializer {
 
             saveQueue();
 
-            bossBarHandler.schedule.cancel(true);
+            Threading.shutdown();
             if (WebhookHandler.webhook != null) WebhookHandler.webhook.close();
         });
     }

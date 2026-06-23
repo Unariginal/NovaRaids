@@ -7,7 +7,6 @@ import com.cobblemon.mod.common.pokemon.*;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.categories.bosses.Boss;
 import me.unariginal.novaraids.placeholders.ParseContext;
-import me.unariginal.novaraids.utils.TextUtils;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -15,6 +14,8 @@ import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.io.*;
 import java.util.*;
+
+import static me.unariginal.novaraids.utils.TextUtils.parse;
 
 public class RewardPresetsConfig {
     public static class Reward {
@@ -31,7 +32,9 @@ public class RewardPresetsConfig {
 
         @Override
         public void grantReward(ServerPlayerEntity player, Boss boss) {
-            player.giveItemStack(item.copyWithCount(new Random().nextInt(minCount, maxCount + 1)));
+            if (!player.giveItemStack(item.copyWithCount(new Random().nextInt(minCount, maxCount + 1)))) {
+                player.getInventory().offerOrDrop(item.copyWithCount(new Random().nextInt(minCount, maxCount + 1)));
+            }
         }
     }
 
@@ -43,7 +46,7 @@ public class RewardPresetsConfig {
             CommandManager cmdManager = Objects.requireNonNull(player.getServer()).getCommandManager();
             ServerCommandSource source = player.getServer().getCommandSource();
             for (String command : commands) {
-                cmdManager.executeWithPrefix(source, TextUtils.parse(command.replaceAll("%player%", player.getNameForScoreboard()), ParseContext.builder().player(player).boss(boss).build()));
+                cmdManager.executeWithPrefix(source, parse(command.replaceAll("%player%", player.getNameForScoreboard()), ParseContext.builder().player(player).boss(boss).build()));
             }
         }
     }

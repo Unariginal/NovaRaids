@@ -1,6 +1,7 @@
 package me.unariginal.novaraids.placeholders.types.boss;
 
 import com.cobblemon.mod.common.api.abilities.Abilities;
+import com.cobblemon.mod.common.util.MiscUtilsKt;
 import me.unariginal.novaraids.data.categories.bosses.Boss;
 import me.unariginal.novaraids.placeholders.interfaces.BossPlaceholder;
 import me.unariginal.novaraids.raid.Raid;
@@ -18,14 +19,14 @@ public class BossAbility implements BossPlaceholder {
             if (raid == null) {
                 raid = getRaid(args);
                 if (raid == null) {
-                    if (boss != null) return GenericResult.valid(Abilities.getOrDummy(boss.pokemonDetails.getRandomAbility()).getDisplayName());
+                    if (boss != null) return GenericResult.valid(MiscUtilsKt.asTranslated(Abilities.getOrDummy(boss.pokemonDetails.getRandomAbility()).getDisplayName()).getString());
                     return GenericResult.invalid("No Active Raid");
                 }
             }
-            return GenericResult.valid(raid.bossPokemon.getAbility().getDisplayName());
+            return GenericResult.valid(MiscUtilsKt.asTranslated(raid.bossPokemon.getAbility().getDisplayName()).getString());
         }
 
-        return GenericResult.valid(Abilities.getOrDummy(boss.pokemonDetails.getRandomAbility()).getDisplayName());
+        return GenericResult.valid(MiscUtilsKt.asTranslated(Abilities.getOrDummy(boss.pokemonDetails.getRandomAbility()).getDisplayName()).getString());
     }
 
     @Override

@@ -4,7 +4,7 @@ import me.unariginal.novaraids.NovaRaids;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Vec3d;
 
-public class LocationsConfig {
+public class LocationConfig {
     public transient String locationId;
     public String name;
     public DirectionalLocation bossLocation;
@@ -26,7 +26,7 @@ public class LocationsConfig {
         }
     }
 
-    public static LocationsConfig getLocation(String id) {
+    public static LocationConfig getLocation(String id) {
         return ConfigManager.LOCATIONS.get(id);
     }
 

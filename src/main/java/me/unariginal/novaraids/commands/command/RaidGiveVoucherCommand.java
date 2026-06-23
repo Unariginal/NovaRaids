@@ -233,6 +233,10 @@ public class RaidGiveVoucherCommand {
         voucherItem.set(DataComponentTypes.CUSTOM_NAME, itemName);
         voucherItem.set(DataComponentTypes.LORE, lore);
 
-        players.forEach(player -> player.giveItemStack(voucherItem));
+        players.forEach(player -> {
+            if (!player.giveItemStack(voucherItem)) {
+                player.getInventory().offerOrDrop(voucherItem);
+            }
+        });
     }
 }

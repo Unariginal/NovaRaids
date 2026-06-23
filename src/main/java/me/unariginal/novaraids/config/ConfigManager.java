@@ -35,8 +35,8 @@ public class ConfigManager {
     public static SchedulesConfig SCHEDULES;
     public static MessagesConfig MESSAGES;
 
-    public static Map<String, LocationsConfig> LOCATIONS;
-    public static Map<String, BossbarsConfig> BOSSBARS;
+    public static Map<String, LocationConfig> LOCATIONS;
+    public static Map<String, BossbarConfig> BOSSBARS;
     public static Map<String, RewardPresetsConfig.Reward> REWARD_PRESETS;
     public static Map<String, RewardPoolsConfig.RewardPool> REWARD_POOLS;
     public static Map<String, Category> CATEGORIES = new HashMap<>();
@@ -99,14 +99,14 @@ public class ConfigManager {
         MESSAGES = loadFile("messages.json", MessagesConfig.class);
 
         fillMissingWithDefaults("locations.json", null, true);
-        LOCATIONS = loadMapFile("locations.json", LocationsConfig.class);
-        for (Map.Entry<String, LocationsConfig> entry : LOCATIONS.entrySet()) {
+        LOCATIONS = loadMapFile("locations.json", LocationConfig.class);
+        for (Map.Entry<String, LocationConfig> entry : LOCATIONS.entrySet()) {
             entry.getValue().locationId = entry.getKey();
         }
 
         fillMissingWithDefaults("bossbars.json", null, true);
-        BOSSBARS = loadMapFile("bossbars.json", BossbarsConfig.class);
-        for (Map.Entry<String, BossbarsConfig> entry : BOSSBARS.entrySet()) {
+        BOSSBARS = loadMapFile("bossbars.json", BossbarConfig.class);
+        for (Map.Entry<String, BossbarConfig> entry : BOSSBARS.entrySet()) {
             entry.getValue().bossbarId = entry.getKey();
         }
 

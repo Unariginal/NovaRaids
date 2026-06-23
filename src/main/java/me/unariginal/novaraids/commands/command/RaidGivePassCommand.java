@@ -221,6 +221,10 @@ public class RaidGivePassCommand {
         passItem.set(DataComponentTypes.CUSTOM_NAME, itemName);
         passItem.set(DataComponentTypes.LORE, lore);
 
-        players.forEach(player -> player.giveItemStack(passItem));
+        players.forEach(player -> {
+            if (!player.giveItemStack(passItem)) {
+                player.getInventory().offerOrDrop(passItem);
+            }
+        });
     }
 }

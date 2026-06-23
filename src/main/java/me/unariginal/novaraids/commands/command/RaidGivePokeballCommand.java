@@ -151,7 +151,9 @@ public class RaidGivePokeballCommand {
             ballItem.set(DataComponentTypes.CUSTOM_NAME, itemName);
             ballItem.set(DataComponentTypes.LORE, lore);
 
-            player.giveItemStack(ballItem);
+            if (!player.giveItemStack(ballItem)) {
+                player.getInventory().offerOrDrop(ballItem);
+            }
         });
     }
 }

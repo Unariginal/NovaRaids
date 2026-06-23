@@ -6,7 +6,7 @@ import net.kyori.adventure.bossbar.BossBar;
 
 import static me.unariginal.novaraids.utils.TextUtils.deserialize;
 
-public class BossbarsConfig {
+public class BossbarConfig {
     public transient String bossbarId;
     public String barColor = "blue";
     public String barStyle = "progress";
@@ -14,7 +14,7 @@ public class BossbarsConfig {
     public boolean useActionbar = true;
     public String actionbarText = "<gold>Phase Progress Actionbar!";
 
-    public static BossbarsConfig getBossbar(String id) {
+    public static BossbarConfig getBossbar(String id) {
         return ConfigManager.BOSSBARS.get(id);
     }
 

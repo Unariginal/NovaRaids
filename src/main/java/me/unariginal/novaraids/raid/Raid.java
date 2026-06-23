@@ -65,7 +65,7 @@ public class Raid {
     public String baseGimmick;
     public PokemonEntity bossEntity;
     public final String locationId;
-    public final LocationsConfig location;
+    public final LocationConfig location;
     public final Category category;
     public CategoryModifier modifier = null;
     public final UUID startingPlayer;
@@ -101,7 +101,7 @@ public class Raid {
     public long phaseStartTime;
     public long fightStartTime;
     public long fightEndTime;
-    public BossbarsConfig bossbarData;
+    public BossbarConfig bossbarData;
 
     public long webhookID = 0;
     public Integer webhookDamage = null;
@@ -116,7 +116,7 @@ public class Raid {
         this.boss = boss;
         parseContextBuilder.boss(boss);
         this.locationId = locationId;
-        this.location = LocationsConfig.getLocation(locationId);
+        this.location = LocationConfig.getLocation(locationId);
         this.startingPlayer = startingPlayer == null ? null : startingPlayer.getUuid();
         this.startingItem = startingItem == null ? null : startingItem.copyWithCount(1);
 
@@ -214,7 +214,7 @@ public class Raid {
         if (modifier != null) maxHealth += modifier.bossDetailModifiers.baseHealthOffset;
         currentHealth = maxHealth;
 
-        bossbarData = BossbarsConfig.getBossbar(boss.raidDetails.bossbars.setup);
+        bossbarData = BossbarConfig.getBossbar(boss.raidDetails.bossbars.setup);
         showBossbar(bossbarData);
 
         phaseLength = boss.raidDetails.setupPhaseTime + (modifier == null ? 0 : modifier.raidDetailModifiers.setupPhaseTimeOffset);
@@ -239,7 +239,7 @@ public class Raid {
         if (participatingPlayers.size() >= minPlayers && !participatingPlayers.isEmpty()) {
             phase = RaidPhase.FIGHT;
 
-            bossbarData = BossbarsConfig.getBossbar(boss.raidDetails.bossbars.fight);
+            bossbarData = BossbarConfig.getBossbar(boss.raidDetails.bossbars.fight);
             showBossbar(bossbarData);
 
             phaseLength = boss.raidDetails.fightPhaseTime + (modifier == null ? 0 : modifier.raidDetailModifiers.fightPhaseTimeOffset);
@@ -288,7 +288,7 @@ public class Raid {
 
         boolean doCatchPhase = modifier != null && modifier.raidDetailModifiers.catchPhaseOverrideToggle ? modifier.raidDetailModifiers.doCatchPhaseOverride : boss.raidDetails.doCatchPhase;
         if (doCatchPhase) {
-            bossbarData = BossbarsConfig.getBossbar(boss.raidDetails.bossbars.preCatch);
+            bossbarData = BossbarConfig.getBossbar(boss.raidDetails.bossbars.preCatch);
             showBossbar(bossbarData);
 
             phaseLength = boss.raidDetails.preCatchPhaseTime + (modifier == null ? 0 : modifier.raidDetailModifiers.preCatchPhaseTimeOffset);
@@ -316,7 +316,7 @@ public class Raid {
         RaidEvents.CATCH_WARNING_PHASE_EVENT_POST.invoker().onCatchWarningPhasePost(this);
         phase = RaidPhase.CATCH;
 
-        bossbarData = BossbarsConfig.getBossbar(boss.raidDetails.bossbars.catchPhase);
+        bossbarData = BossbarConfig.getBossbar(boss.raidDetails.bossbars.catchPhase);
         showBossbar(bossbarData);
 
         phaseLength = boss.raidDetails.catchPhaseTime + (modifier == null ? 0 : modifier.raidDetailModifiers.catchPhaseTimeOffset);
@@ -917,13 +917,13 @@ public class Raid {
         fleeingPlayers.add(playerUUID);
     }
 
-    private void showBossbar(BossbarsConfig bossbar, ServerPlayerEntity player) {
+    private void showBossbar(BossbarConfig bossbar, ServerPlayerEntity player) {
         BossBar bar = bossbar.createBossbar(this);
         player.showBossBar(bar);
         playerBossbars.put(player.getUuid(), bar);
     }
 
-    private void showBossbar(BossbarsConfig bossbar) {
+    private void showBossbar(BossbarConfig bossbar) {
         hideBossbar();
         if (bossbar != null) {
             Collection<UUID> playerCache = new ArrayList<>(participatingPlayers);
@@ -948,7 +948,7 @@ public class Raid {
         playerBossbars.clear();
     }
 
-    public void showOverlay(BossbarsConfig bossbar) {
+    public void showOverlay(BossbarConfig bossbar) {
         if (bossbar != null) {
             if (bossbar.useActionbar) {
                 Collection<UUID> playerCache = new ArrayList<>(playerBossbars.keySet());

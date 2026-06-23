@@ -40,6 +40,18 @@ public class Threading {
         return ASYNC_EXECUTOR.scheduleWithFixedDelay(wrapRunnable(runnable), initDelay, timedDelay, TimeUnit.SECONDS);
     }
 
+    public static void shutdown() {
+        ASYNC_EXECUTOR.shutdown();
+        try {
+            if (!ASYNC_EXECUTOR.awaitTermination(5, TimeUnit.SECONDS)) {
+                ASYNC_EXECUTOR.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            ASYNC_EXECUTOR.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+    }
+
     private static Runnable wrapRunnable(Runnable runnable) {
         return () -> {
             try {

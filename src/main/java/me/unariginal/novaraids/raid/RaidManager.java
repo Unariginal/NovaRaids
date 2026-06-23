@@ -2,7 +2,7 @@ package me.unariginal.novaraids.raid;
 
 import com.google.common.collect.Maps;
 import me.unariginal.novaraids.NovaRaids;
-import me.unariginal.novaraids.config.LocationsConfig;
+import me.unariginal.novaraids.config.LocationConfig;
 import me.unariginal.novaraids.config.PersistentQueue;
 import me.unariginal.novaraids.config.RaidHistory;
 import me.unariginal.novaraids.data.QueueItem;
@@ -80,7 +80,7 @@ public class RaidManager {
             return false;
         }
 
-        LocationsConfig spawnLocation = LocationsConfig.getLocation(locationId);
+        LocationConfig spawnLocation = LocationConfig.getLocation(locationId);
         if (spawnLocation == null) {
             logError("Location was null");
             return false;
