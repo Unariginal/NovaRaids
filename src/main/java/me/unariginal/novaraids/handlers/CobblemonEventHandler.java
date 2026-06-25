@@ -32,7 +32,6 @@ import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.cache.PlayerRaidCache;
 import me.unariginal.novaraids.data.categories.bosses.Boss;
 import me.unariginal.novaraids.data.categories.Category;
-import me.unariginal.novaraids.data.guis.BaseGUI;
 import me.unariginal.novaraids.data.players.CatchDetails;
 import me.unariginal.novaraids.data.players.PlayerRaidData;
 import me.unariginal.novaraids.handlers.custom.*;
@@ -67,7 +66,9 @@ import net.minecraft.world.World;
 
 import java.util.*;
 
+import static me.unariginal.novaraids.NovaRaids.logInfo;
 import static me.unariginal.novaraids.config.ConfigManager.*;
+import static me.unariginal.novaraids.data.guis.BaseGUI.getPageTotal;
 import static me.unariginal.novaraids.raid.RaidManager.activeRaids;
 import static me.unariginal.novaraids.utils.TextUtils.deserialize;
 
@@ -373,7 +374,7 @@ public class CobblemonEventHandler {
                             }
 
                             Map<Integer, SimpleGui> pages = new HashMap<>();
-                            int pageTotal = BaseGUI.getPageTotal(joinableRaids.size(), RAID_PASS_GUI.getTotalSlotsBySymbol(RAID_PASS_GUI.raidDisplayItem.symbol));
+                            int pageTotal = getPageTotal(joinableRaids.size(), RAID_PASS_GUI.getTotalSlotsBySymbol(RAID_PASS_GUI.raidDisplayItem.symbol));
                             for (int i = 1; i <= pageTotal; i++) {
                                 SimpleGui gui = new SimpleGui(RAID_PASS_GUI.getScreenHandler(), player, false);
                                 gui.setTitle(deserialize(RAID_PASS_GUI.guiTitle, parseContextBuilder.build()));
@@ -557,7 +558,7 @@ public class CobblemonEventHandler {
                             }
 
                             Map<Integer, SimpleGui> pages = new HashMap<>();
-                            int pageTotal = BaseGUI.getPageTotal(availableRaids.size(), RAID_VOUCHER_GUI.getTotalSlotsBySymbol(RAID_VOUCHER_GUI.raidDisplayItem.symbol));
+                            int pageTotal = RAID_VOUCHER_GUI.getPageTotal(availableRaids.size(), RAID_VOUCHER_GUI.raidDisplayItem.symbol);
                             for (int i = 1; i <= pageTotal; i++) {
                                 SimpleGui gui = new SimpleGui(RAID_VOUCHER_GUI.getScreenHandler(), player, false);
                                 gui.setTitle(deserialize(RAID_VOUCHER_GUI.guiTitle, parseContextBuilder.build()));
@@ -576,8 +577,8 @@ public class CobblemonEventHandler {
                                             lore.add(deserialize(line, parseContext));
                                         }
 
-                                        // TODO: Check performance of calling createPokemon() each time!
-                                        ItemStack item = PokemonItem.from(boss.pokemonDetails.createPokemon());
+                                        logInfo("Creating Boss Pokemon: " + boss.bossId);
+                                        ItemStack item = PokemonItem.from(boss.pokemonDetails.createDisplayPokemon());
                                         GuiElement element = new GuiElementBuilder(item)
                                                 .setName(deserialize(RAID_VOUCHER_GUI.raidDisplayItem.itemName, parseContext))
                                                 .setLore(lore)

@@ -73,7 +73,7 @@ public class RaidQueueCommand {
                         }
                     }
 
-                    ItemStack item = PokemonItem.from(boss.pokemonDetails.createPokemon());
+                    ItemStack item = PokemonItem.from(boss.pokemonDetails.createDisplayPokemon());
                     int finalIndex = index;
                     GuiElement element = new GuiElementBuilder(item)
                             .setName(deserialize(RAID_QUEUE_GUI.raidItem.itemName, parseContext))

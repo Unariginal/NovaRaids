@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 
+import static me.unariginal.novaraids.NovaRaids.logError;
 import static me.unariginal.novaraids.config.ConfigManager.CONFIG;
 
 public class PokemonDetails {
@@ -136,11 +137,6 @@ public class PokemonDetails {
         return "";
     }
 
-    public Pokemon createPokemon() {
-        return createPokemon(null);
-    }
-
-    // TODO: Check usage locations of this method and determine performance impact
     public Pokemon createPokemon(@Nullable CategoryModifier modifier) {
         PokemonProperties pokemonProperties = PokemonProperties.Companion.parse(getRandomFeature());
         pokemonProperties.setSpecies(species);
@@ -218,9 +214,12 @@ public class PokemonDetails {
                 NovaRaids.LOGGER.error("[NovaRaids] Failed to set pokemon level above 100.", e);
             }
         }
-        for (int i = 0; i < moves.size() || i < 4; i++) {
+        pokemon.getMoveSet().clear();
+        for (int i = 0; i < moves.size() && i < 4; i++) {
             MoveTemplate moveTemplate = Moves.getByName(moves.get(i));
             if (moveTemplate == null) {
+                logError("Move \"" + moves.get(i) + "\" does not exist! Removing from move list.");
+                moves.remove(i);
                 i--;
                 continue;
             }
@@ -235,5 +234,13 @@ public class PokemonDetails {
         pokemon.heal();
 
         return pokemon;
+    }
+
+    public Pokemon createDisplayPokemon() {
+        PokemonProperties pokemonProperties = PokemonProperties.Companion.parse(getRandomFeature());
+        pokemonProperties.setSpecies(species);
+        pokemonProperties.setGender(Gender.valueOf(getRandomGender().toUpperCase()));
+        pokemonProperties.setShiny(shiny);
+        return pokemonProperties.create();
     }
 }

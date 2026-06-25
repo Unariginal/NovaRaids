@@ -68,6 +68,8 @@ public class Config {
         public boolean deleteIfNoFightPhase = true;
         public List<String> blacklistedCategories;
         public List<String> blacklistedBosses;
+        public Map<String, String> categoryNameOverrides;
+        public Map<String, String> bossNameOverrides;
     }
 
     public RaidBall getRaidBall(String id) {

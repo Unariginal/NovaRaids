@@ -17,14 +17,14 @@ public class BossForm implements BossPlaceholder {
             if (raid == null) {
                 raid = getRaid(args);
                 if (raid == null) {
-                    if (boss != null) return GenericResult.valid(boss.pokemonDetails.createPokemon().getForm().getName());
+                    if (boss != null) return GenericResult.valid(boss.pokemonDetails.createDisplayPokemon().getForm().getName());
                     return GenericResult.invalid("No Active Raid");
                 }
             }
             return GenericResult.valid(raid.bossPokemon.getForm().getName());
         }
 
-        return GenericResult.valid(boss.pokemonDetails.createPokemon().getForm().getName());
+        return GenericResult.valid(boss.pokemonDetails.createDisplayPokemon().getForm().getName());
     }
 
     @Override

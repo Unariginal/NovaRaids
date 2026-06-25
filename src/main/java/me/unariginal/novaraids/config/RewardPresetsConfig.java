@@ -4,7 +4,6 @@ import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
 import com.cobblemon.mod.common.api.storage.party.PlayerPartyStore;
 import com.cobblemon.mod.common.pokemon.*;
-import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.categories.bosses.Boss;
 import me.unariginal.novaraids.placeholders.ParseContext;
 import net.minecraft.item.ItemStack;
@@ -15,6 +14,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import java.io.*;
 import java.util.*;
 
+import static me.unariginal.novaraids.NovaRaids.logError;
 import static me.unariginal.novaraids.utils.TextUtils.parse;
 
 public class RewardPresetsConfig {
@@ -58,7 +58,7 @@ public class RewardPresetsConfig {
         public void grantReward(ServerPlayerEntity player, Boss boss) {
             PlayerPartyStore party = Cobblemon.INSTANCE.getStorage().getParty(player);
             if (pokemon != null) party.add(pokemon.create(player));
-            else NovaRaids.LOGGER.error("Pokemon was null!");
+            else logError("Pokemon was null!");
         }
     }
 

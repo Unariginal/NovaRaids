@@ -131,7 +131,7 @@ public class Raid {
 
             setupPhase();
         } else {
-            LOGGER.error("[NovaRaids] Category was null, failed to create raid object!");
+            logError("Category was null, failed to create raid object!");
             phase = RaidPhase.STOPPING;
         }
     }

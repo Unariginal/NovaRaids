@@ -20,8 +20,6 @@ import net.minecraft.util.Identifier;
 import java.util.ArrayList;
 import java.util.List;
 
-import static me.unariginal.novaraids.NovaRaids.LOGGER;
-
 public class PlaceholderAPIService {
     public void registerPlayer(PlayerPlaceholder placeholder) {
         placeholder.id().forEach(id -> Placeholders.register(Identifier.of(NovaRaids.MOD_ID, id), (ctx, arg) -> {
@@ -43,8 +41,6 @@ public class PlaceholderAPIService {
             List<String> args = arg != null ? List.of(parse(arg, ParseContext.builder().player(ctx.player()).build()).split(":")) : new ArrayList<>();
             Raid raid = ctx.asParserContext().get(new ParserContext.Key<>("raid", Raid.class));
 
-            LOGGER.error("Raid: {}", raid != null);
-
             GenericResult result = placeholder.handle(raid, args);
             if (result.isSuccessful) {
                 return PlaceholderResult.value(NovaRaids.INSTANCE.audience.toNative(result.asComponent()));
@@ -60,10 +56,6 @@ public class PlaceholderAPIService {
             Raid raid = ctx.asParserContext().get(new ParserContext.Key<>("raid", Raid.class));
             Boss boss = ctx.asParserContext().get(new ParserContext.Key<>("boss", Boss.class));
             Boolean prioritizeRaid = ctx.asParserContext().get(new ParserContext.Key<>("prioritize_raid", Boolean.class));
-
-            LOGGER.error("Raid: {}", raid != null);
-            LOGGER.error("Boss: {}", boss != null);
-            LOGGER.error("Prioritize Raid: {}", prioritizeRaid);
             // todo: Temp I guess
             if (prioritizeRaid == null) prioritizeRaid = true;
 

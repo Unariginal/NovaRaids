@@ -99,6 +99,8 @@
     "update_rate_seconds": 15,
     "delete_if_no_fight_phase": true,
     "blacklisted_categories": [],
-    "blacklisted_bosses": []
+    "blacklisted_bosses": [],
+    "category_name_overrides": {},
+    "boss_name_overrides": {}
   }
 }

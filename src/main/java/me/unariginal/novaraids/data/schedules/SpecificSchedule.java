@@ -1,11 +1,10 @@
 package me.unariginal.novaraids.data.schedules;
 
-import me.unariginal.novaraids.NovaRaids;
-
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import static me.unariginal.novaraids.NovaRaids.logError;
 import static me.unariginal.novaraids.config.ConfigManager.SCHEDULES;
 
 public class SpecificSchedule extends Schedule {
@@ -22,7 +21,7 @@ public class SpecificSchedule extends Schedule {
                 }
             }
         } else {
-            NovaRaids.LOGGER.info("[NovaRaids] localTimes was null! Attempting to fill");
+            logError("[NovaRaids] localTimes was null! Attempting to fill");
             localTimes = new ArrayList<>();
             this.times.forEach(time -> localTimes.add(LocalTime.parse(time)));
         }

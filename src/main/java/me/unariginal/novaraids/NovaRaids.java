@@ -47,16 +47,13 @@ public class NovaRaids implements ModInitializer {
         INSTANCE = this;
 
         CommandRegistrationCallback.EVENT.register(RaidCommands::register);
-        reloadConfig();
-        loadQueue();
 
         ServerLifecycleEvents.SERVER_STARTING.register(server -> {
             this.audience = FabricServerAudiences.of(server);
             this.server = server;
 
-            if (CONFIG.discordWebhook.enabled) {
-                WebhookHandler.connectWebhook();
-            }
+            reloadConfig();
+            loadQueue();
 
             registerPlaceholders();
         });
