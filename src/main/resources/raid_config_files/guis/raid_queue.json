@@ -1,5 +1,6 @@
 {
   "gui_title": "Queued Raids",
+  "use_hopper_gui": false,
   "rows": 6,
   "gui_layout": [
     "#########",

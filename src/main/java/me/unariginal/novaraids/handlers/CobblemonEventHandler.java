@@ -36,7 +36,6 @@ import me.unariginal.novaraids.data.players.CatchDetails;
 import me.unariginal.novaraids.data.players.PlayerRaidData;
 import me.unariginal.novaraids.handlers.custom.*;
 import me.unariginal.novaraids.raid.Raid;
-import me.unariginal.novaraids.raid.RaidManager;
 import me.unariginal.novaraids.raid.RaidPhase;
 import me.unariginal.novaraids.utils.ContrabandUtils;
 import me.unariginal.novaraids.placeholders.ParseContext;
@@ -70,6 +69,7 @@ import static me.unariginal.novaraids.NovaRaids.logInfo;
 import static me.unariginal.novaraids.config.ConfigManager.*;
 import static me.unariginal.novaraids.data.guis.BaseGUI.getPageTotal;
 import static me.unariginal.novaraids.raid.RaidManager.activeRaids;
+import static me.unariginal.novaraids.raid.RaidManager.queueRaid;
 import static me.unariginal.novaraids.utils.TextUtils.deserialize;
 
 @SuppressWarnings("UnusedReturnValue")
@@ -175,7 +175,7 @@ public class CobblemonEventHandler {
                     }
                 }
 
-                if (!raid.bossEntity.getUuid().equals(entityUUID)) continue;
+                if (!raid.bossEntityUuid.equals(entityUUID)) continue;
 
                 if (!raid.isParticipating(player)) {
                     event.cancel();
@@ -359,18 +359,35 @@ public class CobblemonEventHandler {
             if (customData != null) {
                 if (hand.name().contains("MAIN_HAND") && customData.contains("raid_item")) {
                     if (customData.copyNbt().getString("raid_item").equals("raid_pass")) {
-                        String bossName = customData.copyNbt().getString("raid_boss");
-                        String category = customData.copyNbt().getString("raid_category");
-                        if (bossName.equalsIgnoreCase("*")) {
+                        String bossId = customData.copyNbt().getString("raid_boss");
+                        String categoryId = customData.copyNbt().getString("raid_category");
+                        if (bossId.equalsIgnoreCase("*")) {
+                            if (PlayerRaidCache.isInRaid(player)) {
+                                player.sendMessage(deserialize(MESSAGES.feedback.warnings.alreadyInRaid, parseContextBuilder.build()));
+                                return TypedActionResult.fail(itemStack);
+                            }
+
                             List<Raid> joinableRaids = new ArrayList<>();
-                            if (category.equalsIgnoreCase("*")) {
+                            Category category = null;
+                            if (categoryId.equalsIgnoreCase("*")) {
                                 joinableRaids.addAll(activeRaids.values().stream().filter(raid -> raid.phase == RaidPhase.SETUP).toList());
                             } else {
+                                category = Category.getCategory(categoryId);
+                                if (category == null) {
+                                    player.sendMessage(deserialize(MESSAGES.feedback.warnings.categoryDoesntExist, parseContextBuilder.build()));
+                                    return TypedActionResult.fail(itemStack);
+                                }
+
                                 for (Raid raid : activeRaids.values()) {
-                                    if (raid.boss.categoryId.equalsIgnoreCase(category)) {
+                                    if (raid.category.categoryId.equalsIgnoreCase(categoryId)) {
                                         joinableRaids.add(raid);
                                     }
                                 }
+                            }
+
+                            if (joinableRaids.isEmpty()) {
+                                player.sendMessage(deserialize(MESSAGES.feedback.noActiveRaids, parseContextBuilder.category(category).build()));
+                                return TypedActionResult.fail(itemStack);
                             }
 
                             Map<Integer, SimpleGui> pages = new HashMap<>();
@@ -398,7 +415,6 @@ public class CobblemonEventHandler {
                                                 .setName(deserialize(RAID_PASS_GUI.raidDisplayItem.itemName, parseContext))
                                                 .setLore(lore)
                                                 .setCallback((num, clickType, slotActionType) -> {
-
                                                     if (!clickType.isLeft) return;
 
                                                     if (!raid.requiresPass) {
@@ -422,10 +438,7 @@ public class CobblemonEventHandler {
 
                                                     if (raid.addPlayer(player.getUuid(), true)) {
                                                         itemStack.decrement(1);
-                                                        player.setStackInHand(hand, itemStack);
-
                                                         player.sendMessage(deserialize(MESSAGES.feedback.joinedRaid, parseContext));
-
                                                         pageEntry.getValue().close();
                                                     }
 
@@ -518,20 +531,20 @@ public class CobblemonEventHandler {
                             }
                         } else {
                             if (PlayerRaidCache.isInRaid(player)) {
+                                player.sendMessage(deserialize(MESSAGES.feedback.warnings.alreadyInRaid, parseContextBuilder.build()));
                                 return TypedActionResult.fail(itemStack);
                             }
 
                             for (Raid raid : activeRaids.values()) {
                                 ParseContext parseContext = parseContextBuilder.raid(raid).build();
-                                if (raid.boss.bossId.equalsIgnoreCase(bossName)) {
+                                if (raid.boss.bossId.equalsIgnoreCase(bossId)) {
                                     if (raid.requiresPass) {
                                         if (raid.phase == RaidPhase.SETUP) {
                                             if (raid.participatingPlayers.size() < raid.maxPlayers || raid.maxPlayers == -1 || Permissions.check(player, "novaraids.override")) {
                                                 if (raid.addPlayer(player.getUuid(), true)) {
                                                     itemStack.decrement(1);
-                                                    player.setStackInHand(hand, itemStack);
-
                                                     player.sendMessage(deserialize(MESSAGES.feedback.joinedRaid, parseContext));
+                                                    break;
                                                 }
                                             } else {
                                                 player.sendMessage(deserialize(MESSAGES.feedback.warnings.maxPlayers, parseContext));
@@ -550,11 +563,21 @@ public class CobblemonEventHandler {
                         String categoryId = customData.copyNbt().getString("raid_category");
                         if (bossId.equalsIgnoreCase("*")) {
                             List<Boss> availableRaids = new ArrayList<>();
+                            Category category = null;
                             if (categoryId.equalsIgnoreCase("*")) {
                                 availableRaids.addAll(BOSSES.values());
                             } else {
-                                Category category = Category.getCategory(categoryId);
-                                if (category != null) availableRaids.addAll(category.bosses.values());
+                                category = Category.getCategory(categoryId);
+                                if (category == null) {
+                                    player.sendMessage(deserialize(MESSAGES.feedback.warnings.categoryDoesntExist, parseContextBuilder.build()));
+                                    return TypedActionResult.fail(itemStack);
+                                }
+                                availableRaids.addAll(category.bosses.values());
+                            }
+
+                            if (availableRaids.isEmpty()) {
+                                player.sendMessage(deserialize(MESSAGES.feedback.warnings.noBossesAvailable, parseContextBuilder.category(category).build()));
+                                return TypedActionResult.fail(itemStack);
                             }
 
                             Map<Integer, SimpleGui> pages = new HashMap<>();
@@ -584,12 +607,9 @@ public class CobblemonEventHandler {
                                                 .setLore(lore)
                                                 .setCallback((num, clickType, slotActionType) -> {
                                                     if (clickType.isLeft) {
-                                                        RaidManager.queueRaid(boss, player, itemStack, null);
+                                                        queueRaid(boss, player, itemStack.copy(), null);
                                                         itemStack.decrement(1);
-                                                        player.setStackInHand(hand, itemStack);
-
                                                         player.sendMessage(deserialize(MESSAGES.feedback.usedVoucher, parseContext));
-
                                                         pageEntry.getValue().close();
                                                     }
                                                 }).build();
@@ -686,20 +706,23 @@ public class CobblemonEventHandler {
                                 boss = Boss.getRandomBoss(categoryId, null);
                             }
 
-                            if (boss == null) return TypedActionResult.fail(itemStack);
+                            if (boss == null) {
+                                player.sendMessage(deserialize(MESSAGES.feedback.warnings.noBossesAvailable, parseContextBuilder.build()));
+                                return TypedActionResult.fail(itemStack);
+                            }
 
-                            RaidManager.queueRaid(boss, player, itemStack, null);
+                            queueRaid(boss, player, itemStack.copy(), null);
                             itemStack.decrement(1);
-                            player.setStackInHand(hand, itemStack);
-
                             player.sendMessage(deserialize(MESSAGES.feedback.usedVoucher, parseContextBuilder.boss(boss).prioritizeRaid(false).build()));
                         } else {
                             Boss boss = Boss.getBoss(bossId);
-                            RaidManager.queueRaid(boss, player, itemStack, null);
+                            if (boss == null) {
+                                player.sendMessage(deserialize(MESSAGES.feedback.warnings.bossDoesntExist, parseContextBuilder.build()));
+                                return TypedActionResult.fail(itemStack);
+                            }
+                            queueRaid(boss, player, itemStack.copy(), null);
                             itemStack.decrement(1);
-                            player.setStackInHand(hand, itemStack);
-
-                            if (boss != null) player.sendMessage(deserialize(MESSAGES.feedback.usedVoucher, parseContextBuilder.boss(boss).prioritizeRaid(false).build()));
+                            player.sendMessage(deserialize(MESSAGES.feedback.usedVoucher, parseContextBuilder.boss(boss).prioritizeRaid(false).build()));
                         }
                     } else if (customData.copyNbt().getString("raid_item").equals("raid_ball") && CONFIG.itemSettings.raidBallSettings.raidBallsEnabled) {
                         ParseContext parseContext = parseContextBuilder.build();

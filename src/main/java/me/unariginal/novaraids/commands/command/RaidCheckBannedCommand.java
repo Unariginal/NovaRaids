@@ -12,6 +12,7 @@ public class RaidCheckBannedCommand {
                 .requires(Permissions.require("novaraids.checkbanned", 4))
                 .then(RaidCheckGlobalBannedCommand.register())
                 .then(RaidCheckCategoryBannedCommand.register())
-                .then(RaidCheckBossBannedCommand.register());
+                .then(RaidCheckBossBannedCommand.register())
+                .executes(RaidCheckGlobalBannedCommand::execute);
     }
 }

@@ -44,15 +44,15 @@ public class ConfigManager {
     public static Map<String, Boss> BOSSES = new HashMap<>();
     public static Map<Identifier, Event> EVENTS = new HashMap<>();
 
-    public static ContrabandGUIConfig GLOBAL_CONTRABAND_GUI;
-    public static ContrabandGUIConfig CATEGORY_CONTRABAND_GUI;
-    public static ContrabandGUIConfig BOSS_CONTRABAND_GUI;
-    public static LeaderboardGUIConfig LEADERBOARD_GUI;
-    public static RaidListGUIConfig RAID_LIST_GUI;
-    public static RaidQueueGUIConfig RAID_QUEUE_GUI;
-    public static RaidItemGUIConfig RAID_PASS_GUI;
-    public static RaidItemGUIConfig RAID_VOUCHER_GUI;
-    public static RaidItemGUIConfig RAID_HISTORY_GUI;
+    public static ContrabandGuiConfig GLOBAL_CONTRABAND_GUI;
+    public static ContrabandGuiConfig CATEGORY_CONTRABAND_GUI;
+    public static ContrabandGuiConfig BOSS_CONTRABAND_GUI;
+    public static LeaderboardGuiConfig LEADERBOARD_GUI;
+    public static RaidListGuiConfig RAID_LIST_GUI;
+    public static RaidQueueGuiConfig RAID_QUEUE_GUI;
+    public static RaidItemGuiConfig RAID_PASS_GUI;
+    public static RaidItemGuiConfig RAID_VOUCHER_GUI;
+    public static RaidItemGuiConfig RAID_HISTORY_GUI;
 
     public static PersistentQueue PERSISTENT_QUEUE = new PersistentQueue();
     public static Map<String, List<RaidHistory>> RAID_HISTORY = new HashMap<>();
@@ -86,6 +86,7 @@ public class ConfigManager {
         fillMissingWithDefaults("guis/raid_pass.json", null, false);
         fillMissingWithDefaults("guis/raid_voucher.json", null, false);
         fillMissingWithDefaults("guis/raid_history.json", null, false);
+        fillMissingWithDefaults("guis/raid_rewards.json", null, false);
 
         CONFIG = loadFile("config.json", Config.class);
         SCHEDULES = loadFile("schedules.json", SchedulesConfig.class);
@@ -110,7 +111,7 @@ public class ConfigManager {
             entry.getValue().bossbarId = entry.getKey();
         }
 
-        fillMissingWithDefaults("reward_presets.json", null, true);
+        // Filling missing with defaults here causes problems... don't do it :)
         REWARD_PRESETS = loadMapFile("reward_presets.json", RewardPresetsConfig.Reward.class);
         for (Map.Entry<String, RewardPresetsConfig.Reward> entry : REWARD_PRESETS.entrySet()) {
             entry.getValue().rewardId = entry.getKey();
@@ -122,15 +123,15 @@ public class ConfigManager {
             entry.getValue().rewardPoolId = entry.getKey();
         }
 
-        GLOBAL_CONTRABAND_GUI = loadFile("guis/global_contraband.json", ContrabandGUIConfig.class);
-        CATEGORY_CONTRABAND_GUI = loadFile("guis/category_contraband.json", ContrabandGUIConfig.class);
-        BOSS_CONTRABAND_GUI = loadFile("guis/boss_contraband.json", ContrabandGUIConfig.class);
-        LEADERBOARD_GUI = loadFile("guis/leaderboard.json", LeaderboardGUIConfig.class);
-        RAID_LIST_GUI = loadFile("guis/raid_list.json", RaidListGUIConfig.class);
-        RAID_QUEUE_GUI = loadFile("guis/raid_queue.json", RaidQueueGUIConfig.class);
-        RAID_PASS_GUI = loadFile("guis/raid_pass.json", RaidItemGUIConfig.class);
-        RAID_VOUCHER_GUI = loadFile("guis/raid_voucher.json", RaidItemGUIConfig.class);
-        RAID_HISTORY_GUI = loadFile("guis/raid_history.json", RaidItemGUIConfig.class);
+        GLOBAL_CONTRABAND_GUI = loadFile("guis/global_contraband.json", ContrabandGuiConfig.class);
+        CATEGORY_CONTRABAND_GUI = loadFile("guis/category_contraband.json", ContrabandGuiConfig.class);
+        BOSS_CONTRABAND_GUI = loadFile("guis/boss_contraband.json", ContrabandGuiConfig.class);
+        LEADERBOARD_GUI = loadFile("guis/leaderboard.json", LeaderboardGuiConfig.class);
+        RAID_LIST_GUI = loadFile("guis/raid_list.json", RaidListGuiConfig.class);
+        RAID_QUEUE_GUI = loadFile("guis/raid_queue.json", RaidQueueGuiConfig.class);
+        RAID_PASS_GUI = loadFile("guis/raid_pass.json", RaidItemGuiConfig.class);
+        RAID_VOUCHER_GUI = loadFile("guis/raid_voucher.json", RaidItemGuiConfig.class);
+        RAID_HISTORY_GUI = loadFile("guis/raid_history.json", RaidItemGuiConfig.class);
 
         loadCategories();
         loadEvents();
@@ -246,6 +247,7 @@ public class ConfigManager {
         generateDefaultFile("guis/raid_queue.json");
         generateDefaultFile("guis/raid_pass.json");
         generateDefaultFile("guis/raid_voucher.json");
+        generateDefaultFile("guis/raid_rewards.json");
         generateDefaultFile("persistent/queue.json");
 
         File categoriesFolder = new File(configDir, "categories");

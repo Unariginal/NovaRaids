@@ -3,15 +3,11 @@ package me.unariginal.novaraids;
 import me.unariginal.novaraids.commands.RaidCommands;
 import me.unariginal.novaraids.config.PersistentQueue;
 import me.unariginal.novaraids.data.QueueItem;
-import me.unariginal.novaraids.handlers.BossBarHandler;
+import me.unariginal.novaraids.handlers.ScheduledBossbarHandler;
 import me.unariginal.novaraids.handlers.CobblemonEventHandler;
-import me.unariginal.novaraids.placeholders.types.categoryModifier.*;
-import me.unariginal.novaraids.placeholders.types.history.*;
 import me.unariginal.novaraids.raid.Raid;
 import me.unariginal.novaraids.handlers.TickEventHandler;
 import me.unariginal.novaraids.handlers.WebhookHandler;
-import me.unariginal.novaraids.placeholders.types.boss.*;
-import me.unariginal.novaraids.placeholders.types.raid.*;
 import me.unariginal.novaraids.raid.RaidManager;
 import me.unariginal.novaraids.utils.Threading;
 import net.fabricmc.api.ModInitializer;
@@ -39,8 +35,6 @@ public class NovaRaids implements ModInitializer {
 
     public List<UUID> ignorePlayerVisibility = new ArrayList<>();
     public List<UUID> ignorePokemonVisibility = new ArrayList<>();
-
-    public BossBarHandler bossBarHandler;
 
     @Override
     public void onInitialize() {
@@ -70,7 +64,7 @@ public class NovaRaids implements ModInitializer {
         // Set up event handlers and configuration at server load
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             CobblemonEventHandler.initialiseEvents();
-            bossBarHandler = new BossBarHandler();
+            new ScheduledBossbarHandler();
         });
 
         // Server tick loop

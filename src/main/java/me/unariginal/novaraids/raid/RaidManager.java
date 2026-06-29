@@ -13,6 +13,7 @@ import me.unariginal.novaraids.events.RaidEvents;
 import me.unariginal.novaraids.placeholders.ParseContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.format.DateTimeFormatter;
@@ -30,8 +31,7 @@ public class RaidManager {
     public static final Map<UUID, Raid> activeRaids = Maps.newConcurrentMap();
     public static final List<String> busyLocations = new ArrayList<>();
 
-    public static boolean queueRaid(@Nullable Boss boss, @Nullable ServerPlayerEntity startingPlayer, @Nullable ItemStack startingItem, @Nullable Boolean requirePass) {
-        if (boss == null) return false;
+    public static boolean queueRaid(@NotNull Boss boss, @Nullable ServerPlayerEntity startingPlayer, @Nullable ItemStack startingItem, @Nullable Boolean requirePass) {
         QueueItem queueItem = new QueueItem(boss, startingPlayer, startingItem, requirePass);
         queuedRaids.add(queueItem);
         if (CONFIG.raidSettings.useQueueSystem && startingPlayer != null)
@@ -41,6 +41,7 @@ public class RaidManager {
 
     public static boolean queueRaid(PersistentQueue.QueueItemData queueItemData) {
         Boss boss = Boss.getBoss(queueItemData.boss);
+        if (boss == null) return false;
         ServerPlayerEntity player = null;
         if (queueItemData.startingPlayerUuid != null) {
             player = NovaRaids.INSTANCE.server.getPlayerManager().getPlayer(UUID.fromString(queueItemData.startingPlayerUuid));
@@ -59,7 +60,7 @@ public class RaidManager {
 
     public static boolean startRaid(@Nullable Boss boss, @Nullable ServerPlayerEntity startingPlayer, @Nullable ItemStack startingItem, @Nullable Boolean requiresPass) {
         if (boss == null) return false;
-        if (CONFIG.raidSettings.runRaidsWithNoPlayers && NovaRaids.INSTANCE.server.getPlayerManager().getCurrentPlayerCount() == 0) return false;
+        if (!CONFIG.raidSettings.runRaidsWithNoPlayers && NovaRaids.INSTANCE.server.getPlayerManager().getCurrentPlayerCount() == 0) return false;
 
         List<WeightedLocation> possibleLocations = boss.bossDetails.locations;
         List<WeightedLocation> availableLocations = new ArrayList<>();

@@ -3,15 +3,13 @@ package me.unariginal.novaraids.utils;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import me.unariginal.novaraids.NovaRaids;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.scoreboard.ServerScoreboard;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.util.Formatting;
+import org.jetbrains.annotations.Nullable;
 
 public class GlowUtils {
-    public static void applyGlowing(String color, Pokemon pokemon) {
-        PokemonEntity pokemonEntity = pokemon.getEntity();
+    public static void applyGlowing(String color, Pokemon pokemon, @Nullable PokemonEntity pokemonEntity) {
         if (pokemonEntity == null) return;
         ServerScoreboard scoreboard = NovaRaids.INSTANCE.server.getScoreboard();
 
@@ -21,14 +19,17 @@ public class GlowUtils {
 
         Formatting teamColor = Formatting.byName(color);
         if (teamColor == null) teamColor = Formatting.WHITE;
-        team.setColor(teamColor);
+        if (team.getColor() != teamColor) team.setColor(teamColor);
 
-        scoreboard.addScoreHolderToTeam(pokemonEntity.getNameForScoreboard(), team);
+        String scoreHolder = pokemonEntity.getNameForScoreboard();
+        Team holderTeam = scoreboard.getScoreHolderTeam(scoreHolder);
+        if (holderTeam == null || !holderTeam.equals(team)) scoreboard.addScoreHolderToTeam(scoreHolder, team);
 
-        pokemonEntity.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, 999999, 1, false, false));
+        pokemonEntity.setGlowing(false);
+        pokemonEntity.setGlowing(true);
     }
 
-    public static void removeGlowing(Pokemon pokemon) {
+    public static void removeGlowing(Pokemon pokemon, @Nullable PokemonEntity pokemonEntity) {
         ServerScoreboard scoreboard = NovaRaids.INSTANCE.server.getScoreboard();
 
         String teamName = "glow_" + pokemon.getUuid().toString();
@@ -37,7 +38,8 @@ public class GlowUtils {
             scoreboard.removeTeam(team);
         }
 
-        PokemonEntity pokemonEntity = pokemon.getEntity();
-        if (pokemonEntity != null) pokemonEntity.removeStatusEffect(StatusEffects.GLOWING);
+        if (pokemonEntity != null) {
+            pokemonEntity.setGlowing(false);
+        }
     }
 }

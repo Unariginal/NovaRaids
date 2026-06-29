@@ -8,7 +8,7 @@ import com.cobblemon.mod.common.util.MiscUtilsKt;
 import eu.pb4.sgui.api.elements.GuiElement;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.gui.SimpleGui;
-import me.unariginal.novaraids.config.guis.ContrabandGUIConfig;
+import me.unariginal.novaraids.config.guis.ContrabandGuiConfig;
 import me.unariginal.novaraids.data.categories.Category;
 import me.unariginal.novaraids.data.categories.bosses.Boss;
 import me.unariginal.novaraids.data.guis.BaseGUI;
@@ -29,13 +29,135 @@ import static me.unariginal.novaraids.config.ConfigManager.CONFIG;
 import static me.unariginal.novaraids.config.ConfigManager.MESSAGES;
 import static me.unariginal.novaraids.utils.TextUtils.deserialize;
 
-public class ContrabandGUI {
-    public static void openContrabandGui(ServerPlayerEntity player, BaseGUIItem guiItem, String contrabandType, @Nullable Category category, @Nullable Boss boss, int page) {
+public class ContrabandGui {
+    public static void openContrabandGui(ServerPlayerEntity player, ContrabandGuiConfig guiConfig, @Nullable Category category, @Nullable Boss boss) {
+        ParseContext parseContext = ParseContext.builder().player(player).category(category).boss(boss).prioritizeRaid(false).build();
+
+        SimpleGui mainGui = new SimpleGui(guiConfig.getScreenHandler(), player, false);
+        mainGui.setTitle(deserialize(guiConfig.guiTitle, parseContext));
+
+        List<Text> lore = new ArrayList<>();
+        for (String line : guiConfig.bannedPokemon.itemLore) {
+            lore.add(deserialize(line, parseContext));
+        }
+        for (Integer slot : guiConfig.getSlotsBySymbol(guiConfig.bannedPokemon.symbol)) {
+            ItemStack item = guiConfig.bannedPokemon.item.copy();
+            GuiElement element = new GuiElementBuilder(item)
+                    .setName(deserialize(guiConfig.bannedPokemon.itemName, parseContext))
+                    .setLore(lore)
+                    .setCallback(clickType -> {
+                        mainGui.close();
+                        openContrabandSubGui(player, guiConfig, guiConfig.bannedPokemon, "pokemon", category, boss, 1);
+                    })
+                    .build();
+            mainGui.setSlot(slot, element);
+        }
+
+        lore = new ArrayList<>();
+        for (String line : guiConfig.bannedMoves.itemLore) {
+            lore.add(deserialize(line, parseContext));
+        }
+        for (Integer slot : guiConfig.getSlotsBySymbol(guiConfig.bannedMoves.symbol)) {
+            ItemStack item = guiConfig.bannedMoves.item.copy();
+            GuiElement element = new GuiElementBuilder(item)
+                    .setName(deserialize(guiConfig.bannedMoves.itemName, parseContext))
+                    .setLore(lore)
+                    .setCallback(clickType -> {
+                        mainGui.close();
+                        openContrabandSubGui(player, guiConfig, guiConfig.bannedMoves, "move", category, boss, 1);
+                    })
+                    .build();
+            mainGui.setSlot(slot, element);
+        }
+
+        lore = new ArrayList<>();
+        for (String line : guiConfig.bannedAbilities.itemLore) {
+            lore.add(deserialize(line, parseContext));
+        }
+        for (Integer slot : guiConfig.getSlotsBySymbol(guiConfig.bannedAbilities.symbol)) {
+            ItemStack item = guiConfig.bannedAbilities.item.copy();
+            GuiElement element = new GuiElementBuilder(item)
+                    .setName(deserialize(guiConfig.bannedAbilities.itemName, parseContext))
+                    .setLore(lore)
+                    .setCallback(clickType -> {
+                        mainGui.close();
+                        openContrabandSubGui(player, guiConfig, guiConfig.bannedAbilities, "ability", category, boss, 1);
+                    })
+                    .build();
+            mainGui.setSlot(slot, element);
+        }
+
+        lore = new ArrayList<>();
+        for (String line : guiConfig.bannedHeldItems.itemLore) {
+            lore.add(deserialize(line, parseContext));
+        }
+        for (Integer slot : guiConfig.getSlotsBySymbol(guiConfig.bannedHeldItems.symbol)) {
+            ItemStack item = guiConfig.bannedHeldItems.item.copy();
+            GuiElement element = new GuiElementBuilder(item)
+                    .setName(deserialize(guiConfig.bannedHeldItems.itemName, parseContext))
+                    .setLore(lore)
+                    .setCallback(clickType -> {
+                        mainGui.close();
+                        openContrabandSubGui(player, guiConfig, guiConfig.bannedHeldItems, "held_item", category, boss, 1);
+                    })
+                    .build();
+            mainGui.setSlot(slot, element);
+        }
+
+        lore = new ArrayList<>();
+        for (String line : guiConfig.bannedBagItems.itemLore) {
+            lore.add(deserialize(line, parseContext));
+        }
+        for (Integer slot : guiConfig.getSlotsBySymbol(guiConfig.bannedBagItems.symbol)) {
+            ItemStack item = guiConfig.bannedBagItems.item.copy();
+            GuiElement element = new GuiElementBuilder(item)
+                    .setName(deserialize(guiConfig.bannedBagItems.itemName, parseContext))
+                    .setLore(lore)
+                    .setCallback(clickType -> {
+                        mainGui.close();
+                        openContrabandSubGui(player, guiConfig, guiConfig.bannedBagItems, "bag_item", category, boss, 1);
+                    })
+                    .build();
+            mainGui.setSlot(slot, element);
+        }
+
+        lore = new ArrayList<>();
+        for (String line : guiConfig.backgroundItem.itemLore) {
+            lore.add(deserialize(line, parseContext));
+        }
+        for (Integer slot : guiConfig.getSlotsBySymbol(guiConfig.backgroundItem.symbol)) {
+            ItemStack item = guiConfig.backgroundItem.item.copy();
+            GuiElement element = new GuiElementBuilder(item)
+                    .setName(deserialize(guiConfig.backgroundItem.itemName, parseContext))
+                    .setLore(lore)
+                    .setCallback(clickType -> mainGui.close())
+                    .build();
+            mainGui.setSlot(slot, element);
+        }
+
+        lore = new ArrayList<>();
+        for (String line : guiConfig.closeItem.itemLore) {
+            lore.add(deserialize(line, parseContext));
+        }
+        for (Integer slot : guiConfig.getSlotsBySymbol(guiConfig.closeItem.symbol)) {
+            ItemStack item = guiConfig.closeItem.item.copy();
+            GuiElement element = new GuiElementBuilder(item)
+                    .setName(deserialize(guiConfig.backgroundItem.itemName, parseContext))
+                    .setLore(lore)
+                    .setCallback(clickType -> mainGui.close())
+                    .build();
+            mainGui.setSlot(slot, element);
+        }
+
+        mainGui.open();
+    }
+
+    public static void openContrabandSubGui(ServerPlayerEntity player, ContrabandGuiConfig guiConfig, BaseGUIItem guiItem, String contrabandType, @Nullable Category category, @Nullable Boss boss, int page) {
         Map<ItemStack, String> displayItems = new HashMap<>();
         BaseGUI gui = null;
         BaseGUIItem displayGuiItem = null;
 
-        if (guiItem instanceof ContrabandGUIConfig.PokemonSubGUIItem pokemonSubGUIItem) {
+        if (guiItem instanceof ContrabandGuiConfig.PokemonSubGUIItem pokemonSubGUIItem) {
             gui = pokemonSubGUIItem.guiSettings;
             displayGuiItem = pokemonSubGUIItem.guiSettings.pokemonDisplayItem;
             List<Species> speciesList = CONFIG.raidSettings.globalContraband.getBannedPokemonSpecies();
@@ -46,7 +168,7 @@ public class ContrabandGUI {
             for (Species species : speciesList) {
                 displayItems.put(PokemonItem.from(species), pokemonSubGUIItem.guiSettings.pokemonDisplayItem.itemName.replaceAll("%pokemon%", species.getName()));
             }
-        } else if (guiItem instanceof ContrabandGUIConfig.MovesSubGUIItem movesSubGUIItem) {
+        } else if (guiItem instanceof ContrabandGuiConfig.MovesSubGUIItem movesSubGUIItem) {
             gui = movesSubGUIItem.guiSettings;
             displayGuiItem = movesSubGUIItem.guiSettings.moveDisplayItem;
             List<MoveTemplate> moveTemplates = CONFIG.raidSettings.globalContraband.getBannedMoves();
@@ -57,7 +179,7 @@ public class ContrabandGUI {
             for (MoveTemplate moveTemplate : moveTemplates) {
                 displayItems.put(movesSubGUIItem.guiSettings.moveDisplayItem.item.copy(), movesSubGUIItem.guiSettings.moveDisplayItem.itemName.replaceAll("%move%", moveTemplate.getDisplayName().getString()));
             }
-        } else if (guiItem instanceof ContrabandGUIConfig.AbilitiesSubGUIItem abilitiesSubGUIItem) {
+        } else if (guiItem instanceof ContrabandGuiConfig.AbilitiesSubGUIItem abilitiesSubGUIItem) {
             gui = abilitiesSubGUIItem.guiSettings;
             displayGuiItem = abilitiesSubGUIItem.guiSettings.abilityDisplayItem;
             List<AbilityTemplate> abilityTemplates = CONFIG.raidSettings.globalContraband.getBannedAbilities();
@@ -68,7 +190,7 @@ public class ContrabandGUI {
             for (AbilityTemplate abilityTemplate : abilityTemplates) {
                 displayItems.put(abilitiesSubGUIItem.guiSettings.abilityDisplayItem.item.copy(), abilitiesSubGUIItem.guiSettings.abilityDisplayItem.itemName.replaceAll("%ability%", MiscUtilsKt.asTranslated(abilityTemplate.getDisplayName()).getString()));
             }
-        } else if (guiItem instanceof ContrabandGUIConfig.HeldItemsSubGUIItem heldItemsSubGUIItem) {
+        } else if (guiItem instanceof ContrabandGuiConfig.HeldItemsSubGUIItem heldItemsSubGUIItem) {
             gui = heldItemsSubGUIItem.guiSettings;
             displayGuiItem = heldItemsSubGUIItem.guiSettings.heldItemDisplayItem;
             List<Item> items = CONFIG.raidSettings.globalContraband.getBannedHeldItems();
@@ -79,7 +201,7 @@ public class ContrabandGUI {
             for (Item item : items) {
                 displayItems.put(item.getDefaultStack(), heldItemsSubGUIItem.guiSettings.heldItemDisplayItem.itemName.replaceAll("%item%", item.getName().getString()));
             }
-        } else if (guiItem instanceof ContrabandGUIConfig.BagItemsSubGUIItem bagItemsSubGUIItem) {
+        } else if (guiItem instanceof ContrabandGuiConfig.BagItemsSubGUIItem bagItemsSubGUIItem) {
             gui = bagItemsSubGUIItem.guiSettings;
             displayGuiItem = bagItemsSubGUIItem.guiSettings.bagItemDisplayItem;
             List<Item> items = CONFIG.raidSettings.globalContraband.getBannedBagItems();
@@ -97,10 +219,7 @@ public class ContrabandGUI {
             return;
         }
 
-        ParseContext.Builder parseContextBuilder = ParseContext.builder().player(player);
-        if (category != null) parseContextBuilder.category(category);
-        if (boss != null) parseContextBuilder.boss(boss).prioritizeRaid(false);
-        ParseContext parseContext = parseContextBuilder.build();
+        ParseContext parseContext = ParseContext.builder().player(player).category(category).boss(boss).prioritizeRaid(false).build();
 
         Map<Integer, SimpleGui> pages = new HashMap<>();
         int pageTotal = gui.getPageTotal(displayItems.size(), displayGuiItem.symbol);
@@ -154,7 +273,7 @@ public class ContrabandGUI {
                             .setLore(lore)
                             .setCallback(clickType -> {
                                 pageEntry.getValue().close();
-                                openContrabandGui(player, guiItem, contrabandType, category,boss, pageEntry.getKey() + 1);
+                                openContrabandSubGui(player, guiConfig, guiItem, contrabandType, category,boss, pageEntry.getKey() + 1);
                             })
                             .build();
                     pageEntry.getValue().setSlot(slot, element);
@@ -174,7 +293,7 @@ public class ContrabandGUI {
                             .setLore(lore)
                             .setCallback(clickType -> {
                                 pageEntry.getValue().close();
-                                openContrabandGui(player, guiItem, contrabandType, category, boss, pageEntry.getKey() - 1);
+                                openContrabandSubGui(player, guiConfig, guiItem, contrabandType, category, boss, pageEntry.getKey() - 1);
                             })
                             .build();
                     pageEntry.getValue().setSlot(slot, element);
@@ -191,7 +310,10 @@ public class ContrabandGUI {
                 GuiElement element = new GuiElementBuilder(item)
                         .setName(deserialize(gui.closeItem.itemName, parseContext))
                         .setLore(lore)
-                        .setCallback(clickType -> pageEntry.getValue().close())
+                        .setCallback(clickType -> {
+                            pageEntry.getValue().close();
+                            openContrabandGui(player, guiConfig, category, boss);
+                        })
                         .build();
                 pageEntry.getValue().setSlot(slot, element);
             }

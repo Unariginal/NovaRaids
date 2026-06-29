@@ -28,6 +28,7 @@ public class CronSchedule extends Schedule {
                 .withDayOfWeek()
                     .withIntMapping(7, 0)
                     .supportsHash().supportsL().supportsW().supportsQuestionMark().and()
+                .withYear().and()
                 .withSupportedNicknameDaily()
                 .withSupportedNicknameHourly()
                 .withSupportedNicknameMidnight()

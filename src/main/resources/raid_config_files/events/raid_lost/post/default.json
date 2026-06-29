@@ -1,22 +1,47 @@
 {
   "global": false,
-  "messages": ["%prefix% %boss_name% was not defeated on time!"],
-  "player_commands": [],
-  "global_commands": [],
-  "sounds": [],
-  "particles": [],
-  "effects": [],
-  "titles": [],
-  "molang": [],
-  "discord_webhook": {
-    "embed_title": "Failed To Defeat %boss_name%!",
-    "fields": [
-      {
-        "inline": false,
-        "name": "Dealt %raid_total_damage%/%raid_max_health% damage!",
-        "value": "",
-        "insert_leaderboard_after": false
-      }
-    ]
+  "no_modifier": {
+    "messages": [
+      "%prefix% %boss_name% was not defeated on time!"
+    ],
+    "player_commands": [],
+    "global_commands": [],
+    "sounds": [],
+    "particles": [],
+    "effects": [],
+    "titles": [],
+    "molang": [],
+    "discord_webhook": {
+      "embed_title": "Failed To Defeat %boss_name%!",
+      "fields": [
+        {
+          "inline": false,
+          "name": "Dealt %raid_total_damage%/%raid_max_health% damage!",
+          "value": "",
+          "insert_leaderboard_after": false
+        }
+      ]
+    }
+  },
+  "modifier": {
+    "messages": ["%prefix% %modifier_name% %boss_name% was not defeated on time!"],
+    "player_commands": [],
+    "global_commands": [],
+    "sounds": [],
+    "particles": [],
+    "effects": [],
+    "titles": [],
+    "molang": [],
+    "discord_webhook": {
+      "embed_title": "Failed To Defeat %modifier_name% %boss_name%!",
+      "fields": [
+        {
+          "inline": false,
+          "name": "Dealt %raid_total_damage%/%raid_max_health% damage!",
+          "value": "",
+          "insert_leaderboard_after": false
+        }
+      ]
+    }
   }
 }

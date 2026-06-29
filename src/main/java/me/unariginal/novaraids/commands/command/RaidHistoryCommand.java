@@ -9,7 +9,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 import static me.unariginal.novaraids.config.ConfigManager.RAID_HISTORY;
-import static me.unariginal.novaraids.guis.history.HistoryGUI.openHistoryGui;
+import static me.unariginal.novaraids.guis.history.HistoryGui.openHistoryGui;
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 

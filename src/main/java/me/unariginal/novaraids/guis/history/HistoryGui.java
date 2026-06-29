@@ -21,7 +21,7 @@ import static me.unariginal.novaraids.config.ConfigManager.RAID_HISTORY;
 import static me.unariginal.novaraids.config.ConfigManager.RAID_HISTORY_GUI;
 import static me.unariginal.novaraids.utils.TextUtils.deserialize;
 
-public class HistoryGUI {
+public class HistoryGui {
     public static void openHistoryGui(ServerPlayerEntity player, String categoryId, int page) {
         List<RaidHistory> raidHistoryList = RAID_HISTORY.get(categoryId);
         if (raidHistoryList == null || raidHistoryList.isEmpty()) return;

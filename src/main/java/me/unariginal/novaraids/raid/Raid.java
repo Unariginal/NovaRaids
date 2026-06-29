@@ -63,12 +63,14 @@ public class Raid {
     public Pokemon bossPokemon;
     public final Pokemon bossPokemonUncatchable = new Pokemon();
     public String baseGimmick;
-    public PokemonEntity bossEntity;
+    public UUID bossEntityUuid;
     public final String locationId;
     public final LocationConfig location;
     public final Category category;
     public CategoryModifier modifier = null;
+    @Nullable
     public final UUID startingPlayer;
+    @Nullable
     public final ItemStack startingItem;
 
     public int minPlayers = 0;
@@ -118,7 +120,7 @@ public class Raid {
         this.locationId = locationId;
         this.location = LocationConfig.getLocation(locationId);
         this.startingPlayer = startingPlayer == null ? null : startingPlayer.getUuid();
-        this.startingItem = startingItem == null ? null : startingItem.copyWithCount(1);
+        this.startingItem = startingItem;
 
         category = Category.getCategory(boss.categoryId);
         if (category != null) {
@@ -139,9 +141,10 @@ public class Raid {
     public void stop() {
         phase = RaidPhase.STOPPING;
 
-        if (bossEntity != null && bossEntity.isAlive() && !bossEntity.isRemoved()) {
-            bossEntity.kill();
-        }
+        GlowUtils.removeGlowing(bossPokemonUncatchable, getBossEntity());
+        bossPokemonUncatchable.tryRecallWithAnimation();
+        PokemonEntity bossEntity = getBossEntity();
+        if (bossEntity != null) bossEntity.discard();
 
         endBattles();
 
@@ -175,10 +178,13 @@ public class Raid {
 
         endTime = nr.server.getOverworld().getTime();
         realEndTime = LocalDateTime.now(SCHEDULES.getTimezone());
+        location.setChunksLoaded(false);
     }
 
     public void setupPhase() {
         phase = RaidPhase.SETUP;
+
+        location.setChunksLoaded(true);
 
         bossPokemon = boss.pokemonDetails.createPokemon(modifier);
         bossPokemonUncatchable.copyFrom(bossPokemon);
@@ -199,14 +205,15 @@ public class Raid {
         bossPokemonUncatchable.heal();
         bossPokemonUncatchable.getCustomProperties().add(UncatchableProperty.INSTANCE.uncatchable());
         baseGimmick = boss.pokemonDetails.getRandomGimmick();
-        bossEntity = generateBossEntity();
-        bossEntity.setBodyYaw(location.bossLocation.yaw);
+        bossEntityUuid = generateBossEntity().getUuid();
+        PokemonEntity bossEntity = getBossEntity();
+        if (bossEntity != null) bossEntity.setBodyYaw(location.bossLocation.yaw);
 
         if ((modifier != null && modifier.bossDetailModifiers.glowingOverride) || boss.bossDetails.applyGlowing) {
             if (modifier != null && modifier.bossDetailModifiers.glowColorOverrideToggle) {
-                GlowUtils.applyGlowing(modifier.bossDetailModifiers.glowColorOverride, bossPokemonUncatchable);
+                GlowUtils.applyGlowing(modifier.bossDetailModifiers.glowColorOverride, bossPokemonUncatchable, getBossEntity());
             } else {
-                GlowUtils.applyGlowing(boss.bossDetails.glowColor, bossPokemonUncatchable);
+                GlowUtils.applyGlowing(boss.bossDetails.glowColor, bossPokemonUncatchable, getBossEntity());
             }
         }
 
@@ -252,12 +259,10 @@ public class Raid {
         } else {
             phase = RaidPhase.STOPPING;
             participatingBroadcast(deserialize(MESSAGES.notEnoughPlayers, parseContextBuilder.build()));
-            if (requiresPass) {
-                if (startingItem != null) {
-                    ServerPlayerEntity player = nr.server.getPlayerManager().getPlayer(startingPlayer);
-                    if (player != null) {
-                        player.giveItemStack(startingItem);
-                    }
+            if (startingItem != null && startingPlayer != null) {
+                ServerPlayerEntity player = nr.server.getPlayerManager().getPlayer(startingPlayer);
+                if (player != null) {
+                    player.giveItemStack(startingItem);
                 }
             }
             if (CONFIG.discordWebhook.enabled && webhookID != 0 && CONFIG.discordWebhook.deleteIfNoFightPhase) {
@@ -300,7 +305,9 @@ public class Raid {
 
         endBattles();
 
-        bossEntity.kill();
+        bossPokemonUncatchable.tryRecallWithAnimation();
+        PokemonEntity bossEntity = getBossEntity();
+        if (bossEntity != null) bossEntity.discard();
         showLeaderboard();
         handleRewards();
 
@@ -619,10 +626,9 @@ public class Raid {
 
     public void fixBossPosition() {
         if (phase != RaidPhase.STOPPING && phase != RaidPhase.INIT) {
-            if (bossEntity != null) {
-                if (bossEntity.getPos() != location.bossLocation.getPos()) {
-                    bossEntity.teleport(location.getServerWorld(), location.bossLocation.xPos, location.bossLocation.yPos, location.bossLocation.zPos, null, location.bossLocation.yaw, 0);
-                }
+            PokemonEntity bossEntity = getBossEntity();
+            if (bossEntity != null && bossEntity.getPos() != location.bossLocation.getPos()) {
+                bossEntity.teleport(location.getServerWorld(), location.bossLocation.xPos, location.bossLocation.yPos, location.bossLocation.zPos, null, location.bossLocation.yaw, 0);
             }
         }
     }
@@ -644,6 +650,11 @@ public class Raid {
             entity.setBoundingBox(hitbox);
             return Unit.INSTANCE;
         });
+    }
+
+    @Nullable
+    public PokemonEntity getBossEntity() {
+        return (PokemonEntity) location.getServerWorld().getEntity(bossEntityUuid);
     }
 
     private void endBattles() {
@@ -703,30 +714,17 @@ public class Raid {
     public void removeClone(PokemonEntity clone, boolean fromFlee) {
         if (clone != null) {
             if (clone.isAlive()) {
-                int chunkX = (int) Math.floor(clone.getPos().getX() / 16);
-                int chunkZ = (int) Math.floor(clone.getPos().getZ() / 16);
-                ServerWorld world = nr.server.getOverworld();
-                for (ServerWorld worldLoop : nr.server.getWorlds()) {
-                    if (worldLoop.getRegistryKey().equals(clone.getWorld().getRegistryKey())) {
-                        world = worldLoop;
+                if (!fromFlee) {
+                    if (clone.isBattling() && clone.getBattleId() != null) {
+                        PokemonBattle battle = BattleRegistry.getBattle(clone.getBattleId());
+                        if (battle != null) {
+                            battle.stop();
+                        }
                     }
                 }
 
-                ServerWorld finalWorld = world;
-                nr.server.execute(() -> {
-                    finalWorld.setChunkForced(chunkX, chunkZ, true);
-                    if (!fromFlee) {
-                        if (clone.isBattling() && clone.getBattleId() != null) {
-                            PokemonBattle battle = BattleRegistry.getBattle(clone.getBattleId());
-                            if (battle != null) {
-                                battle.stop();
-                            }
-                        }
-                    }
-
-                    clone.kill();
-                    finalWorld.setChunkForced(chunkX, chunkZ, false);
-                });
+                clone.getPokemon().tryRecallWithAnimation();
+                if (!clone.isRemoved()) clone.discard();
             }
         }
         clones.remove(clone);

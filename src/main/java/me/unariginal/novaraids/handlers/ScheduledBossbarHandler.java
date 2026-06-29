@@ -1,7 +1,10 @@
 package me.unariginal.novaraids.handlers;
 
+import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
+import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.raid.Raid;
 import me.unariginal.novaraids.raid.RaidPhase;
+import me.unariginal.novaraids.utils.GlowUtils;
 import me.unariginal.novaraids.utils.Threading;
 import net.kyori.adventure.bossbar.BossBar;
 
@@ -13,10 +16,10 @@ import java.util.concurrent.ScheduledFuture;
 import static me.unariginal.novaraids.NovaRaids.logInfo;
 import static me.unariginal.novaraids.raid.RaidManager.activeRaids;
 
-public class BossBarHandler {
+public class ScheduledBossbarHandler {
     public ScheduledFuture<?> schedule;
 
-    public BossBarHandler() {
+    public ScheduledBossbarHandler() {
         schedule = Threading.runDelayedTaskAsyncTimer(this::updateBossBars, 2L, 2L);
     }
 
@@ -43,6 +46,22 @@ public class BossBarHandler {
             }
 
             raid.showOverlay(raid.bossbarData);
+
+            NovaRaids.INSTANCE.server.execute(() -> {
+                PokemonEntity bossEntity = raid.getBossEntity();
+                if (bossEntity == null) return;
+
+                if ((raid.modifier != null && raid.modifier.bossDetailModifiers.glowingOverride)
+                        || raid.boss.bossDetails.applyGlowing) {
+
+                    var color = raid.modifier != null
+                            && raid.modifier.bossDetailModifiers.glowColorOverrideToggle
+                            ? raid.modifier.bossDetailModifiers.glowColorOverride
+                            : raid.boss.bossDetails.glowColor;
+
+                    GlowUtils.applyGlowing(color, raid.bossPokemonUncatchable, bossEntity);
+                }
+            });
         }
     }
 }

@@ -4,6 +4,7 @@ import me.unariginal.novaraids.raid.Raid;
 import me.unariginal.novaraids.placeholders.ParseContext;
 import net.kyori.adventure.title.Title;
 import net.minecraft.server.network.ServerPlayerEntity;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
@@ -17,7 +18,7 @@ public class TitleEvent {
     public long stay;
     public long fadeOut;
 
-    public void showTitle(ServerPlayerEntity player, Raid raid, Integer damage) {
+    public void showTitle(ServerPlayerEntity player, Raid raid, @Nullable Integer damage) {
         ParseContext parseContext = ParseContext.builder().player(player).raid(raid).build();
         Title title = Title.title(
                 deserialize(this.title.replaceAll("%damage%", String.valueOf(damage)), parseContext).asComponent(),

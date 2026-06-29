@@ -1,12 +1,29 @@
 {
   "global": true,
-  "messages": ["%prefix% The %boss_name% raid has finished."],
-  "player_commands": [],
-  "global_commands": [],
-  "sounds": [],
-  "particles": [],
-  "effects": [],
-  "titles": [],
-  "molang": [],
-  "discord_webhook": null
+  "no_modifier": {
+    "messages": [
+      "%prefix% The %boss_name% raid has finished."
+    ],
+    "player_commands": [],
+    "global_commands": [],
+    "sounds": [],
+    "particles": [],
+    "effects": [],
+    "titles": [],
+    "molang": [],
+    "discord_webhook": null
+  },
+  "modifier": {
+    "messages": [
+      "%prefix% The %modifier_name% %boss_name% raid has finished."
+    ],
+    "player_commands": [],
+    "global_commands": [],
+    "sounds": [],
+    "particles": [],
+    "effects": [],
+    "titles": [],
+    "molang": [],
+    "discord_webhook": null
+  }
 }

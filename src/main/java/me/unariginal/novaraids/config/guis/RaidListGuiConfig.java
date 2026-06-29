@@ -5,12 +5,12 @@ import me.unariginal.novaraids.data.guis.BaseGUIItem;
 
 import java.util.List;
 
-public class RaidListGUIConfig extends BaseGUI {
+public class RaidListGuiConfig extends BaseGUI {
     public BaseGUIItem joinableRaidItem;
     public BaseGUIItem passRequiredRaidItem;
     public BaseGUIItem inProgressRaidItem;
 
-    public RaidListGUIConfig(
+    public RaidListGuiConfig(
             String guiTitle,
             Boolean useHopperGui,
             int rows,

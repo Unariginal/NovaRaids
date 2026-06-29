@@ -6,7 +6,7 @@ import net.minecraft.item.ItemStack;
 
 import java.util.List;
 
-public class ContrabandGUIConfig extends BaseGUI {
+public class ContrabandGuiConfig extends BaseGUI {
     public PokemonSubGUIItem bannedPokemon;
     public MovesSubGUIItem bannedMoves;
     public AbilitiesSubGUIItem bannedAbilities;
@@ -103,7 +103,7 @@ public class ContrabandGUIConfig extends BaseGUI {
         }
     }
 
-    public ContrabandGUIConfig(
+    public ContrabandGuiConfig(
             String guiTitle,
             Boolean useHopperGui,
             int rows,

@@ -1,5 +1,6 @@
 package me.unariginal.novaraids.handlers.custom;
 
+import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.events.Event;
 import me.unariginal.novaraids.raid.Raid;
@@ -18,6 +19,10 @@ public class RaidEventHandler {
     }
 
     public static void runEvent(Event event, Raid raid, @Nullable Integer damage, @Nullable ServerPlayerEntity eventPlayer) {
+        Event.EventSection eventSection;
+        if (raid.modifier != null) eventSection = event.modifier;
+        else eventSection = event.noModifier;
+
         List<ServerPlayerEntity> players = new ArrayList<>();
         if (event.global) players.addAll(NovaRaids.INSTANCE.server.getPlayerManager().getPlayerList());
         else {
@@ -27,24 +32,26 @@ public class RaidEventHandler {
             });
         }
 
+        PokemonEntity bossEntity = raid.getBossEntity();
+
         players.forEach(player -> {
-            event.sendMessages(player, raid, damage, eventPlayer);
-            event.executeCommands(player, damage);
-            event.applyEffects(player);
-            event.showTitles(player, raid, damage);
-            event.runMolang(player, raid.bossEntity, damage);
+            eventSection.sendMessages(player, raid, damage, eventPlayer);
+            eventSection.executeCommands(player, damage);
+            eventSection.applyEffects(player);
+            eventSection.showTitles(player, raid, damage);
+            eventSection.runMolang(player, bossEntity, damage);
         });
 
-        event.executeCommands(damage);
-        event.playSounds(raid.location);
-        event.spawnParticles(raid.location, raid.bossEntity);
+        eventSection.executeCommands(damage);
+        eventSection.playSounds(raid.location);
+        eventSection.spawnParticles(raid.location, bossEntity);
 
         if (CONFIG.discordWebhook.enabled &&
                 !CONFIG.discordWebhook.blacklistedCategories.contains(raid.category.categoryId) &&
                 !CONFIG.discordWebhook.blacklistedBosses.contains(raid.boss.bossId)) {
-            if (event.discordWebhook != null) {
-                WebhookHandler.sendWebhookEmbed(event.discordWebhook, raid, damage).thenAccept(id -> {
-                    raid.currentWebhookEvent = event.discordWebhook;
+            if (eventSection.discordWebhook != null) {
+                WebhookHandler.sendWebhookEmbed(eventSection.discordWebhook, raid, damage).thenAccept(id -> {
+                    raid.currentWebhookEvent = eventSection.discordWebhook;
                     raid.webhookID = id;
                 });
             }

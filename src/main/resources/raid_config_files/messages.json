@@ -45,7 +45,10 @@
       "not_your_raid_pokeball": "%prefix% That isn't your raid pokeball!",
       "raid_pokeball_outside_raid": "%prefix% You can't use raid pokeballs outside of a raid!",
       "not_catch_phase": "%prefix% You can only use this during the catch phase!",
-      "normal_pokeball": "%prefix% You can only use raid pokeballs in a raid!"
+      "normal_pokeball": "%prefix% You can only use raid pokeballs in a raid!",
+      "no_bosses_available": "%prefix% There are no bosses available!",
+      "boss_doesnt_exist": "%prefix% This boss doesn't exist!",
+      "category_doesnt_exist": "%prefix% This category doesn't exist!"
     }
   },
   "leaderboard": {

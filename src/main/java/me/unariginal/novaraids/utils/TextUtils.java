@@ -6,25 +6,26 @@ import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.config.RaidHistory;
 import me.unariginal.novaraids.data.categories.Category;
 import me.unariginal.novaraids.data.categories.bosses.Boss;
+import me.unariginal.novaraids.data.categories.modifiers.CategoryModifier;
 import me.unariginal.novaraids.data.players.PlayerRaidData;
 import me.unariginal.novaraids.placeholders.ParseContext;
-import me.unariginal.novaraids.placeholders.interfaces.BossPlaceholder;
-import me.unariginal.novaraids.placeholders.interfaces.RaidHistoryPlaceholder;
-import me.unariginal.novaraids.placeholders.interfaces.RaidPlaceholder;
-import me.unariginal.novaraids.placeholders.interfaces.ServerPlaceholder;
+import me.unariginal.novaraids.placeholders.interfaces.*;
 import me.unariginal.novaraids.raid.Raid;
-import me.unariginal.novaraids.raid.RaidManager;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static me.unariginal.novaraids.config.ConfigManager.CONFIG;
 import static me.unariginal.novaraids.placeholders.PlaceholderManager.*;
 
 public class TextUtils {
+    private static final Pattern pattern = Pattern.compile("%([^%]+)%");
     public static final MiniMessage miniMessage = MiniMessage.builder()
             .tags(TagResolver.builder().build())
             .build();
@@ -34,10 +35,6 @@ public class TextUtils {
     }
 
     public static Text deserialize(String text, ParseContext parseContext) {
-
-//        if (!CONFIG.usePlaceholderApi || (!nr.usingPlaceholderAPI && !nr.usingMiniPlaceholders)) {
-//
-//        }
         text = parse(text, parseContext);
         text = "<!i>" + text;
 
@@ -52,32 +49,70 @@ public class TextUtils {
         if (parseContext.getRaid() != null) text = parse(text, parseContext.getRaid());
         Boss boss = parseContext.getBoss();
         if (boss == null && parseContext.getRaid() != null) boss = parseContext.getRaid().boss;
-        if (boss != null) text = parse(text, boss);
+        if (boss != null) text = parse(text, boss, parseContext.prioritizeRaid());
         Category category = parseContext.getCategory();
         if (category == null && parseContext.getRaid() != null) category = parseContext.getRaid().category;
+        if (category == null && boss != null) category = Category.getCategory(boss.categoryId);
         if (category != null) text = parse(text, category);
         if (parseContext.getPlayer() != null) text = parse(text, parseContext.getPlayer());
         if (parseContext.getRaidHistory() != null) text = parse(text, parseContext.getRaidHistory());
         if (parseContext.getPlayerRaidData() != null) text = parse(text, parseContext.getPlayerRaidData());
+        CategoryModifier modifier = parseContext.getModifier();
+        if (modifier == null && parseContext.getRaid() != null) modifier = parseContext.getRaid().modifier;
+        if (modifier != null) text = parse(text, modifier);
         return text;
     }
 
     public static String parse(String text) {
-        for (ServerPlaceholder placeholder : serverPlaceholders) {
-            for (String id : placeholder.id()) {
-                text = text.replaceAll("%" + id + "%", placeholder.handle(List.of()).string);
+        Matcher matcher = pattern.matcher(text);
+        StringBuilder result = new StringBuilder();
+
+        while (matcher.find()) {
+            String content = matcher.group(1);
+
+            String[] parts = content.split(" ");
+            String id = parts[0];
+
+            List<String> args = Arrays.asList(parts).subList(1, parts.length);
+
+            for (ServerPlaceholder placeholder : serverPlaceholders) {
+                if (placeholder.id().contains(id)) {
+                    String replacement = placeholder.handle(args).string;
+                    matcher.appendReplacement(result, Matcher.quoteReplacement(replacement));
+                    break;
+                }
             }
         }
-        return text;
+
+        matcher.appendTail(result);
+
+        return result.toString();
     }
 
     public static String parse(String text, Raid raid) {
-        for (RaidPlaceholder placeholder : raidPlaceholders) {
-            for (String id : placeholder.id()) {
-                text = text.replaceAll("%" + id + "%", placeholder.handle(raid, List.of(String.valueOf(RaidManager.getRaidId(raid.uuid) + 1))).string);
+        Matcher matcher = pattern.matcher(text);
+        StringBuilder result = new StringBuilder();
+
+        while (matcher.find()) {
+            String content = matcher.group(1);
+
+            String[] parts = content.split(" ");
+            String id = parts[0];
+
+            List<String> args = Arrays.asList(parts).subList(1, parts.length);
+
+            for (RaidPlaceholder placeholder : raidPlaceholders) {
+                if (placeholder.id().contains(id)) {
+                    String replacement = placeholder.handle(raid, args).string;
+                    matcher.appendReplacement(result, Matcher.quoteReplacement(replacement));
+                    break;
+                }
             }
         }
-        return text;
+
+        matcher.appendTail(result);
+
+        return result.toString();
     }
 
     // TODO: Create a placeholder type!
@@ -90,13 +125,56 @@ public class TextUtils {
                 .replaceAll("%category.max_players%", String.valueOf(category.raidDetails.maxPlayerCount));
     }
 
-    public static String parse(String text, Boss boss) {
-        for (BossPlaceholder placeholder : bossPlaceholders) {
-            for (String id : placeholder.id()) {
-                text = text.replaceAll("%" + id + "%", placeholder.handle(null, boss, false, List.of()).string);
+    public static String parse(String text, Boss boss, boolean prioritizeRaid) {
+        Matcher matcher = pattern.matcher(text);
+        StringBuilder result = new StringBuilder();
+
+        while (matcher.find()) {
+            String content = matcher.group(1);
+
+            String[] parts = content.split(" ");
+            String id = parts[0];
+
+            List<String> args = Arrays.asList(parts).subList(1, parts.length);
+
+            for (BossPlaceholder placeholder : bossPlaceholders) {
+                if (placeholder.id().contains(id)) {
+                    String replacement = placeholder.handle(null, boss, prioritizeRaid, args).string;
+                    matcher.appendReplacement(result, Matcher.quoteReplacement(replacement));
+                    break;
+                }
             }
         }
-        return text;
+
+        matcher.appendTail(result);
+
+        return result.toString();
+    }
+
+    public static String parse(String text, CategoryModifier modifier) {
+        Matcher matcher = pattern.matcher(text);
+        StringBuilder result = new StringBuilder();
+
+        while (matcher.find()) {
+            String content = matcher.group(1);
+
+            String[] parts = content.split(" ");
+            String id = parts[0];
+
+            List<String> args = Arrays.asList(parts).subList(1, parts.length);
+
+            for (CategoryModifierPlaceholder placeholder : categoryModifierPlaceholders) {
+                if (placeholder.id().contains(id)) {
+                    String replacement = placeholder.handle(modifier, args).string;
+                    matcher.appendReplacement(result, Matcher.quoteReplacement(replacement));
+                    break;
+                }
+            }
+        }
+
+        matcher.appendTail(result);
+
+        return result.toString();
     }
 
     public static String parse(String text, ServerPlayerEntity player) {
@@ -104,12 +182,29 @@ public class TextUtils {
     }
 
     public static String parse(String text, RaidHistory raidHistory) {
-        for (RaidHistoryPlaceholder placeholder : raidHistoryPlaceholders) {
-            for (String id : placeholder.id()) {
-                text = text.replaceAll("%" + id + "%", placeholder.handle(raidHistory, List.of()).string);
+        Matcher matcher = pattern.matcher(text);
+        StringBuilder result = new StringBuilder();
+
+        while (matcher.find()) {
+            String content = matcher.group(1);
+
+            String[] parts = content.split(" ");
+            String id = parts[0];
+
+            List<String> args = Arrays.asList(parts).subList(1, parts.length);
+
+            for (RaidHistoryPlaceholder placeholder : raidHistoryPlaceholders) {
+                if (placeholder.id().contains(id)) {
+                    String replacement = placeholder.handle(raidHistory, args).string;
+                    matcher.appendReplacement(result, Matcher.quoteReplacement(replacement));
+                    break;
+                }
             }
         }
-        return text;
+
+        matcher.appendTail(result);
+
+        return result.toString();
     }
 
     // TODO: Create a placeholder type!

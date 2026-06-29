@@ -32,9 +32,8 @@ public class RewardPresetsConfig {
 
         @Override
         public void grantReward(ServerPlayerEntity player, Boss boss) {
-            if (!player.giveItemStack(item.copyWithCount(new Random().nextInt(minCount, maxCount + 1)))) {
-                player.getInventory().offerOrDrop(item.copyWithCount(new Random().nextInt(minCount, maxCount + 1)));
-            }
+            ItemStack reward = item.copyWithCount(new Random().nextInt(minCount, maxCount + 1));
+            player.getInventory().offerOrDrop(reward);
         }
     }
 

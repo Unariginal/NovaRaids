@@ -1,12 +1,25 @@
 {
   "global": false,
-  "messages": [],
-  "player_commands": [],
-  "global_commands": [],
-  "sounds": [],
-  "particles": [],
-  "effects": [],
-  "titles": [],
-  "molang": [],
-  "discord_webhook": null
+  "no_modifier": {
+    "messages": [],
+    "player_commands": [],
+    "global_commands": [],
+    "sounds": [],
+    "particles": [],
+    "effects": [],
+    "titles": [],
+    "molang": [],
+    "discord_webhook": null
+  },
+  "modifier": {
+    "messages": [],
+    "player_commands": [],
+    "global_commands": [],
+    "sounds": [],
+    "particles": [],
+    "effects": [],
+    "titles": [],
+    "molang": [],
+    "discord_webhook": null
+  }
 }

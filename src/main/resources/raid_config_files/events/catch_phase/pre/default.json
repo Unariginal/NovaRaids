@@ -1,12 +1,27 @@
 {
   "global": false,
-  "messages": ["%prefix% Time to catch %boss_name%!"],
-  "player_commands": [],
-  "global_commands": [],
-  "sounds": [],
-  "particles": [],
-  "effects": [],
-  "titles": [],
-  "molang": [],
-  "discord_webhook": null
+  "no_modifier": {
+    "messages": [
+      "%prefix% Time to catch %boss_name%!"
+    ],
+    "player_commands": [],
+    "global_commands": [],
+    "sounds": [],
+    "particles": [],
+    "effects": [],
+    "titles": [],
+    "molang": [],
+    "discord_webhook": null
+  },
+  "modifier": {
+    "messages": ["%prefix% Time to catch %boss_name%!"],
+    "player_commands": [],
+    "global_commands": [],
+    "sounds": [],
+    "particles": [],
+    "effects": [],
+    "titles": [],
+    "molang": [],
+    "discord_webhook": null
+  }
 }
