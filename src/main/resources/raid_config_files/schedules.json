@@ -21,7 +21,7 @@
     },
     {
       "type": "cron",
-      "expression": "0 30 * ? * *",
+      "expression": "0 30 0 ? * * *",
       "bosses": [
         {
           "type": "category",

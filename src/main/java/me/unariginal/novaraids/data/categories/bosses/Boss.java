@@ -18,7 +18,8 @@ public class Boss {
     public RaidDetails raidDetails;
     public CatchSettings catchSettings;
 
-    public static @Nullable Boss getBoss(String id) {
+    public static @Nullable Boss getBoss(@Nullable String id) {
+        if (id == null) return null;
         return ConfigManager.BOSSES.get(id);
     }
 

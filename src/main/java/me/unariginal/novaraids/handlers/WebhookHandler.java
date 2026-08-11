@@ -16,6 +16,7 @@ import net.minecraft.util.UserCache;
 import java.awt.*;
 import java.net.HttpURLConnection;
 import java.net.URI;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -106,6 +107,7 @@ public class WebhookHandler {
             connection.setRequestMethod("HEAD");
             connection.connect();
             int responseCode = connection.getResponseCode();
+            connection.disconnect();
 
             return responseCode == HttpURLConnection.HTTP_OK;
         } catch (Exception e) {
@@ -182,7 +184,7 @@ public class WebhookHandler {
 
             embedBuilder.addField(new WebhookEmbed.EmbedField(field.inline, fieldName, fieldValue));
             if (field.insertLeaderboardAfter != null && field.insertLeaderboardAfter && event.leaderboardFieldLayout != null) {
-                Map<UUID, Integer> leaderboard = raid.getDamageLeaderboard();
+                LinkedHashMap<UUID, Integer> leaderboard = raid.getDamageLeaderboard();
                 for (int i = 0; i < Math.min(leaderboard.size(), 10); i++) {
                     Map.Entry<UUID, Integer> entry = leaderboard.entrySet().stream().toList().get(i);
                     if (cache != null) {

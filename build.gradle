@@ -53,7 +53,7 @@ dependencies {
 
     // Adventure message handling
     modImplementation include("net.kyori:adventure-text-minimessage:4.17.0")
-    modImplementation include("net.kyori:adventure-platform-fabric:5.14.1")
+    modImplementation include("net.kyori:adventure-platform-fabric:5.14.2")
 
     // Placeholders
     modImplementation("io.github.miniplaceholders:miniplaceholders-api:2.2.3")

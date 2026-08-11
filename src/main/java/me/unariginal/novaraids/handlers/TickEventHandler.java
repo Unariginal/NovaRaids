@@ -15,6 +15,7 @@ import me.unariginal.novaraids.events.RaidEvents;
 import me.unariginal.novaraids.raid.Raid;
 import me.unariginal.novaraids.raid.RaidManager;
 import me.unariginal.novaraids.raid.RaidPhase;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
@@ -32,9 +33,23 @@ import static me.unariginal.novaraids.raid.RaidManager.activeRaids;
 
 public class TickEventHandler {
     private static final NovaRaids nr = NovaRaids.INSTANCE;
-    private static ZonedDateTime setTimeBuffer = ZonedDateTime.now(SCHEDULES.getTimezone());
     private static int webhookUpdateTimer = CONFIG.discordWebhook.updateRateSeconds * 20;
     private static int raidStartTimer = 20;
+
+    public static void register(MinecraftServer ignored) {
+        updateWebhooks();
+        fixBossPositions();
+        handleDefeatedBosses();
+        executeTasks();
+        fixPlayerPositions();
+        fixPlayerPokemon();
+        scheduledRaids();
+        attemptNextRaid();
+
+        for (Raid raid : activeRaids.values()) {
+            raid.removePlayers();
+        }
+    }
 
     public static void attemptNextRaid() {
         raidStartTimer--;
@@ -62,7 +77,10 @@ public class TickEventHandler {
                         continue;
                     }
                     if (raid.phase == RaidPhase.SETUP || raid.phase == RaidPhase.FIGHT) {
-                        WebhookHandler.editWebhookEmbed(raid.currentWebhookEvent, raid, raid.webhookDamage).thenAccept(id -> raid.webhookID = id);
+                        WebhookHandler.editWebhookEmbed(raid.currentWebhookEvent, raid, raid.webhookDamage)
+                                .thenAccept(id -> nr.server.execute(() -> {
+                                    if (id != null) raid.webhookID = id;
+                                }));
                     }
                 }
             }
@@ -90,11 +108,9 @@ public class TickEventHandler {
                     if (player != null) {
                         PokemonBattle battle = BattleRegistry.getBattleByParticipatingPlayer(player);
                         if (battle == null && removable) {
-                            logError("Battle is null. Setting clone to be removed.");
                             toRemove.add(pokemonEntity);
                         }
                     } else if (removable) {
-                        logError("Player is null. Setting clone to be removed.");
                         toRemove.add(pokemonEntity);
                     }
                 }
@@ -270,29 +286,38 @@ public class TickEventHandler {
     }
 
     public static void scheduledRaids() {
-        ZonedDateTime now = ZonedDateTime.now(SCHEDULES.getTimezone());
+        ZonedDateTime now = ZonedDateTime.now(SCHEDULES.zoneId);
         Collection<Schedule> schedules = SCHEDULES.schedules;
         for (Schedule schedule : schedules) {
             boolean shouldExecute = false;
-            if (schedule instanceof SpecificSchedule specificSchedule) {
-                if (setTimeBuffer.until(now, ChronoUnit.SECONDS) >= 1 && specificSchedule.isNextTime()) {
-                    logInfo("Attempting scheduled raid");
-                    setTimeBuffer = now;
-                    shouldExecute = true;
-                }
-            } else if (schedule instanceof RandomSchedule randomSchedule) {
-                if (setTimeBuffer.until(now, ChronoUnit.SECONDS) >= 1 && randomSchedule.isNextTime()) {
-                    logInfo("Attempting random raid");
-                    setTimeBuffer = now;
-                    randomSchedule.setNextRandom(now);
-                    shouldExecute = true;
-                }
-            } else if (schedule instanceof CronSchedule cronSchedule) {
-                if (setTimeBuffer.until(now, ChronoUnit.SECONDS) >= 1 && cronSchedule.isNextTime()) {
-                    logInfo("Attempting cron raid");
-                    setTimeBuffer = now;
-                    cronSchedule.setNextExecution(now);
-                    shouldExecute = true;
+            boolean debounced = schedule.lastAttempt != null && schedule.lastAttempt.until(now, ChronoUnit.SECONDS) < 1;
+            if (!debounced) {
+                switch (schedule) {
+                    case SpecificSchedule specificSchedule -> {
+                        if (specificSchedule.isNextTime()) {
+                            logInfo("Attempting scheduled raid");
+                            schedule.lastAttempt = now;
+                            shouldExecute = true;
+                        }
+                    }
+                    case RandomSchedule randomSchedule -> {
+                        if (randomSchedule.isNextTime()) {
+                            logInfo("Attempting random raid");
+                            schedule.lastAttempt = now;
+                            randomSchedule.setNextRandom(now);
+                            shouldExecute = true;
+                        }
+                    }
+                    case CronSchedule cronSchedule -> {
+                        if (cronSchedule.isNextTime()) {
+                            logInfo("Attempting cron raid");
+                            schedule.lastAttempt = now;
+                            cronSchedule.setNextExecution(now);
+                            shouldExecute = true;
+                        }
+                    }
+                    default -> {
+                    }
                 }
             }
 

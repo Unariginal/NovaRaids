@@ -7,32 +7,33 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.List;
 
-import static com.mojang.text2speech.Narrator.LOGGER;
+import static me.unariginal.novaraids.NovaRaids.LOGGER;
 
 public class SchedulesConfig {
     public String timezone = ZoneId.systemDefault().toString();
     public List<Schedule> schedules = List.of();
+    public transient ZoneId zoneId = getTimezone();
 
     public ZoneId getTimezone() {
-        ZoneId zoneId;
+        ZoneId zone;
         if (ZoneId.getAvailableZoneIds().contains(timezone)) {
-            zoneId = ZoneId.of(timezone);
+            zone = ZoneId.of(timezone);
         } else if (ZoneId.SHORT_IDS.containsKey(timezone.toUpperCase())) {
             String shortID = ZoneId.SHORT_IDS.get(timezone.toUpperCase());
             if (shortID.startsWith("+") || shortID.startsWith("-")) {
-                zoneId = ZoneId.ofOffset("UTC", ZoneOffset.of(ZoneId.SHORT_IDS.get(timezone.toUpperCase())));
+                zone = ZoneId.ofOffset("UTC", ZoneOffset.of(ZoneId.SHORT_IDS.get(timezone.toUpperCase())));
             } else {
-                zoneId = ZoneId.of(shortID);
+                zone = ZoneId.of(shortID);
             }
         } else {
             try {
-                zoneId = ZoneId.of(timezone);
+                zone = ZoneId.of(timezone);
             } catch (DateTimeException e) {
-                zoneId = ZoneId.systemDefault();
+                zone = ZoneId.systemDefault();
                 LOGGER.error("[NovaRaids] Failed to parse timezone id: {}. Using system default.", timezone);
             }
         }
 
-        return zoneId;
+        return zone;
     }
 }

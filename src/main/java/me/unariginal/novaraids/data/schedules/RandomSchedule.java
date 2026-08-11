@@ -16,7 +16,7 @@ public class RandomSchedule extends Schedule {
     }
 
     public boolean isNextTime() {
-        ZonedDateTime now = ZonedDateTime.now(SCHEDULES.getTimezone());
+        ZonedDateTime now = ZonedDateTime.now(SCHEDULES.zoneId);
         if (nextRandom == null) {
             setNextRandom(now);
         }

@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static me.unariginal.novaraids.utils.TextUtils.deserialize;
+import static me.unariginal.novaraids.utils.TextUtils.parse;
 
 public class Event {
     public transient String eventId;
@@ -40,19 +41,19 @@ public class Event {
             }
         }
 
-        public void executeCommands(ServerPlayerEntity player, @Nullable Integer damage) {
+        public void executeCommands(Raid raid, ServerPlayerEntity player, @Nullable Integer damage) {
             CommandManager cmdManager = Objects.requireNonNull(player.getServer()).getCommandManager();
             ServerCommandSource source = player.getServer().getCommandSource();
             for (String command : playerCommands) {
-                cmdManager.executeWithPrefix(source, command.replaceAll("%damage%", String.valueOf(damage)).replaceAll("%player%", player.getNameForScoreboard()));
+                cmdManager.executeWithPrefix(source, parse(command.replaceAll("%damage%", String.valueOf(damage)), ParseContext.builder().raid(raid).player(player).build()));
             }
         }
 
-        public void executeCommands(@Nullable Integer damage) {
+        public void executeCommands(Raid raid, @Nullable Integer damage) {
             CommandManager cmdManager = Objects.requireNonNull(NovaRaids.INSTANCE.server).getCommandManager();
             ServerCommandSource source = NovaRaids.INSTANCE.server.getCommandSource();
             for (String command : globalCommands) {
-                cmdManager.executeWithPrefix(source, command.replaceAll("%damage%", String.valueOf(damage)));
+                cmdManager.executeWithPrefix(source, parse(command.replaceAll("%damage%", String.valueOf(damage)), ParseContext.builder().raid(raid).build()));
             }
         }
 

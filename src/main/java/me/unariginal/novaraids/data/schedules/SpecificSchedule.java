@@ -12,7 +12,7 @@ public class SpecificSchedule extends Schedule {
     public transient List<LocalTime> localTimes = new ArrayList<>();
 
     public boolean isNextTime() {
-        LocalTime now = LocalTime.now(SCHEDULES.getTimezone());
+        LocalTime now = LocalTime.now(SCHEDULES.zoneId);
 
         if (localTimes != null) {
             for (LocalTime time : localTimes) {

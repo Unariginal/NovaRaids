@@ -142,8 +142,8 @@ public class RaidManager {
         return new RaidHistory(
                 uuid.toString(),
                 raid.raidStatus,
-                raid.realStartTime.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withZone(SCHEDULES.getTimezone())),
-                raid.realEndTime.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withZone(SCHEDULES.getTimezone())),
+                raid.realStartTime.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withZone(SCHEDULES.zoneId)),
+                raid.realEndTime.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withZone(SCHEDULES.zoneId)),
                 raid.category.categoryId,
                 raid.category.categoryName,
                 raid.modifier == null ? "No Modifier" : raid.modifier.modifierId,

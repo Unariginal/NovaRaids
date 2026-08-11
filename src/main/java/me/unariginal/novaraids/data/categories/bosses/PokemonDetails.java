@@ -67,12 +67,13 @@ public class PokemonDetails {
         for (WeightedFeature weightedObject : features) {
             totalWeight += weightedObject.weight;
         }
-        if (totalWeight <= 0.0) return "";
-        double randomWeight = new Random().nextDouble(totalWeight);
-        totalWeight = 0.0;
-        for (WeightedFeature weightedObject : features) {
-            totalWeight += weightedObject.weight;
-            if (randomWeight < totalWeight) return weightedObject.feature;
+        if (totalWeight > 0) {
+            double randomWeight = new Random().nextDouble(totalWeight);
+            totalWeight = 0.0;
+            for (WeightedFeature weightedObject : features) {
+                totalWeight += weightedObject.weight;
+                if (randomWeight < totalWeight) return weightedObject.feature;
+            }
         }
         return "";
     }
@@ -82,12 +83,13 @@ public class PokemonDetails {
         for (WeightedAbility weightedObject : abilities) {
             totalWeight += weightedObject.weight;
         }
-        if (totalWeight <= 0.0) return "";
-        double randomWeight = new Random().nextDouble(totalWeight);
-        totalWeight = 0.0;
-        for (WeightedAbility weightedObject : abilities) {
-            totalWeight += weightedObject.weight;
-            if (randomWeight < totalWeight) return weightedObject.ability;
+        if (totalWeight > 0) {
+            double randomWeight = new Random().nextDouble(totalWeight);
+            totalWeight = 0.0;
+            for (WeightedAbility weightedObject : abilities) {
+                totalWeight += weightedObject.weight;
+                if (randomWeight < totalWeight) return weightedObject.ability;
+            }
         }
         return "";
     }
@@ -97,12 +99,13 @@ public class PokemonDetails {
         for (WeightedNature weightedObject : natures) {
             totalWeight += weightedObject.weight;
         }
-        if (totalWeight <= 0.0) return "";
-        double randomWeight = new Random().nextDouble(totalWeight);
-        totalWeight = 0.0;
-        for (WeightedNature weightedObject : natures) {
-            totalWeight += weightedObject.weight;
-            if (randomWeight < totalWeight) return weightedObject.nature;
+        if (totalWeight > 0) {
+            double randomWeight = new Random().nextDouble(totalWeight);
+            totalWeight = 0.0;
+            for (WeightedNature weightedObject : natures) {
+                totalWeight += weightedObject.weight;
+                if (randomWeight < totalWeight) return weightedObject.nature;
+            }
         }
         return "";
     }
@@ -112,12 +115,14 @@ public class PokemonDetails {
         for (WeightedGender weightedObject : genders) {
             totalWeight += weightedObject.weight;
         }
-        if (totalWeight <= 0.0) return "";
-        double randomWeight = new Random().nextDouble(totalWeight);
-        totalWeight = 0.0;
-        for (WeightedGender weightedObject : genders) {
-            totalWeight += weightedObject.weight;
-            if (randomWeight < totalWeight) return weightedObject.gender;
+
+        if (totalWeight > 0) {
+            double randomWeight = new Random().nextDouble(totalWeight);
+            totalWeight = 0.0;
+            for (WeightedGender weightedObject : genders) {
+                totalWeight += weightedObject.weight;
+                if (randomWeight < totalWeight) return weightedObject.gender;
+            }
         }
         return "";
     }
@@ -127,12 +132,13 @@ public class PokemonDetails {
         for (WeightedGimmick weightedObject : gimmicks) {
             totalWeight += weightedObject.weight;
         }
-        if (totalWeight <= 0.0) return "";
-        double randomWeight = new Random().nextDouble(totalWeight);
-        totalWeight = 0.0;
-        for (WeightedGimmick weightedObject : gimmicks) {
-            totalWeight += weightedObject.weight;
-            if (randomWeight < totalWeight) return weightedObject.gimmick;
+        if (totalWeight > 0) {
+            double randomWeight = new Random().nextDouble(totalWeight);
+            totalWeight = 0.0;
+            for (WeightedGimmick weightedObject : gimmicks) {
+                totalWeight += weightedObject.weight;
+                if (randomWeight < totalWeight) return weightedObject.gimmick;
+            }
         }
         return "";
     }
@@ -168,7 +174,7 @@ public class PokemonDetails {
                     + Objects.requireNonNullElse(modifier.bossPokemonModifiers.ivsModifier.get(Stats.DEFENCE), 0));
             finalIvs.set(Stats.SPECIAL_ATTACK, Objects.requireNonNullElse(ivs.get(Stats.SPECIAL_ATTACK), 0)
                     + Objects.requireNonNullElse(modifier.bossPokemonModifiers.ivsModifier.get(Stats.SPECIAL_ATTACK), 0));
-            finalIvs.set(Stats.DEFENCE, Objects.requireNonNullElse(ivs.get(Stats.SPECIAL_DEFENCE), 0)
+            finalIvs.set(Stats.SPECIAL_DEFENCE, Objects.requireNonNullElse(ivs.get(Stats.SPECIAL_DEFENCE), 0)
                     + Objects.requireNonNullElse(modifier.bossPokemonModifiers.ivsModifier.get(Stats.SPECIAL_DEFENCE), 0));
             finalIvs.set(Stats.SPEED, Objects.requireNonNullElse(ivs.get(Stats.SPEED), 0)
                     + Objects.requireNonNullElse(modifier.bossPokemonModifiers.ivsModifier.get(Stats.SPEED), 0));
@@ -189,7 +195,7 @@ public class PokemonDetails {
                     + Objects.requireNonNullElse(modifier.bossPokemonModifiers.evsModifier.get(Stats.DEFENCE), 0));
             finalEvs.set(Stats.SPECIAL_ATTACK, Objects.requireNonNullElse(evs.get(Stats.SPECIAL_ATTACK), 0)
                     + Objects.requireNonNullElse(modifier.bossPokemonModifiers.evsModifier.get(Stats.SPECIAL_ATTACK), 0));
-            finalEvs.set(Stats.DEFENCE, Objects.requireNonNullElse(evs.get(Stats.SPECIAL_DEFENCE), 0)
+            finalEvs.set(Stats.SPECIAL_DEFENCE, Objects.requireNonNullElse(evs.get(Stats.SPECIAL_DEFENCE), 0)
                     + Objects.requireNonNullElse(modifier.bossPokemonModifiers.evsModifier.get(Stats.SPECIAL_DEFENCE), 0));
             finalEvs.set(Stats.SPEED, Objects.requireNonNullElse(evs.get(Stats.SPEED), 0)
                     + Objects.requireNonNullElse(modifier.bossPokemonModifiers.evsModifier.get(Stats.SPEED), 0));

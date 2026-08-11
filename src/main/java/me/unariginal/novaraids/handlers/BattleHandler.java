@@ -46,14 +46,15 @@ public class BattleHandler {
         CatchSettings settings = raid.boss.catchSettings;
         Pokemon pokemon = new Pokemon();
         pokemon.copyFrom(raid.bossPokemon);
+        pokemon.setUuid(UUID.randomUUID());
 
         NbtCompound data = new NbtCompound();
         data.putBoolean("raid_entity", true);
         data.putBoolean("boss_clone", true);
         data.putBoolean("catch_encounter", true);
-        NbtCompound persistentData = new NbtCompound();
-        persistentData.put("raid_data", data);
-        pokemon.setPersistentData$common(persistentData);
+        NbtCompound catchPersistentData = new NbtCompound();
+        catchPersistentData.put("raid_data", data);
+        pokemon.setPersistentData$common(catchPersistentData);
 
         if (!settings.speciesOverride.equalsIgnoreCase(raid.boss.pokemonDetails.species)) {
             Species species = PokemonSpecies.getByName(settings.speciesOverride);
@@ -92,13 +93,6 @@ public class BattleHandler {
         } else {
             for (Map.Entry<? extends Stat, ? extends Integer> ev : pokemon.getEvs()) {
                 pokemon.setEV(ev.getKey(), 0);
-            }
-        }
-
-        if (settings.randomizeIvs) {
-            IVs new_ivs = IVs.createRandomIVs(minPerfectIvs);
-            for (Map.Entry<? extends Stat, ? extends Integer> iv : new_ivs) {
-                pokemon.setIV(iv.getKey(), iv.getValue());
             }
         }
 
@@ -160,17 +154,25 @@ public class BattleHandler {
             return Unit.INSTANCE;
         });
 
+        if (settings.randomizeIvs) {
+            IVs randomIvs = IVs.createRandomIVs(minPerfectIvs);
+            for (Map.Entry<? extends Stat, ? extends Integer> iv : randomIvs) {
+                pokemon.setIV(iv.getKey(), iv.getValue());
+            }
+        }
+
         PartyStore party = Cobblemon.INSTANCE.getStorage().getParty(player);
 
         if (bossClone != null) {
             raid.addClone(bossClone, player);
-            pveOverride(player, bossClone, null, BattleFormat.Companion.getGEN_9_SINGLES(), false, raid.boss.raidDetails.healPartyOnChallenge, Cobblemon.config.getDefaultFleeDistance(), party, raid.boss.bossDetails.aiSkillLevel + (raid.modifier == null ? 0 : raid.modifier.bossDetailModifiers.skillLevelOffset));
+            skilledPvE(player, bossClone, null, BattleFormat.Companion.getGEN_9_SINGLES(), false, raid.boss.raidDetails.healPartyOnChallenge, Cobblemon.config.getDefaultFleeDistance(), party, raid.boss.bossDetails.aiSkillLevel + (raid.modifier == null ? 0 : raid.modifier.bossDetailModifiers.skillLevelOffset));
         }
     }
 
     public static void invokeBattle(Raid raid, ServerPlayerEntity player) {
         Pokemon pokemon = new Pokemon();
         pokemon.copyFrom(raid.bossPokemonUncatchable);
+        pokemon.setUuid(UUID.randomUUID());
         if (!raid.boss.bossDetails.rerollFeaturesEachBattle) PokemonProperties.Companion.parse(raid.boss.pokemonDetails.getRandomFeature());
 
         if (raid.boss.pokemonDetails.level > 100) {
@@ -193,9 +195,9 @@ public class BattleHandler {
         data.putBoolean("raid_entity", true);
         data.putBoolean("boss_clone", true);
         data.putBoolean("battle_clone", true);
-        NbtCompound persistentData = new NbtCompound();
-        persistentData.put("raid_data", data);
-        pokemon.setPersistentData$common(persistentData);
+        NbtCompound battlePersistentData = new NbtCompound();
+        battlePersistentData.put("raid_data", data);
+        pokemon.setPersistentData$common(battlePersistentData);
 
         pokemon.setShiny(false);
         pokemon.setScaleModifier(0.1f);
@@ -209,15 +211,28 @@ public class BattleHandler {
             return Unit.INSTANCE;
         });
 
-        PartyStore party = Cobblemon.INSTANCE.getStorage().getParty(player);
-
         if (bossClone != null) {
             raid.addClone(bossClone, player);
-            pveOverride(player, bossClone, null, BattleFormat.Companion.getGEN_9_SINGLES(), false, raid.boss.raidDetails.healPartyOnChallenge, raid.location.borderRadius * 2, party, raid.boss.bossDetails.aiSkillLevel + (raid.modifier == null ? 0 : raid.modifier.bossDetailModifiers.skillLevelOffset));
+            PartyStore party = Cobblemon.INSTANCE.getStorage().getParty(player);
+            skilledPvE(
+                    player,
+                    bossClone,
+                    null,
+                    BattleFormat.Companion.getGEN_9_SINGLES(),
+                    false,
+                    raid.boss.raidDetails.healPartyOnChallenge,
+                    raid.location.borderRadius * 2,
+                    party,
+                    raid.boss.bossDetails.aiSkillLevel + (raid.modifier == null ? 0 : raid.modifier.bossDetailModifiers.skillLevelOffset)
+            ).ifErrored(error -> {
+                pokemon.tryRecallWithAnimation();
+                raid.removeClone(bossClone, false);
+                return Unit.INSTANCE;
+            });
         }
     }
 
-    private static void pveOverride(ServerPlayerEntity player, PokemonEntity pokemonEntity, @Nullable UUID leadingPokemon, BattleFormat battleFormat, boolean cloneParties, boolean healFirst, float fleeDistance, PartyStore party, int skill) {
+    private static BattleStartResult skilledPvE(ServerPlayerEntity player, PokemonEntity pokemonEntity, @Nullable UUID leadingPokemon, BattleFormat battleFormat, boolean cloneParties, boolean healFirst, float fleeDistance, PartyStore party, int skill) {
         List<BattlePokemon> playerTeam = party.toBattleTeam(cloneParties, healFirst, leadingPokemon);
         playerTeam.sort((pokemon1, pokemon2) -> Boolean.compare(pokemon1.getHealth() <= 0, pokemon2.getHealth() <= 0));
         PlayerBattleActor playerActor = new PlayerBattleActor(player.getUuid(), playerTeam);
@@ -271,10 +286,12 @@ public class BattleHandler {
         }
 
         if (errors.isEmpty()) {
-            BattleRegistry.startBattle(battleFormat, new BattleSide(playerActor), new BattleSide(wildActor), true).ifSuccessful(pokemonBattle -> {
+            return BattleRegistry.startBattle(battleFormat, new BattleSide(playerActor), new BattleSide(wildActor), true).ifSuccessful(pokemonBattle -> {
                 if (!cloneParties) pokemonEntity.setBattleId(pokemonBattle.getBattleId());
                 return Unit.INSTANCE;
             });
+        } else {
+            return errors;
         }
     }
 }

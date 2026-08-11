@@ -86,7 +86,6 @@ public class ConfigManager {
         fillMissingWithDefaults("guis/raid_pass.json", null, false);
         fillMissingWithDefaults("guis/raid_voucher.json", null, false);
         fillMissingWithDefaults("guis/raid_history.json", null, false);
-        fillMissingWithDefaults("guis/raid_rewards.json", null, false);
 
         CONFIG = loadFile("config.json", Config.class);
         SCHEDULES = loadFile("schedules.json", SchedulesConfig.class);
@@ -96,6 +95,7 @@ public class ConfigManager {
                     specificSchedule.fillLocalTimes();
                 }
             });
+            SCHEDULES.zoneId = SCHEDULES.getTimezone();
         }
         MESSAGES = loadFile("messages.json", MessagesConfig.class);
 
@@ -247,7 +247,6 @@ public class ConfigManager {
         generateDefaultFile("guis/raid_queue.json");
         generateDefaultFile("guis/raid_pass.json");
         generateDefaultFile("guis/raid_voucher.json");
-        generateDefaultFile("guis/raid_rewards.json");
         generateDefaultFile("persistent/queue.json");
 
         File categoriesFolder = new File(configDir, "categories");
@@ -430,10 +429,13 @@ public class ConfigManager {
             if (defaultFileName == null) defaultFileName = fileName;
             InputStream in = NovaRaids.class.getResourceAsStream("/raid_config_files/" + defaultFileName);
             assert in != null;
+            FileReader fileReader = new FileReader(file);
             JsonObject defaultJson = JsonParser.parseReader(new InputStreamReader(in)).getAsJsonObject();
-            JsonObject targetJson = JsonParser.parseReader(new FileReader(file)).getAsJsonObject();
+            JsonObject targetJson = JsonParser.parseReader(fileReader).getAsJsonObject();
             mergeJsonObjects(targetJson, defaultJson, isMapFile);
             writeFile(file, gson.toJson(targetJson));
+            in.close();
+            fileReader.close();
         } catch (IOException e) {
             LOGGER.error("[NovaRaids] Failed to parse json for filling defaults.", e);
         }
@@ -485,10 +487,8 @@ public class ConfigManager {
     }
 
     public static void writeFile(File file, String content) {
-        try {
-            FileWriter writer = new FileWriter(file);
+        try (FileWriter writer = new FileWriter(file)) {
             writer.write(content);
-            writer.flush();
         } catch (IOException e) {
             LOGGER.error("[NovaRaids] Failed to write to file {}", file.getName(), e);
         }

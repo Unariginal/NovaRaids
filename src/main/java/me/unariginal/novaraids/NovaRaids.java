@@ -43,8 +43,8 @@ public class NovaRaids implements ModInitializer {
         CommandRegistrationCallback.EVENT.register(RaidCommands::register);
 
         ServerLifecycleEvents.SERVER_STARTING.register(server -> {
-            this.audience = FabricServerAudiences.of(server);
             this.server = server;
+            this.audience = FabricServerAudiences.of(server);
 
             reloadConfig();
             loadQueue();
@@ -53,6 +53,9 @@ public class NovaRaids implements ModInitializer {
         });
 
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            CobblemonEventHandler.register();
+            new ScheduledBossbarHandler();
+
             while (PERSISTENT_QUEUE.queue.peek() != null) {
                 PersistentQueue.QueueItemData queueItemData = PERSISTENT_QUEUE.queue.remove();
                 if (!RaidManager.queueRaid(queueItemData)) {
@@ -61,27 +64,8 @@ public class NovaRaids implements ModInitializer {
             }
         });
 
-        // Set up event handlers and configuration at server load
-        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
-            CobblemonEventHandler.initialiseEvents();
-            new ScheduledBossbarHandler();
-        });
-
         // Server tick loop
-        ServerTickEvents.END_SERVER_TICK.register(server -> {
-            TickEventHandler.updateWebhooks();
-            TickEventHandler.fixBossPositions();
-            TickEventHandler.handleDefeatedBosses();
-            TickEventHandler.executeTasks();
-            TickEventHandler.fixPlayerPositions();
-            TickEventHandler.fixPlayerPokemon();
-            TickEventHandler.scheduledRaids();
-            TickEventHandler.attemptNextRaid();
-
-            for (Raid raid : activeRaids.values()) {
-                raid.removePlayers();
-            }
-        });
+        ServerTickEvents.END_SERVER_TICK.register(TickEventHandler::register);
 
         // Clean up at server stop
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {

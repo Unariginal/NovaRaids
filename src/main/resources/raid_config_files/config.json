@@ -15,6 +15,7 @@
     "allow_experience_gain": false,
     "automatic_battles": false,
     "automatic_battle_delay": 2,
+    "disable_contraband_in_catch_phase": false,
     "global_contraband": {
       "banned_pokemon": ["weedle", "caterpie"],
       "banned_moves": ["tackle", "bite"],

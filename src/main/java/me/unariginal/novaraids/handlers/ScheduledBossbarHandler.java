@@ -24,6 +24,16 @@ public class ScheduledBossbarHandler {
     }
 
     public void updateBossBars() {
+        NovaRaids.INSTANCE.server.execute(() -> {
+            try {
+                updateBossBarsOnServerThread();
+            } catch (Throwable throwable) {
+                NovaRaids.LOGGER.error("[NovaRaids] Error updating bossbars", throwable);
+            }
+        });
+    }
+
+    public void updateBossBarsOnServerThread() {
         Collection<Raid> raids = activeRaids.values();
 
         for (Raid raid : raids) {
@@ -47,21 +57,19 @@ public class ScheduledBossbarHandler {
 
             raid.showOverlay(raid.bossbarData);
 
-            NovaRaids.INSTANCE.server.execute(() -> {
-                PokemonEntity bossEntity = raid.getBossEntity();
-                if (bossEntity == null) return;
+            PokemonEntity bossEntity = raid.getBossEntity();
+            if (bossEntity == null) return;
 
-                if ((raid.modifier != null && raid.modifier.bossDetailModifiers.glowingOverride)
-                        || raid.boss.bossDetails.applyGlowing) {
+            if ((raid.modifier != null && raid.modifier.bossDetailModifiers.glowingOverride)
+                    || raid.boss.bossDetails.applyGlowing) {
 
-                    var color = raid.modifier != null
-                            && raid.modifier.bossDetailModifiers.glowColorOverrideToggle
-                            ? raid.modifier.bossDetailModifiers.glowColorOverride
-                            : raid.boss.bossDetails.glowColor;
+                var color = raid.modifier != null
+                        && raid.modifier.bossDetailModifiers.glowColorOverrideToggle
+                        ? raid.modifier.bossDetailModifiers.glowColorOverride
+                        : raid.boss.bossDetails.glowColor;
 
-                    GlowUtils.applyGlowing(color, raid.bossPokemonUncatchable, bossEntity);
-                }
-            });
+                GlowUtils.applyGlowing(color, raid.bossPokemonUncatchable, bossEntity);
+            }
         }
     }
 }

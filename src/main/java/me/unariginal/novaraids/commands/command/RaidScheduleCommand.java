@@ -33,7 +33,7 @@ public class RaidScheduleCommand {
                 List<LocalTime> closestTimes = new ArrayList<>();
 
                 for (int i = 0; i < specificSchedule.localTimes.size(); i++) {
-                    LocalTime now = LocalTime.now(SCHEDULES.getTimezone());
+                    LocalTime now = LocalTime.now(SCHEDULES.zoneId);
                     LocalTime closestTime = null;
                     for (LocalTime time : specificSchedule.localTimes) {
                         if (time.isAfter(now) || time.equals(now)) {
@@ -63,10 +63,10 @@ public class RaidScheduleCommand {
                 }
             } else if (schedule instanceof RandomSchedule randomSchedule) {
                 ctx.getSource().sendMessage(deserialize("<red>Random Schedule (<i>" + randomSchedule.minSeconds + "s - " + randomSchedule.maxSeconds + "s<!i>) Next Raid:"));
-                ctx.getSource().sendMessage(deserialize("<gray><i> - " + randomSchedule.nextRandom.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withZone(SCHEDULES.getTimezone()))));
+                ctx.getSource().sendMessage(deserialize("<gray><i> - " + randomSchedule.nextRandom.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withZone(SCHEDULES.zoneId))));
             } else if (schedule instanceof CronSchedule cronSchedule) {
                 ctx.getSource().sendMessage(deserialize("<red>Cron Schedule (<i>" + cronSchedule.expression + "<!i>) Next Raid:"));
-                ctx.getSource().sendMessage(deserialize("<gray><i> - " + cronSchedule.nextExecution.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withZone(SCHEDULES.getTimezone()))));
+                ctx.getSource().sendMessage(deserialize("<gray><i> - " + cronSchedule.nextExecution.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withZone(SCHEDULES.zoneId))));
             }
             ctx.getSource().sendMessage(deserialize(""));
         }

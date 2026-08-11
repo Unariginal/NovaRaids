@@ -1,10 +1,9 @@
 package me.unariginal.novaraids.data.schedules;
 
 import com.cronutils.model.Cron;
-import com.cronutils.model.definition.CronDefinition;
 import com.cronutils.model.definition.CronDefinitionBuilder;
 import com.cronutils.model.time.ExecutionTime;
-import com.cronutils.parser.CronParser;
+import me.unariginal.novaraids.utils.CronParser;
 
 import java.time.ZonedDateTime;
 import java.util.NoSuchElementException;
@@ -16,28 +15,29 @@ import static me.unariginal.novaraids.config.ConfigManager.SCHEDULES;
 public class CronSchedule extends Schedule {
     public String expression;
     public transient ZonedDateTime nextExecution;
-
-    public void setNextExecution(ZonedDateTime date) throws NoSuchElementException, IllegalArgumentException {
-        CronDefinition cronDefinition = CronDefinitionBuilder.defineCron()
-                .withSeconds().and()
-                .withMinutes().and()
-                .withHours().and()
-                .withDayOfMonth()
+    private final CronParser cronParser = new CronParser(
+            CronDefinitionBuilder.defineCron()
+                    .withSeconds().and()
+                    .withMinutes().and()
+                    .withHours().and()
+                    .withDayOfMonth()
                     .supportsHash().supportsL().supportsW().supportsQuestionMark().and()
-                .withMonth().and()
-                .withDayOfWeek()
+                    .withMonth().and()
+                    .withDayOfWeek()
                     .withIntMapping(7, 0)
                     .supportsHash().supportsL().supportsW().supportsQuestionMark().and()
-                .withYear().and()
-                .withSupportedNicknameDaily()
-                .withSupportedNicknameHourly()
-                .withSupportedNicknameMidnight()
-                .withSupportedNicknameMonthly()
-                .withSupportedNicknameWeekly()
-                .withSupportedNicknameAnnually()
-                .withSupportedNicknameYearly()
-                .instance();
-        CronParser cronParser = new CronParser(cronDefinition);
+                    .withYear().and()
+                    .withSupportedNicknameDaily()
+                    .withSupportedNicknameHourly()
+                    .withSupportedNicknameMidnight()
+                    .withSupportedNicknameMonthly()
+                    .withSupportedNicknameWeekly()
+                    .withSupportedNicknameAnnually()
+                    .withSupportedNicknameYearly()
+                    .instance()
+    );
+
+    public void setNextExecution(ZonedDateTime date) throws NoSuchElementException, IllegalArgumentException {
         try {
             Cron cron = cronParser.parse(expression);
             ExecutionTime executionTime = ExecutionTime.forCron(cron);
@@ -56,7 +56,7 @@ public class CronSchedule extends Schedule {
     }
 
     public boolean isNextTime() {
-        ZonedDateTime now = ZonedDateTime.now(SCHEDULES.getTimezone());
+        ZonedDateTime now = ZonedDateTime.now(SCHEDULES.zoneId);
         if (nextExecution == null) {
             setNextExecution(now);
         }

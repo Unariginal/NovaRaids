@@ -118,11 +118,11 @@ public class TextUtils {
     // TODO: Create a placeholder type!
     public static String parse(String text, Category category) {
         return text
-                .replaceAll("%category%", category.categoryName)
-                .replaceAll("%category.id%", category.categoryId)
-                .replaceAll("%category.pass_required%", String.valueOf(category.raidDetails.requirePass))
-                .replaceAll("%category.min_players%", String.valueOf(category.raidDetails.minPlayerCount))
-                .replaceAll("%category.max_players%", String.valueOf(category.raidDetails.maxPlayerCount));
+                .replace("%category%", category.categoryName)
+                .replace("%category.id%", category.categoryId)
+                .replace("%category.pass_required%", String.valueOf(category.raidDetails.requirePass))
+                .replace("%category.min_players%", String.valueOf(category.raidDetails.minPlayerCount))
+                .replace("%category.max_players%", String.valueOf(category.raidDetails.maxPlayerCount));
     }
 
     public static String parse(String text, Boss boss, boolean prioritizeRaid) {
@@ -210,28 +210,28 @@ public class TextUtils {
     // TODO: Create a placeholder type!
     public static String parse(String text, PlayerRaidData playerRaidData) {
         return text
-                .replaceAll("%player_uuid%", playerRaidData.uuid)
-                .replaceAll("%player%", playerRaidData.username)
-                .replaceAll("%placement%", String.valueOf(playerRaidData.leaderboardPlacement))
-                .replaceAll("%damage%", String.valueOf(playerRaidData.totalDamage))
-                .replaceAll("%left_raid%", String.valueOf(playerRaidData.leftRaid))
-                .replaceAll("%battle_count%", String.valueOf(playerRaidData.battleAttempts.size()))
-                .replaceAll("%caught_boss%", String.valueOf(playerRaidData.catchResult.caught))
-                .replaceAll("%caught_species%", playerRaidData.catchResult.species)
-                .replaceAll("%caught_form%", playerRaidData.catchResult.formId)
-                .replaceAll("%caught_hp_iv%", String.valueOf(playerRaidData.catchResult.ivs.get(Stats.HP)))
-                .replaceAll("%caught_attack_iv%", String.valueOf(playerRaidData.catchResult.ivs.get(Stats.ATTACK)))
-                .replaceAll("%caught_defence_iv%", String.valueOf(playerRaidData.catchResult.ivs.get(Stats.DEFENCE)))
-                .replaceAll("%caught_special_attack_iv%", String.valueOf(playerRaidData.catchResult.ivs.get(Stats.SPECIAL_ATTACK)))
-                .replaceAll("%caught_special_defence_iv%", String.valueOf(playerRaidData.catchResult.ivs.get(Stats.SPECIAL_DEFENCE)))
-                .replaceAll("%caught_speed_iv%", String.valueOf(playerRaidData.catchResult.ivs.get(Stats.SPEED)))
-                .replaceAll("%caught_hp_ev%", String.valueOf(playerRaidData.catchResult.evs.get(Stats.HP)))
-                .replaceAll("%caught_attack_ev%", String.valueOf(playerRaidData.catchResult.evs.get(Stats.ATTACK)))
-                .replaceAll("%caught_defence_ev%", String.valueOf(playerRaidData.catchResult.evs.get(Stats.DEFENCE)))
-                .replaceAll("%caught_special_attack_ev%", String.valueOf(playerRaidData.catchResult.evs.get(Stats.SPECIAL_ATTACK)))
-                .replaceAll("%caught_special_defence_ev%", String.valueOf(playerRaidData.catchResult.evs.get(Stats.SPECIAL_DEFENCE)))
-                .replaceAll("%caught_speed_ev%", String.valueOf(playerRaidData.catchResult.evs.get(Stats.SPEED)))
-                .replaceAll("%caught_shiny%", String.valueOf(playerRaidData.catchResult.shiny));
+                .replace("%player_uuid%", playerRaidData.uuid)
+                .replace("%player%", playerRaidData.username)
+                .replace("%placement%", String.valueOf(playerRaidData.leaderboardPlacement))
+                .replace("%damage%", String.valueOf(playerRaidData.totalDamage))
+                .replace("%left_raid%", String.valueOf(playerRaidData.leftRaid))
+                .replace("%battle_count%", String.valueOf(playerRaidData.battleAttempts.size()))
+                .replace("%caught_boss%", String.valueOf(playerRaidData.catchResult.caught))
+                .replace("%caught_species%", playerRaidData.catchResult.species)
+                .replace("%caught_form%", playerRaidData.catchResult.formId)
+                .replace("%caught_hp_iv%", String.valueOf(playerRaidData.catchResult.ivs.get(Stats.HP)))
+                .replace("%caught_attack_iv%", String.valueOf(playerRaidData.catchResult.ivs.get(Stats.ATTACK)))
+                .replace("%caught_defence_iv%", String.valueOf(playerRaidData.catchResult.ivs.get(Stats.DEFENCE)))
+                .replace("%caught_special_attack_iv%", String.valueOf(playerRaidData.catchResult.ivs.get(Stats.SPECIAL_ATTACK)))
+                .replace("%caught_special_defence_iv%", String.valueOf(playerRaidData.catchResult.ivs.get(Stats.SPECIAL_DEFENCE)))
+                .replace("%caught_speed_iv%", String.valueOf(playerRaidData.catchResult.ivs.get(Stats.SPEED)))
+                .replace("%caught_hp_ev%", String.valueOf(playerRaidData.catchResult.evs.get(Stats.HP)))
+                .replace("%caught_attack_ev%", String.valueOf(playerRaidData.catchResult.evs.get(Stats.ATTACK)))
+                .replace("%caught_defence_ev%", String.valueOf(playerRaidData.catchResult.evs.get(Stats.DEFENCE)))
+                .replace("%caught_special_attack_ev%", String.valueOf(playerRaidData.catchResult.evs.get(Stats.SPECIAL_ATTACK)))
+                .replace("%caught_special_defence_ev%", String.valueOf(playerRaidData.catchResult.evs.get(Stats.SPECIAL_DEFENCE)))
+                .replace("%caught_speed_ev%", String.valueOf(playerRaidData.catchResult.evs.get(Stats.SPEED)))
+                .replace("%caught_shiny%", String.valueOf(playerRaidData.catchResult.shiny));
     }
 
     // This is the only parse that's out in the wild, damage parsing. Todo: Add damage to ParsingContext
@@ -242,10 +242,10 @@ public class TextUtils {
 
     public static String parse(String text, GameProfile player, int damage, int place) {
         return text
-                .replaceAll("%place%", String.valueOf(place))
-                .replaceAll("%ordinal%", (String.valueOf(place).endsWith("1") ? "st" : (String.valueOf(place).endsWith("2") ? "nd" : (String.valueOf(place).endsWith("3") ? "rd" : "th"))))
-                .replaceAll("%player%", player.getName())
-                .replaceAll("%damage%", String.valueOf(damage));
+                .replace("%place%", String.valueOf(place))
+                .replace("%ordinal%", (String.valueOf(place).endsWith("1") ? "st" : (String.valueOf(place).endsWith("2") ? "nd" : (String.valueOf(place).endsWith("3") ? "rd" : "th"))))
+                .replace("%player%", player.getName())
+                .replace("%damage%", String.valueOf(damage));
     }
 
     public static String hms(long rawTime) {

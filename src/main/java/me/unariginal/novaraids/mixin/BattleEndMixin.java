@@ -119,6 +119,7 @@ public class BattleEndMixin {
                     );
                 }
             }
+            raid.removePlayer(player);
         }
     }
 }

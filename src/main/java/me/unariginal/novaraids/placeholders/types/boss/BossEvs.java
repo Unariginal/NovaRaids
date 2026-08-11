@@ -1,5 +1,6 @@
 package me.unariginal.novaraids.placeholders.types.boss;
 
+import com.cobblemon.mod.common.api.pokemon.stats.Stat;
 import com.cobblemon.mod.common.api.pokemon.stats.Stats;
 import me.unariginal.novaraids.data.categories.bosses.Boss;
 import me.unariginal.novaraids.placeholders.interfaces.BossPlaceholder;
@@ -16,14 +17,18 @@ public class BossEvs implements BossPlaceholder {
     public GenericResult handle(@Nullable Raid raid, @Nullable Boss boss, Boolean prioritizeRaid, List<String> args) {
         if (prioritizeRaid || boss == null) {
             if (raid == null) {
-                String stat;
+                String statStr;
                 if (args.size() < 2) return GenericResult.invalid("Invalid stat key");
 
-                stat = args.get(1);
+                statStr = args.get(1);
                 raid = getRaid(args);
                 if (raid == null) {
                     if (boss != null) {
-                        Integer ev = boss.pokemonDetails.evs.get(Stats.valueOf(stat.toUpperCase()));
+                        Stat stat = Stats.Companion.getStat(statStr);
+                        if (Stats.Companion.getPERMANENT().stream().noneMatch(perm -> perm.getShowdownId().equalsIgnoreCase(stat.getShowdownId()))) {
+                            return GenericResult.invalid("Invalid stat key");
+                        }
+                        Integer ev = boss.pokemonDetails.evs.get(stat);
                         if (ev == null) return GenericResult.invalid("Invalid stat key");
 
                         return GenericResult.valid(ev);
@@ -32,9 +37,13 @@ public class BossEvs implements BossPlaceholder {
                 }
             }
             if (args.isEmpty()) return GenericResult.invalid("Invalid stat key");
-            String stat = args.getFirst();
+            String statStr = args.getFirst();
 
-            Integer ev = raid.bossPokemon.getEvs().get(Stats.valueOf(stat.toUpperCase()));
+            Stat stat = Stats.Companion.getStat(statStr);
+            if (Stats.Companion.getPERMANENT().stream().noneMatch(perm -> perm.getShowdownId().equalsIgnoreCase(stat.getShowdownId()))) {
+                return GenericResult.invalid("Invalid stat key");
+            }
+            Integer ev = raid.bossPokemon.getEvs().get(stat);
             if (ev == null) return GenericResult.invalid("Invalid stat key");
 
             return GenericResult.valid(ev);

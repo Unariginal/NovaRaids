@@ -36,13 +36,13 @@ public class RaidEventHandler {
 
         players.forEach(player -> {
             eventSection.sendMessages(player, raid, damage, eventPlayer);
-            eventSection.executeCommands(player, damage);
+            eventSection.executeCommands(raid, player, damage);
             eventSection.applyEffects(player);
             eventSection.showTitles(player, raid, damage);
             eventSection.runMolang(player, bossEntity, damage);
         });
 
-        eventSection.executeCommands(damage);
+        eventSection.executeCommands(raid, damage);
         eventSection.playSounds(raid.location);
         eventSection.spawnParticles(raid.location, bossEntity);
 
@@ -50,10 +50,11 @@ public class RaidEventHandler {
                 !CONFIG.discordWebhook.blacklistedCategories.contains(raid.category.categoryId) &&
                 !CONFIG.discordWebhook.blacklistedBosses.contains(raid.boss.bossId)) {
             if (eventSection.discordWebhook != null) {
-                WebhookHandler.sendWebhookEmbed(eventSection.discordWebhook, raid, damage).thenAccept(id -> {
-                    raid.currentWebhookEvent = eventSection.discordWebhook;
-                    raid.webhookID = id;
-                });
+                WebhookHandler.sendWebhookEmbed(eventSection.discordWebhook, raid, damage)
+                        .thenAccept(id -> NovaRaids.INSTANCE.server.execute(() -> {
+                            raid.currentWebhookEvent = eventSection.discordWebhook;
+                            if (id != null) raid.webhookID = id;
+                        }));
             }
         }
     }

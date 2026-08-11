@@ -31,6 +31,7 @@ public class Config {
         public boolean allowExperienceGain = false;
         public boolean automaticBattles = false;
         public int automaticBattleDelay = 2;
+        public boolean disableContrabandInCatchPhase = false;
         public Contraband globalContraband;
     }
 

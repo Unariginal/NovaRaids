@@ -21,6 +21,7 @@ import me.unariginal.novaraids.utils.TextUtils;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -48,16 +49,20 @@ public class RaidTestRewardsCommand {
                                 })
                                 .then(argument("placement", IntegerArgumentType.integer())
                                         .then(argument("total_players", IntegerArgumentType.integer())
-                                                .executes(ctx -> execute(
-                                                        ctx.getSource().getPlayer(),
-                                                        Boss.getBoss(StringArgumentType.getString(ctx, "boss")),
-                                                        CategoryModifier.getModifier(StringArgumentType.getString(ctx, "modifier")),
-                                                        IntegerArgumentType.getInteger(ctx, "placement"),
-                                                        IntegerArgumentType.getInteger(ctx, "total_players")
-                                                ))))));
+                                                .executes(ctx -> {
+                                                    Boss boss = Boss.getBoss(StringArgumentType.getString(ctx, "boss"));
+                                                    if (boss == null) return 0;
+                                                    return execute(
+                                                            ctx.getSource().getPlayer(),
+                                                            boss,
+                                                            CategoryModifier.getModifier(StringArgumentType.getString(ctx, "modifier")),
+                                                            IntegerArgumentType.getInteger(ctx, "placement"),
+                                                            IntegerArgumentType.getInteger(ctx, "total_players")
+                                                    );
+                                                })))));
     }
 
-    private static int execute(ServerPlayerEntity player, Boss boss, @Nullable CategoryModifier modifier, int placement, int totalPlayers) {
+    private static int execute(ServerPlayerEntity player, @NotNull Boss boss, @Nullable CategoryModifier modifier, int placement, int totalPlayers) {
         if (player == null) return 0;
         Category category = Category.getCategory(boss.categoryId);
         if (category == null) return 0;

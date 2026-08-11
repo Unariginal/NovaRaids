@@ -58,7 +58,7 @@ public class ContrabandUtils {
                 if (species == null) continue;
                 if (pokemon.getSpecies().getName().equals(species.getName())) {
                     logInfo("Not allowed pokemon");
-                    player.sendMessage(deserialize(MESSAGES.feedback.warnings.bannedPokemon.replaceAll("%banned%", species.getName()), parseContext));
+                    player.sendMessage(deserialize(MESSAGES.feedback.warnings.bannedPokemon.replace("%banned%", species.getName()), parseContext));
                     return true;
                 }
             }
@@ -68,7 +68,7 @@ public class ContrabandUtils {
                 if (ability == null) continue;
                 if (pokemon.getAbility().getName().equals(ability.getName())) {
                     logInfo("Not allowed ability");
-                    player.sendMessage(deserialize(MESSAGES.feedback.warnings.bannedAbility.replaceAll("%banned%", MiscUtilsKt.asTranslated(ability.getDisplayName()).getString()), parseContext));
+                    player.sendMessage(deserialize(MESSAGES.feedback.warnings.bannedAbility.replace("%banned%", MiscUtilsKt.asTranslated(ability.getDisplayName()).getString()), parseContext));
                     return true;
                 }
             }
@@ -79,7 +79,7 @@ public class ContrabandUtils {
                 for (Move set : pokemon.getMoveSet()) {
                     if (set.getName().equals(move.getName())) {
                         logInfo("Not allowed move");
-                        player.sendMessage(deserialize(MESSAGES.feedback.warnings.bannedMove.replaceAll("%banned%", move.getDisplayName().getString()), parseContext));
+                        player.sendMessage(deserialize(MESSAGES.feedback.warnings.bannedMove.replace("%banned%", move.getDisplayName().getString()), parseContext));
                         return true;
                     }
                 }
@@ -88,9 +88,9 @@ public class ContrabandUtils {
             for (String itemId : bannedHeldItems) {
                 if (!Registries.ITEM.containsId(Identifier.of(itemId))) continue;
                 Item item = Registries.ITEM.get(Identifier.of(itemId));
-                if (pokemon.getHeldItem$common().getItem().equals(item)) {
+                if (pokemon.heldItem().getItem().equals(item)) {
                     logInfo("Not allowed held item");
-                    player.sendMessage(deserialize(MESSAGES.feedback.warnings.bannedHeldItem.replaceAll("%banned%", item.getName().getString()), parseContext));
+                    player.sendMessage(deserialize(MESSAGES.feedback.warnings.bannedHeldItem.replace("%banned%", item.getName().getString()), parseContext));
                     return true;
                 }
             }
@@ -107,7 +107,7 @@ public class ContrabandUtils {
             for (int i = 0; i < inventory.size(); i++) {
                 if (inventory.getStack(i).getItem().equals(item)) {
                     logInfo("Not allowed bag item");
-                    player.sendMessage(deserialize(MESSAGES.feedback.warnings.bannedBagItem.replaceAll("%banned%", item.getName().getString()), parseContext));
+                    player.sendMessage(deserialize(MESSAGES.feedback.warnings.bannedBagItem.replace("%banned%", item.getName().getString()), parseContext));
                     return true;
                 }
             }

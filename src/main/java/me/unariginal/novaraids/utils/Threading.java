@@ -26,7 +26,7 @@ public class Threading {
     /**
      * Schedule a delayed asynchronous task
      * @param runnable {@link Runnable}
-     * @param delay Delay (in millis)
+     * @param delay Delay (in seconds)
      */
     public static ScheduledFuture<?> runDelayedTaskAsync(Runnable runnable, long delay) {
         return ASYNC_EXECUTOR.schedule(wrapRunnable(runnable), delay, TimeUnit.SECONDS);

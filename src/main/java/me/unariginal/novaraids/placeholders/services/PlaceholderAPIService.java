@@ -19,10 +19,20 @@ import net.minecraft.util.Identifier;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 public class PlaceholderAPIService {
+    private static PlaceholderResult safely(String id, Supplier<PlaceholderResult> body) {
+        try {
+            return body.get();
+        } catch (Exception e) {
+            NovaRaids.LOGGER.error("[NovaRaids] Placeholder '{}' failed to resolve", id, e);
+            return PlaceholderResult.invalid("Error resolving placeholder");
+        }
+    }
+
     public void registerPlayer(PlayerPlaceholder placeholder) {
-        placeholder.id().forEach(id -> Placeholders.register(Identifier.of(NovaRaids.MOD_ID, id), (ctx, arg) -> {
+        placeholder.id().forEach(id -> Placeholders.register(Identifier.of(NovaRaids.MOD_ID, id), (ctx, arg) -> safely(id, () -> {
             ServerPlayerEntity player = ctx.player();
             if (player == null) return PlaceholderResult.invalid("NO PLAYER");
 
@@ -33,11 +43,11 @@ public class PlaceholderAPIService {
             } else {
                 return PlaceholderResult.invalid(result.string);
             }
-        }));
+        })));
     }
 
     public void registerRaid(RaidPlaceholder placeholder) {
-        placeholder.id().forEach(id -> Placeholders.register(Identifier.of(NovaRaids.MOD_ID, id), (ctx, arg) -> {
+        placeholder.id().forEach(id -> Placeholders.register(Identifier.of(NovaRaids.MOD_ID, id), (ctx, arg) -> safely(id, () -> {
             List<String> args = arg != null ? List.of(parse(arg, ParseContext.builder().player(ctx.player()).build()).split(":")) : new ArrayList<>();
             Raid raid = ctx.asParserContext().get(new ParserContext.Key<>("raid", Raid.class));
 
@@ -47,11 +57,11 @@ public class PlaceholderAPIService {
             } else {
                 return PlaceholderResult.invalid(result.string);
             }
-        }));
+        })));
     }
 
     public void registerBoss(BossPlaceholder placeholder) {
-        placeholder.id().forEach(id -> Placeholders.register(Identifier.of(NovaRaids.MOD_ID, id), (ctx, arg) -> {
+        placeholder.id().forEach(id -> Placeholders.register(Identifier.of(NovaRaids.MOD_ID, id), (ctx, arg) -> safely(id, () -> {
             List<String> args = arg != null ? List.of(parse(arg, ParseContext.builder().player(ctx.player()).build()).split(":")) : new ArrayList<>();
             Raid raid = ctx.asParserContext().get(new ParserContext.Key<>("raid", Raid.class));
             Boss boss = ctx.asParserContext().get(new ParserContext.Key<>("boss", Boss.class));
@@ -65,11 +75,11 @@ public class PlaceholderAPIService {
             } else {
                 return PlaceholderResult.invalid(result.string);
             }
-        }));
+        })));
     }
 
     public void registerCategoryModifier(CategoryModifierPlaceholder placeholder) {
-        placeholder.id().forEach(id -> Placeholders.register(Identifier.of(NovaRaids.MOD_ID, id), (ctx, arg) -> {
+        placeholder.id().forEach(id -> Placeholders.register(Identifier.of(NovaRaids.MOD_ID, id), (ctx, arg) -> safely(id, () -> {
             List<String> args = arg != null ? List.of(parse(arg, ParseContext.builder().player(ctx.player()).build()).split(":")) : new ArrayList<>();
             CategoryModifier modifier = ctx.asParserContext().get(new ParserContext.Key<>("category_modifier", CategoryModifier.class));
             if (modifier == null) return PlaceholderResult.invalid("Invalid Category Modifier");
@@ -79,11 +89,11 @@ public class PlaceholderAPIService {
             } else {
                 return PlaceholderResult.invalid(result.string);
             }
-        }));
+        })));
     }
 
     public void registerRaidHistory(RaidHistoryPlaceholder placeholder) {
-        placeholder.id().forEach(id -> Placeholders.register(Identifier.of(NovaRaids.MOD_ID, id), (ctx, arg) -> {
+        placeholder.id().forEach(id -> Placeholders.register(Identifier.of(NovaRaids.MOD_ID, id), (ctx, arg) -> safely(id, () -> {
             List<String> args = arg != null ? List.of(parse(arg, ParseContext.builder().player(ctx.player()).build()).split(":")) : new ArrayList<>();
             RaidHistory raidHistory = ctx.asParserContext().get(new ParserContext.Key<>("raid_history", RaidHistory.class));
             if (raidHistory == null) return PlaceholderResult.invalid("Invalid Raid History");
@@ -93,11 +103,11 @@ public class PlaceholderAPIService {
             } else {
                 return PlaceholderResult.invalid(result.string);
             }
-        }));
+        })));
     }
 
     public void registerServer(ServerPlaceholder placeholder) {
-        placeholder.id().forEach(id -> Placeholders.register(Identifier.of(NovaRaids.MOD_ID, id), (ctx, arg) -> {
+        placeholder.id().forEach(id -> Placeholders.register(Identifier.of(NovaRaids.MOD_ID, id), (ctx, arg) -> safely(id, () -> {
             List<String> args = arg != null ? List.of(parse(arg, ParseContext.builder().player(ctx.player()).build()).split(":")) : new ArrayList<>();
             GenericResult result = placeholder.handle(args);
             if (result.isSuccessful) {
@@ -105,7 +115,7 @@ public class PlaceholderAPIService {
             } else {
                 return PlaceholderResult.invalid(result.string);
             }
-        }));
+        })));
     }
 
     public String parse(String input, ParseContext parseContext) {

@@ -36,10 +36,10 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
-import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -95,8 +95,8 @@ public class Raid {
 
     public int currentHealth;
     public int maxHealth;
-    public LocalDateTime realStartTime = LocalDateTime.now(SCHEDULES.getTimezone());
-    public LocalDateTime realEndTime = LocalDateTime.now(SCHEDULES.getTimezone()).plusSeconds(1);
+    public LocalDateTime realStartTime = LocalDateTime.now(SCHEDULES.zoneId);
+    public LocalDateTime realEndTime = LocalDateTime.now(SCHEDULES.zoneId).plusSeconds(1);
     public long startTime = nr.server.getOverworld().getTime();
     public long endTime = nr.server.getOverworld().getTime() + 1;
     public long phaseLength;
@@ -177,7 +177,7 @@ public class Raid {
         PlayerRaidCache.clearFromRaid(uuid);
 
         endTime = nr.server.getOverworld().getTime();
-        realEndTime = LocalDateTime.now(SCHEDULES.getTimezone());
+        realEndTime = LocalDateTime.now(SCHEDULES.zoneId);
         location.setChunksLoaded(false);
     }
 
@@ -187,11 +187,15 @@ public class Raid {
         location.setChunksLoaded(true);
 
         bossPokemon = boss.pokemonDetails.createPokemon(modifier);
+        NbtCompound data = new NbtCompound();
+        data.putBoolean("raid_entity", true);
+        bossPokemon.getPersistentData().put("raid_data", data);
         bossPokemonUncatchable.copyFrom(bossPokemon);
-        if (boss.pokemonDetails.level > 100) {
+        bossPokemonUncatchable.getPersistentData().put("raid_data", data);
+        if (boss.pokemonDetails.level > Cobblemon.config.getMaxPokemonLevel()) {
             int finalLevel = boss.pokemonDetails.level;
             if (modifier != null) finalLevel += modifier.bossPokemonModifiers.levelOffset;
-            if (finalLevel <= 100) bossPokemonUncatchable.setLevel(finalLevel);
+            if (finalLevel <= Cobblemon.config.getMaxPokemonLevel()) bossPokemonUncatchable.setLevel(finalLevel);
             else {
                 try {
                     Field levelField = bossPokemonUncatchable.getClass().getDeclaredField("level");
@@ -276,7 +280,7 @@ public class Raid {
         phase = RaidPhase.STOPPING;
         tasks.clear();
         endTime = nr.server.getOverworld().getTime();
-        realEndTime = LocalDateTime.now(SCHEDULES.getTimezone());
+        realEndTime = LocalDateTime.now(SCHEDULES.zoneId);
         raidStatus = RaidStatus.LOST;
         RaidHistory raidHistory = RaidManager.writeHistory(uuid);
         if (raidHistory != null) {
@@ -329,14 +333,16 @@ public class Raid {
         phaseLength = boss.raidDetails.catchPhaseTime + (modifier == null ? 0 : modifier.raidDetailModifiers.catchPhaseTimeOffset);
         phaseStartTime = nr.server.getOverworld().getTime();
 
+        LinkedHashMap<UUID, Integer> damageLeaderboard = getDamageLeaderboard();
+
         List<ServerPlayerEntity> alreadyCatching = new ArrayList<>();
         for (CatchPlacement placement : boss.catchSettings.places) {
             List<ServerPlayerEntity> playersToReward = new ArrayList<>();
             if (StringUtils.isNumeric(placement.place)) {
                 int placeIndex = Integer.parseInt(placement.place);
                 placeIndex--;
-                if (placeIndex >= 0 && placeIndex < getDamageLeaderboard().size()) {
-                    ServerPlayerEntity player = nr.server.getPlayerManager().getPlayer(getDamageLeaderboard().keySet().stream().toList().get(placeIndex));
+                if (placeIndex >= 0 && placeIndex < damageLeaderboard.size()) {
+                    ServerPlayerEntity player = nr.server.getPlayerManager().getPlayer(damageLeaderboard.keySet().stream().toList().get(placeIndex));
                     if (player != null) {
                         if (!alreadyCatching.contains(player)) {
                             if (!placement.requireDamage || (damageByPlayer.containsKey(player.getUuid()) && damageByPlayer.get(player.getUuid()) > 0)) {
@@ -349,9 +355,9 @@ public class Raid {
                 String percentStr = placement.place.replace("%", "");
                 if (StringUtils.isNumeric(percentStr)) {
                     int percent = Integer.parseInt(percentStr);
-                    double positions = getDamageLeaderboard().size() * ((double) percent / 100);
+                    double positions = damageLeaderboard.size() * ((double) percent / 100);
                     for (int i = 0; i < ((int) positions); i++) {
-                        ServerPlayerEntity player = nr.server.getPlayerManager().getPlayer(getDamageLeaderboard().keySet().stream().toList().get(i));
+                        ServerPlayerEntity player = nr.server.getPlayerManager().getPlayer(damageLeaderboard.keySet().stream().toList().get(i));
                         if (player != null) {
                             if (!alreadyCatching.contains(player)) {
                                 if (!placement.requireDamage || (damageByPlayer.containsKey(player.getUuid()) && damageByPlayer.get(player.getUuid()) > 0)) {
@@ -411,7 +417,7 @@ public class Raid {
         tasks.clear();
 
         endTime = nr.server.getOverworld().getTime();
-        realEndTime = LocalDateTime.now(SCHEDULES.getTimezone());
+        realEndTime = LocalDateTime.now(SCHEDULES.zoneId);
 
         boolean doCatchPhase = modifier != null && modifier.raidDetailModifiers.catchPhaseOverrideToggle ? modifier.raidDetailModifiers.doCatchPhaseOverride : boss.raidDetails.doCatchPhase;
         if (doCatchPhase) RaidEvents.CATCH_PHASE_EVENT_POST.invoker().onCatchPhasePost(this);
@@ -627,7 +633,7 @@ public class Raid {
     public void fixBossPosition() {
         if (phase != RaidPhase.STOPPING && phase != RaidPhase.INIT) {
             PokemonEntity bossEntity = getBossEntity();
-            if (bossEntity != null && bossEntity.getPos() != location.bossLocation.getPos()) {
+            if (bossEntity != null && bossEntity.getPos().distanceTo(location.bossLocation.getPos()) > 0) {
                 bossEntity.teleport(location.getServerWorld(), location.bossLocation.xPos, location.bossLocation.yPos, location.bossLocation.zPos, null, location.bossLocation.yaw, 0);
             }
         }
@@ -645,9 +651,9 @@ public class Raid {
             entity.setInvulnerable(true);
             entity.setBodyYaw(location.bossLocation.yaw);
             entity.setDrops(new DropTable());
-            Box hitbox = entity.getBoundingBox();
-            hitbox.stretch(new Vec3d(bossPokemonUncatchable.getScaleModifier(), bossPokemonUncatchable.getScaleModifier(), bossPokemonUncatchable.getScaleModifier()));
-            entity.setBoundingBox(hitbox);
+//            Box hitbox = entity.getBoundingBox();
+//            hitbox.stretch(new Vec3d(bossPokemonUncatchable.getScaleModifier(), bossPokemonUncatchable.getScaleModifier(), bossPokemonUncatchable.getScaleModifier()));
+//            entity.setBoundingBox(hitbox);
             return Unit.INSTANCE;
         });
     }
@@ -730,10 +736,6 @@ public class Raid {
         clones.remove(clone);
     }
 
-    public boolean isParticipating(ServerPlayerEntity player) {
-        return isParticipating(player.getUuid());
-    }
-
     public boolean isParticipating(UUID playerUUID) {
         return participatingPlayers.contains(playerUUID);
     }
@@ -747,7 +749,7 @@ public class Raid {
             return;
         }
 
-        playerRaidData.get(playerUUID.toString()).leftRaid = true;
+        if (phase != RaidPhase.CATCH) playerRaidData.get(playerUUID.toString()).leftRaid = true;
 
         ServerPlayerEntity player = nr.server.getPlayerManager().getPlayer(playerUUID);
         if (player != null) {
