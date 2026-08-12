@@ -1,5 +1,6 @@
 package me.unariginal.novaraids.data.categories.bosses;
 
+import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.moves.MoveTemplate;
 import com.cobblemon.mod.common.api.moves.Moves;
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
@@ -210,14 +211,14 @@ public class PokemonDetails {
         Pokemon pokemon = pokemonProperties.create();
         int finalLevel = level;
         if (modifier != null) finalLevel += modifier.bossPokemonModifiers.levelOffset;
-        if (finalLevel <= 100) pokemon.setLevel(finalLevel);
+        if (finalLevel <= Cobblemon.config.getMaxPokemonLevel()) pokemon.setLevel(finalLevel);
         else {
             try {
                 Field levelField = pokemon.getClass().getDeclaredField("level");
                 levelField.setAccessible(true);
                 levelField.set(pokemon, finalLevel);
             } catch (NoSuchFieldException | IllegalAccessException e) {
-                NovaRaids.LOGGER.error("[NovaRaids] Failed to set pokemon level above 100.", e);
+                NovaRaids.LOGGER.error("[NovaRaids] Failed to set pokemon level above {}.", Cobblemon.config.getMaxPokemonLevel(), e);
             }
         }
         pokemon.getMoveSet().clear();

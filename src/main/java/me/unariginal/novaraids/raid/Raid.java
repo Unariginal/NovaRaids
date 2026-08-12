@@ -191,7 +191,10 @@ public class Raid {
         data.putBoolean("raid_entity", true);
         bossPokemon.getPersistentData().put("raid_data", data);
         bossPokemonUncatchable.copyFrom(bossPokemon);
-        bossPokemonUncatchable.getPersistentData().put("raid_data", data);
+        bossPokemonUncatchable.setUuid(UUID.randomUUID());
+        NbtCompound dataMain = new NbtCompound();
+        dataMain.putBoolean("raid_entity", true);
+        bossPokemonUncatchable.getPersistentData().put("raid_data", dataMain);
         if (boss.pokemonDetails.level > Cobblemon.config.getMaxPokemonLevel()) {
             int finalLevel = boss.pokemonDetails.level;
             if (modifier != null) finalLevel += modifier.bossPokemonModifiers.levelOffset;
@@ -202,7 +205,7 @@ public class Raid {
                     levelField.setAccessible(true);
                     levelField.set(bossPokemonUncatchable, finalLevel);
                 } catch (NoSuchFieldException | IllegalAccessException e) {
-                    NovaRaids.LOGGER.error("[NovaRaids] Failed to set pokemon level above 100.", e);
+                    NovaRaids.LOGGER.error("[NovaRaids] Failed to set pokemon level above {}.", Cobblemon.config.getMaxPokemonLevel(), e);
                 }
             }
         }
@@ -651,9 +654,6 @@ public class Raid {
             entity.setInvulnerable(true);
             entity.setBodyYaw(location.bossLocation.yaw);
             entity.setDrops(new DropTable());
-//            Box hitbox = entity.getBoundingBox();
-//            hitbox.stretch(new Vec3d(bossPokemonUncatchable.getScaleModifier(), bossPokemonUncatchable.getScaleModifier(), bossPokemonUncatchable.getScaleModifier()));
-//            entity.setBoundingBox(hitbox);
             return Unit.INSTANCE;
         });
     }

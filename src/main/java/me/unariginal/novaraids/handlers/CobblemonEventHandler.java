@@ -231,8 +231,8 @@ public class CobblemonEventHandler {
 
             // Contraband check during fight phase
             if (raid.phase == RaidPhase.FIGHT) {
+                event.cancel();
                 if (!ContrabandUtils.hasContraband(player, raid)) {
-                    event.cancel();
                     BattleHandler.invokeBattle(raid, player);
                 }
             }

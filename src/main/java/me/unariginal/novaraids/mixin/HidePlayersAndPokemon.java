@@ -58,7 +58,11 @@ public class HidePlayersAndPokemon {
             } else {
                 // Hide other pokemon that the player doesn't own. eg. wild pokemon, other player's pokemon
                 if (CONFIG.raidSettings.hideOtherPokemonInRaid && !NovaRaids.INSTANCE.ignorePokemonVisibility.contains(spectator.getUuid())) {
-                    if (pokemon.getOwnerPlayer() != null && !pokemon.getOwnerPlayer().getUuid().equals(spectator.getUuid())) {
+                    if (pokemon.getOwnerPlayer() != null) {
+                        if (!pokemon.getOwnerPlayer().getUuid().equals(spectator.getUuid())) {
+                            cir.setReturnValue(false);
+                        }
+                    } else {
                         cir.setReturnValue(false);
                     }
                 }
