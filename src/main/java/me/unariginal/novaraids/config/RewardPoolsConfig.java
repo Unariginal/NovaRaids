@@ -1,5 +1,10 @@
 package me.unariginal.novaraids.config;
 
+import me.unariginal.novaraids.data.categories.bosses.Boss;
+import me.unariginal.novaraids.placeholders.ParseContext;
+import me.unariginal.novaraids.utils.TextUtils;
+import net.minecraft.server.network.ServerPlayerEntity;
+
 import java.io.*;
 import java.util.*;
 
@@ -12,7 +17,7 @@ public class RewardPoolsConfig {
         public int maxRolls;
         public List<RewardItem> rewards;
 
-        public List<RewardPresetsConfig.Reward> distributeRewards() {
+        public List<RewardPresetsConfig.Reward> distributeRewards(ServerPlayerEntity player, Boss boss) {
             List<RewardPresetsConfig.Reward> rewardsToDistribute = new ArrayList<>();
             List<UUID> appliedRewards = new ArrayList<>();
 
@@ -41,7 +46,8 @@ public class RewardPoolsConfig {
 
                     if (rewardToGive != null) {
                         if (rewardToGive instanceof RewardItemPredefined rewardItemPredefined) {
-                            rewardsToDistribute.add(RewardPresetsConfig.getReward(rewardItemPredefined.rewardPreset));
+                            RewardPresetsConfig.Reward reward = RewardPresetsConfig.getReward(TextUtils.parse(rewardItemPredefined.rewardPreset.replaceAll("%player%", player.getNameForScoreboard()), ParseContext.builder().player(player).boss(boss).build()));
+                            if (reward != null) rewardsToDistribute.add(reward);
                         } else if (rewardToGive instanceof RewardItemUndefined rewardItemUndefined) {
                             rewardsToDistribute.add(rewardItemUndefined.reward);
                         }

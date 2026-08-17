@@ -12,7 +12,7 @@ import me.unariginal.novaraids.data.guis.BaseGUI;
 import me.unariginal.novaraids.raid.Raid;
 import me.unariginal.novaraids.raid.RaidManager;
 import me.unariginal.novaraids.raid.RaidPhase;
-import me.unariginal.novaraids.utils.TextUtils;
+import me.unariginal.novaraids.placeholders.ParseContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -26,6 +26,7 @@ import java.util.Map;
 import static me.unariginal.novaraids.config.ConfigManager.MESSAGES;
 import static me.unariginal.novaraids.config.ConfigManager.RAID_LIST_GUI;
 import static me.unariginal.novaraids.raid.RaidManager.activeRaids;
+import static me.unariginal.novaraids.utils.TextUtils.deserialize;
 import static net.minecraft.server.command.CommandManager.literal;
 
 public class RaidListCommand {
@@ -39,8 +40,10 @@ public class RaidListCommand {
         ServerPlayerEntity player = ctx.getSource().getPlayer();
         if (player == null) return 0;
 
+        ParseContext.Builder parseContextBuilder = ParseContext.builder().player(player);
+
         if (activeRaids.isEmpty()) {
-            player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.noActiveRaids)));
+            player.sendMessage(deserialize(MESSAGES.feedback.noActiveRaids, parseContextBuilder.build()));
             return 0;
         }
 
@@ -48,7 +51,7 @@ public class RaidListCommand {
         int pageTotal = BaseGUI.getPageTotal(activeRaids.size(), RAID_LIST_GUI.getTotalSlotsBySymbol(RAID_LIST_GUI.joinableRaidItem.symbol));
         for (int i = 1; i <= pageTotal; i++) {
             SimpleGui gui = new SimpleGui(RAID_LIST_GUI.getScreenHandler(), player, false);
-            gui.setTitle(TextUtils.deserialize(TextUtils.parse(RAID_LIST_GUI.guiTitle)));
+            gui.setTitle(deserialize(RAID_LIST_GUI.guiTitle, parseContextBuilder.build()));
             pages.put(i, gui);
         }
 
@@ -57,34 +60,36 @@ public class RaidListCommand {
             for (Integer slot : RAID_LIST_GUI.getSlotsBySymbol(RAID_LIST_GUI.joinableRaidItem.symbol)) {
                 Raid raid = RaidManager.getRaid(index);
                 if (raid != null) {
+                    ParseContext parseContext = parseContextBuilder.raid(raid).build();
+
                     List<Text> lore = new ArrayList<>();
 
                     if (!raid.requiresPass && raid.phase == RaidPhase.SETUP) {
                         for (String line : RAID_LIST_GUI.joinableRaidItem.itemLore) {
-                            lore.add(TextUtils.deserialize(TextUtils.parse(line, raid)));
+                            lore.add(deserialize(line, parseContext));
                         }
                     } else if (raid.phase != RaidPhase.SETUP) {
                         for (String line : RAID_LIST_GUI.inProgressRaidItem.itemLore) {
-                            lore.add(TextUtils.deserialize(TextUtils.parse(line, raid)));
+                            lore.add(deserialize(line, parseContext));
                         }
                     } else {
                         for (String line : RAID_LIST_GUI.passRequiredRaidItem.itemLore) {
-                            lore.add(TextUtils.deserialize(TextUtils.parse(line, raid)));
+                            lore.add(deserialize(line, parseContext));
                         }
                     }
 
-                    ItemStack item = RAID_LIST_GUI.joinableRaidItem.item.copyComponentsToNewStack(PokemonItem.from(raid.bossPokemon).getItem(), 1);
+                    ItemStack item = PokemonItem.from(raid.bossPokemon);
                     GuiElement element = new GuiElementBuilder(item)
-                            .setName(TextUtils.deserialize(TextUtils.parse(RAID_LIST_GUI.joinableRaidItem.itemName, raid)))
+                            .setName(deserialize(RAID_LIST_GUI.joinableRaidItem.itemName, parseContext))
                             .setLore(lore)
                             .setCallback((num, clickType, slotActionType) -> {
                                 if (clickType.isLeft) {
                                     if (raid.participatingPlayers.size() < raid.maxPlayers || Permissions.check(player, "novaraids.override") || raid.maxPlayers == -1) {
                                         if (raid.addPlayer(player.getUuid(), false)) {
-                                            player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.joinedRaid, raid)));
+                                            player.sendMessage(deserialize(MESSAGES.feedback.joinedRaid, parseContext));
                                         }
                                     } else {
-                                        player.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.warnings.maxPlayers, raid)));
+                                        player.sendMessage(deserialize(MESSAGES.feedback.warnings.maxPlayers, parseContext));
                                     }
                                     pageEntry.getValue().close();
                                 }
@@ -92,28 +97,32 @@ public class RaidListCommand {
                     pageEntry.getValue().setSlot(slot, element);
                     index++;
                 } else {
+                    ParseContext parseContext = parseContextBuilder.build();
+
                     ItemStack item = RAID_LIST_GUI.backgroundItem.item.copy();
                     List<Text> lore = new ArrayList<>();
                     for (String line : RAID_LIST_GUI.backgroundItem.itemLore) {
-                        lore.add(TextUtils.deserialize(TextUtils.parse(line)));
+                        lore.add(deserialize(line, parseContext));
                     }
                     GuiElement element = new GuiElementBuilder(item)
-                            .setName(TextUtils.deserialize(TextUtils.parse(RAID_LIST_GUI.backgroundItem.itemName)))
+                            .setName(deserialize(RAID_LIST_GUI.backgroundItem.itemName, parseContext))
                             .setLore(lore)
                             .build();
                     pageEntry.getValue().setSlot(slot, element);
                 }
             }
 
+            ParseContext parseContext = parseContextBuilder.build();
+
             if (pageEntry.getKey() < pageTotal) {
                 for (Integer slot : RAID_LIST_GUI.getSlotsBySymbol(RAID_LIST_GUI.nextItem.symbol)) {
                     ItemStack item = RAID_LIST_GUI.nextItem.item.copy();
                     List<Text> lore = new ArrayList<>();
                     for (String line : RAID_LIST_GUI.nextItem.itemLore) {
-                        lore.add(TextUtils.deserialize(TextUtils.parse(line)));
+                        lore.add(deserialize(line, parseContext));
                     }
                     GuiElement element = new GuiElementBuilder(item)
-                            .setName(TextUtils.deserialize(TextUtils.parse(RAID_LIST_GUI.nextItem.itemName)))
+                            .setName(deserialize(RAID_LIST_GUI.nextItem.itemName, parseContext))
                             .setLore(lore)
                             .setCallback(clickType -> {
                                 pageEntry.getValue().close();
@@ -129,10 +138,10 @@ public class RaidListCommand {
                     ItemStack item = RAID_LIST_GUI.previousItem.item.copy();
                     List<Text> lore = new ArrayList<>();
                     for (String line : RAID_LIST_GUI.previousItem.itemLore) {
-                        lore.add(TextUtils.deserialize(TextUtils.parse(line)));
+                        lore.add(deserialize(line, parseContext));
                     }
                     GuiElement element = new GuiElementBuilder(item)
-                            .setName(TextUtils.deserialize(TextUtils.parse(RAID_LIST_GUI.previousItem.itemName)))
+                            .setName(deserialize(RAID_LIST_GUI.previousItem.itemName, parseContext))
                             .setLore(lore)
                             .setCallback(clickType -> {
                                 pageEntry.getValue().close();
@@ -147,10 +156,10 @@ public class RaidListCommand {
                 ItemStack item = RAID_LIST_GUI.closeItem.item.copy();
                 List<Text> lore = new ArrayList<>();
                 for (String line : RAID_LIST_GUI.closeItem.itemLore) {
-                    lore.add(TextUtils.deserialize(TextUtils.parse(line)));
+                    lore.add(deserialize(line, parseContext));
                 }
                 GuiElement element = new GuiElementBuilder(item)
-                        .setName(TextUtils.deserialize(TextUtils.parse(RAID_LIST_GUI.closeItem.itemName)))
+                        .setName(deserialize(RAID_LIST_GUI.closeItem.itemName, parseContext))
                         .setLore(lore)
                         .setCallback(clickType -> pageEntry.getValue().close())
                         .build();
@@ -161,10 +170,10 @@ public class RaidListCommand {
                 ItemStack item = RAID_LIST_GUI.backgroundItem.item.copy();
                 List<Text> lore = new ArrayList<>();
                 for (String line : RAID_LIST_GUI.backgroundItem.itemLore) {
-                    lore.add(TextUtils.deserialize(TextUtils.parse(line)));
+                    lore.add(deserialize(line, parseContext));
                 }
                 GuiElement element = new GuiElementBuilder(item)
-                        .setName(TextUtils.deserialize(TextUtils.parse(RAID_LIST_GUI.backgroundItem.itemName)))
+                        .setName(deserialize(RAID_LIST_GUI.backgroundItem.itemName, parseContext))
                         .setLore(lore)
                         .build();
                 pageEntry.getValue().setSlot(slot, element);

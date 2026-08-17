@@ -15,10 +15,13 @@ import me.unariginal.novaraids.data.categories.modifiers.CategoryModifier;
 import me.unariginal.novaraids.data.rewards.DistributionSection;
 import me.unariginal.novaraids.data.rewards.Place;
 import me.unariginal.novaraids.data.rewards.RewardDistribution;
+import me.unariginal.novaraids.placeholders.ParseContext;
 import me.unariginal.novaraids.raid.Raid;
+import me.unariginal.novaraids.utils.TextUtils;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -41,29 +44,25 @@ public class RaidTestRewardsCommand {
                                     Category category = Category.getCategory(boss.categoryId);
                                     if (category == null) return builder.buildFuture();
                                     category.modifiers.keySet().forEach(builder::suggest);
+                                    builder.suggest("no_modifier");
                                     return builder.buildFuture();
                                 })
                                 .then(argument("placement", IntegerArgumentType.integer())
                                         .then(argument("total_players", IntegerArgumentType.integer())
-                                                .executes(ctx -> execute(
-                                                        ctx.getSource().getPlayer(),
-                                                        Boss.getBoss(StringArgumentType.getString(ctx, "boss")),
-                                                        CategoryModifier.getModifier(StringArgumentType.getString(ctx, "modifier")),
-                                                        IntegerArgumentType.getInteger(ctx, "placement"),
-                                                        IntegerArgumentType.getInteger(ctx, "total_players")
-                                                )))))
-                        .then(argument("placement", IntegerArgumentType.integer())
-                                .then(argument("total_players", IntegerArgumentType.integer())
-                                        .executes(ctx -> execute(
-                                                ctx.getSource().getPlayer(),
-                                                Boss.getBoss(StringArgumentType.getString(ctx, "boss")),
-                                                null,
-                                                IntegerArgumentType.getInteger(ctx, "placement"),
-                                                IntegerArgumentType.getInteger(ctx, "total_players")
-                                        )))));
+                                                .executes(ctx -> {
+                                                    Boss boss = Boss.getBoss(StringArgumentType.getString(ctx, "boss"));
+                                                    if (boss == null) return 0;
+                                                    return execute(
+                                                            ctx.getSource().getPlayer(),
+                                                            boss,
+                                                            CategoryModifier.getModifier(StringArgumentType.getString(ctx, "modifier")),
+                                                            IntegerArgumentType.getInteger(ctx, "placement"),
+                                                            IntegerArgumentType.getInteger(ctx, "total_players")
+                                                    );
+                                                })))));
     }
 
-    private static int execute(ServerPlayerEntity player, Boss boss, @Nullable CategoryModifier modifier, int placement, int totalPlayers) {
+    private static int execute(ServerPlayerEntity player, @NotNull Boss boss, @Nullable CategoryModifier modifier, int placement, int totalPlayers) {
         if (player == null) return 0;
         Category category = Category.getCategory(boss.categoryId);
         if (category == null) return 0;
@@ -119,7 +118,7 @@ public class RaidTestRewardsCommand {
                             if (poolSection != null) {
                                 RewardPoolsConfig.RewardPool pool = null;
                                 if (poolSection instanceof DistributionSection.PredefinedRewardPoolSection predefinedPoolSection) {
-                                    pool = RewardPoolsConfig.getRewardPool(predefinedPoolSection.poolPreset);
+                                    pool = RewardPoolsConfig.getRewardPool(TextUtils.parse(predefinedPoolSection.poolPreset.replaceAll("%player%", serverPlayer.getNameForScoreboard()), ParseContext.builder().player(serverPlayer).boss(boss).build()));
                                 } else if (poolSection instanceof DistributionSection.UndefinedRewardPoolSection undefinedPoolSection) {
                                     pool = undefinedPoolSection.pool;
                                 }
@@ -130,8 +129,8 @@ public class RaidTestRewardsCommand {
                                 }
 
                                 if (reward.rewards.allowDuplicates || !distributedPools.contains(pool.uuid)) {
-                                    List<RewardPresetsConfig.Reward> distributionList = pool.distributeRewards();
-                                    distributionList.forEach(distributionItem -> distributionItem.grantReward(serverPlayer));
+                                    List<RewardPresetsConfig.Reward> distributionList = pool.distributeRewards(serverPlayer, boss);
+                                    distributionList.forEach(distributionItem -> distributionItem.grantReward(serverPlayer, boss));
                                     distributedPools.add(pool.uuid);
                                 } else i--;
                             } else logError("RewardPoolSection was null!");

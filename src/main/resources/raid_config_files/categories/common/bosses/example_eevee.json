@@ -102,7 +102,7 @@
         "id": "minecraft:feather",
         "count": 1
       },
-      "voucher_name": "%boss.name% Raid Voucher",
+      "voucher_name": "%boss_name% Raid Voucher",
       "voucher_lore": []
     },
     "boss_pass": {
@@ -110,7 +110,7 @@
         "id": "minecraft:paper",
         "count": 1
       },
-      "pass_name": "%boss.name% Raid Pass",
+      "pass_name": "%boss_name% Raid Pass",
       "pass_lore": []
     },
     "raid_balls": {
@@ -121,7 +121,7 @@
         },
         "pokeball_name": "<red>Eevee Premier Raid Pokeball",
         "pokeball_lore": [
-          "<gray>Use this to try and catch %boss%!"
+          "<gray>Use this to try and catch %boss_name%!"
         ]
       },
       "eevee_ultra": {
@@ -131,7 +131,7 @@
         },
         "pokeball_name": "<red>Eevee Ultra Raid Pokeball",
         "pokeball_lore": [
-          "<gray>Use this to try and catch %boss%!"
+          "<gray>Use this to try and catch %boss_name%!"
         ]
       }
     }

@@ -10,15 +10,19 @@ import me.unariginal.novaraids.data.categories.bosses.Boss;
 import me.unariginal.novaraids.data.categories.Category;
 import me.unariginal.novaraids.data.categories.modifiers.CategoryModifier;
 import me.unariginal.novaraids.data.events.Event;
-import me.unariginal.novaraids.data.schedule.SpecificSchedule;
+import me.unariginal.novaraids.data.schedules.SpecificSchedule;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.util.Identifier;
 
 import java.io.*;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
-import java.util.HashMap;
-import java.util.Map;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
+import java.util.*;
+import java.util.stream.Stream;
 
 import static me.unariginal.novaraids.NovaRaids.LOGGER;
 import static me.unariginal.novaraids.utils.GsonUtils.gson;
@@ -31,8 +35,8 @@ public class ConfigManager {
     public static SchedulesConfig SCHEDULES;
     public static MessagesConfig MESSAGES;
 
-    public static Map<String, LocationsConfig> LOCATIONS;
-    public static Map<String, BossbarsConfig> BOSSBARS;
+    public static Map<String, LocationConfig> LOCATIONS;
+    public static Map<String, BossbarConfig> BOSSBARS;
     public static Map<String, RewardPresetsConfig.Reward> REWARD_PRESETS;
     public static Map<String, RewardPoolsConfig.RewardPool> REWARD_POOLS;
     public static Map<String, Category> CATEGORIES = new HashMap<>();
@@ -40,16 +44,18 @@ public class ConfigManager {
     public static Map<String, Boss> BOSSES = new HashMap<>();
     public static Map<Identifier, Event> EVENTS = new HashMap<>();
 
-    public static ContrabandGUIConfig GLOBAL_CONTRABAND_GUI;
-    public static ContrabandGUIConfig CATEGORY_CONTRABAND_GUI;
-    public static ContrabandGUIConfig BOSS_CONTRABAND_GUI;
-    public static LeaderboardGUIConfig LEADERBOARD_GUI;
-    public static RaidListGUIConfig RAID_LIST_GUI;
-    public static RaidQueueGUIConfig RAID_QUEUE_GUI;
-    public static RaidItemGUIConfig RAID_PASS_GUI;
-    public static RaidItemGUIConfig RAID_VOUCHER_GUI;
+    public static ContrabandGuiConfig GLOBAL_CONTRABAND_GUI;
+    public static ContrabandGuiConfig CATEGORY_CONTRABAND_GUI;
+    public static ContrabandGuiConfig BOSS_CONTRABAND_GUI;
+    public static LeaderboardGuiConfig LEADERBOARD_GUI;
+    public static RaidListGuiConfig RAID_LIST_GUI;
+    public static RaidQueueGuiConfig RAID_QUEUE_GUI;
+    public static RaidItemGuiConfig RAID_PASS_GUI;
+    public static RaidItemGuiConfig RAID_VOUCHER_GUI;
+    public static RaidItemGuiConfig RAID_HISTORY_GUI;
 
     public static PersistentQueue PERSISTENT_QUEUE = new PersistentQueue();
+    public static Map<String, List<RaidHistory>> RAID_HISTORY = new HashMap<>();
 
     public static String[] eventNames = {
             "boss_damaged",
@@ -79,6 +85,7 @@ public class ConfigManager {
         fillMissingWithDefaults("guis/raid_queue.json", null, false);
         fillMissingWithDefaults("guis/raid_pass.json", null, false);
         fillMissingWithDefaults("guis/raid_voucher.json", null, false);
+        fillMissingWithDefaults("guis/raid_history.json", null, false);
 
         CONFIG = loadFile("config.json", Config.class);
         SCHEDULES = loadFile("schedules.json", SchedulesConfig.class);
@@ -88,22 +95,23 @@ public class ConfigManager {
                     specificSchedule.fillLocalTimes();
                 }
             });
+            SCHEDULES.zoneId = SCHEDULES.getTimezone();
         }
         MESSAGES = loadFile("messages.json", MessagesConfig.class);
 
         fillMissingWithDefaults("locations.json", null, true);
-        LOCATIONS = loadMapFile("locations.json", LocationsConfig.class);
-        for (Map.Entry<String, LocationsConfig> entry : LOCATIONS.entrySet()) {
+        LOCATIONS = loadMapFile("locations.json", LocationConfig.class);
+        for (Map.Entry<String, LocationConfig> entry : LOCATIONS.entrySet()) {
             entry.getValue().locationId = entry.getKey();
         }
 
         fillMissingWithDefaults("bossbars.json", null, true);
-        BOSSBARS = loadMapFile("bossbars.json", BossbarsConfig.class);
-        for (Map.Entry<String, BossbarsConfig> entry : BOSSBARS.entrySet()) {
+        BOSSBARS = loadMapFile("bossbars.json", BossbarConfig.class);
+        for (Map.Entry<String, BossbarConfig> entry : BOSSBARS.entrySet()) {
             entry.getValue().bossbarId = entry.getKey();
         }
 
-        fillMissingWithDefaults("reward_presets.json", null, true);
+        // Filling missing with defaults here causes problems... don't do it :)
         REWARD_PRESETS = loadMapFile("reward_presets.json", RewardPresetsConfig.Reward.class);
         for (Map.Entry<String, RewardPresetsConfig.Reward> entry : REWARD_PRESETS.entrySet()) {
             entry.getValue().rewardId = entry.getKey();
@@ -115,17 +123,19 @@ public class ConfigManager {
             entry.getValue().rewardPoolId = entry.getKey();
         }
 
-        GLOBAL_CONTRABAND_GUI = loadFile("guis/global_contraband.json", ContrabandGUIConfig.class);
-        CATEGORY_CONTRABAND_GUI = loadFile("guis/category_contraband.json", ContrabandGUIConfig.class);
-        BOSS_CONTRABAND_GUI = loadFile("guis/boss_contraband.json", ContrabandGUIConfig.class);
-        LEADERBOARD_GUI = loadFile("guis/leaderboard.json", LeaderboardGUIConfig.class);
-        RAID_LIST_GUI = loadFile("guis/raid_list.json", RaidListGUIConfig.class);
-        RAID_QUEUE_GUI = loadFile("guis/raid_queue.json", RaidQueueGUIConfig.class);
-        RAID_PASS_GUI = loadFile("guis/raid_pass.json", RaidItemGUIConfig.class);
-        RAID_VOUCHER_GUI = loadFile("guis/raid_voucher.json", RaidItemGUIConfig.class);
+        GLOBAL_CONTRABAND_GUI = loadFile("guis/global_contraband.json", ContrabandGuiConfig.class);
+        CATEGORY_CONTRABAND_GUI = loadFile("guis/category_contraband.json", ContrabandGuiConfig.class);
+        BOSS_CONTRABAND_GUI = loadFile("guis/boss_contraband.json", ContrabandGuiConfig.class);
+        LEADERBOARD_GUI = loadFile("guis/leaderboard.json", LeaderboardGuiConfig.class);
+        RAID_LIST_GUI = loadFile("guis/raid_list.json", RaidListGuiConfig.class);
+        RAID_QUEUE_GUI = loadFile("guis/raid_queue.json", RaidQueueGuiConfig.class);
+        RAID_PASS_GUI = loadFile("guis/raid_pass.json", RaidItemGuiConfig.class);
+        RAID_VOUCHER_GUI = loadFile("guis/raid_voucher.json", RaidItemGuiConfig.class);
+        RAID_HISTORY_GUI = loadFile("guis/raid_history.json", RaidItemGuiConfig.class);
 
         loadCategories();
         loadEvents();
+        loadHistory();
     }
 
     public static void saveQueue() {
@@ -141,10 +151,83 @@ public class ConfigManager {
     }
 
     public static void saveRaid(RaidHistory raidHistory) {
-        File historyFolder = new File(configDir, "persistent/history");
+        File historyFolder = new File(configDir, "persistent/history/" + raidHistory.categoryId);
         historyFolder.mkdirs();
-        File historyFile = new File(historyFolder, raidHistory.uuid + ".json");
+        File historyFile = new File(historyFolder, raidHistory.boss.bossId + "_" + raidHistory.uuid + ".json");
         writeFile(historyFile, gson.toJson(raidHistory));
+
+        if (RAID_HISTORY.containsKey(raidHistory.categoryId)) {
+            RAID_HISTORY.get(raidHistory.categoryId).addFirst(raidHistory);
+        } else {
+            RAID_HISTORY.put(raidHistory.categoryId, new ArrayList<>(List.of(raidHistory)));
+        }
+    }
+
+    public static void loadHistory() {
+        RAID_HISTORY.clear();
+        File historyFolder = new File(configDir, "persistent/history");
+
+        File[] historyFolders = historyFolder.listFiles();
+        if (historyFolders != null) {
+            for (File historyFolderFile : historyFolders) {
+                if (historyFolderFile.isDirectory()) {
+                    String categoryId = historyFolderFile.getName();
+                    File[] raidHistoryFiles = historyFolderFile.listFiles();
+
+                    try (Stream<Path> stream = Files.list(historyFolderFile.toPath())) {
+                        List<Path> pathList = stream
+                                .filter(p -> p.toString().endsWith(".json"))
+                                .map(p -> Map.entry(p, Objects.requireNonNullElse(extractDateTime(p), null)))
+                                .filter(e -> e.getValue() != null)
+                                .sorted(Map.Entry.<Path, LocalDateTime>comparingByValue().reversed())
+                                .limit(CONFIG.maxLoadedHistoryFiles)
+                                .map(Map.Entry::getKey)
+                                .toList();
+
+                        List<RaidHistory> raidHistoryList = new ArrayList<>();
+                        if (raidHistoryFiles != null) {
+                            for (Path path : pathList) {
+                                File file = path.toFile();
+                                String raidHistoryFileName = "persistent/history/" + categoryId + "/" + file.getName();
+                                RaidHistory raidHistory = loadFile(raidHistoryFileName, RaidHistory.class);
+                                raidHistoryList.add(raidHistory);
+                            }
+                        }
+                        RAID_HISTORY.put(categoryId, raidHistoryList);
+                    } catch (IOException e) {
+                        //
+                    }
+                }
+            }
+        }
+    }
+
+    private static LocalDateTime extractDateTime(Path path) {
+        try {
+            String content = Files.readString(path);
+            String dateValue = extractJsonField(content, "real_start_time");
+            if (dateValue == null) return null;
+            return LocalDateTime.parse(dateValue, DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private static String extractJsonField(String json, String fieldName) {
+        String key = "\"" + fieldName + "\"";
+        int keyIdx = json.indexOf(key);
+        if (keyIdx == -1) return null;
+
+        int colon = json.indexOf(':', keyIdx + key.length());
+        if (colon == -1) return null;
+
+        int start = json.indexOf('"', colon + 1);
+        if (start == -1) return null;
+
+        int end = json.indexOf('"', start + 1);
+        if (end == -1) return null;
+
+        return json.substring(start + 1, end);
     }
 
     public static void generateDefaultFiles() {
@@ -159,6 +242,7 @@ public class ConfigManager {
         generateDefaultFile("guis/category_contraband.json");
         generateDefaultFile("guis/boss_contraband.json");
         generateDefaultFile("guis/leaderboard.json");
+        generateDefaultFile("guis/raid_history.json");
         generateDefaultFile("guis/raid_list.json");
         generateDefaultFile("guis/raid_queue.json");
         generateDefaultFile("guis/raid_pass.json");
@@ -186,6 +270,8 @@ public class ConfigManager {
     }
 
     public static void loadCategories() {
+        CATEGORIES.clear();
+        BOSSES.clear();
         File categoriesFolder = new File(configDir, "categories");
         File oldBossesFolder = new File(configDir, "bosses");
         if (oldBossesFolder.exists()) {
@@ -248,6 +334,7 @@ public class ConfigManager {
     }
 
     public static void loadEvents() {
+        EVENTS.clear();
         File eventsFolder = new File(configDir, "events");
 
         for (String eventName : eventNames) {
@@ -342,10 +429,13 @@ public class ConfigManager {
             if (defaultFileName == null) defaultFileName = fileName;
             InputStream in = NovaRaids.class.getResourceAsStream("/raid_config_files/" + defaultFileName);
             assert in != null;
+            FileReader fileReader = new FileReader(file);
             JsonObject defaultJson = JsonParser.parseReader(new InputStreamReader(in)).getAsJsonObject();
-            JsonObject targetJson = JsonParser.parseReader(new FileReader(file)).getAsJsonObject();
+            JsonObject targetJson = JsonParser.parseReader(fileReader).getAsJsonObject();
             mergeJsonObjects(targetJson, defaultJson, isMapFile);
             writeFile(file, gson.toJson(targetJson));
+            in.close();
+            fileReader.close();
         } catch (IOException e) {
             LOGGER.error("[NovaRaids] Failed to parse json for filling defaults.", e);
         }
@@ -397,10 +487,8 @@ public class ConfigManager {
     }
 
     public static void writeFile(File file, String content) {
-        try {
-            FileWriter writer = new FileWriter(file);
+        try (FileWriter writer = new FileWriter(file)) {
             writer.write(content);
-            writer.flush();
         } catch (IOException e) {
             LOGGER.error("[NovaRaids] Failed to write to file {}", file.getName(), e);
         }

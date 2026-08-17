@@ -12,6 +12,8 @@ import java.util.*;
 public class Config {
     public boolean debug = false;
     public boolean useExperimentalSharedBattles = false;
+    public int maxLoadedHistoryFiles = 100;
+    public boolean usePlaceholderApi = true;
     public RaidSettings raidSettings = new RaidSettings();
     public ItemSettings itemSettings = new ItemSettings();
     public DiscordSettings discordWebhook = new DiscordSettings();
@@ -29,6 +31,7 @@ public class Config {
         public boolean allowExperienceGain = false;
         public boolean automaticBattles = false;
         public int automaticBattleDelay = 2;
+        public boolean disableContrabandInCatchPhase = false;
         public Contraband globalContraband;
     }
 
@@ -66,6 +69,8 @@ public class Config {
         public boolean deleteIfNoFightPhase = true;
         public List<String> blacklistedCategories;
         public List<String> blacklistedBosses;
+        public Map<String, String> categoryNameOverrides;
+        public Map<String, String> bossNameOverrides;
     }
 
     public RaidBall getRaidBall(String id) {

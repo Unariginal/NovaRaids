@@ -17,7 +17,7 @@ import me.unariginal.novaraids.data.events.SnowstormEntityParticleEvent;
 import me.unariginal.novaraids.data.events.SnowstormParticleEvent;
 import me.unariginal.novaraids.data.events.VanillaParticleEvent;
 import me.unariginal.novaraids.data.rewards.DistributionSection;
-import me.unariginal.novaraids.data.schedule.*;
+import me.unariginal.novaraids.data.schedules.*;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 

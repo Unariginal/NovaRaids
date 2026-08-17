@@ -15,7 +15,7 @@
     "item": {
       "id": "cobblemon:pokemon_model"
     },
-    "item_name": "<light_purple>%boss.name%",
+    "item_name": "<light_purple>%boss_name%",
     "item_lore": [],
     "item_data": {}
   },

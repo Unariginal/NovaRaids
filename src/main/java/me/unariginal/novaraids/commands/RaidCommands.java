@@ -2,12 +2,9 @@ package me.unariginal.novaraids.commands;
 
 import com.mojang.brigadier.CommandDispatcher;
 import me.unariginal.novaraids.commands.command.*;
-import me.unariginal.novaraids.data.*;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
-
-import java.util.*;
 
 import static net.minecraft.server.command.CommandManager.literal;
 
@@ -31,6 +28,7 @@ public class RaidCommands {
                 .then(RaidScheduleCommand.register())
                 .then(RaidPlayerVisibilityCommand.register())
                 .then(RaidPokemonVisibilityCommand.register())
+                .then(RaidGenerateStatsCommand.register())
         );
     }
 }

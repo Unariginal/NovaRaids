@@ -36,7 +36,7 @@ public class BaseGUI {
     }
 
     public ScreenHandlerType<?> getScreenHandler() {
-        if (useHopperGui) return ScreenHandlerType.HOPPER;
+        if (useHopperGui != null && useHopperGui) return ScreenHandlerType.HOPPER;
         return switch (rows) {
             case 1 -> ScreenHandlerType.GENERIC_9X1;
             case 2 -> ScreenHandlerType.GENERIC_9X2;

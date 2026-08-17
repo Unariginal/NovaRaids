@@ -55,6 +55,9 @@ public class MessagesConfig {
             public String raidPokeballOutsideRaid;
             public String notCatchPhase;
             public String normalPokeball;
+            public String noBossesAvailable;
+            public String bossDoesntExist;
+            public String categoryDoesntExist;
         }
     }
 

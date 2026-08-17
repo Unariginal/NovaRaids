@@ -1,5 +1,6 @@
 {
   "gui_title": "Queued Raids",
+  "use_hopper_gui": false,
   "rows": 6,
   "gui_layout": [
     "#########",
@@ -14,7 +15,7 @@
     "item": {
       "id": "cobblemon:pokemon_model"
     },
-    "item_name": "<light_purple>%boss.name%",
+    "item_name": "<light_purple>%boss_name%",
     "item_lore": []
   },
   "cancelable_raid_item": {
@@ -22,7 +23,7 @@
     "item": {
       "id": "cobblemon:pokemon_model"
     },
-    "item_name": "<light_purple>%boss.name%",
+    "item_name": "<light_purple>%boss_name%",
     "item_lore": [
       "<red>Right click to cancel this raid!"
     ]

@@ -28,11 +28,14 @@ public class DistributionSection {
         for (RewardPoolSection rewardPoolSection : rewardPools) {
             totalWeight += rewardPoolSection.weight;
         }
-        double randomWeight = new Random().nextDouble(totalWeight);
-        totalWeight = 0.0;
-        for (RewardPoolSection rewardPoolSection : rewardPools) {
-            totalWeight += rewardPoolSection.weight;
-            if (randomWeight < totalWeight) return rewardPoolSection;
+
+        if (totalWeight > 0) {
+            double randomWeight = new Random().nextDouble(totalWeight);
+            totalWeight = 0.0;
+            for (RewardPoolSection rewardPoolSection : rewardPools) {
+                totalWeight += rewardPoolSection.weight;
+                if (randomWeight < totalWeight) return rewardPoolSection;
+            }
         }
         return null;
     }

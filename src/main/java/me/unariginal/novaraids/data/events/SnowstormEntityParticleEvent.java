@@ -2,7 +2,7 @@ package me.unariginal.novaraids.data.events;
 
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.net.messages.client.effect.SpawnSnowstormEntityParticlePacket;
-import me.unariginal.novaraids.config.LocationsConfig;
+import me.unariginal.novaraids.config.LocationConfig;
 import net.minecraft.util.Identifier;
 
 import java.util.List;
@@ -15,7 +15,7 @@ public class SnowstormEntityParticleEvent extends ParticleEvent {
         this.locators = locators;
     }
 
-    public void spawnParticle(LocationsConfig location, PokemonEntity pokemonEntity) {
+    public void spawnParticle(LocationConfig location, PokemonEntity pokemonEntity) {
         SpawnSnowstormEntityParticlePacket snowstormEntityParticlePacket = new SpawnSnowstormEntityParticlePacket(
                 Identifier.of(particleResource),
                 pokemonEntity.getId(),

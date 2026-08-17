@@ -15,13 +15,13 @@
     "item": {
       "id": "cobblemon:pokemon_model"
     },
-    "item_name": "<light_purple>%novaraids:raid_boss_name%",
+    "item_name": "<light_purple>%boss_name%",
     "item_lore": [
-      "<gray>HP: %novaraids:raid_health%/%novaraids:raid_max_health%",
-      "<gray>Category: %novaraids:raid_category%",
-      "<gray>Phase: %novaraids:raid_phase%",
-      "<gray>Players: %novaraids:raid_player_count%/%novaraids:raid_max_players%",
-      "<gray>Raid Timer: %novaraids:raid_timer%",
+      "<gray>HP: %raid_health%/%raid_max_health%",
+      "<gray>Category: %raid_category%",
+      "<gray>Phase: %raid_phase%",
+      "<gray>Players: %raid_player_count%/%raid_max_players%",
+      "<gray>Raid Timer: %raid_timer%",
       "<green>Click to join this raid!"
     ]
   },

@@ -1,6 +1,8 @@
 {
   "debug": false,
   "use_experimental_shared_battles": false,
+  "max_loaded_history_files": 100,
+  "use_placeholder_api": false,
   "raid_settings": {
     "use_queue_system": false,
     "run_raids_with_no_players": false,
@@ -13,6 +15,7 @@
     "allow_experience_gain": false,
     "automatic_battles": false,
     "automatic_battle_delay": 2,
+    "disable_contraband_in_catch_phase": false,
     "global_contraband": {
       "banned_pokemon": ["weedle", "caterpie"],
       "banned_moves": ["tackle", "bite"],
@@ -97,6 +100,8 @@
     "update_rate_seconds": 15,
     "delete_if_no_fight_phase": true,
     "blacklisted_categories": [],
-    "blacklisted_bosses": []
+    "blacklisted_bosses": [],
+    "category_name_overrides": {},
+    "boss_name_overrides": {}
   }
 }

@@ -1,6 +1,6 @@
 package me.unariginal.novaraids.data.events;
 
-import me.unariginal.novaraids.config.LocationsConfig;
+import me.unariginal.novaraids.config.LocationConfig;
 import net.minecraft.particle.ParticleType;
 import net.minecraft.particle.SimpleParticleType;
 import net.minecraft.registry.Registries;
@@ -34,7 +34,7 @@ public class VanillaParticleEvent extends ParticleEvent {
         this.speed = speed;
     }
 
-    public void spawnParticle(LocationsConfig location) {
+    public void spawnParticle(LocationConfig location) {
         Optional<ParticleType<?>> particleType = Registries.PARTICLE_TYPE.getOrEmpty(Identifier.of(particleResource));
         if (particleType.isPresent() && particleType.get() instanceof SimpleParticleType simpleParticleType) {
             location.getServerWorld().spawnParticles(

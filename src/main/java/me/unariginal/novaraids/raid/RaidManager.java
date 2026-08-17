@@ -2,7 +2,7 @@ package me.unariginal.novaraids.raid;
 
 import com.google.common.collect.Maps;
 import me.unariginal.novaraids.NovaRaids;
-import me.unariginal.novaraids.config.LocationsConfig;
+import me.unariginal.novaraids.config.LocationConfig;
 import me.unariginal.novaraids.config.PersistentQueue;
 import me.unariginal.novaraids.config.RaidHistory;
 import me.unariginal.novaraids.data.QueueItem;
@@ -10,9 +10,10 @@ import me.unariginal.novaraids.data.categories.bosses.Boss;
 import me.unariginal.novaraids.data.categories.bosses.BossDetails;
 import me.unariginal.novaraids.data.categories.bosses.BossDetails.WeightedLocation;
 import me.unariginal.novaraids.events.RaidEvents;
-import me.unariginal.novaraids.utils.TextUtils;
+import me.unariginal.novaraids.placeholders.ParseContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.format.DateTimeFormatter;
@@ -22,6 +23,7 @@ import java.util.*;
 import static me.unariginal.novaraids.NovaRaids.logError;
 import static me.unariginal.novaraids.NovaRaids.logInfo;
 import static me.unariginal.novaraids.config.ConfigManager.*;
+import static me.unariginal.novaraids.utils.TextUtils.deserialize;
 
 public class RaidManager {
     public static final Queue<QueueItem> queuedRaids = new LinkedList<>();
@@ -29,17 +31,17 @@ public class RaidManager {
     public static final Map<UUID, Raid> activeRaids = Maps.newConcurrentMap();
     public static final List<String> busyLocations = new ArrayList<>();
 
-    public static boolean queueRaid(@Nullable Boss boss, @Nullable ServerPlayerEntity startingPlayer, @Nullable ItemStack startingItem, @Nullable Boolean requirePass) {
-        if (boss == null) return false;
+    public static boolean queueRaid(@NotNull Boss boss, @Nullable ServerPlayerEntity startingPlayer, @Nullable ItemStack startingItem, @Nullable Boolean requirePass) {
         QueueItem queueItem = new QueueItem(boss, startingPlayer, startingItem, requirePass);
         queuedRaids.add(queueItem);
         if (CONFIG.raidSettings.useQueueSystem && startingPlayer != null)
-            startingPlayer.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.feedback.addedToQueue, boss)));
+            startingPlayer.sendMessage(deserialize(MESSAGES.feedback.addedToQueue, ParseContext.builder().boss(boss).prioritizeRaid(false).build()));
         return true;
     }
 
     public static boolean queueRaid(PersistentQueue.QueueItemData queueItemData) {
         Boss boss = Boss.getBoss(queueItemData.boss);
+        if (boss == null) return false;
         ServerPlayerEntity player = null;
         if (queueItemData.startingPlayerUuid != null) {
             player = NovaRaids.INSTANCE.server.getPlayerManager().getPlayer(UUID.fromString(queueItemData.startingPlayerUuid));
@@ -58,7 +60,7 @@ public class RaidManager {
 
     public static boolean startRaid(@Nullable Boss boss, @Nullable ServerPlayerEntity startingPlayer, @Nullable ItemStack startingItem, @Nullable Boolean requiresPass) {
         if (boss == null) return false;
-        if (CONFIG.raidSettings.runRaidsWithNoPlayers && NovaRaids.INSTANCE.server.getPlayerManager().getCurrentPlayerCount() == 0) return false;
+        if (!CONFIG.raidSettings.runRaidsWithNoPlayers && NovaRaids.INSTANCE.server.getPlayerManager().getCurrentPlayerCount() == 0) return false;
 
         List<WeightedLocation> possibleLocations = boss.bossDetails.locations;
         List<WeightedLocation> availableLocations = new ArrayList<>();
@@ -68,7 +70,7 @@ public class RaidManager {
         }
 
         if (availableLocations.isEmpty()) {
-            if (startingPlayer != null) startingPlayer.sendMessage(TextUtils.deserialize(TextUtils.parse(MESSAGES.noAvailableLocations, boss)));
+            if (startingPlayer != null) startingPlayer.sendMessage(deserialize(MESSAGES.noAvailableLocations, ParseContext.builder().boss(boss).prioritizeRaid(false).build()));
             logInfo("Failed to start raid. All raid locations are busy.");
             return false;
         }
@@ -79,7 +81,7 @@ public class RaidManager {
             return false;
         }
 
-        LocationsConfig spawnLocation = LocationsConfig.getLocation(locationId);
+        LocationConfig spawnLocation = LocationConfig.getLocation(locationId);
         if (spawnLocation == null) {
             logError("Location was null");
             return false;
@@ -103,8 +105,10 @@ public class RaidManager {
     public static RaidHistory writeHistory(UUID uuid) {
         Raid raid = activeRaids.get(uuid);
         if (raid == null) return null;
+
         List<String> moves = new ArrayList<>();
         raid.bossPokemon.getMoveSet().getMoves().forEach(move -> moves.add(move.getName()));
+
         RaidHistory.BossInformation bossInformation = new RaidHistory.BossInformation(
                 raid.boss.bossId,
                 raid.boss.bossDetails.displayName,
@@ -128,17 +132,22 @@ public class RaidManager {
         );
 
         LinkedHashMap<String, Integer> convertedLeaderboard = new LinkedHashMap<>();
+        int placement = 1;
         for (Map.Entry<UUID, Integer> entry : raid.getDamageLeaderboard().entrySet()) {
             convertedLeaderboard.put(entry.getKey().toString(), entry.getValue());
+            raid.playerRaidData.get(entry.getKey().toString()).leaderboardPlacement = placement;
+            placement++;
         }
+
         return new RaidHistory(
                 uuid.toString(),
                 raid.raidStatus,
-                raid.realStartTime.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withZone(SCHEDULES.getTimezone())),
-                raid.realEndTime.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withZone(SCHEDULES.getTimezone())),
-                bossInformation,
+                raid.realStartTime.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withZone(SCHEDULES.zoneId)),
+                raid.realEndTime.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withZone(SCHEDULES.zoneId)),
                 raid.category.categoryId,
                 raid.category.categoryName,
+                raid.modifier == null ? "No Modifier" : raid.modifier.modifierId,
+                raid.modifier == null ? "No Modifier" : raid.modifier.modifierName,
                 raid.location.locationId,
                 raid.location.name,
                 raid.boss.bossDetails.aiSkillLevel,
@@ -149,8 +158,9 @@ public class RaidManager {
                 raid.endTime,
                 raid.fightStartTime,
                 raid.fightEndTime,
+                bossInformation,
                 convertedLeaderboard,
-                raid.catchPhaseResults
+                raid.playerRaidData
         );
     }
 

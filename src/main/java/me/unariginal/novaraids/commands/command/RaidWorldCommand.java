@@ -4,10 +4,11 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import me.lucko.fabric.api.permissions.v0.Permissions;
-import me.unariginal.novaraids.utils.TextUtils;
+import me.unariginal.novaraids.placeholders.ParseContext;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 
+import static me.unariginal.novaraids.utils.TextUtils.deserialize;
 import static net.minecraft.server.command.CommandManager.literal;
 
 public class RaidWorldCommand {
@@ -19,7 +20,7 @@ public class RaidWorldCommand {
 
     private static int execute(CommandContext<ServerCommandSource> ctx) {
         ServerPlayerEntity player = ctx.getSource().getPlayer();
-        if (player != null) player.sendMessage(TextUtils.deserialize(player.getServerWorld().getRegistryKey().getValue().toString()));
+        if (player != null) player.sendMessage(deserialize(player.getServerWorld().getRegistryKey().getValue().toString(), ParseContext.builder().player(player).build()));
         return Command.SINGLE_SUCCESS;
     }
 }

@@ -1,5 +1,6 @@
 package me.unariginal.novaraids.data.categories.bosses;
 
+import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.moves.MoveTemplate;
 import com.cobblemon.mod.common.api.moves.Moves;
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
@@ -11,6 +12,7 @@ import com.cobblemon.mod.common.pokemon.Pokemon;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.categories.modifiers.CategoryModifier;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
@@ -18,6 +20,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 
+import static me.unariginal.novaraids.NovaRaids.logError;
 import static me.unariginal.novaraids.config.ConfigManager.CONFIG;
 
 public class PokemonDetails {
@@ -65,12 +68,13 @@ public class PokemonDetails {
         for (WeightedFeature weightedObject : features) {
             totalWeight += weightedObject.weight;
         }
-        if (totalWeight <= 0.0) return "";
-        double randomWeight = new Random().nextDouble(totalWeight);
-        totalWeight = 0.0;
-        for (WeightedFeature weightedObject : features) {
-            totalWeight += weightedObject.weight;
-            if (randomWeight < totalWeight) return weightedObject.feature;
+        if (totalWeight > 0) {
+            double randomWeight = new Random().nextDouble(totalWeight);
+            totalWeight = 0.0;
+            for (WeightedFeature weightedObject : features) {
+                totalWeight += weightedObject.weight;
+                if (randomWeight < totalWeight) return weightedObject.feature;
+            }
         }
         return "";
     }
@@ -80,12 +84,13 @@ public class PokemonDetails {
         for (WeightedAbility weightedObject : abilities) {
             totalWeight += weightedObject.weight;
         }
-        if (totalWeight <= 0.0) return "";
-        double randomWeight = new Random().nextDouble(totalWeight);
-        totalWeight = 0.0;
-        for (WeightedAbility weightedObject : abilities) {
-            totalWeight += weightedObject.weight;
-            if (randomWeight < totalWeight) return weightedObject.ability;
+        if (totalWeight > 0) {
+            double randomWeight = new Random().nextDouble(totalWeight);
+            totalWeight = 0.0;
+            for (WeightedAbility weightedObject : abilities) {
+                totalWeight += weightedObject.weight;
+                if (randomWeight < totalWeight) return weightedObject.ability;
+            }
         }
         return "";
     }
@@ -95,12 +100,13 @@ public class PokemonDetails {
         for (WeightedNature weightedObject : natures) {
             totalWeight += weightedObject.weight;
         }
-        if (totalWeight <= 0.0) return "";
-        double randomWeight = new Random().nextDouble(totalWeight);
-        totalWeight = 0.0;
-        for (WeightedNature weightedObject : natures) {
-            totalWeight += weightedObject.weight;
-            if (randomWeight < totalWeight) return weightedObject.nature;
+        if (totalWeight > 0) {
+            double randomWeight = new Random().nextDouble(totalWeight);
+            totalWeight = 0.0;
+            for (WeightedNature weightedObject : natures) {
+                totalWeight += weightedObject.weight;
+                if (randomWeight < totalWeight) return weightedObject.nature;
+            }
         }
         return "";
     }
@@ -110,12 +116,14 @@ public class PokemonDetails {
         for (WeightedGender weightedObject : genders) {
             totalWeight += weightedObject.weight;
         }
-        if (totalWeight <= 0.0) return "";
-        double randomWeight = new Random().nextDouble(totalWeight);
-        totalWeight = 0.0;
-        for (WeightedGender weightedObject : genders) {
-            totalWeight += weightedObject.weight;
-            if (randomWeight < totalWeight) return weightedObject.gender;
+
+        if (totalWeight > 0) {
+            double randomWeight = new Random().nextDouble(totalWeight);
+            totalWeight = 0.0;
+            for (WeightedGender weightedObject : genders) {
+                totalWeight += weightedObject.weight;
+                if (randomWeight < totalWeight) return weightedObject.gender;
+            }
         }
         return "";
     }
@@ -125,21 +133,17 @@ public class PokemonDetails {
         for (WeightedGimmick weightedObject : gimmicks) {
             totalWeight += weightedObject.weight;
         }
-        if (totalWeight <= 0.0) return "";
-        double randomWeight = new Random().nextDouble(totalWeight);
-        totalWeight = 0.0;
-        for (WeightedGimmick weightedObject : gimmicks) {
-            totalWeight += weightedObject.weight;
-            if (randomWeight < totalWeight) return weightedObject.gimmick;
+        if (totalWeight > 0) {
+            double randomWeight = new Random().nextDouble(totalWeight);
+            totalWeight = 0.0;
+            for (WeightedGimmick weightedObject : gimmicks) {
+                totalWeight += weightedObject.weight;
+                if (randomWeight < totalWeight) return weightedObject.gimmick;
+            }
         }
         return "";
     }
 
-    public Pokemon createPokemon() {
-        return createPokemon(null);
-    }
-
-    // TODO: Check usage locations of this method and determine performance impact
     public Pokemon createPokemon(@Nullable CategoryModifier modifier) {
         PokemonProperties pokemonProperties = PokemonProperties.Companion.parse(getRandomFeature());
         pokemonProperties.setSpecies(species);
@@ -171,7 +175,7 @@ public class PokemonDetails {
                     + Objects.requireNonNullElse(modifier.bossPokemonModifiers.ivsModifier.get(Stats.DEFENCE), 0));
             finalIvs.set(Stats.SPECIAL_ATTACK, Objects.requireNonNullElse(ivs.get(Stats.SPECIAL_ATTACK), 0)
                     + Objects.requireNonNullElse(modifier.bossPokemonModifiers.ivsModifier.get(Stats.SPECIAL_ATTACK), 0));
-            finalIvs.set(Stats.DEFENCE, Objects.requireNonNullElse(ivs.get(Stats.SPECIAL_DEFENCE), 0)
+            finalIvs.set(Stats.SPECIAL_DEFENCE, Objects.requireNonNullElse(ivs.get(Stats.SPECIAL_DEFENCE), 0)
                     + Objects.requireNonNullElse(modifier.bossPokemonModifiers.ivsModifier.get(Stats.SPECIAL_DEFENCE), 0));
             finalIvs.set(Stats.SPEED, Objects.requireNonNullElse(ivs.get(Stats.SPEED), 0)
                     + Objects.requireNonNullElse(modifier.bossPokemonModifiers.ivsModifier.get(Stats.SPEED), 0));
@@ -192,7 +196,7 @@ public class PokemonDetails {
                     + Objects.requireNonNullElse(modifier.bossPokemonModifiers.evsModifier.get(Stats.DEFENCE), 0));
             finalEvs.set(Stats.SPECIAL_ATTACK, Objects.requireNonNullElse(evs.get(Stats.SPECIAL_ATTACK), 0)
                     + Objects.requireNonNullElse(modifier.bossPokemonModifiers.evsModifier.get(Stats.SPECIAL_ATTACK), 0));
-            finalEvs.set(Stats.DEFENCE, Objects.requireNonNullElse(evs.get(Stats.SPECIAL_DEFENCE), 0)
+            finalEvs.set(Stats.SPECIAL_DEFENCE, Objects.requireNonNullElse(evs.get(Stats.SPECIAL_DEFENCE), 0)
                     + Objects.requireNonNullElse(modifier.bossPokemonModifiers.evsModifier.get(Stats.SPECIAL_DEFENCE), 0));
             finalEvs.set(Stats.SPEED, Objects.requireNonNullElse(evs.get(Stats.SPEED), 0)
                     + Objects.requireNonNullElse(modifier.bossPokemonModifiers.evsModifier.get(Stats.SPEED), 0));
@@ -207,19 +211,22 @@ public class PokemonDetails {
         Pokemon pokemon = pokemonProperties.create();
         int finalLevel = level;
         if (modifier != null) finalLevel += modifier.bossPokemonModifiers.levelOffset;
-        if (finalLevel <= 100) pokemon.setLevel(finalLevel);
+        if (finalLevel <= Cobblemon.config.getMaxPokemonLevel()) pokemon.setLevel(finalLevel);
         else {
             try {
                 Field levelField = pokemon.getClass().getDeclaredField("level");
                 levelField.setAccessible(true);
                 levelField.set(pokemon, finalLevel);
             } catch (NoSuchFieldException | IllegalAccessException e) {
-                NovaRaids.LOGGER.error("[NovaRaids] Failed to set pokemon level above 100.", e);
+                NovaRaids.LOGGER.error("[NovaRaids] Failed to set pokemon level above {}.", Cobblemon.config.getMaxPokemonLevel(), e);
             }
         }
-        for (int i = 0; i < moves.size() || i < 4; i++) {
+        pokemon.getMoveSet().clear();
+        for (int i = 0; i < moves.size() && i < 4; i++) {
             MoveTemplate moveTemplate = Moves.getByName(moves.get(i));
             if (moveTemplate == null) {
+                logError("Move \"" + moves.get(i) + "\" does not exist! Removing from move list.");
+                moves.remove(i);
                 i--;
                 continue;
             }
@@ -228,9 +235,19 @@ public class PokemonDetails {
             else pokemon.getMoveSet().setMove(i, moveTemplate.create(moveTemplate.getMaxPp()));
         }
         pokemon.swapHeldItem(heldItem, true, false);
-        pokemon.getPersistentData().putBoolean("raid_entity", true);
+        NbtCompound data = new NbtCompound();
+        data.putBoolean("raid_entity", true);
+        pokemon.getPersistentData().put("raid_data", data);
         pokemon.heal();
 
         return pokemon;
+    }
+
+    public Pokemon createDisplayPokemon() {
+        PokemonProperties pokemonProperties = PokemonProperties.Companion.parse(getRandomFeature());
+        pokemonProperties.setSpecies(species);
+        pokemonProperties.setGender(Gender.valueOf(getRandomGender().toUpperCase()));
+        pokemonProperties.setShiny(shiny);
+        return pokemonProperties.create();
     }
 }

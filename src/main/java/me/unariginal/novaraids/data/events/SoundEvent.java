@@ -2,7 +2,7 @@ package me.unariginal.novaraids.data.events;
 
 import com.cobblemon.mod.common.net.messages.client.sound.UnvalidatedPlaySoundS2CPacket;
 import me.unariginal.novaraids.NovaRaids;
-import me.unariginal.novaraids.config.LocationsConfig;
+import me.unariginal.novaraids.config.LocationConfig;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.util.Identifier;
 
@@ -12,7 +12,7 @@ public class SoundEvent {
     public float volume;
     public float pitch;
 
-    public void playSound(LocationsConfig location) {
+    public void playSound(LocationConfig location) {
         SoundCategory soundCategory = SoundCategory.MASTER;
         try {
             soundCategory = SoundCategory.valueOf(this.soundCategory);

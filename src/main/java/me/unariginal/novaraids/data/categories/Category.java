@@ -20,7 +20,8 @@ public class Category {
     public transient Map<String, CategoryModifier> modifiers = new HashMap<>();
     public transient Map<String, Boss> bosses = new HashMap<>();
 
-    public static @Nullable Category getCategory(String id) {
+    public static @Nullable Category getCategory(@Nullable String id) {
+        if (id == null) return null;
         return ConfigManager.CATEGORIES.get(id);
     }
 

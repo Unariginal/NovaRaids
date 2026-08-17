@@ -26,7 +26,7 @@ public class Threading {
     /**
      * Schedule a delayed asynchronous task
      * @param runnable {@link Runnable}
-     * @param delay Delay (in millis)
+     * @param delay Delay (in seconds)
      */
     public static ScheduledFuture<?> runDelayedTaskAsync(Runnable runnable, long delay) {
         return ASYNC_EXECUTOR.schedule(wrapRunnable(runnable), delay, TimeUnit.SECONDS);
@@ -38,6 +38,18 @@ public class Threading {
      */
     public static ScheduledFuture<?> runDelayedTaskAsyncTimer(Runnable runnable, long initDelay, long timedDelay) {
         return ASYNC_EXECUTOR.scheduleWithFixedDelay(wrapRunnable(runnable), initDelay, timedDelay, TimeUnit.SECONDS);
+    }
+
+    public static void shutdown() {
+        ASYNC_EXECUTOR.shutdown();
+        try {
+            if (!ASYNC_EXECUTOR.awaitTermination(5, TimeUnit.SECONDS)) {
+                ASYNC_EXECUTOR.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            ASYNC_EXECUTOR.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
 
     private static Runnable wrapRunnable(Runnable runnable) {

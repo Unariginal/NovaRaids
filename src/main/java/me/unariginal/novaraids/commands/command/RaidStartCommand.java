@@ -21,33 +21,45 @@ public class RaidStartCommand {
                 .then(argument("boss", StringArgumentType.string())
                         .suggests(new BossSuggestions())
                         .executes(ctx -> {
-                            RaidManager.queueRaid(Boss.getBoss(StringArgumentType.getString(ctx, "boss")), ctx.getSource().getPlayer(), null, null);
+                            Boss boss = Boss.getBoss(StringArgumentType.getString(ctx, "boss"));
+                            if (boss == null) return 0;
+                            RaidManager.queueRaid(boss, ctx.getSource().getPlayer(), null, null);
                             return Command.SINGLE_SUCCESS;
                         })
                         .then(argument("require_pass", BoolArgumentType.bool())
                                 .executes(ctx -> {
-                                    RaidManager.queueRaid(Boss.getBoss(StringArgumentType.getString(ctx, "boss")), ctx.getSource().getPlayer(), null, BoolArgumentType.getBool(ctx, "require_pass"));
+                                    Boss boss = Boss.getBoss(StringArgumentType.getString(ctx, "boss"));
+                                    if (boss == null) return 0;
+                                    RaidManager.queueRaid(boss, ctx.getSource().getPlayer(), null, BoolArgumentType.getBool(ctx, "require_pass"));
                                     return Command.SINGLE_SUCCESS;
                                 })))
                 .then(literal("random")
                         .then(argument("require_pass", BoolArgumentType.bool())
                                 .executes(ctx -> {
-                                    RaidManager.queueRaid(Boss.getRandomBoss(null), ctx.getSource().getPlayer(), null, BoolArgumentType.getBool(ctx, "require_pass"));
+                                    Boss boss = Boss.getRandomBoss(null);
+                                    if (boss == null) return 0;
+                                    RaidManager.queueRaid(boss, ctx.getSource().getPlayer(), null, BoolArgumentType.getBool(ctx, "require_pass"));
                                     return Command.SINGLE_SUCCESS;
                                 }))
                         .executes(ctx -> {
-                            RaidManager.queueRaid(Boss.getRandomBoss(null), ctx.getSource().getPlayer(), null, null);
+                            Boss boss = Boss.getRandomBoss(null);
+                            if (boss == null) return 0;
+                            RaidManager.queueRaid(boss, ctx.getSource().getPlayer(), null, null);
                             return Command.SINGLE_SUCCESS;
                         })
                         .then(argument("category", StringArgumentType.string())
                                 .suggests(new CategorySuggestions())
                                 .executes(ctx -> {
-                                    RaidManager.queueRaid(Boss.getRandomBoss(StringArgumentType.getString(ctx, "category"), null), ctx.getSource().getPlayer(), null, null);
+                                    Boss boss = Boss.getRandomBoss(StringArgumentType.getString(ctx, "category"), null);
+                                    if (boss == null) return 0;
+                                    RaidManager.queueRaid(boss, ctx.getSource().getPlayer(), null, null);
                                     return Command.SINGLE_SUCCESS;
                                 })
                                 .then(argument("require_pass", BoolArgumentType.bool())
                                         .executes(ctx -> {
-                                            RaidManager.queueRaid(Boss.getRandomBoss(StringArgumentType.getString(ctx, "category"), null), ctx.getSource().getPlayer(), null, BoolArgumentType.getBool(ctx, "require_pass"));
+                                            Boss boss = Boss.getRandomBoss(StringArgumentType.getString(ctx, "category"), null);
+                                            if (boss == null) return 0;
+                                            RaidManager.queueRaid(boss, ctx.getSource().getPlayer(), null, BoolArgumentType.getBool(ctx, "require_pass"));
                                             return Command.SINGLE_SUCCESS;
                                         }))));
     }

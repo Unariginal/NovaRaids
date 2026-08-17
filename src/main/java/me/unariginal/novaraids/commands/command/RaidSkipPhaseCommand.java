@@ -9,8 +9,10 @@ import me.unariginal.novaraids.data.Task;
 import me.unariginal.novaraids.raid.Raid;
 import me.unariginal.novaraids.raid.RaidManager;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.text.Text;
 
 import java.util.List;
+import java.util.Optional;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
@@ -28,8 +30,14 @@ public class RaidSkipPhaseCommand {
         Raid raid = RaidManager.getRaid(id - 1);
         if (raid == null) return 0;
 
-        List<Task> tasks = raid.tasks.entrySet().stream().findFirst().orElseThrow().getValue();
-        raid.removeTask(raid.tasks.entrySet().stream().findFirst().orElseThrow().getKey());
+        Optional<Long> nextTick = raid.tasks.keySet().stream().min(Long::compareTo);
+        if (nextTick.isEmpty()) {
+            ctx.getSource().sendError(Text.literal("This raid has no pending phase to skip."));
+            return 0;
+        }
+
+        List<Task> tasks = raid.tasks.get(nextTick.get());
+        raid.removeTask(nextTick.get());
         for (Task task : tasks) {
             raid.addTask(task.world(), 1L, task.action());
         }

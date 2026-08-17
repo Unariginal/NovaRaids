@@ -9,13 +9,14 @@ import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.mojang.authlib.GameProfile;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.events.WebhookEvent;
+import me.unariginal.novaraids.placeholders.ParseContext;
 import me.unariginal.novaraids.raid.Raid;
-import me.unariginal.novaraids.utils.TextUtils;
 import net.minecraft.util.UserCache;
 
 import java.awt.*;
 import java.net.HttpURLConnection;
 import java.net.URI;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -23,6 +24,7 @@ import java.util.concurrent.CompletableFuture;
 
 import static me.unariginal.novaraids.NovaRaids.logError;
 import static me.unariginal.novaraids.config.ConfigManager.CONFIG;
+import static me.unariginal.novaraids.utils.TextUtils.parse;
 
 public class WebhookHandler {
     private static final UserCache cache = NovaRaids.INSTANCE.server.getUserCache();
@@ -105,6 +107,7 @@ public class WebhookHandler {
             connection.setRequestMethod("HEAD");
             connection.connect();
             int responseCode = connection.getResponseCode();
+            connection.disconnect();
 
             return responseCode == HttpURLConnection.HTTP_OK;
         } catch (Exception e) {
@@ -154,26 +157,48 @@ public class WebhookHandler {
         Pokemon pokemon = raid.bossPokemon;
         int randColor = genTypeColor(pokemon);
         String thumbnailUrl = getThumbnailUrl(pokemon);
+        ParseContext parseContext = ParseContext.builder().raid(raid).build();
+        String categoryNameOverride = CONFIG.discordWebhook.categoryNameOverrides.get(raid.category.categoryId);
+        String bossNameOverride = CONFIG.discordWebhook.bossNameOverrides.get(raid.boss.bossId);
+
+        String title = event.embedTitle.replace("%damage%", String.valueOf(damage));
+        if (categoryNameOverride != null) title = title.replace("%category%", categoryNameOverride);
+        if (bossNameOverride != null) title = title.replace("%boss_name%", bossNameOverride);
+        title = parse(title, parseContext);
 
         WebhookEmbedBuilder embedBuilder = new WebhookEmbedBuilder()
                 .setColor(randColor)
-                .setAuthor(
-                        new WebhookEmbed.EmbedAuthor(
-                                TextUtils.parse(event.embedTitle.replaceAll("%damage%", String.valueOf(damage)), raid),
-                                "",
-                                thumbnailUrl
-                        )
-                );
+                .setTitle(new WebhookEmbed.EmbedTitle(title, null))
+                .setAuthor(new WebhookEmbed.EmbedAuthor("", null, thumbnailUrl));
+
         for (WebhookEvent.EmbedField field : event.fields) {
-            embedBuilder.addField(new WebhookEmbed.EmbedField(field.inline, TextUtils.parse(field.name.replaceAll("%damage%", String.valueOf(damage)), raid), TextUtils.parse(field.value.replaceAll("%damage%", String.valueOf(damage)), raid)));
+            String fieldName = field.name.replace("%damage%", String.valueOf(damage));
+            if (categoryNameOverride != null) fieldName = fieldName.replace("%category%", categoryNameOverride);
+            if (bossNameOverride != null) fieldName = fieldName.replace("%boss_name%", bossNameOverride);
+            fieldName = parse(fieldName, parseContext);
+
+            String fieldValue = field.value.replace("%damage%", String.valueOf(damage));
+            if (categoryNameOverride != null) fieldValue = fieldValue.replace("%category%", categoryNameOverride);
+            if (bossNameOverride != null) fieldValue = fieldValue.replace("%boss_name%", bossNameOverride);
+            fieldValue = parse(fieldValue, parseContext);
+
+            embedBuilder.addField(new WebhookEmbed.EmbedField(field.inline, fieldName, fieldValue));
             if (field.insertLeaderboardAfter != null && field.insertLeaderboardAfter && event.leaderboardFieldLayout != null) {
-                Map<UUID, Integer> leaderboard = raid.getDamageLeaderboard();
+                LinkedHashMap<UUID, Integer> leaderboard = raid.getDamageLeaderboard();
                 for (int i = 0; i < Math.min(leaderboard.size(), 10); i++) {
                     Map.Entry<UUID, Integer> entry = leaderboard.entrySet().stream().toList().get(i);
                     if (cache != null) {
                         GameProfile user = cache.getByUuid(entry.getKey()).orElseThrow();
-                        String name = TextUtils.parse(event.leaderboardFieldLayout.name.replaceAll("%damage%", String.valueOf(damage)), raid, user, entry.getValue(), i + 1);
-                        String value = TextUtils.parse(event.leaderboardFieldLayout.value.replaceAll("%damage%", String.valueOf(damage)), raid, user, entry.getValue(), i + 1);
+                        String name = event.leaderboardFieldLayout.name;
+                        if (categoryNameOverride != null) name = name.replace("%category%", categoryNameOverride);
+                        if (bossNameOverride != null) name = name.replace("%boss_name%", bossNameOverride);
+                        name = parse(parse(name, parseContext), user, entry.getValue(), i + 1);
+
+                        String value = event.leaderboardFieldLayout.value;
+                        if (categoryNameOverride != null) value = value.replace("%category%", categoryNameOverride);
+                        if (bossNameOverride != null) value = value.replace("%boss_name%", bossNameOverride);
+                        value = parse(parse(value, parseContext), user, entry.getValue(), i + 1);
+
                         embedBuilder.addField(new WebhookEmbed.EmbedField(event.leaderboardFieldLayout.inline, name, value));
                     }
                 }
@@ -181,8 +206,13 @@ public class WebhookHandler {
         }
         embedBuilder.setThumbnailUrl(thumbnailUrl);
         WebhookEmbed embed = embedBuilder.build();
+        String message = event.message.replaceAll("%damage%", String.valueOf(damage));
+        if (categoryNameOverride != null) message = message.replace("%category%", categoryNameOverride);
+        if (bossNameOverride != null) message = message.replace("%boss_name%", bossNameOverride);
+        message = parse(message, parseContext);
+
         return new WebhookMessageBuilder()
-                .setContent(event.message.replaceAll("%damage%", String.valueOf(damage)))
+                .setContent(message)
                 .setUsername(CONFIG.discordWebhook.username)
                 .setAvatarUrl(CONFIG.discordWebhook.avatarUrl)
                 .addEmbeds(embed);

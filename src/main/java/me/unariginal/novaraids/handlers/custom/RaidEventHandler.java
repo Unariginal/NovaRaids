@@ -1,10 +1,12 @@
 package me.unariginal.novaraids.handlers.custom;
 
+import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import me.unariginal.novaraids.NovaRaids;
 import me.unariginal.novaraids.data.events.Event;
 import me.unariginal.novaraids.raid.Raid;
 import me.unariginal.novaraids.handlers.WebhookHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +14,15 @@ import java.util.List;
 import static me.unariginal.novaraids.config.ConfigManager.CONFIG;
 
 public class RaidEventHandler {
-    public static void runEvent(Event event, Raid raid, Integer damage) {
+    public static void runEvent(Event event, Raid raid, @Nullable Integer damage) {
+        runEvent(event, raid, damage, null);
+    }
+
+    public static void runEvent(Event event, Raid raid, @Nullable Integer damage, @Nullable ServerPlayerEntity eventPlayer) {
+        Event.EventSection eventSection;
+        if (raid.modifier != null) eventSection = event.modifier;
+        else eventSection = event.noModifier;
+
         List<ServerPlayerEntity> players = new ArrayList<>();
         if (event.global) players.addAll(NovaRaids.INSTANCE.server.getPlayerManager().getPlayerList());
         else {
@@ -22,28 +32,29 @@ public class RaidEventHandler {
             });
         }
 
+        PokemonEntity bossEntity = raid.getBossEntity();
+
         players.forEach(player -> {
-            event.sendMessages(player, raid, damage);
-            event.executeCommands(player, damage);
-            event.applyEffects(player);
-            event.showTitles(player, raid, damage);
-            event.runMolang(player, raid.bossEntity, damage);
+            eventSection.sendMessages(player, raid, damage, eventPlayer);
+            eventSection.executeCommands(raid, player, damage);
+            eventSection.applyEffects(player);
+            eventSection.showTitles(player, raid, damage);
+            eventSection.runMolang(player, bossEntity, damage);
         });
 
-        event.executeCommands(damage);
-        event.playSounds(raid.location);
-        event.spawnParticles(raid.location, raid.bossEntity);
+        eventSection.executeCommands(raid, damage);
+        eventSection.playSounds(raid.location);
+        eventSection.spawnParticles(raid.location, bossEntity);
 
         if (CONFIG.discordWebhook.enabled &&
                 !CONFIG.discordWebhook.blacklistedCategories.contains(raid.category.categoryId) &&
                 !CONFIG.discordWebhook.blacklistedBosses.contains(raid.boss.bossId)) {
-            if (event.discordWebhook != null) {
-                WebhookHandler.sendWebhookEmbed(event.discordWebhook, raid, damage).thenAccept(id -> {
-                    raid.currentWebhookEvent = event.discordWebhook;
-                    raid.webhookID = id;
-                });
-            } else {
-                raid.currentWebhookEvent = null;
+            if (eventSection.discordWebhook != null) {
+                WebhookHandler.sendWebhookEmbed(eventSection.discordWebhook, raid, damage)
+                        .thenAccept(id -> NovaRaids.INSTANCE.server.execute(() -> {
+                            raid.currentWebhookEvent = eventSection.discordWebhook;
+                            if (id != null) raid.webhookID = id;
+                        }));
             }
         }
     }

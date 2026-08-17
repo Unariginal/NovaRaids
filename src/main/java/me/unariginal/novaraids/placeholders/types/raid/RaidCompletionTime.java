@@ -1,25 +1,19 @@
 package me.unariginal.novaraids.placeholders.types.raid;
 
+import me.unariginal.novaraids.placeholders.interfaces.RaidPlaceholder;
 import me.unariginal.novaraids.raid.Raid;
 import me.unariginal.novaraids.placeholders.GenericResult;
-import me.unariginal.novaraids.placeholders.ServerPlaceholder;
-import me.unariginal.novaraids.raid.RaidManager;
 import me.unariginal.novaraids.utils.TextUtils;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class RaidCompletionTime implements ServerPlaceholder {
+import static me.unariginal.novaraids.placeholders.RaidGetter.getRaid;
+
+public class RaidCompletionTime implements RaidPlaceholder {
     @Override
-    public GenericResult handle(List<String> args) {
-        int raidSlot = 1;
-        if (!args.isEmpty()) {
-            try {
-                raidSlot = Integer.parseInt(args.getFirst());
-            } catch (NumberFormatException ignored) {
-                // No Crashy
-            }
-        }
-        Raid raid = RaidManager.getRaid(raidSlot - 1);
+    public GenericResult handle(@Nullable Raid raid, List<String> args) {
+        if (raid == null) raid = getRaid(args);
         if (raid == null) return GenericResult.invalid("No Active Raid");
         if (raid.raidCompletionTime() <= 0) return GenericResult.invalid("Raid Is Ongoing");
 

@@ -1,7 +1,7 @@
 package me.unariginal.novaraids.data.events;
 
 import com.cobblemon.mod.common.net.messages.client.effect.SpawnSnowstormParticlePacket;
-import me.unariginal.novaraids.config.LocationsConfig;
+import me.unariginal.novaraids.config.LocationConfig;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 
@@ -10,7 +10,7 @@ public class SnowstormParticleEvent extends ParticleEvent {
         super(particleResource, xOffset, yOffset, zOffset);
     }
 
-    public void spawnParticle(LocationsConfig location) {
+    public void spawnParticle(LocationConfig location) {
         SpawnSnowstormParticlePacket snowstormParticlePacket = new SpawnSnowstormParticlePacket(
                 Identifier.of(particleResource),
                 new Vec3d(

@@ -9,7 +9,7 @@ import me.unariginal.novaraids.commands.suggestions.CategorySuggestions;
 import me.unariginal.novaraids.data.categories.Category;
 import me.unariginal.novaraids.data.categories.bosses.Boss;
 import me.unariginal.novaraids.data.items.Voucher;
-import me.unariginal.novaraids.utils.TextUtils;
+import me.unariginal.novaraids.placeholders.ParseContext;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.LoreComponent;
@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static me.unariginal.novaraids.config.ConfigManager.CONFIG;
+import static me.unariginal.novaraids.utils.TextUtils.deserialize;
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
@@ -166,49 +167,57 @@ public class RaidGiveVoucherCommand {
         Text itemName;
         LoreComponent lore;
 
+        ParseContext.Builder parseContextBuilder = ParseContext.builder();
+
         if (!isRandom) {
             if (boss != null) {
+                ParseContext parseContext = parseContextBuilder.boss(boss).prioritizeRaid(false).build();
+
                 raidBoss = boss.bossId;
                 raidCategory = "null";
                 voucher = boss.itemSettings.bossVoucher;
 
-                itemName = TextUtils.deserialize(TextUtils.parse(voucher.voucherName, boss));
+                itemName = deserialize(voucher.voucherName, parseContext);
                 List<Text> loreText = new ArrayList<>();
                 for (String loreLine : voucher.voucherLore) {
-                    loreText.add(TextUtils.deserialize(TextUtils.parse(loreLine, boss)));
+                    loreText.add(deserialize(loreLine, parseContext));
                 }
                 lore = new LoreComponent(loreText);
             } else {
                 raidBoss = "*";
                 if (category != null) {
+                    parseContextBuilder.category(category);
                     raidCategory = category.categoryId;
                     voucher = category.itemSettings.categoryChoiceVoucher;
                 } else {
                     raidCategory = "*";
                     voucher = CONFIG.itemSettings.voucherSettings.globalChoiceVoucher;
                 }
+                ParseContext parseContext = parseContextBuilder.build();
 
-                itemName = TextUtils.deserialize(TextUtils.parse(voucher.voucherName));
+                itemName = deserialize(voucher.voucherName, parseContext);
                 List<Text> loreText = new ArrayList<>();
                 for (String loreLine : voucher.voucherLore) {
-                    loreText.add(TextUtils.deserialize(TextUtils.parse(loreLine)));
+                    loreText.add(deserialize(loreLine, parseContext));
                 }
                 lore = new LoreComponent(loreText);
             }
         } else {
             raidBoss = "random";
             if (category != null) {
+                parseContextBuilder.category(category);
                 raidCategory = category.categoryId;
                 voucher = category.itemSettings.categoryRandomVoucher;
             } else {
                 raidCategory = "null";
                 voucher = CONFIG.itemSettings.voucherSettings.globalRandomVoucher;
             }
+            ParseContext parseContext = parseContextBuilder.build();
 
-            itemName = TextUtils.deserialize(TextUtils.parse(voucher.voucherName));
+            itemName = deserialize(voucher.voucherName, parseContext);
             List<Text> loreText = new ArrayList<>();
             for (String loreLine : voucher.voucherLore) {
-                loreText.add(TextUtils.deserialize(TextUtils.parse(loreLine)));
+                loreText.add(deserialize(loreLine, parseContext));
             }
             lore = new LoreComponent(loreText);
         }
