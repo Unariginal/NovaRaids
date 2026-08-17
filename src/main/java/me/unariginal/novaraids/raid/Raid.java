@@ -718,22 +718,23 @@ public class Raid {
     }
 
     public void removeClone(PokemonEntity clone, boolean fromFlee) {
-        if (clone != null) {
-            if (clone.isAlive()) {
-                if (!fromFlee) {
-                    if (clone.isBattling() && clone.getBattleId() != null) {
-                        PokemonBattle battle = BattleRegistry.getBattle(clone.getBattleId());
-                        if (battle != null) {
-                            battle.stop();
-                        }
+        if (clone == null) return;
+        if (!clones.containsKey(clone)) return;
+        clones.remove(clone);
+
+        if (clone.isAlive()) {
+            if (!fromFlee) {
+                if (clone.isBattling() && clone.getBattleId() != null) {
+                    PokemonBattle battle = BattleRegistry.getBattle(clone.getBattleId());
+                    if (battle != null) {
+                        battle.stop();
                     }
                 }
-
-                clone.getPokemon().tryRecallWithAnimation();
-                if (!clone.isRemoved()) clone.discard();
             }
+
+            clone.getPokemon().tryRecallWithAnimation();
+            if (!clone.isRemoved()) clone.discard();
         }
-        clones.remove(clone);
     }
 
     public boolean isParticipating(UUID playerUUID) {
