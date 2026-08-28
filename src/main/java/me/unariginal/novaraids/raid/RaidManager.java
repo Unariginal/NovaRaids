@@ -9,6 +9,7 @@ import me.unariginal.novaraids.data.QueueItem;
 import me.unariginal.novaraids.data.categories.bosses.Boss;
 import me.unariginal.novaraids.data.categories.bosses.BossDetails;
 import me.unariginal.novaraids.data.categories.bosses.BossDetails.WeightedLocation;
+import me.unariginal.novaraids.data.categories.modifiers.CategoryModifier;
 import me.unariginal.novaraids.events.RaidEvents;
 import me.unariginal.novaraids.placeholders.ParseContext;
 import net.minecraft.item.ItemStack;
@@ -31,8 +32,8 @@ public class RaidManager {
     public static final Map<UUID, Raid> activeRaids = Maps.newConcurrentMap();
     public static final List<String> busyLocations = new ArrayList<>();
 
-    public static boolean queueRaid(@NotNull Boss boss, @Nullable ServerPlayerEntity startingPlayer, @Nullable ItemStack startingItem, @Nullable Boolean requirePass) {
-        QueueItem queueItem = new QueueItem(boss, startingPlayer, startingItem, requirePass);
+    public static boolean queueRaid(@NotNull Boss boss, @Nullable ServerPlayerEntity startingPlayer, @Nullable ItemStack startingItem, @Nullable Boolean requirePass, @Nullable CategoryModifier modifier) {
+        QueueItem queueItem = new QueueItem(boss, startingPlayer, startingItem, requirePass, modifier);
         queuedRaids.add(queueItem);
         if (CONFIG.raidSettings.useQueueSystem && startingPlayer != null)
             startingPlayer.sendMessage(deserialize(MESSAGES.feedback.addedToQueue, ParseContext.builder().boss(boss).prioritizeRaid(false).build()));
@@ -46,7 +47,7 @@ public class RaidManager {
         if (queueItemData.startingPlayerUuid != null) {
             player = NovaRaids.INSTANCE.server.getPlayerManager().getPlayer(UUID.fromString(queueItemData.startingPlayerUuid));
         }
-        return queueRaid(boss, player, queueItemData.startingItem, queueItemData.requirePass);
+        return queueRaid(boss, player, queueItemData.startingItem, queueItemData.requirePass, null);
     }
 
     public static void startNextQueuedRaid() {
@@ -58,7 +59,7 @@ public class RaidManager {
         }
     }
 
-    public static boolean startRaid(@Nullable Boss boss, @Nullable ServerPlayerEntity startingPlayer, @Nullable ItemStack startingItem, @Nullable Boolean requiresPass) {
+    public static boolean startRaid(@Nullable Boss boss, @Nullable ServerPlayerEntity startingPlayer, @Nullable ItemStack startingItem, @Nullable Boolean requiresPass, @Nullable CategoryModifier modifier) {
         if (boss == null) return false;
         if (!CONFIG.raidSettings.runRaidsWithNoPlayers && NovaRaids.INSTANCE.server.getPlayerManager().getCurrentPlayerCount() == 0) return false;
 
@@ -87,7 +88,7 @@ public class RaidManager {
             return false;
         }
 
-        Raid raid = new Raid(boss, locationId, startingPlayer, startingItem, requiresPass);
+        Raid raid = new Raid(boss, locationId, startingPlayer, startingItem, requiresPass, modifier);
         RaidEvents.RAID_START_EVENT_PRE.invoker().onRaidStartPre(raid);
         activeRaids.put(raid.uuid, raid);
         raidIds.add(raid.uuid);

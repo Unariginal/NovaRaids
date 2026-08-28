@@ -349,7 +349,7 @@ public class TickEventHandler {
                                 if (randomWeight < totalWeight) {
                                     Boss boss = Boss.getRandomBoss(category.categoryId, scheduleCategory.blacklistedBosses);
                                     if (boss != null) {
-                                        RaidManager.queueRaid(boss, null, null, null);
+                                        RaidManager.queueRaid(boss, null, null, null, null);
                                         break;
                                     } else {
                                         logError("Failed to start scheduled raid. Boss was null!");
@@ -361,7 +361,7 @@ public class TickEventHandler {
                             if (boss != null) {
                                 totalWeight += scheduleBoss.weight;
                                 if (randomWeight < totalWeight) {
-                                    RaidManager.queueRaid(boss, null, null, null);
+                                    RaidManager.queueRaid(boss, null, null, null, null);
                                     break;
                                 }
                             }

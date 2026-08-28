@@ -629,7 +629,7 @@ public class CobblemonEventHandler {
                                                 .setLore(lore)
                                                 .setCallback((num, clickType, slotActionType) -> {
                                                     if (clickType.isLeft) {
-                                                        queueRaid(boss, player, itemStack.copy(), null);
+                                                        queueRaid(boss, player, itemStack.copy(), null, null);
                                                         itemStack.decrement(1);
                                                         player.sendMessage(deserialize(MESSAGES.feedback.usedVoucher, parseContext));
                                                         pageEntry.getValue().close();
@@ -733,7 +733,7 @@ public class CobblemonEventHandler {
                                 return TypedActionResult.fail(itemStack);
                             }
 
-                            queueRaid(boss, player, itemStack.copy(), null);
+                            queueRaid(boss, player, itemStack.copy(), null, null);
                             itemStack.decrement(1);
                             player.sendMessage(deserialize(MESSAGES.feedback.usedVoucher, parseContextBuilder.boss(boss).prioritizeRaid(false).build()));
                         } else {
@@ -742,7 +742,7 @@ public class CobblemonEventHandler {
                                 player.sendMessage(deserialize(MESSAGES.feedback.warnings.bossDoesntExist, parseContextBuilder.build()));
                                 return TypedActionResult.fail(itemStack);
                             }
-                            queueRaid(boss, player, itemStack.copy(), null);
+                            queueRaid(boss, player, itemStack.copy(), null, null);
                             itemStack.decrement(1);
                             player.sendMessage(deserialize(MESSAGES.feedback.usedVoucher, parseContextBuilder.boss(boss).prioritizeRaid(false).build()));
                         }

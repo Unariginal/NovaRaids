@@ -114,7 +114,7 @@ public class Raid {
 
     private final ParseContext.Builder parseContextBuilder = ParseContext.builder().raid(this);
 
-    public Raid(@NotNull Boss boss, @NotNull String locationId, @Nullable ServerPlayerEntity startingPlayer, @Nullable ItemStack startingItem, @Nullable Boolean requiresPass) {
+    public Raid(@NotNull Boss boss, @NotNull String locationId, @Nullable ServerPlayerEntity startingPlayer, @Nullable ItemStack startingItem, @Nullable Boolean requiresPass, @Nullable CategoryModifier modifier) {
         this.boss = boss;
         parseContextBuilder.boss(boss);
         this.locationId = locationId;
@@ -125,7 +125,11 @@ public class Raid {
         category = Category.getCategory(boss.categoryId);
         if (category != null) {
             parseContextBuilder.category(category);
-            modifier = CategoryModifier.getRandomModifier(category.categoryId);
+            if (modifier != null && category.modifiers.keySet().stream().anyMatch(id -> id.equalsIgnoreCase(modifier.modifierId))) {
+                this.modifier = modifier;
+            } else {
+                this.modifier = CategoryModifier.getRandomModifier(category.categoryId);
+            }
             parseContextBuilder.modifier(modifier);
             minPlayers = category.raidDetails.minPlayerCount;
             maxPlayers = category.raidDetails.maxPlayerCount;
