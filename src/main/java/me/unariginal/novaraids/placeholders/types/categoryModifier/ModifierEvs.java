@@ -1,5 +1,6 @@
 package me.unariginal.novaraids.placeholders.types.categoryModifier;
 
+import com.cobblemon.mod.common.api.pokemon.stats.Stat;
 import com.cobblemon.mod.common.api.pokemon.stats.Stats;
 import me.unariginal.novaraids.data.categories.modifiers.CategoryModifier;
 import me.unariginal.novaraids.placeholders.interfaces.CategoryModifierPlaceholder;
@@ -11,9 +12,13 @@ public class ModifierEvs implements CategoryModifierPlaceholder {
     @Override
     public GenericResult handle(CategoryModifier modifier, List<String> args) {
         if (args.isEmpty()) return GenericResult.invalid("Invalid stat key");
-        String stat = args.getFirst();
+        String statStr = args.getFirst();
 
-        Integer ev = modifier.bossPokemonModifiers.evsModifier.get(Stats.valueOf(stat.toUpperCase()));
+        Stat stat = Stats.Companion.getStat(statStr);
+        if (Stats.Companion.getPERMANENT().stream().noneMatch(perm -> perm.getShowdownId().equalsIgnoreCase(stat.getShowdownId()))) {
+            return GenericResult.invalid("Invalid stat key");
+        }
+        Integer ev = modifier.bossPokemonModifiers.evsModifier.get(stat);
         if (ev == null) return GenericResult.invalid("Invalid stat key");
         return GenericResult.valid(ev);
     }
