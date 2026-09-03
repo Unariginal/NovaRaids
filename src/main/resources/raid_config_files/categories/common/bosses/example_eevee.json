@@ -206,7 +206,7 @@
             "place": "1",
             "require_damage": true,
             "allow_other_rewards": false,
-            "override_category_placement": true
+            "override_category_reward": true
           }
         ],
         "rewards": {

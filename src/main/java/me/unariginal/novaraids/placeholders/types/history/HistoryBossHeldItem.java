@@ -14,6 +14,6 @@ public class HistoryBossHeldItem implements RaidHistoryPlaceholder {
 
     @Override
     public List<String> id() {
-        return List.of("history_boss_scale");
+        return List.of("history_boss_held_item");
     }
 }
