@@ -43,7 +43,7 @@ public class TextUtils {
 
     public static String parse(String text, ParseContext parseContext) {
         if (CONFIG.usePlaceholderApi && usingPlaceholderAPI) text = placeholderAPIService.parse(text, parseContext);
-        if (usingMiniPlaceholders) text = miniPlaceholdersService.parse(text, parseContext.getPlayer(), parseContext.getRaidHistory());
+//        if (usingMiniPlaceholders) text = miniPlaceholdersService.parse(text, parseContext.getPlayer(), parseContext.getRaidHistory());
 
         text = parse(text);
         if (parseContext.getRaid() != null) text = parse(text, parseContext.getRaid());
