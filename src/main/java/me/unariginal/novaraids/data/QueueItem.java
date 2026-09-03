@@ -10,6 +10,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
+import static me.unariginal.novaraids.NovaRaids.logInfo;
+
 public class QueueItem {
     public final UUID uuid = UUID.randomUUID();
     public Boss boss;
@@ -33,6 +35,7 @@ public class QueueItem {
     public boolean startRaid() {
         ServerPlayerEntity player = null;
         if (startingPlayerUuid != null) player = NovaRaids.INSTANCE.server.getPlayerManager().getPlayer(startingPlayerUuid);
+        logInfo("Player Exists: " + (player != null));
         if (!RaidManager.startRaid(boss, player, startingItem, requirePass, modifier)) {
             cancelItem();
             return false;

@@ -92,6 +92,7 @@ public class RaidManager {
         RaidEvents.RAID_START_EVENT_PRE.invoker().onRaidStartPre(raid);
         activeRaids.put(raid.uuid, raid);
         raidIds.add(raid.uuid);
+        busyLocations.add(raid.location.locationId);
         RaidEvents.RAID_START_EVENT_POST.invoker().onRaidStartPost(raid);
         return true;
     }
@@ -99,6 +100,7 @@ public class RaidManager {
     public static void stopRaid(UUID uuid) {
         Raid raid = activeRaids.get(uuid);
         if (raid == null) return;
+        busyLocations.remove(raid.location.locationId);
         raid.stop();
         removeRaid(uuid);
     }

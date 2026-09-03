@@ -11,10 +11,12 @@ import me.unariginal.novaraids.data.players.PlayerRaidData;
 import me.unariginal.novaraids.placeholders.ParseContext;
 import me.unariginal.novaraids.placeholders.interfaces.*;
 import me.unariginal.novaraids.raid.Raid;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -41,6 +43,17 @@ public class TextUtils {
         return NovaRaids.INSTANCE.audience.toNative(MiniMessage.miniMessage().deserialize(text));
     }
 
+    public static Component deserializeComponent(String text) {
+        return deserializeComponent(text, ParseContext.builder().build());
+    }
+
+    public static Component deserializeComponent(String text, ParseContext parseContext) {
+        text = parse(text, parseContext);
+        text = "<!i>" + text;
+
+        return MiniMessage.miniMessage().deserialize(text);
+    }
+
     public static String parse(String text, ParseContext parseContext) {
         if (CONFIG.usePlaceholderApi && usingPlaceholderAPI) text = placeholderAPIService.parse(text, parseContext);
 //        if (usingMiniPlaceholders) text = miniPlaceholdersService.parse(text, parseContext.getPlayer(), parseContext.getRaidHistory());
@@ -49,7 +62,7 @@ public class TextUtils {
         if (parseContext.getRaid() != null) text = parse(text, parseContext.getRaid());
         Boss boss = parseContext.getBoss();
         if (boss == null && parseContext.getRaid() != null) boss = parseContext.getRaid().boss;
-        if (boss != null) text = parse(text, boss, parseContext.prioritizeRaid());
+        if (boss != null) text = parse(text, parseContext.getRaid(), boss, parseContext.prioritizeRaid());
         Category category = parseContext.getCategory();
         if (category == null && parseContext.getRaid() != null) category = parseContext.getRaid().category;
         if (category == null && boss != null) category = Category.getCategory(boss.categoryId);
@@ -125,7 +138,7 @@ public class TextUtils {
                 .replace("%category.max_players%", String.valueOf(category.raidDetails.maxPlayerCount));
     }
 
-    public static String parse(String text, Boss boss, boolean prioritizeRaid) {
+    public static String parse(String text, @Nullable Raid raid, Boss boss, boolean prioritizeRaid) {
         Matcher matcher = pattern.matcher(text);
         StringBuilder result = new StringBuilder();
 
@@ -139,7 +152,7 @@ public class TextUtils {
 
             for (BossPlaceholder placeholder : bossPlaceholders) {
                 if (placeholder.id().contains(id)) {
-                    String replacement = placeholder.handle(null, boss, prioritizeRaid, args).string;
+                    String replacement = placeholder.handle(raid, boss, prioritizeRaid, args).string;
                     matcher.appendReplacement(result, Matcher.quoteReplacement(replacement));
                     break;
                 }
