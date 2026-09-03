@@ -27,6 +27,7 @@
   "item_settings": {
     "voucher_settings": {
       "vouchers_enabled": true,
+      "vouchers_join_raids": false,
       "global_choice_voucher": {
         "voucher_item": {
           "id": "minecraft:feather",
