@@ -1,7 +1,6 @@
 package me.unariginal.novaraids.placeholders;
 
 import me.unariginal.novaraids.placeholders.interfaces.*;
-import me.unariginal.novaraids.placeholders.services.MiniPlaceholdersService;
 import me.unariginal.novaraids.placeholders.services.PlaceholderAPIService;
 import me.unariginal.novaraids.placeholders.types.NovaRaidsPrefix;
 import me.unariginal.novaraids.placeholders.types.boss.*;
@@ -13,9 +12,9 @@ import net.fabricmc.loader.api.FabricLoader;
 import java.util.List;
 
 public class PlaceholderManager {
-    public static boolean usingMiniPlaceholders;
+//    public static boolean usingMiniPlaceholders;
     public static boolean usingPlaceholderAPI;
-    public static MiniPlaceholdersService miniPlaceholdersService;
+//    public static MiniPlaceholdersService miniPlaceholdersService;
     public static PlaceholderAPIService placeholderAPIService;
 
     public static final List<ServerPlaceholder> serverPlaceholders = List.of(
@@ -134,13 +133,13 @@ public class PlaceholderManager {
     );
 
     public static void registerPlaceholders() {
-        usingMiniPlaceholders = FabricLoader.getInstance().isModLoaded("miniplaceholders");
-        if (usingMiniPlaceholders) miniPlaceholdersService = new MiniPlaceholdersService();
+//        usingMiniPlaceholders = FabricLoader.getInstance().isModLoaded("miniplaceholders");
+//        if (usingMiniPlaceholders) miniPlaceholdersService = new MiniPlaceholdersService();
         usingPlaceholderAPI = FabricLoader.getInstance().isModLoaded("placeholder-api");
         if (usingPlaceholderAPI) placeholderAPIService = new PlaceholderAPIService();
 
         serverPlaceholders.forEach(placeholder -> {
-            if (usingMiniPlaceholders) miniPlaceholdersService.registerServer(placeholder);
+//            if (usingMiniPlaceholders) miniPlaceholdersService.registerServer(placeholder);
             if (usingPlaceholderAPI) placeholderAPIService.registerServer(placeholder);
         });
 
@@ -157,10 +156,10 @@ public class PlaceholderManager {
         });
 
         raidHistoryPlaceholders.forEach(placeholder -> {
-            if (usingMiniPlaceholders) miniPlaceholdersService.registerRaidHistory(placeholder);
+//            if (usingMiniPlaceholders) miniPlaceholdersService.registerRaidHistory(placeholder);
             if (usingPlaceholderAPI) placeholderAPIService.registerRaidHistory(placeholder);
         });
 
-        if (usingMiniPlaceholders) miniPlaceholdersService.registerBuilder();
+//        if (usingMiniPlaceholders) miniPlaceholdersService.registerBuilder();
     }
 }

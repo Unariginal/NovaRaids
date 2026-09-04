@@ -25,7 +25,7 @@ import static net.minecraft.server.command.CommandManager.literal;
 public class RaidGenerateStatsCommand {
     public static LiteralArgumentBuilder<ServerCommandSource> register() {
         return literal("generatestats")
-                .requires(Permissions.require("novaraids.generatehealth", 4))
+                .requires(Permissions.require("novaraids.generatestats", 4))
                 .then(literal("category")
                         .then(argument("category", StringArgumentType.string())
                                 .suggests(new CategorySuggestions())
