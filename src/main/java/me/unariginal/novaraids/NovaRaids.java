@@ -56,10 +56,12 @@ public class NovaRaids implements ModInitializer {
             CobblemonEventHandler.register();
             new ScheduledBossbarHandler();
 
-            while (PERSISTENT_QUEUE.queue.peek() != null) {
-                PersistentQueue.QueueItemData queueItemData = PERSISTENT_QUEUE.queue.remove();
-                if (!RaidManager.queueRaid(queueItemData)) {
-                    logInfo("Failed to queue raid from file, boss " + queueItemData.boss + " is null!");
+            if (PERSISTENT_QUEUE.queue != null) {
+                while (!PERSISTENT_QUEUE.queue.isEmpty()) {
+                    PersistentQueue.QueueItemData queueItemData = PERSISTENT_QUEUE.queue.poll();
+                    if (!RaidManager.queueRaid(queueItemData)) {
+                        logInfo("Failed to queue raid from file, boss " + queueItemData.boss + " is null!");
+                    }
                 }
             }
         });

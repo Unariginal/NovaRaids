@@ -47,6 +47,9 @@ dependencies {
 
     // Discord Webhook
     modImplementation include("club.minnced:discord-webhooks:${project.discord_webhooks_version}")
+    implementation include("org.json:json:20230618")
+    implementation include("com.squareup.okhttp3:okhttp:4.10.0")
+    implementation include("com.squareup.okio:okio:3.0.0")
 
     // Permissions
     modImplementation include('me.lucko:fabric-permissions-api:0.3.1')
