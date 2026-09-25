@@ -1,12 +1,10 @@
 package me.unariginal.novaraids.config;
 
-import com.google.gson.*;
 import me.unariginal.novaraids.data.Contraband;
 import me.unariginal.novaraids.data.items.Pass;
 import me.unariginal.novaraids.data.items.RaidBall;
 import me.unariginal.novaraids.data.items.Voucher;
 
-import java.io.*;
 import java.util.*;
 
 public class Config {
@@ -27,7 +25,7 @@ public class Config {
         public boolean hideOtherPokemonInRaid = false;
         public boolean reduceLargePokemonSize = true;
         public boolean disableSpawnsInArena = true;
-        public boolean bossesHaveInfinitePP = false;
+        public boolean bossesHaveInfinitePp = false;
         public boolean allowExperienceGain = false;
         public boolean automaticBattles = false;
         public int automaticBattleDelay = 2;

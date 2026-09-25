@@ -231,7 +231,7 @@ public class PokemonDetails {
                 continue;
             }
 
-            if (CONFIG.raidSettings.bossesHaveInfinitePP) pokemon.getMoveSet().setMove(i, moveTemplate.create(10000));
+            if (CONFIG.raidSettings.bossesHaveInfinitePp) pokemon.getMoveSet().setMove(i, moveTemplate.create(10000));
             else pokemon.getMoveSet().setMove(i, moveTemplate.create(moveTemplate.getMaxPp()));
         }
         pokemon.swapHeldItem(heldItem, true, false);

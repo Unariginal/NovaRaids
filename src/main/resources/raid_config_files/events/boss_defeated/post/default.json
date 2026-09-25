@@ -23,8 +23,8 @@
       ],
       "leaderboard_field_layout": {
         "inline": false,
-        "name": "%raid.player.place%. %raid.player%:",
-        "value": "%raid.player.damage% damage"
+        "name": "[%place%%ordinal%] %player%:",
+        "value": "%damage% damage"
       }
     }
   },
@@ -51,8 +51,8 @@
       ],
       "leaderboard_field_layout": {
         "inline": false,
-        "name": "%raid.player.place%. %raid.player%:",
-        "value": "%raid.player.damage% damage"
+        "name": "[%place%%ordinal%] %player%:",
+        "value": "%damage% damage"
       }
     }
   }
